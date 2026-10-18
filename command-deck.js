@@ -1402,6 +1402,21 @@ function initializeFleetFormation(){
       reveal(index+(dx<0?1:-1));
     });
     overlay.addEventListener('pointercancel',()=>{cardSwipe=null;});
+    // 처음 탐색하는 사람을 위해 "왼쪽으로 넘기기" 안내를 한 번만 보여 줍니다. 카드를 한 번 누르거나 8초가 지나면 사라집니다.
+    if(draws.length>1){
+      const HINT_KEY='starfleet-card-swipe-hint-v1';
+      let seen=false;try{seen=localStorage.getItem(HINT_KEY)==='1';}catch{}
+      if(!seen){
+        const hint=document.createElement('div');
+        hint.className='card-swipe-hint';
+        hint.setAttribute('aria-hidden','true');
+        hint.innerHTML='<span class="card-swipe-track"><span class="card-swipe-hand">👆</span></span><b>카드를 왼쪽으로 넘기세요</b><small>넘기면 다음 함선이 나옵니다</small>';
+        overlay.querySelector('.ship-exploration-window')?.append(hint);
+        const dismiss=()=>{hint.remove();clearTimeout(hintTimer);try{localStorage.setItem(HINT_KEY,'1');}catch{}};
+        const hintTimer=setTimeout(dismiss,8000);
+        wrap.addEventListener('pointerdown',dismiss,{once:true});
+      }
+    }
     overlay.querySelector('.ship-explore-again').onclick=()=>startShipExploration(count,true);
     overlay.querySelector('.ship-explore-return').onclick=removeShipExploreOverlay;
     const beginReveal=()=>{if(!overlay.isConnected)return;signal.remove();const revealMain=()=>{wrap.hidden=false;counter.hidden=false;if(count===10){stack.hidden=false;stack.classList.add('stack-active');}reveal(0);};revealMain();};
