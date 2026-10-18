@@ -13,20 +13,29 @@
   // 하단 버튼을 눌러야 하는 단계: 함대관리·함교 메뉴, 출격, 전투 개시
   const TOP_STEP=/^(fleetNav|home[1-5]|sortie[1-5]|prep[1-5]|combat[1-5])$/;
   // 눌러야 할 버튼 위치 (깜빡이는 테두리로 강조)
-  const targetFor=()=>{
+  const pick=selector=>document.querySelector(selector);
+  const targetElement=()=>{
     const step=state.step;
-    if(step==='fleetNav')return '.fixed-nav button[data-screen="collection"]';
-    if(step==='chooseSlot')return '#collection [data-fleet-slot="1"]';
-    if(step==='chooseShip')return '#collection .fleet-ship-choice[data-ship-name="스타 크루저"]';
-    if(/^home[1-5]$/.test(step))return '.fixed-nav button[data-screen="home"]';
-    if(/^sortie[1-5]$/.test(step))return '#home .deck-launch';
-    if(/^prep[1-5]$/.test(step))return '#battle-start';
-    return '';
+    if(step==='fleetNav')return pick('.fixed-nav button[data-screen="collection"]');
+    if(step==='chooseSlot')return pick('#collection [data-fleet-slot="1"]');
+    if(step==='chooseShip')return pick('#collection .fleet-ship-choice[data-ship-name="스타 크루저"]');
+    if(/^home[1-5]$/.test(step))return pick('.fixed-nav button[data-screen="home"]');
+    if(/^sortie[1-5]$/.test(step))return pick('#home .deck-launch');
+    if(/^prep[1-5]$/.test(step))return pick('#battle-start');
+    if(step==='enhance'){
+      // 강화 실행 → 재료 선택 → 함선 강화 버튼 → 함선 상세 → 격납고 → 격납고 안의 스타 크루저 순서로 눌러야 할 곳을 찾습니다.
+      const confirm=pick('.ship-enhancement-confirm:not([disabled])');
+      if(confirm)return confirm;
+      if(pick('#ship-detail-modal .ship-enhancement-dialog:not([hidden])'))return pick('#ship-detail-modal .enhancement-material-option:not([disabled]):not(.selected)');
+      if(pick('#ship-detail-modal:not([hidden])'))return pick('#ship-detail-modal .ship-synthesis button:not([disabled])');
+      if(pick('.formation-panel.fleet-hangar-popup:not([hidden])'))return [...document.querySelectorAll('.owned-ship-choice')].find(card=>card.textContent.includes('스타 크루저'))||null;
+      return pick('.formation-actions button[data-panel="hangar"]');
+    }
+    return null;
   };
   let highlighted=null;
   const highlight=()=>{
-    const selector=active()?targetFor():'';
-    const el=selector?document.querySelector(selector):null;
+    const el=active()?targetElement():null;
     if(el===highlighted)return;
     highlighted?.classList.remove('farah-target-pulse');
     highlighted=el;
@@ -119,6 +128,10 @@
   };
   const allowClick=target=>{
     if(target.closest('.farah-tutorial,.farah-tutorial-chip,.farah-ship-reveal'))return true;
+    // 성급 강화 연출은 어떤 단계에서 끝나도 눌러서 닫을 수 있어야 합니다. (강화가 끝나면 단계가 먼저 바뀌기 때문)
+    if(target.closest('.ascend-overlay'))return true;
+    // 함선 상세 화면은 뒷배경이나 × 버튼으로 닫을 수 있어야 합니다.
+    if(target.closest('#ship-detail-modal .ship-detail-backdrop,#ship-detail-modal .ship-detail-close'))return true;
     const nav=target.closest('.fixed-nav button[data-screen]');
     if(state.step==='profile')return !!target.closest('.captain-select-overlay form')&&!target.closest('[data-captain-close]');
     if(state.step==='fleetNav')return nav?.dataset.screen==='collection';
