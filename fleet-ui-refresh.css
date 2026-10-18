@@ -1,0 +1,426 @@
+/* Unified command-deck, navigation, and hangar interface refresh. */
+
+#command-deck .deck-shortcut{
+  --shortcut-color:#7de7ff;
+  width:78px;height:88px;padding:4px 3px 7px;gap:3px;
+  border:1px solid color-mix(in srgb,var(--shortcut-color) 46%,#223142)!important;
+  border-radius:4px 15px 4px 15px;
+  background:linear-gradient(155deg,#172c3ef2 0%,#08111cef 70%,#030912f7 100%)!important;
+  box-shadow:inset 0 1px #e3f9ff26,inset 0 -10px 18px #0007,0 8px 14px #0008!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 8px);
+  isolation:isolate;overflow:visible;
+}
+#command-deck .deck-shortcut::before{
+  content:"";position:absolute;z-index:-1;inset:4px;
+  border:1px solid color-mix(in srgb,var(--shortcut-color) 24%,transparent);
+  clip-path:inherit;pointer-events:none;
+}
+#command-deck .deck-shortcut::after{
+  content:"";position:absolute;left:13px;right:13px;top:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--shortcut-color),transparent);
+  box-shadow:0 0 8px var(--shortcut-color);pointer-events:none;
+}
+#command-deck .deck-shortcut i{
+  position:relative;width:48px;height:48px;border:0!important;border-radius:0!important;
+  background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--shortcut-color) 24%,transparent),#07131f 68%)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--shortcut-color) 60%,#fff),inset 0 0 16px color-mix(in srgb,var(--shortcut-color) 20%,transparent),0 0 10px color-mix(in srgb,var(--shortcut-color) 28%,transparent)!important;
+  clip-path:polygon(50% 0,92% 23%,92% 72%,50% 100%,8% 72%,8% 23%);
+}
+#command-deck .deck-shortcut i::after{
+  inset:5px;border:1px solid color-mix(in srgb,var(--shortcut-color) 32%,transparent)!important;border-radius:0!important;
+  clip-path:inherit;
+}
+#command-deck .deck-shortcut svg{width:29px;height:29px;stroke-width:1.8;filter:drop-shadow(0 0 5px currentColor)}
+#command-deck .deck-shortcut>span{
+  width:64px;padding:3px 0 2px;border-top:1px solid color-mix(in srgb,var(--shortcut-color) 45%,transparent);
+  color:#eefaff;font-size:12px!important;font-weight:900;letter-spacing:.08em;
+  background:linear-gradient(90deg,transparent,#07131fcc,transparent);
+}
+#command-deck .hangar{--shortcut-color:#72e4ff}
+#command-deck .store{--shortcut-color:#ffcf68}
+#command-deck .research{--shortcut-color:#c696ff}
+#command-deck .events{--shortcut-color:#ff7188}
+#command-deck .warehouse{--shortcut-color:#75e7bd}
+#command-deck .deck-shortcut.events{top:205px;left:15px;right:auto}
+#command-deck .deck-shortcut.hangar{top:310px;right:15px;left:auto;z-index:4}
+#command-deck .deck-shortcut.warehouse{top:415px;right:15px;left:auto}
+#command-deck .deck-shortcut:hover,#command-deck .deck-shortcut:focus-visible{filter:brightness(1.18);outline:1px solid color-mix(in srgb,var(--shortcut-color) 70%,#fff);outline-offset:2px;transform:translateY(-2px)}
+
+.fixed-nav{
+  left:8px!important;right:8px!important;bottom:6px!important;height:82px!important;padding:5px 4px 3px!important;gap:3px!important;
+  border:1px solid #7393af66!important;border-top-color:#b5e7ff99!important;border-radius:9px 9px 4px 4px!important;
+  background:linear-gradient(180deg,#132536f7 0%,#07111dfb 58%,#02070dfd 100%)!important;
+  box-shadow:inset 0 1px #e4f8ff22,inset 0 -10px 20px #0007,0 0 0 1px #0009,0 -8px 24px #0009!important;
+  backdrop-filter:blur(12px)!important;overflow:visible!important;
+}
+.fixed-nav::before{content:"";position:absolute;left:8%;right:8%;top:-2px;height:2px;background:linear-gradient(90deg,transparent,#70dfff,#d8f7ff,#70dfff,transparent);box-shadow:0 0 10px #54d7ff77;pointer-events:none}
+.fixed-nav button{
+  --nav-accent:#71dcff;position:relative;flex:1 1 0!important;width:auto!important;min-width:0!important;height:70px!important;padding:5px 2px 4px!important;gap:2px!important;
+  border:0!important;border-right:1px solid #6d8aa522!important;border-radius:3px 9px 3px 9px!important;
+  background:linear-gradient(160deg,#172b3b99,#07111ba8)!important;color:#8faabd!important;
+  box-shadow:inset 0 1px #ffffff0b!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+}
+.fixed-nav button:nth-child(1){--nav-accent:#66e3ff}.fixed-nav button:nth-child(2){--nav-accent:#79a8ff}.fixed-nav button:nth-child(3){--nav-accent:#ffd26b}.fixed-nav button:nth-child(4){--nav-accent:#b696ff}.fixed-nav button:nth-child(5){--nav-accent:#f08bff}
+.fixed-nav button::after{content:"";position:absolute;left:20%;right:20%;bottom:0;height:2px;background:transparent;box-shadow:none}
+.fixed-nav button .menu-badge{
+  position:relative;width:36px!important;height:36px!important;border:0!important;border-radius:0!important;
+  background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--nav-accent) 22%,transparent),#07121e 70%)!important;
+  color:color-mix(in srgb,var(--nav-accent) 75%,#dffaff)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--nav-accent) 48%,#263849),0 0 8px color-mix(in srgb,var(--nav-accent) 16%,transparent)!important;
+  clip-path:polygon(50% 0,91% 22%,91% 72%,50% 100%,9% 72%,9% 22%);
+}
+.fixed-nav button .menu-badge::before{content:"";position:absolute;inset:4px;border:1px solid color-mix(in srgb,var(--nav-accent) 28%,transparent);clip-path:inherit}
+.fixed-nav button .menu-badge::after{display:none!important}
+.fixed-nav button svg{position:relative;z-index:1;width:24px;height:24px;filter:drop-shadow(0 0 4px currentColor)}
+.fixed-nav .menu-label{font-size:10px!important;line-height:1!important;letter-spacing:.01em!important;color:#9cb2c1!important}
+.fixed-nav button.active{background:linear-gradient(180deg,color-mix(in srgb,var(--nav-accent) 14%,#172b3b),#08121f 72%)!important;color:var(--nav-accent)!important;filter:none}
+.fixed-nav button.active::after{background:linear-gradient(90deg,transparent,var(--nav-accent),transparent);box-shadow:0 0 8px var(--nav-accent)}
+.fixed-nav button.active .menu-badge{transform:translateY(-4px) scale(1.08)!important;color:#fff!important;box-shadow:inset 0 0 0 1px #ecfbffcc,inset 0 0 12px color-mix(in srgb,var(--nav-accent) 42%,transparent),0 0 13px color-mix(in srgb,var(--nav-accent) 68%,transparent)!important}
+.fixed-nav button.active .menu-label{transform:none!important;color:#fff!important;text-shadow:0 0 7px var(--nav-accent)!important}
+
+#collection .formation-actions{margin-top:23px;transform:translateY(10px)}
+#collection .formation-actions button.fleet-hangar-button[data-panel]{
+  min-width:148px!important;min-height:68px!important;height:68px!important;padding:5px 15px 5px 8px!important;display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:10px;
+  border:1px solid #6de3ff!important;border-radius:4px 15px 4px 15px!important;
+  background:transparent!important;
+  color:#eafaff!important;box-shadow:inset 0 1px #ddfaff44,inset 0 0 18px #2ac9ff19,0 0 15px #1faee944!important;
+  clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);
+}
+.formation-actions button.fleet-hangar-button[data-panel]>.fleet-hangar-emblem{scale:1}
+.formation-actions button.fleet-hangar-button[data-panel]>.fleet-hangar-copy{display:grid!important}
+.fleet-hangar-emblem{display:grid;place-items:center;width:45px;height:45px;color:#71e5ff;background:radial-gradient(circle,#1c5570,#071522 72%);box-shadow:inset 0 0 0 1px #8debff,0 0 11px #43d8ff66;clip-path:polygon(50% 0,92% 23%,92% 72%,50% 100%,8% 72%,8% 23%)}
+.fleet-hangar-emblem svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px currentColor)}
+.fleet-hangar-copy{display:grid;text-align:left;line-height:1.05}.fleet-hangar-copy b{font-size:15px;letter-spacing:.12em}.fleet-hangar-copy small{margin-top:5px;color:#6fb8d2;font-size:7px;letter-spacing:.18em}
+#collection .fleet-hangar-button:hover,#collection .fleet-hangar-button:focus-visible{filter:brightness(1.2);outline:2px solid #9bedff;outline-offset:2px;transform:translateY(-2px)}
+
+#collection .formation-panel.fleet-hangar-popup{
+  position:absolute;z-index:30!important;left:8px;right:8px;top:92px;margin:0;max-height:calc(100dvh - 176px);overflow:hidden;
+  padding:0 11px 12px;border:1px solid #6fdaf199;border-radius:4px 15px 4px 15px;
+  background:linear-gradient(150deg,#10283b,#071522 55%,#030b14);box-shadow:0 20px 42px #000d,0 0 24px #31c7ed33,inset 0 1px #d6f8ff2b;
+}
+#collection .formation-panel.fleet-hangar-popup>header{height:48px;border-bottom:1px solid #5f91aa66}
+#collection .formation-panel.fleet-hangar-popup>header h2{padding-left:7px;color:#e9faff;font-size:15px;letter-spacing:.04em}
+#collection .formation-panel.fleet-hangar-popup>header h2::before{content:none}
+#collection .formation-panel.fleet-hangar-popup>header button[aria-label="패널 닫기"]{width:33px;height:33px;border:1px solid #6aa8c355;border-radius:50%;color:#d8f5ff;font-size:21px}
+#collection .fleet-hangar-popup .formation-panel-body{max-height:calc(100dvh - 238px);overflow:auto;padding:13px 1px 2px;scrollbar-width:thin;scrollbar-color:#58c7ed #0c1c30}
+#collection .fleet-hangar-popup .formation-panel-body::-webkit-scrollbar{width:7px}
+#collection .fleet-hangar-popup .formation-panel-body::-webkit-scrollbar-track{background:#0c1c30;border-left:1px solid #1e3f58}
+#collection .fleet-hangar-popup .formation-panel-body::-webkit-scrollbar-thumb{border:1px solid #9beaff;border-radius:8px;background:linear-gradient(180deg,#8feaff,#58c7ed 48%,#247fa6);box-shadow:0 0 7px #58c7ed}
+.hangar-library-tabs{position:relative;z-index:4;display:flex;align-items:flex-end;gap:0;padding:0 8px;margin:0 2px -1px}
+.hangar-library-tabs button{position:relative;flex:1;min-height:50px;margin-right:-2px;padding:8px 5px 9px;border:1px solid #5f8da7;border-bottom-color:#80c8e0;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#254a62,#10263a);color:#a8cddd;transform:translateY(5px);clip-path:polygon(7% 0,93% 0,100% 14%,100% 100%,0 100%,0 14%);cursor:pointer}
+.hangar-library-tabs button:nth-child(2){background:linear-gradient(180deg,#47376f,#201a3d)}
+.hangar-library-tabs button b,.hangar-library-tabs button small{display:block}.hangar-library-tabs button b{font-size:12px;letter-spacing:.04em}.hangar-library-tabs button small{margin-top:3px;color:#92b8c9;font-size:7px;letter-spacing:.12em}
+.hangar-library-tabs button.selected{z-index:5;min-height:55px;transform:none;border-color:#9aeaff;border-bottom-color:transparent;background:linear-gradient(180deg,#247090,#102f49);color:#fff;box-shadow:inset 0 1px #dffaff77,0 -5px 14px #3bcdf055}
+.hangar-library-tabs button.selected::after{content:"";position:absolute;left:8px;right:8px;bottom:-10px;height:13px;background:#102f49;border-left:1px solid #9aeaff;border-right:1px solid #9aeaff;clip-path:polygon(0 0,100% 0,94% 100%,6% 100%)}
+.hangar-library-sheet{position:relative;z-index:2;min-height:274px;margin:0 5px;padding:15px 9px 9px;border:1px solid #72bdd7;border-radius:0 0 10px 10px;background:linear-gradient(138deg,#123248ed,#0a1d30f7 47%,#06121efc);box-shadow:inset 0 1px #d7f8ff20,0 10px 22px #0008}
+.owned-library-summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:4px;padding:0 4px 9px;margin-bottom:9px;border-bottom:1px solid #6ba6bf55}.owned-library-summary b{color:#e8f8ff;font-size:13px}
+.owned-one-star-enhance,.owned-r-two-star-enhance{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-height:26px;padding:4px 5px;border:1px solid #e4b34f;border-radius:6px 10px 6px 10px;background:linear-gradient(135deg,#5b4112,#201606);color:#fff1b4;font-size:8px;font-weight:1000;letter-spacing:.02em;text-shadow:0 0 5px #ffd762;box-shadow:inset 0 1px #fff7ba77,0 0 8px #e5ab3d55;white-space:nowrap}.owned-one-star-enhance:hover,.owned-one-star-enhance:focus-visible,.owned-r-two-star-enhance:hover,.owned-r-two-star-enhance:focus-visible{filter:brightness(1.18);outline:1px solid #ffe69b;outline-offset:1px}.owned-r-two-star-enhance{border-color:#51b9ff;background:linear-gradient(155deg,#c4f7ff 0%,#3bc9ec 18%,#087d9e 50%,#06384d 100%);color:#edfcff;text-shadow:0 1px 2px #06384d,0 0 6px #62e9ff;box-shadow:inset 0 1px #f1ffffaa,inset 0 -2px #052c3f99,0 0 8px #42caff77}.owned-r-two-star-enhance:hover,.owned-r-two-star-enhance:focus-visible{outline-color:#baf6ff}.owned-one-star-badge{display:inline-grid;place-items:center;width:13px;height:13px;color:#fff6bc;font-size:12px;line-height:1;background:linear-gradient(180deg,#fffbd0,#ffd45d 48%,#b46b0c);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 3px #ffd762)}
+.owned-bulk-no-material{position:fixed;left:50%;top:50%;z-index:100000;transform:translate(-50%,-100%);padding:4px 8px;border:1px solid #8edcf4;border-radius:5px 8px 5px 8px;background:linear-gradient(145deg,#14364b,#071522);color:#dffaff;font-size:9px;font-weight:900;line-height:1.2;white-space:nowrap;text-shadow:0 0 5px #57dfff;box-shadow:0 0 10px #4dcdf777;pointer-events:none;animation:owned-no-material-pop 1s ease both}.owned-bulk-no-material::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#8edcf4}@keyframes owned-no-material-pop{0%{opacity:0;translate:0 4px}12%,82%{opacity:1;translate:0 0}100%{opacity:0;translate:0 -2px}}
+.one-star-enhancement-result{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:18px;background:#020812dc;backdrop-filter:blur(5px);cursor:pointer;animation:one-star-result-in .2s ease-out}.one-star-enhancement-result-panel{width:min(100%,560px);max-height:min(82vh,720px);overflow:auto;padding:20px 16px 14px;border:1px solid #e4b34f;border-radius:16px;background:linear-gradient(145deg,#17364a,#071321 62%,#101b2a);box-shadow:inset 0 1px #fff5bd44,0 0 28px #ffd05a44,0 18px 54px #000b;text-align:center;color:#effaff}.one-star-enhancement-result-panel h2{margin:0;color:#ffe99a;font-size:20px;text-shadow:0 0 12px #ffcc46aa}.one-star-enhancement-result-panel>p{margin:7px 0 15px;color:#c9e6f2;font-size:12px}.one-star-enhancement-result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.one-star-enhancement-result-item{display:grid;justify-items:center;gap:5px;min-width:0;padding:8px 5px;border:1px solid #83cce155;border-radius:9px;background:#05101dd9}.one-star-enhancement-result-image{position:relative;display:grid;place-items:center;width:68px;height:76px;overflow:hidden;border:1px solid #f4d270;border-radius:8px;background:linear-gradient(155deg,#20394b,#080e17);box-shadow:0 0 10px #ffdb7155}.one-star-enhancement-result-image img{width:100%;height:100%;object-fit:contain}.one-star-enhancement-result-image i{font-style:normal;font-size:30px;color:#9deaff}.one-star-enhancement-result-image b{position:absolute;right:3px;top:2px;color:#ffe680;font-size:13px;text-shadow:0 0 5px #ffbd30}.one-star-enhancement-result-item strong{max-width:100%;overflow:hidden;color:#f4fbff;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.one-star-enhancement-result-item small{color:#f4d77c;font-size:8px}.one-star-enhancement-result-hint{display:block;margin-top:13px;color:#a9c2d0;font-size:9px}@keyframes one-star-result-in{from{opacity:0}to{opacity:1}}
+.owned-sort-toggle{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:24px;padding:4px 7px;border:1px solid #75bad255;border-radius:12px;background:transparent;color:#9ec8d8;font-size:8px;font-weight:800;letter-spacing:.02em;box-shadow:inset 0 0 8px #5fd9ff0d;white-space:nowrap}.owned-sort-toggle span{color:#5fdfff;font-size:11px;line-height:1}.owned-sort-toggle:hover,.owned-sort-toggle:focus-visible{border-color:#8be8ff;background:#4bd7ff0d;color:#e9fbff;box-shadow:0 0 9px #48d4ff33;outline:none}
+.owned-ship-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.owned-ship-choice{cursor:pointer!important}.owned-ship-choice:hover,.owned-ship-choice:focus-visible{border-color:#d9faff!important;filter:brightness(1.12);box-shadow:0 0 12px #63dcff66!important;outline:none}.owned-ship-choice img,.owned-ship-choice i{height:58px!important}
+.owned-ship-name{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;max-width:100%;white-space:nowrap}.owned-ship-count{display:inline-block;color:#ffe58a;font-size:9px;font-style:normal;font-weight:1000;line-height:1.15;background:linear-gradient(180deg,#fffbd2 0%,#ffd85c 38%,#c47a12 70%,#fff0a0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 4px #ffc94f99;filter:drop-shadow(0 1px 1px #4a2600);animation:owned-count-shine 1.9s ease-in-out infinite}@keyframes owned-count-shine{0%,100%{filter:brightness(.95) drop-shadow(0 1px 1px #4a2600)}50%{filter:brightness(1.45) drop-shadow(0 0 4px #ffe79a)}}
+.owned-library-empty{min-height:155px;display:grid;place-items:center;margin:0;padding:24px 12px;color:#94b9c9;font-size:11px;line-height:1.7;text-align:center}
+.owned-ship-choice img[src*="dreadnought-colossus-codex"],.owned-ship-choice img[src*="destroyer-pegasus-codex"],.owned-ship-choice img[src*="frigate-science-drone-codex"],.owned-ship-choice img[src*="garuda-codex"],.owned-ship-choice img[src*="frigate-littleboy-codex"],.owned-ship-choice img[src*="battlecruiser-codex"]{object-fit:contain!important;object-position:center!important;padding:3px!important;box-sizing:border-box!important;transform:scale(.94)!important;transform-origin:center!important}
+.codex-library-sheet{padding-top:10px}
+.fleet-hangar-popup .codex-library-sheet .codex-categories{padding-top:2px}
+
+#ship-detail-modal .owned-detail-nav{display:none;position:fixed;z-index:5;top:50%;width:38px;height:92px;padding:0;border:0;background:transparent;color:#ff9b32;font-size:34px;font-weight:400;line-height:1;text-shadow:0 0 3px #fff1c2,0 0 9px #ff9b32,0 0 18px #ff6200,0 0 28px #d83a00;box-shadow:none;transform:translateY(-50%);cursor:pointer}
+#ship-detail-modal.owned-detail-mode .owned-detail-nav{display:grid;place-items:center}
+#ship-detail-modal.codex-detail-mode .owned-detail-nav{display:grid;place-items:center}
+#ship-detail-modal .owned-detail-prev{left:max(5px,calc(50% - 205px))}
+#ship-detail-modal .owned-detail-next{right:max(5px,calc(50% - 205px))}
+#ship-detail-modal .owned-detail-nav:hover,#ship-detail-modal .owned-detail-nav:focus-visible{color:#ffc16e;background:transparent;text-shadow:0 0 4px #fff,0 0 11px #ffad45,0 0 23px #ff6b00,0 0 34px #e33b00;box-shadow:none;outline:1px dashed #ff9b3266;outline-offset:-4px;transform:translateY(-50%) scale(1.12)}
+.ship-detail-card.codex-slide-from-right{animation:codex-detail-slide-in-right .24s ease-out}
+.ship-detail-card.codex-slide-from-left{animation:codex-detail-slide-in-left .24s ease-out}
+.ship-detail-card{touch-action:pan-y}
+@keyframes codex-detail-slide-in-right{from{opacity:.72;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
+@keyframes codex-detail-slide-in-left{from{opacity:.72;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
+
+/* Legend reference: near-black obsidian with a very restrained antique-gold glint. */
+.codex-ship-card .rarity-badge.rarity-L,
+.fleet-ship-choice .rarity-badge.rarity-L{
+  border-color:#686057!important;
+  background:linear-gradient(145deg,#171614 0%,#030303 48%,#11100d 100%)!important;
+  color:#e6c87f!important;
+  text-shadow:0 0 2px #fff1b0,0 0 5px #c18b35!important;
+  box-shadow:inset 0 1px #fff1c222,inset 0 0 8px #a57c3419,0 0 5px #060606!important;
+  animation:legend-obsidian-glint 3.2s ease-in-out infinite!important;
+}
+.ship-detail-rarity.rarity-L{
+  border-color:#756b5d!important;
+  background:linear-gradient(145deg,#191816 0%,#030303 48%,#11100d 100%)!important;
+  box-shadow:inset 0 1px #fff4cd26,inset 0 0 16px #a57c3420,0 0 9px #080808!important;
+  animation:legend-obsidian-glint 3.2s ease-in-out infinite!important;
+}
+.ship-detail-rarity.rarity-L::after{
+  background-image:linear-gradient(45deg,#443a29 0%,#c6a45d 28%,#fff3c9 46%,#c6a45d 61%,#3c3327 100%)!important;
+  background-size:260% 260%!important;
+}
+@keyframes legend-obsidian-glint{
+  0%,100%{filter:brightness(.88);border-color:#4f4941}
+  50%{filter:brightness(1.18);border-color:#b49a67}
+}
+
+/* L-grade insignia: transparent red Legend mark, with its sheen travelling across the mark only. */
+.codex-ship-card .rarity-badge.rarity-L,
+.fleet-ship-choice .rarity-badge.rarity-L{
+  width:20px!important;height:19px!important;min-width:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent url('legend-badge-transparent.png') center/contain no-repeat!important;
+  box-shadow:none!important;color:transparent!important;font-size:0!important;text-shadow:none!important;
+  filter:drop-shadow(0 0 2px #fff0f0) drop-shadow(0 0 4px #ff2843) drop-shadow(0 0 8px #bb001e)!important;
+  animation:none!important;isolation:isolate;overflow:visible;
+}
+.ship-detail-rarity.rarity-L{
+  width:69px!important;height:65px!important;min-width:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  background:transparent url('legend-badge-transparent.png') center/contain no-repeat!important;
+  box-shadow:none!important;color:transparent!important;font-size:0!important;text-shadow:none!important;
+  filter:drop-shadow(0 0 3px #fff0f0) drop-shadow(0 0 7px #ff2843) drop-shadow(0 0 14px #bb001e)!important;
+  animation:none!important;isolation:isolate;overflow:visible;
+}
+.codex-ship-card .rarity-badge.rarity-L::before,
+.fleet-ship-choice .rarity-badge.rarity-L::before,
+.ship-detail-rarity.rarity-L::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(45deg,transparent 32%,#fff2 44%,#fff 50%,#fff2 56%,transparent 68%);
+  background-size:270% 270%;background-position:180% 180%;
+  -webkit-mask:url('legend-badge-transparent.png') center/contain no-repeat;
+  mask:url('legend-badge-transparent.png') center/contain no-repeat;
+  mix-blend-mode:screen;animation:legend-mark-sheen 2.9s linear infinite;
+}
+.ship-detail-rarity.rarity-L::after{content:""!important;display:none!important}
+@keyframes legend-mark-sheen{from{background-position:180% 180%}to{background-position:-110% -110%}}
+
+/* SSR keeps its gold hue, but uses the same transparent, illuminated insignia treatment. */
+.codex-ship-card .rarity-badge.rarity-SSR,
+.fleet-ship-choice .rarity-badge.rarity-SSR{
+  top:3px!important;right:3px!important;min-width:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:linear-gradient(45deg,#9d600b 0%,#ffd46c 33%,#fff8d8 50%,#ffd46c 66%,#9d600b 100%)!important;
+  background-size:270% 270%!important;-webkit-background-clip:text!important;background-clip:text!important;
+  color:transparent!important;font-size:11px!important;font-weight:1000!important;letter-spacing:.04em!important;text-shadow:none!important;
+  box-shadow:none!important;filter:drop-shadow(0 0 2px #fff3c1) drop-shadow(0 0 4px #ffbf35) drop-shadow(0 0 8px #bd7200)!important;
+  animation:ssr-mark-sheen 2.9s linear infinite!important;
+}
+.ship-detail-rarity.rarity-SSR{
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  filter:drop-shadow(0 0 3px #fff3c1) drop-shadow(0 0 7px #ffbf35) drop-shadow(0 0 14px #bd7200)!important;
+}
+.ship-detail-rarity.rarity-SSR::after{background-size:270% 270%!important;animation:ssr-mark-sheen 2.9s linear infinite!important}
+@keyframes ssr-mark-sheen{from{background-position:180% 180%}to{background-position:-110% -110%}}
+
+/* Detail-card close control: keep only the white X visible, enlarged by 50%. */
+#ship-detail-modal .ship-detail-close{
+  width:32px!important;height:32px!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  color:#fff!important;font-size:34px!important;font-weight:400!important;line-height:32px!important;
+  text-shadow:none!important;box-shadow:none!important;opacity:1!important;
+}
+#ship-detail-modal .ship-detail-close:hover,#ship-detail-modal .ship-detail-close:focus-visible{
+  border:0!important;background:transparent!important;color:#fff!important;
+  text-shadow:0 0 2px #fff!important;outline:1px solid #ffffff55;outline-offset:2px;
+}
+
+/* Construction drone has a tall, square source canvas; contain it in both card contexts. */
+.codex-ship-card img[src*="frigate-construction-drone-codex"],
+.fleet-ship-choice img[src*="frigate-construction-drone-codex"]{
+  object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important;
+}
+#ship-detail-modal .ship-detail-image img[src*="frigate-construction-drone-codex"]{
+  width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;
+  transform:translateY(-22%) scale(.627);transform-origin:center;
+}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-assault-turtle-ship-codex"]{
+  object-fit:contain!important;object-position:center!important;transform:translateY(-5%);transform-origin:center;
+}
+
+/* Enlarge only the art fields of the specified ships; their hull render scale stays visually unchanged. */
+.codex-ship-card img[src*="carrier-codex"],.codex-ship-card img[src*="hyperion-codex"],.codex-ship-card img[src*="dreadnought-colossus-codex"],.codex-ship-card img[src*="destroyer-pegasus-codex"],.codex-ship-card img[src*="frigate-science-drone-codex"],.codex-ship-card img[src*="battlecruiser-codex"],.codex-ship-card img[src*="frigate-littleboy-codex"]{
+  height:72px!important;object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important;transform:scale(.86)!important;transform-origin:center;
+}
+.fleet-ship-choice img[src*="carrier-codex"],.fleet-ship-choice img[src*="hyperion-codex"],.fleet-ship-choice img[src*="dreadnought-colossus-codex"],.fleet-ship-choice img[src*="destroyer-pegasus-codex"],.fleet-ship-choice img[src*="frigate-science-drone-codex"],.fleet-ship-choice img[src*="battlecruiser-codex"],.fleet-ship-choice img[src*="frigate-littleboy-codex"]{
+  height:55px!important;object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important;transform:scale(.85)!important;transform-origin:center;
+}
+.owned-ship-choice img[src*="carrier-codex"],.owned-ship-choice img[src*="hyperion-codex"],.owned-ship-choice img[src*="dreadnought-colossus-codex"],.owned-ship-choice img[src*="destroyer-pegasus-codex"],.owned-ship-choice img[src*="frigate-science-drone-codex"],.owned-ship-choice img[src*="battlecruiser-codex"],.owned-ship-choice img[src*="frigate-littleboy-codex"]{
+  height:68px!important;object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important;transform:scale(.85)!important;transform-origin:center;
+}
+#ship-detail-modal .ship-detail-image:has(img[src*="carrier-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="hyperion-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="dreadnought-colossus-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="destroyer-pegasus-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="frigate-science-drone-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="battlecruiser-codex"]),#ship-detail-modal .ship-detail-image:has(img[src*="frigate-littleboy-codex"]){height:196px!important;min-height:196px!important}
+#ship-detail-modal .ship-detail-image img[src*="dreadnought-colossus-codex"],#ship-detail-modal .ship-detail-image img[src*="destroyer-pegasus-codex"],#ship-detail-modal .ship-detail-image img[src*="frigate-science-drone-codex"],#ship-detail-modal .ship-detail-image img[src*="frigate-littleboy-codex"]{transform:scale(.88)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="carrier-codex"],#ship-detail-modal .ship-detail-image img[src*="hyperion-codex"]{transform:scale(.76)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-codex"]{transform:translateY(-18%) scale(.69)!important;transform-origin:center}
+
+/* Omega and Pojagseon retain their full silhouette in all catalogue and detail views. */
+.codex-ship-card img[src*="destroyer-omega-codex"],.codex-ship-card img[src*="frigate-pojagseon-codex"],.fleet-ship-choice img[src*="destroyer-omega-codex"],.fleet-ship-choice img[src*="frigate-pojagseon-codex"],.owned-ship-choice img[src*="destroyer-omega-codex"],.owned-ship-choice img[src*="frigate-pojagseon-codex"]{object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important}
+#ship-detail-modal .ship-detail-image img[src*="destroyer-omega-codex"]{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;transform:translateY(-10%) scale(.817);transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-pojagseon-codex"]{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;transform:scale(.86);transform-origin:center}
+
+.codex-ship-card img[src*="destroyer-planet-destroyer-codex"],
+.fleet-ship-choice img[src*="destroyer-planet-destroyer-codex"],
+.owned-ship-choice img[src*="destroyer-planet-destroyer-codex"]{object-fit:contain!important;object-position:center!important;padding:2px!important;box-sizing:border-box!important}
+#ship-detail-modal .ship-detail-image img[src*="destroyer-planet-destroyer-codex"]{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+
+/* 격납고 공격 정보와 함선 합성 단계 */
+.ship-portrait{position:relative;display:block;width:100%;height:62px;overflow:hidden;line-height:0;border-radius:4px;background:radial-gradient(ellipse at 50% 42%,#28516b 0%,#132f46 52%,#0a1929 100%);box-shadow:inset 0 0 14px #5edcff20}
+.ship-portrait img,.ship-portrait .codex-card-placeholder{width:100%;height:100%!important;box-sizing:border-box}
+.codex-ship-card .ship-portrait img{object-fit:contain!important;object-position:center!important;background:transparent!important;border-radius:4px}
+.codex-ship-card .ship-portrait .codex-card-placeholder{background:transparent!important}
+.fleet-ship-choice .ship-portrait{height:47px}
+.owned-ship-choice .ship-portrait{height:58px}
+/* 목록 초상화도 상세 카드와 같은 등급별 배경을 사용한다. */
+.owned-ship-grid,.codex-card-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.codex-ship-card.rarity-card-L .ship-portrait,.fleet-ship-choice.rarity-card-L .ship-portrait{background:linear-gradient(145deg,#7b2435,#3a0d1c 52%,#160711);box-shadow:inset 0 0 15px #ff718766,0 0 7px #ff294b44}
+.codex-ship-card.rarity-card-SSR .ship-portrait,.fleet-ship-choice.rarity-card-SSR .ship-portrait{background:linear-gradient(145deg,#fff08a,#d99b18 52%,#55330b);box-shadow:inset 0 0 15px #ffe08a88,0 0 7px #e4a72d66}
+.codex-ship-card.rarity-card-SR .ship-portrait,.fleet-ship-choice.rarity-card-SR .ship-portrait{background:radial-gradient(circle at 50% 40%,#7137a8,#3a1a5c 60%,#160d28);box-shadow:inset 0 0 15px #d58bff66,0 0 7px #b653ff55}
+.codex-ship-card.rarity-card-R .ship-portrait,.fleet-ship-choice.rarity-card-R .ship-portrait{background:radial-gradient(circle at 50% 42%,#47f4e8,#087d82 58%,#06383f);box-shadow:inset 0 0 14px #8ffdf477,0 0 7px #55d9ff44}
+/* 우주항모만 목록 초상화의 등급 배경을 제거해 원본 함선 이미지와 직접 비교할 수 있게 한다. */
+.codex-ship-card.carrier-card .ship-portrait{background:transparent!important;box-shadow:none!important}
+.codex-ship-card.carrier-card .ship-portrait img{background:transparent!important}
+/* 우주항모 목록 초상화만 12시 방향으로 5% 보정 */
+.codex-ship-card.carrier-card .ship-portrait img{transform:translate(0%,-6%) scale(.976,.903)!important;transform-origin:center}
+/* 우주항모는 실루엣을 변형하지 않고 초상화 배경 캔버스만 좌측으로 2% 확장 */
+.codex-ship-card.carrier-card .ship-portrait{background-size:102% 100%!important;background-position:left center!important;background-repeat:no-repeat!important}
+/* 히페리온에도 우주항모와 동일한 목록 초상화 보정값 적용 */
+.codex-ship-card.hyperion-card .ship-portrait{background:transparent!important;box-shadow:none!important;background-size:102% 100%!important;background-position:left center!important;background-repeat:no-repeat!important}
+.codex-ship-card.hyperion-card .ship-portrait img{background:transparent!important;transform:translate(0%,-6%) scale(.976,.903)!important;transform-origin:center}
+/* 콜로서스와 페가수스에도 동일한 목록 초상화 보정값 적용 */
+.codex-ship-card.colossus-card .ship-portrait,.codex-ship-card.pegasus-card .ship-portrait{background-size:102% 100%!important;background-position:left center!important;background-repeat:no-repeat!important}
+.codex-ship-card.colossus-card .ship-portrait img,.codex-ship-card.pegasus-card .ship-portrait img{background:transparent!important;transform:translate(0%,-6%) scale(.976,.903)!important;transform-origin:center}
+:root{--ship-star-metal:linear-gradient(180deg,#fffef3 0%,#fff5be 16%,#ffd661 34%,#a66811 49%,#fff0aa 62%,#d49421 79%,#76440a 100%)}
+.ship-enhancement-stars{position:absolute;z-index:6;left:50%;bottom:2px;transform:translateX(-50%);padding:1px 4px;border-radius:8px;background:var(--ship-star-metal);-webkit-background-clip:text;background-clip:text;color:#ffe29b;-webkit-text-fill-color:transparent;font-size:10px;font-weight:900;line-height:1.1;letter-spacing:1px;white-space:nowrap;text-shadow:none;filter:drop-shadow(0 0 2px #ffe28a) drop-shadow(0 1px 1px #39210b);pointer-events:none}
+.ship-enhancement-stars em{font-size:8px;font-style:normal}
+.codex-ship-card .ship-type-attack,.fleet-ship-choice .ship-type-attack{display:block;min-height:12px;margin-top:3px;color:#f3fbff;font-size:8px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owned-ship-choice .ship-combat-summary,.codex-ship-card .ship-combat-summary{display:block;min-height:11px;margin-top:2px;color:#c5e0ea!important;font-size:8px!important;font-weight:700;line-height:1.25!important;white-space:normal!important}
+#ship-detail-modal .ship-detail-image{position:relative}
+#ship-detail-modal .ship-enhancement-stars.detail-stars{left:auto;right:8px;bottom:8px;transform:none;padding:4px 7px;font-size:18px;letter-spacing:2px}
+.one-star-enhancement-result-image b,.owned-one-star-badge{background:var(--ship-star-metal);-webkit-background-clip:text;background-clip:text;color:#ffe29b;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 2px #ffe28a) drop-shadow(0 1px 1px #39210b)}
+#ship-detail-modal .ship-detail-class{display:none!important}
+#ship-detail-modal .ship-detail-card h2{margin:7px 0 6px!important;padding-bottom:0!important}
+#ship-detail-modal .ship-detail-card .ship-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#ship-detail-modal .ship-detail-card .ship-detail-stats div:nth-child(1),#ship-detail-modal .ship-detail-card .ship-detail-stats div:nth-child(4){grid-column:1/-1!important}
+#ship-detail-modal .ship-detail-card .ship-detail-stats div:nth-child(2) span,#ship-detail-modal .ship-detail-card .ship-detail-stats div:nth-child(3) span{font-size:23px!important;font-weight:700;line-height:1.2}
+/* 상세정보 함선별 초상화 미세 보정 */
+#ship-detail-modal .ship-detail-image img[src*="dreadnought-nimitz-codex"]{transform:translateY(-3%) scale(.97)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-assault-turtle-ship-codex"]{transform:translateY(-7%) scale(1)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-bangpaeseon-codex"]{transform:scale(.95)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="dreadnought-turtle-ship-codex"]{transform:translateY(-17%) scale(.7938)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-turtle-ship-codex"]{transform:translateY(-3%) scale(1)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-"]{transform:scale(.9)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-bangpaeseon-codex"]{transform:scale(.95)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-pojagseon-codex"]{transform:translateY(-3%) scale(.817)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="fury-codex"]{transform:translateY(-5%) scale(.95)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-codex"]{transform:translateY(-13%) scale(.7245)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="destroyer-omega-codex"]{transform:translateY(-14%) scale(.7605)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-iowa-codex"]{transform:translateY(-2%) scale(.97)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="battlecruiser-apocalypse-codex"]{transform:translateY(-4%) scale(.9506)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="destroyer-uranus-codex"]{transform:translateY(-3%) scale(.97)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-construction-drone-codex"]{transform:translateY(-22%) scale(.596)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-science-drone-codex"],#ship-detail-modal .ship-detail-image img[src*="frigate-littleboy-codex"]{transform:scale(.792)!important;transform-origin:center}
+#ship-detail-modal .ship-detail-image img[src*="frigate-science-drone-codex"]{transform:translateY(-10%) scale(.792)!important;transform-origin:center}
+#ship-detail-modal .ship-synthesis{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}
+#ship-detail-modal .ship-synthesis button{padding:6px 9px;border:1px solid #e8c25f;border-radius:7px;background:#533d13;color:#fff4c5;font-size:10px;font-weight:800;cursor:pointer}
+#ship-detail-modal .ship-synthesis button:disabled{border-color:#4a6573;background:#1a2b35;color:#8398a0;cursor:not-allowed}
+#ship-detail-modal .ship-enhancement-dialog{position:absolute;z-index:9;inset:54px 10px auto;padding:14px;border:1px solid #f0ca69;border-radius:12px;background:linear-gradient(145deg,#2c210df8,#0b1824fb);box-shadow:0 12px 32px #000c,0 0 20px #ffcf5855;color:#fff5d2}
+#ship-detail-modal .ship-enhancement-dialog[hidden]{display:none}
+#ship-detail-modal .ship-enhancement-dialog-copy{display:grid;gap:6px}
+#ship-detail-modal .ship-enhancement-dialog-copy b{font-size:16px;color:#ffe496}
+#ship-detail-modal .ship-enhancement-dialog-copy small{color:#c7dbe7;font-size:10px}
+#ship-detail-modal .ship-enhancement-dialog-copy span{font-size:11px;color:#effbff}
+#ship-detail-modal .ship-enhancement-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
+#ship-detail-modal .ship-enhancement-actions button{padding:7px 9px;border:1px solid #577c91;border-radius:7px;background:#183449;color:#e8f9ff;font-size:10px;font-weight:800}
+#ship-detail-modal .ship-enhancement-actions .ship-enhancement-confirm{border-color:#e8c25f;background:#614615;color:#fff5c6}
+#ship-detail-modal .ship-enhancement-actions .ship-enhancement-confirm:disabled{border-color:#49616c;background:#192630;color:#889ba3}
+
+@media(max-width:380px){
+  #command-deck .deck-shortcut{width:72px}
+  .fixed-nav{left:4px!important;right:4px!important}
+  .fixed-nav .menu-label{font-size:9px!important}
+  #collection .formation-panel.fleet-hangar-popup{left:5px;right:5px}
+  #ship-detail-modal .owned-detail-nav{width:30px;height:76px;font-size:25px}
+}
+#collection .formation-actions button.fleet-hangar-button[data-panel]{border:1px solid #6ad9ff!important;border-radius:14px!important;background:linear-gradient(135deg,#153d59,#13233f 58%,#2a1f45)!important;box-shadow:inset 0 1px #bff5ff55,0 0 12px #39cfff38,0 4px #0b1528!important;clip-path:none!important}
+
+/* Reworked enhancement panel: current ship left, selectable materials right. */
+#ship-detail-modal .ship-enhancement-dialog{inset:8px!important;padding:14px!important;overflow:auto;border:1px solid #f0ca69;background:linear-gradient(145deg,#2c210df8,#0b1824fb);box-shadow:0 12px 32px #000c,0 0 20px #ffcf5855;color:#fff5d2}
+#ship-detail-modal .enhancement-title{margin:0 0 12px;text-align:center;color:#ffe496;font-size:20px;letter-spacing:.08em;text-shadow:0 0 12px #ffcf58}
+#ship-detail-modal .enhancement-preview-row{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);align-items:center;gap:7px}
+#ship-detail-modal .enhancement-preview{display:grid;justify-items:center;gap:5px;min-width:0;text-align:center}.enhancement-preview>b{max-width:100%;overflow:hidden;color:#effbff;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.enhancement-arrow{color:#ffd96b;font-size:19px;text-align:center}
+#ship-detail-modal .enhancement-portrait,#ship-detail-modal .enhancement-material-slot{position:relative;display:grid;place-items:center;width:100%;height:112px;overflow:hidden;border:1px solid #6ca1b7;border-radius:8px;background:radial-gradient(ellipse,#1e557366,#07121f);box-shadow:inset 0 0 12px #57dfff22}
+#ship-detail-modal .enhancement-portrait img,#ship-detail-modal .enhancement-material-slot img{width:100%;height:100%;object-fit:contain}.enhancement-portrait .ship-enhancement-stars{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);z-index:2;font-size:11px;white-space:nowrap}
+#ship-detail-modal .enhancement-material-slots{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:6px}.enhancement-material-slot{padding:5px;color:#e7faff;cursor:pointer}.enhancement-material-slot span{font-size:11px;color:#9fbdd0}.enhancement-material-slot b{position:absolute;bottom:17px;max-width:95%;overflow:hidden;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.enhancement-material-slot small{position:absolute;bottom:4px;color:#ffe08a;font-size:8px}.enhancement-material-slot.filled{border-color:#e6c45e;box-shadow:inset 0 0 14px #ffca4933,0 0 9px #ffca4933}
+#ship-detail-modal .enhancement-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.enhancement-status-grid section{padding:8px;border:1px solid #3d6a86;border-radius:7px;background:#0c2033}.enhancement-status-grid h4{margin:0 0 6px;color:#9fbdd0;font-size:10px;text-align:center;letter-spacing:.08em}.enhancement-status-grid section:nth-child(2){border-color:#5a9b63;background:#102a22}.enhancement-status-grid section:nth-child(2) h4{color:#9aff9c}.enhancement-status-grid section>div{display:flex;justify-content:space-between;gap:5px;padding:4px 0;border-bottom:1px solid #ffffff12}.enhancement-status-grid section>div:last-child{border-bottom:0}.enhancement-status-grid b{font-size:9px;color:#9fbdd0}.enhancement-status-grid span{font-size:10px;color:#eefbff;text-align:right}.enhancement-status-grid .enhancement-next{color:#9aff9c;text-shadow:0 0 8px #57ff76;font-weight:800}
+#ship-detail-modal .enhancement-material-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:10px;max-height:138px;overflow:auto}.enhancement-material-list>small,.enhancement-material-list>p{grid-column:1/-1;margin:0;color:#9fbdd0;font-size:9px}.enhancement-material-list>p{text-align:center}.enhancement-material-option{position:relative;display:grid;gap:2px;justify-items:center;min-width:0;padding:4px;border:1px solid #3d6a86;border-radius:6px;background:#0c2033;color:#e9f8ff;cursor:pointer}.enhancement-material-option img{width:44px;height:34px;object-fit:contain}.enhancement-material-option span{width:100%;overflow:hidden;font-size:8px;text-overflow:ellipsis;white-space:nowrap;text-align:center}.enhancement-material-option em{color:#ffe08a;font-size:8px;font-style:normal}.enhancement-material-option.selected{border-color:#9aff9c;box-shadow:0 0 8px #65ff7955}.enhancement-material-option:disabled{opacity:.45;cursor:not-allowed}
+#ship-detail-modal .ship-enhancement-dialog .ship-enhancement-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.ship-enhancement-actions button{min-height:36px}.ship-enhancement-actions .ship-enhancement-confirm{border-color:#9aff9c!important;background:linear-gradient(135deg,#1e6538,#12311f)!important;color:#caffcf!important;box-shadow:0 0 10px #65ff7944}.ship-enhancement-actions .ship-enhancement-confirm:disabled{border-color:#49616c!important;background:#192630!important;color:#889ba3!important;box-shadow:none}
+@media(max-width:380px){#ship-detail-modal .enhancement-portrait,#ship-detail-modal .enhancement-material-slot{height:96px}#ship-detail-modal .enhancement-material-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#ship-detail-modal .enhancement-title.breakthrough-title{color:#ff6676;text-shadow:0 0 12px #ff304d}.ship-synthesis .ship-breakthrough-button{border:1px solid #ff5266!important;background:linear-gradient(135deg,#7d1d2e,#32101a)!important;color:#ffe1e5!important;box-shadow:0 0 12px #ff304d66!important}
+#collection .formation-actions button.fleet-hangar-button[data-panel]:hover,#collection .formation-actions button.fleet-hangar-button[data-panel]:focus-visible{border-color:#d0f8ff!important;filter:brightness(1.12);outline:2px solid #56dfff55;outline-offset:2px}
+
+/* Bridge button alignment: store keeps the old event slot; events move to the hangar row. */
+#command-deck .deck-shortcut.store{left:15px;right:auto;top:205px}
+#command-deck .deck-shortcut.events{left:15px;right:auto;top:310px}
+#command-deck .deck-shortcut.hangar{left:auto;right:15px;top:310px}
+#collection .formation-actions button.fleet-hangar-button[data-panel]{border-radius:5px 12px 5px 12px!important}
+
+/* Ships reserved for a future update stay visible in the codex but cannot be found by exploration. */
+.codex-ship-card.coming-soon{filter:saturate(.48) brightness(.78)}
+.codex-ship-card.coming-soon .ship-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,#130b1b88,#0b14258a);pointer-events:none}
+.codex-ship-card.coming-soon .ship-coming-soon{position:absolute;z-index:5;right:6px;bottom:6px;padding:3px 5px;border:1px solid #bd9bdf;border-radius:4px 8px 4px 8px;background:#170f24e8;color:#eadcff;font-size:7px;font-style:normal;font-weight:900;letter-spacing:.04em;box-shadow:0 0 8px #a77be355}
+
+/* Premium ship detail card: reusable metal frame and nameplate, rendered without large bitmap assets. */
+#ship-detail-modal .ship-detail-card{isolation:isolate;overflow:visible;border:3px solid transparent!important;border-radius:20px 20px 14px 14px!important;background:linear-gradient(155deg,#111c2b 0%,#050a13 54%,#101621 100%) padding-box,linear-gradient(135deg,#4a2f17 0%,#ffe0a0 10%,#7e5229 21%,#f9dfb3 39%,#4e321b 52%,#b98849 69%,#fff0c5 83%,#55351d 100%) border-box!important;box-shadow:0 0 0 1px #fff1c249,inset 0 0 0 2px #1d2d42,inset 0 0 38px #000b,0 18px 54px #000d,0 0 24px var(--detail-card-glow,#6da6ff44)!important}
+#ship-detail-modal .ship-detail-card::before{content:"";position:absolute;z-index:4;top:-13px;left:50%;width:25px;height:25px;transform:translateX(-50%) rotate(45deg);border:2px solid #f6dca6;border-radius:4px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 25 25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='.04' stop-color='white' stop-opacity='0'/%3E%3Cstop offset='.5' stop-color='white' stop-opacity='.95'/%3E%3Cstop offset='.78' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='.13' stop-color='white' stop-opacity='0'/%3E%3Cstop offset='.5' stop-color='white' stop-opacity='.95'/%3E%3Cstop offset='.9' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M1 1L24 24' stroke='url(%23a)' stroke-width='2'/%3E%3Cpath d='M1 24L24 1' stroke='url(%23b)' stroke-width='2'/%3E%3Ccircle cx='12.5' cy='12.5' r='1.5' fill='white' fill-opacity='.95'/%3E%3C/svg%3E") center/100% 100% no-repeat,radial-gradient(circle at 50% 38%,#fff 0%,var(--detail-gem-core) 28%,var(--detail-gem-edge) 55%,#171021 100%),linear-gradient(145deg,var(--detail-gem-core) 0%,var(--detail-gem-edge) 56%,#171021 100%);box-shadow:0 0 0 3px #392318,0 0 15px var(--detail-card-glow)}
+#ship-detail-modal .ship-detail-card::after{content:"";position:absolute;z-index:2;inset:7px;pointer-events:none;border:1px solid #ffe6b148;border-radius:14px 14px 9px 9px;clip-path:polygon(9% 0,91% 0,100% 8%,100% 92%,91% 100%,9% 100%,0 92%,0 8%);box-shadow:inset 0 0 14px #fff0c20f}
+#ship-detail-modal .ship-detail-card.rarity-detail-R{--detail-card-glow:#51b9ff55;--detail-gem-core:#5adfff;--detail-gem-edge:#166c9b}
+#ship-detail-modal .ship-detail-card.rarity-detail-SR{--detail-card-glow:#c06dff66;--detail-gem-core:#d78cff;--detail-gem-edge:#632a9c}
+#ship-detail-modal .ship-detail-card.rarity-detail-SSR{--detail-card-glow:#ffc24e77;--detail-gem-core:#fff09b;--detail-gem-edge:#b87519}
+#ship-detail-modal .ship-detail-card.rarity-detail-L{--detail-card-glow:#ff3b526e;--detail-gem-core:#ff6673;--detail-gem-edge:#94172b}
+#ship-detail-modal .ship-detail-card>.ship-detail-image,#ship-detail-modal .ship-detail-card>.ship-detail-stats,#ship-detail-modal .ship-detail-card>.ship-synthesis{position:relative;z-index:3}
+#ship-detail-modal .ship-detail-card h2{position:relative;z-index:5;display:grid;width:calc(100% - 28px);min-height:64px;margin:9px auto 10px!important;padding:12px 26px!important;box-sizing:border-box;border:1px solid #b88445;border-radius:4px 4px 10px 10px;background:linear-gradient(135deg,#111c31 0%,#030610 50%,#1a1628 100%);color:#fff3d4!important;font-size:18px!important;letter-spacing:.045em;text-align:center;text-shadow:0 1px 1px #000,0 0 8px #ffd78b66;box-shadow:inset 0 1px #fff1c438,inset 0 -8px 16px #000a,0 3px 9px #000b}
+#ship-detail-modal .ship-detail-card h2 .ship-detail-name{display:block;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ship-detail-modal .ship-detail-card h2 small{display:block;margin-top:3px;color:#cbb490;font-size:9px;font-weight:800;letter-spacing:.15em;text-shadow:0 1px #000}
+#ship-detail-modal .ship-detail-close{display:none!important}
+#ship-detail-modal .ship-detail-card h2::before,#ship-detail-modal .ship-detail-card h2::after{content:"✦";position:absolute;top:50%;transform:translateY(-50%);color:#f6cf81;font-size:13px;text-shadow:0 0 6px #ffe9a6}
+#ship-detail-modal .ship-detail-card h2::before{left:9px}#ship-detail-modal .ship-detail-card h2::after{right:9px}
+#ship-detail-modal .ship-detail-card>.ship-detail-image{margin-top:7px;border:1px solid #e7bb76!important;border-radius:13px!important;background:radial-gradient(ellipse at 50% 38%,#345070 0%,#111c30 48%,#050912 100%)!important;box-shadow:inset 0 0 0 2px #090d16,inset 0 0 28px #000b,0 5px 13px #000a!important}
+#ship-detail-modal .ship-detail-card>.ship-detail-image::before{content:"";position:absolute;z-index:1;inset:5px;pointer-events:none;border:1px solid #ffe3a252;border-radius:9px;background:linear-gradient(135deg,#fff3c214,transparent 24% 75%,#b979ff17);clip-path:polygon(8% 0,92% 0,100% 9%,100% 91%,92% 100%,8% 100%,0 91%,0 9%)}
+#ship-detail-modal .ship-detail-card>.ship-detail-image img{position:relative;z-index:2}
+#ship-detail-modal .ship-detail-rarity{z-index:6!important}
+#ship-detail-modal .ship-detail-rarity.rarity-L{width:52px!important;height:49px!important;filter:drop-shadow(0 0 2px #fff0f0) drop-shadow(0 0 5px #ff2843) drop-shadow(0 0 10px #bb001e)!important}
+#ship-detail-modal .ship-detail-rarity.rarity-SR,#ship-detail-modal .ship-detail-rarity.rarity-R{border:0!important;background:transparent!important;box-shadow:none!important}
+#ship-detail-modal .ship-detail-rarity.rarity-SR{color:#ddabff!important;text-shadow:0 0 4px #b45dff,0 0 9px #7030b4!important}
+#ship-detail-modal .ship-detail-rarity.rarity-R{color:#9eeeff!important;text-shadow:0 0 4px #42cfff,0 0 9px #196b9f!important}
+
+/* Acquisition uses the same reusable detail-card frame and content styling. */
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card{isolation:isolate;overflow:visible;border:3px solid transparent!important;border-radius:20px 20px 14px 14px!important;background:linear-gradient(155deg,#111c2b 0%,#050a13 54%,#101621 100%) padding-box,linear-gradient(135deg,#4a2f17 0%,#ffe0a0 10%,#7e5229 21%,#f9dfb3 39%,#4e321b 52%,#b98849 69%,#fff0c5 83%,#55351d 100%) border-box!important;box-shadow:0 0 0 1px #fff1c249,inset 0 0 0 2px #1d2d42,inset 0 0 38px #000b,0 18px 54px #000d,0 0 24px var(--detail-card-glow,#6da6ff44)!important}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card::before{content:"";position:absolute;z-index:4;top:-13px;left:50%;width:25px;height:25px;transform:translateX(-50%) rotate(45deg);border:2px solid #f6dca6;border-radius:4px;background:radial-gradient(circle at 35% 30%,#fff,var(--detail-gem-core) 28%,var(--detail-gem-edge) 55%,#171021 100%);box-shadow:0 0 0 3px #392318,0 0 15px var(--detail-card-glow)}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card::after{content:"";position:absolute;z-index:2;inset:7px;pointer-events:none;border:1px solid #ffe6b148;border-radius:14px 14px 9px 9px;clip-path:polygon(9% 0,91% 0,100% 8%,100% 92%,91% 100%,9% 100%,0 92%,0 8%)}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-R{--detail-card-glow:#51b9ff55;--detail-gem-core:#5adfff;--detail-gem-edge:#166c9b}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-SR{--detail-card-glow:#c06dff66;--detail-gem-core:#d78cff;--detail-gem-edge:#632a9c}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-SSR{--detail-card-glow:#ffc24e77;--detail-gem-core:#fff09b;--detail-gem-edge:#b87519}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-L{--detail-card-glow:#ff3b526e;--detail-gem-core:#ff6673;--detail-gem-edge:#94172b;border-width:6px!important}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image,.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats{position:relative;z-index:3}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2{position:relative;z-index:5;display:grid;width:calc(100% - 28px);min-height:60px;margin:9px auto 10px!important;padding:10px 26px!important;box-sizing:border-box;border:1px solid #b88445;border-radius:4px 4px 10px 10px;background:linear-gradient(135deg,#111c31 0%,#030610 50%,#1a1628 100%);color:#fff3d4!important;font-size:18px!important;letter-spacing:.045em;text-align:center;text-shadow:0 1px 1px #000,0 0 8px #ffd78b66;box-shadow:inset 0 1px #fff1c438,inset 0 -8px 16px #000a,0 3px 9px #000b}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2 .ship-detail-name{display:block;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2 small{display:block;margin-top:3px;color:#cbb490;font-size:9px;font-weight:800;letter-spacing:.15em;text-shadow:0 1px #000}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2::before,.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2::after{content:"✦";position:absolute;top:50%;transform:translateY(-50%);color:#f6cf81;font-size:13px;text-shadow:0 0 6px #ffe9a6}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2::before{left:9px}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2::after{right:9px}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image{height:173px;min-height:173px;margin-top:7px;padding:6px;border:1px solid #e7bb76!important;border-radius:13px!important;background:radial-gradient(ellipse at 50% 38%,#345070 0%,#111c30 48%,#050912 100%)!important;box-shadow:inset 0 0 0 2px #090d16,inset 0 0 28px #000b,0 5px 13px #000a!important}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image::before{content:"";position:absolute;z-index:1;inset:5px;pointer-events:none;border:1px solid #ffe3a252;border-radius:9px;background:linear-gradient(135deg,#fff3c214,transparent 24% 75%,#b979ff17);clip-path:polygon(8% 0,92% 0,100% 9%,100% 91%,92% 100%,8% 100%,0 91%,0 9%)}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image img{position:relative;z-index:2}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div{padding:7px 9px;border-radius:7px;background:#0c2033}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats b{font-size:9px}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats span{margin-top:4px;font-size:10px}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div:nth-child(2) span,.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div:nth-child(3) span{font-size:23px}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div:nth-child(1),.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div:nth-child(4){grid-column:1/-1}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-L>.ship-detail-image{background:radial-gradient(circle at 52% 44%,#ff6d7b 0%,#b51f3d 47%,#4d0b1b 100%)!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-SSR>.ship-detail-image{background:radial-gradient(ellipse,#80611f88,#1c1608)!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-SR>.ship-detail-image{background:radial-gradient(ellipse,#7137a866,#160d28)!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.rarity-detail-R>.ship-detail-image{background:radial-gradient(ellipse,#1b668588,#0a1822)!important}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.carrier-detail{border-color:#ff294b!important;background:linear-gradient(155deg,#65152af5,#220b16f7) padding-box,linear-gradient(135deg,#ff91a1,#ff294b 45%,#6e0a20) border-box!important;box-shadow:0 0 12px #ff183f,0 0 30px #ff183fbb,0 18px 50px #000b,inset 0 0 18px #ff496044!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card.carrier-detail>.ship-detail-image{background:radial-gradient(ellipse,#7a173866,#1c0712)!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity{z-index:6!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity.rarity-L{width:52px!important;height:49px!important;filter:drop-shadow(0 0 2px #fff0f0) drop-shadow(0 0 5px #ff2843) drop-shadow(0 0 10px #bb001e)!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity.rarity-SR,.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity.rarity-R{border:0!important;background:transparent!important;box-shadow:none!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity.rarity-SR{color:#ddabff!important;text-shadow:0 0 4px #b45dff,0 0 9px #7030b4!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card .ship-detail-rarity.rarity-R{color:#9eeeff!important;text-shadow:0 0 4px #42cfff,0 0 9px #196b9f!important}
+@media(max-width:600px){.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card{width:min(360px,calc(100vw - 74px));max-height:calc(100vh - 128px);padding:10px}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image{height:145px;min-height:145px}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card h2{font-size:16px!important}.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-stats div{padding:6px 7px}}
+.ship-detail-stats .skill-state{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:4px;font-weight:900}.ship-detail-stats .skill-state.unlocked{color:#fff;font-weight:950;text-shadow:0 0 7px #fff7}.ship-detail-stats .skill-state.locked{color:#82909e;font-weight:650}.ship-detail-stats .skill-state small{flex:0 0 auto;color:#ffcf78;font-size:8px;font-weight:800;text-shadow:none}.ship-detail-stats .skill-state.locked small{color:#84909b}
+.ship-detail-stats b:has(.skill-requirement){display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%}.ship-detail-stats .skill-requirement{flex:0 0 auto;color:#ffcf78;font-size:8px;font-weight:800;white-space:nowrap}.ship-detail-stats .skill-requirement.locked{color:#84909b}.ship-detail-stats .skill-requirement.unlocked{color:#a7ffd2}
+.hero .primary{transition:transform .09s ease,filter .09s ease,box-shadow .09s ease}.hero .primary:active{transform:translateY(4px) scale(.985);filter:brightness(.78) saturate(1.2);animation-play-state:paused!important;box-shadow:0 0 0 1px #4c7baf,inset 0 5px 15px #000b,0 2px 6px #020818}.hero .primary:focus-visible{outline:2px solid #d8fbff;outline-offset:3px}
+/* 획득 카드 함선 그림: 격자 칸 높이를 그림 칸에 맞춰 그림 전체가 잘리지 않고 들어가게 한다(중전함 거북선 등 세로로 큰 그림이 아래로 잘리던 문제) */
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image{grid-template:minmax(0,1fr)/minmax(0,1fr)!important}
+.ship-exploration-overlay .ship-exploration-card.acquisition-detail-card>.ship-detail-image img{min-width:0;min-height:0;max-width:100%;max-height:100%}
+
+/* 함선 상세 카드의 기술 칸: 누르면 설명 팝업 */
+#ship-detail-modal .ship-detail-stats .skill-detail-row{cursor:pointer}
+#ship-detail-modal .ship-detail-stats .skill-detail-row:focus-visible{outline:1px solid #e9c46a}
+.skill-detail-popup{position:fixed;z-index:200;box-sizing:border-box;width:min(260px,calc(100vw - 16px));padding:10px 12px;border:1px solid #e9c46a;border-radius:8px;background:linear-gradient(160deg,#16233d,#070b14);color:#f4ecd2;box-shadow:0 10px 26px #000c,0 0 14px #e9c46a33;font-size:12px;line-height:1.5}
+.skill-detail-popup b{display:block;margin-bottom:4px;font-size:13px;color:#ffe29b}
+.skill-detail-popup p{margin:0}
+.skill-detail-popup small{display:block;margin-top:6px;color:#9cc4ff}

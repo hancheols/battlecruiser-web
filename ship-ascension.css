@@ -1,0 +1,103 @@
+/* SSR·L급 별승급(약 2초)과 SSR→L 돌파(약 4초) 연출. 시간표는 각 요소의 animation-delay 로 맞춥니다. */
+.ascend-overlay{--c1:#ffe08a;--c2:#ff9d2e;--glow:#ffc94a;position:fixed;inset:0;z-index:2147482000;display:grid;place-items:center;overflow:hidden;cursor:pointer;outline:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.ascend-overlay.rarity-L{--c1:#fff3b0;--c2:#ff6fd8;--glow:#b98bff}
+.ascend-overlay.is-closing{opacity:0;transition:opacity .2s ease}
+.ascend-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,color-mix(in srgb,var(--glow) 22%,#0a1324) 0%,#030711f2 62%,#010309fa 100%);animation:ascend-fade .3s ease-out both}
+
+/* 회전 후광: SSR은 금빛, L은 무지개 */
+.ascend-rays{position:absolute;left:50%;top:40%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;border-radius:50%;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c1) 30%,transparent) 0deg 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0%,transparent 42%);mask:radial-gradient(circle,#000 0%,transparent 42%);opacity:0;animation:ascend-rays-in .6s ease-out .75s both,ascend-spin 16s linear infinite}
+.ascend-break .ascend-rays{animation:ascend-rays-in .8s ease-out 1.9s both,ascend-spin 12s linear infinite}
+.rarity-L .ascend-rays{background:repeating-conic-gradient(from 0deg,#ff5f6d55 0deg 5deg,transparent 5deg 12deg,#ffd16655 12deg 17deg,transparent 17deg 24deg,#5fe3a155 24deg 29deg,transparent 29deg 36deg,#59b8ff55 36deg 41deg,transparent 41deg 48deg,#c58bff55 48deg 53deg,transparent 53deg 60deg)}
+
+/* 충전: 입자가 바깥에서 중심으로 빨려 듭니다 */
+.ascend-charge,.ascend-burst,.ascend-beams{position:absolute;left:50%;top:40%;width:0;height:0}
+.ascend-dot{position:absolute;width:var(--s);height:var(--s);margin:calc(var(--s)/-2);border-radius:50%;background:var(--c1);box-shadow:0 0 8px 2px var(--glow);opacity:0;animation:ascend-converge .6s cubic-bezier(.55,0,.9,.4) calc(.12s + var(--d)) both}
+.rarity-L .ascend-dot{background:hsl(var(--h) 100% 78%);box-shadow:0 0 9px 2px hsl(var(--h) 100% 62%)}
+.ascend-break .ascend-dot{animation-duration:.7s}
+/* 폭발: 불꽃이 중심에서 바깥으로 튑니다 */
+.ascend-spark{position:absolute;width:var(--s);height:calc(var(--s)*3.2);margin:calc(var(--s)/-2);border-radius:3px;background:linear-gradient(#fff,var(--c1));box-shadow:0 0 10px 2px var(--glow);opacity:0;animation:ascend-scatter .75s cubic-bezier(.1,.7,.3,1) calc(.7s + var(--d)) forwards}
+.ascend-break .ascend-spark{animation-delay:calc(1.8s + var(--d));animation-duration:1s}
+.rarity-L .ascend-spark{background:linear-gradient(#fff,hsl(var(--h) 100% 70%));box-shadow:0 0 12px 3px hsl(var(--h) 100% 60%)}
+/* 돌파 전용: 함선에서 갈라져 나오는 빛줄기 */
+.ascend-beams i{position:absolute;left:-3px;bottom:0;width:6px;height:46vmax;transform-origin:50% 100%;transform:rotate(var(--a)) scaleY(0);background:linear-gradient(to top,#fff,color-mix(in srgb,var(--c1) 70%,transparent) 40%,transparent);filter:blur(1px);opacity:0;animation:ascend-beam .55s ease-out calc(1.35s + var(--d)) both}
+
+.ascend-ring{position:absolute;left:50%;top:40%;width:160px;height:160px;margin:-80px;border-radius:50%;border:3px solid var(--c1);box-shadow:0 0 30px var(--glow),inset 0 0 24px var(--glow);opacity:0;animation:ascend-ring .7s ease-out .7s forwards}
+.ascend-ring.second{animation-delay:.82s;border-width:2px}
+.ascend-break .ascend-ring{animation-delay:1.8s;animation-duration:.95s}
+.ascend-break .ascend-ring.second{animation-delay:1.98s}
+.ascend-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#fff 0%,color-mix(in srgb,var(--c1) 70%,#fff) 30%,transparent 75%);opacity:0;pointer-events:none;animation:ascend-flash .45s ease-out .68s both}
+.ascend-break .ascend-flash{background:#fff;animation:ascend-flash-big .9s ease-out 1.78s both}
+
+/* 중앙 무대: 함선 → 별/등급 → 제목 → 능력치 */
+.ascend-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;width:min(420px,92vw);text-align:center;animation:ascend-shake .32s linear .7s both}
+.ascend-break .ascend-stage{animation:ascend-tremble .5s linear 1.25s both,ascend-shake .45s linear 1.8s both}
+.ascend-ship{position:relative;width:min(300px,74vw);height:min(210px,52vw);display:grid;place-items:center;animation:ascend-ship-in .45s cubic-bezier(.2,.9,.3,1.2) both}
+.ascend-ship img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--glow) 60%,transparent));animation:ascend-charge-glow .75s ease-in .1s both}
+.ascend-break .ascend-ship img{animation:ascend-whiten 1.3s ease-in .45s both,ascend-unwhiten .7s ease-out 1.8s forwards}
+.ascend-ship::after{content:"";position:absolute;inset:-10%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--glow) 45%,transparent),transparent 62%);opacity:0;animation:ascend-aura 1s ease-out .7s both;z-index:-1}
+.ascend-break .ascend-ship::after{animation-delay:1.8s}
+
+.ascend-stars{display:flex;gap:6px;margin-top:2px;font-size:30px;line-height:1}
+.ascend-star{color:#3a4458;text-shadow:0 2px 0 #000;opacity:0;animation:ascend-star-pop .3s cubic-bezier(.2,1.6,.4,1) calc(.85s + var(--i)*.07s) both}
+.ascend-star.on{color:var(--c1);text-shadow:0 0 10px var(--glow),0 2px 0 #6b3a0d}
+.ascend-star.new{position:relative;animation:ascend-star-new .55s cubic-bezier(.2,1.2,.35,1) 1.05s both}
+.ascend-star.new::after{content:"";position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--c1) 30%,transparent 70%);opacity:0;animation:ascend-star-burst .6s ease-out 1.42s forwards;pointer-events:none}
+
+.ascend-badges{position:relative;width:120px;height:58px;margin-top:2px}
+.ascend-badge,.ascend-badge-shard{position:absolute;inset:0;display:grid;place-items:center;border-radius:12px;font:900 34px/1 var(--font-body);letter-spacing:.04em}
+.ascend-badge.old,.ascend-badge-shard{color:#fff4cc;background:linear-gradient(160deg,#b8862f,#5f3d0e);border:2px solid #ffd77a;text-shadow:0 2px 0 #3a2205;box-shadow:0 0 16px #ffc24a88}
+.ascend-badge.old{opacity:0;animation:ascend-old-badge .56s linear 2.05s both}
+.ascend-badge-shard{opacity:0}
+.ascend-badge-shard.left{clip-path:polygon(0 0,58% 0,44% 42%,54% 64%,40% 100%,0 100%);animation:ascend-shard-left .7s cubic-bezier(.3,.6,.4,1) 2.6s forwards}
+.ascend-badge-shard.right{clip-path:polygon(58% 0,100% 0,100% 100%,40% 100%,54% 64%,44% 42%);animation:ascend-shard-right .7s cubic-bezier(.3,.6,.4,1) 2.6s forwards}
+.ascend-badge.new{color:#fff;background:linear-gradient(135deg,#ff5f6d,#ffc371 25%,#5fe3a1 50%,#59b8ff 75%,#c58bff);background-size:200% 200%;border:2px solid #fff;text-shadow:0 2px 0 #4a1a5a,0 0 12px #fff;box-shadow:0 0 22px #fff,0 0 40px #c58bff;opacity:0;animation:ascend-badge-new .55s cubic-bezier(.2,1.6,.4,1) 2.75s both,ascend-rainbow 2.4s linear 3.3s infinite}
+
+.ascend-title{margin-top:4px;font:900 clamp(26px,7vw,36px)/1.1 var(--font-body);letter-spacing:.05em;color:transparent;background:linear-gradient(180deg,#fff 0%,var(--c1) 55%,var(--c2) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:1px color-mix(in srgb,var(--c2) 55%,#2a1404);filter:drop-shadow(0 2px 0 #1d0d02) drop-shadow(0 0 12px var(--glow));opacity:0;animation:ascend-title-pop .45s cubic-bezier(.2,1.5,.4,1) 1.25s both}
+.ascend-break .ascend-title{background:linear-gradient(90deg,#ff8a8a,#ffe08a,#8affc1,#8ad0ff,#e0a8ff);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:1px #3a1650;animation:ascend-title-cutin .5s cubic-bezier(.15,.9,.3,1) 3s both}
+.ascend-name{color:#e8f3ff;font:800 15px/1.2 var(--font-body);letter-spacing:.06em;opacity:0;animation:ascend-fade .3s ease-out 1.35s both}
+.ascend-break .ascend-name{animation-delay:3.15s}
+.ascend-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;opacity:0;animation:ascend-rise .35s ease-out 1.42s both}
+.ascend-break .ascend-stats{animation-delay:3.3s}
+.ascend-stats>span{display:grid;justify-items:center;gap:2px;min-width:118px;padding:7px 12px;border:1px solid color-mix(in srgb,var(--c1) 45%,transparent);border-radius:10px;background:#0a1322d9}
+.ascend-stats small{color:#9fc3e2;font:700 11px/1 var(--font-body)}
+.ascend-stats b{color:#fff;font:900 20px/1.1 var(--font-body);font-variant-numeric:tabular-nums}
+.ascend-stats em{color:#7dffa8;font:800 12px/1 var(--font-body);font-style:normal}
+.ascend-bonus{display:flex!important;align-items:center;gap:8px!important;color:#e9ddff;font:800 13px/1 var(--font-body)}
+.ascend-bonus em{color:#ffe08a;font-size:16px}
+.ascend-hint{margin-top:6px;color:#8aa3bd;font:600 11px/1 var(--font-body);opacity:0;animation:ascend-fade .4s ease-out 1.9s both}
+.ascend-break .ascend-hint{animation-delay:3.8s}
+
+/* 탭으로 건너뛰기: 모든 단계를 즉시 마지막 모습으로 맞춥니다(후광 회전·무지개는 계속). */
+.ascend-overlay.is-final *,.ascend-overlay.is-final *::after{animation-delay:0s!important;animation-duration:.001s!important}
+.ascend-overlay.is-final .ascend-rays{animation:ascend-rays-in .001s both,ascend-spin 16s linear infinite!important}
+.ascend-overlay.is-final .ascend-badge.new{animation:ascend-badge-new .001s both,ascend-rainbow 2.4s linear infinite!important}
+.ascend-overlay.is-final .ascend-stage{animation:none!important}
+
+@keyframes ascend-fade{from{opacity:0}to{opacity:1}}
+@keyframes ascend-old-badge{0%{opacity:0}10%{opacity:1}97%{opacity:1}100%{opacity:0}}
+@keyframes ascend-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ascend-rays-in{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes ascend-spin{to{rotate:360deg}}
+@keyframes ascend-converge{0%{opacity:0;transform:rotate(var(--a)) translateY(calc(var(--r)*-1))}25%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}}
+@keyframes ascend-scatter{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(var(--r)*-1.2))}}
+@keyframes ascend-beam{0%{opacity:0;transform:rotate(var(--a)) scaleY(0)}40%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) scaleY(1)}}
+@keyframes ascend-ring{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(3.4)}}
+@keyframes ascend-flash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+@keyframes ascend-flash-big{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+@keyframes ascend-shake{0%,100%{transform:none}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}
+@keyframes ascend-tremble{0%,100%{transform:none}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-2px)}}
+@keyframes ascend-ship-in{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+@keyframes ascend-charge-glow{0%{filter:drop-shadow(0 0 6px transparent) brightness(1)}85%{filter:drop-shadow(0 0 22px var(--glow)) brightness(1.7)}100%{filter:drop-shadow(0 0 14px color-mix(in srgb,var(--glow) 60%,transparent)) brightness(1)}}
+@keyframes ascend-whiten{0%{filter:drop-shadow(0 0 6px transparent)}100%{filter:brightness(0) invert(1) drop-shadow(0 0 26px #fff) drop-shadow(0 0 40px var(--glow))}}
+@keyframes ascend-unwhiten{0%{filter:brightness(0) invert(1) drop-shadow(0 0 26px #fff) drop-shadow(0 0 40px var(--glow))}100%{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--glow) 70%,transparent))}}
+@keyframes ascend-aura{0%{opacity:0;transform:scale(.6)}40%{opacity:1}100%{opacity:.75;transform:scale(1)}}
+@keyframes ascend-star-pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes ascend-star-new{0%{opacity:0;transform:scale(3.2) rotate(-200deg)}70%{opacity:1;transform:scale(.85) rotate(10deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes ascend-star-burst{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(1.6)}}
+@keyframes ascend-shard-left{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(-70px,26px) rotate(-38deg)}}
+@keyframes ascend-shard-right{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(70px,30px) rotate(34deg)}}
+@keyframes ascend-badge-new{0%{opacity:0;transform:scale(2.4)}100%{opacity:1;transform:scale(1)}}
+@keyframes ascend-rainbow{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes ascend-title-pop{0%{opacity:0;transform:scale(1.8)}100%{opacity:1;transform:scale(1)}}
+@keyframes ascend-title-cutin{0%{opacity:0;transform:translateX(-120%) skewX(-18deg);filter:blur(6px)}70%{opacity:1;transform:translateX(4%) skewX(-6deg);filter:blur(0)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.ascend-overlay *{animation-duration:.001s!important;animation-delay:0s!important}.ascend-rays{animation:none!important;opacity:.6}}

@@ -1,0 +1,12 @@
+.enemy-unit.golden-bee{z-index:9;width:58px;height:74px;margin:-37px 0 0 -29px;border:0;background:none;box-shadow:none;overflow:visible;opacity:0;transform:scale(.42);transition:opacity .2s ease,transform .34s cubic-bezier(.16,.8,.3,1),left .04s linear,top .04s linear;will-change:left,top,transform}
+.enemy-unit.golden-bee.entered{opacity:1;transform:scale(1)}
+.enemy-unit.golden-bee::before{display:none}
+.enemy-unit.golden-bee .enemy-sprite{inset:0;width:100%;height:100%;object-fit:contain;animation:golden-bee-wing .3s ease-in-out infinite alternate;filter:drop-shadow(0 0 5px #fff2a7) drop-shadow(0 0 15px #ffac1e)}
+.enemy-unit.golden-bee .enemy-hp{z-index:5;left:50%;top:-5px;width:42px;height:3px;transform:translateX(-50%);background:#3a2404;border:1px solid #ffd76d}
+.enemy-unit.golden-bee .enemy-hp i{background:linear-gradient(90deg,#fff0a0,#ffbd22,#ff8022)}
+.enemy-unit.golden-bee.exiting{animation:golden-bee-exit .28s ease-in forwards}
+.enemy-unit.golden-bee.destroyed{animation:golden-bee-break .42s ease-out forwards}
+.fx-explosion.golden-bee{width:42px;height:42px;margin:-21px;background:radial-gradient(circle,#fff 0 10%,#fff09c 23%,#ffbc27 47%,#e86718 66%,transparent 72%);box-shadow:0 0 10px #fff5ad,0 0 28px #ffb328,0 0 45px #e96a18;animation:explosion .48s ease-out forwards}
+@keyframes golden-bee-wing{from{transform:scaleX(.9) translateY(1px)}to{transform:scaleX(1.08) translateY(-1px)}}
+@keyframes golden-bee-exit{to{opacity:0;transform:scale(.45)}}
+@keyframes golden-bee-break{to{opacity:0;transform:scale(1.45) rotate(18deg);filter:brightness(3)}}

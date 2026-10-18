@@ -1,0 +1,46 @@
+.farah-tutorial{position:fixed;left:max(1rem,env(safe-area-inset-left));bottom:max(1rem,env(safe-area-inset-bottom));z-index:2147483000;display:flex;align-items:end;max-width:min(660px,calc(100vw - 2rem));pointer-events:none;filter:drop-shadow(0 12px 22px #000a)}
+.farah-tutorial[hidden],.farah-tutorial-chip[hidden]{display:none!important}
+.farah-tutorial.farah-collapsed{display:none}
+.farah-tutorial>img{width:clamp(118px,19vw,205px);max-height:300px;object-fit:contain;object-position:bottom;flex:none;align-self:end}
+.farah-dialogue{pointer-events:auto;position:relative;margin:0 0 12px -13px;padding:17px 19px 15px;min-width:0;flex:1;border:1px solid #b7d5e6a6;border-radius:13px;background:linear-gradient(145deg,#14263cf4,#09131ff6 70%);box-shadow:inset 0 1px #ffffff3b,0 12px 28px #0009;color:#f4f6f5}
+.farah-dialogue:before{content:'';position:absolute;left:-9px;bottom:28px;width:17px;height:17px;transform:rotate(45deg);border-left:1px solid #b7d5e6a6;border-bottom:1px solid #b7d5e6a6;background:#0e1b2c}
+.farah-dialogue-head{display:flex;align-items:start;justify-content:space-between;gap:8px}
+.farah-dialogue-head button{pointer-events:auto;flex:none;border:1px solid #86b5ce88;border-radius:5px;background:#203b52;color:#c9e7f4;padding:3px 6px;font:700 10px/1.3 var(--font-body);cursor:pointer}
+.farah-dialogue-head button:hover{filter:brightness(1.2)}
+.farah-tutorial.farah-portrait-hidden{width:min(430px,calc(100vw - 2rem))}
+.farah-tutorial.farah-portrait-hidden>img{display:none}
+.farah-tutorial.farah-portrait-hidden .farah-dialogue{margin-left:0;max-width:none}
+.farah-tutorial.farah-portrait-hidden .farah-dialogue:before{display:none}
+.farah-dialogue small{display:block;color:#7bc7ec;letter-spacing:.14em;font:700 10px/1.4 var(--font-body)}
+.farah-dialogue strong{display:block;margin-top:5px;color:#ffe0a7;font:700 clamp(15px,1.5vw,19px)/1.35 var(--font-body)}
+.farah-dialogue p{margin:8px 0 12px;font:500 clamp(12px,1.15vw,14px)/1.55 var(--font-body);word-break:keep-all}
+.farah-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.farah-actions button,.farah-tutorial-chip{cursor:pointer;border:1px solid #a8cbe0;border-radius:7px;background:#18364e;color:#fff;padding:7px 12px;font:700 12px/1.3 var(--font-body)}
+.farah-actions button:first-child{border-color:#e3b86d;background:linear-gradient(#a27335,#573b20)}
+.farah-actions button:hover,.farah-tutorial-chip:hover{filter:brightness(1.22)}
+.farah-tutorial-chip{position:fixed;z-index:2147483000;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 5px 20px #0009}
+.farah-tutorial:not(.farah-collapsed)+.farah-tutorial-chip{display:none}
+.farah-actions button[hidden]{display:none}
+.farah-tutorial[data-step="profile"]{bottom:max(1rem,env(safe-area-inset-bottom));width:min(400px,calc(100vw - 2rem));max-width:none}
+.farah-tutorial[data-step="profile"]>img{width:clamp(100px,13vw,150px)}
+.farah-tutorial[data-step="profile"] .farah-dialogue{max-width:260px}
+.farah-tutorial[data-step="enhance"]{left:auto;right:max(8px,env(safe-area-inset-right));max-width:min(360px,calc(100vw - 16px))}
+.farah-tutorial[data-step="enhance"]>img{width:105px;max-height:175px}
+.farah-tutorial[data-step="enhance"] .farah-dialogue{padding:11px 12px}
+.farah-tutorial.farah-portrait-hidden[data-step="enhance"]{width:min(360px,calc(100vw - 16px))}
+.farah-ship-reveal{position:fixed;inset:0;z-index:2147483100;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at center,#2f526299,#030813ed 70%);backdrop-filter:blur(7px)}
+.farah-ship-reveal[hidden]{display:none}
+.farah-ship-reveal-card{width:min(360px,calc(100vw - 36px));padding:22px 20px 19px;text-align:center;border:2px solid #f4c76b;border-radius:15px;background:linear-gradient(150deg,#203f59,#091624 65%,#1e2435);box-shadow:0 0 0 5px #2c73965c,0 0 45px #ffc75d7e,inset 0 0 24px #ffe2a536;color:#f7f5ea;animation:farahCardArrival .72s cubic-bezier(.2,.9,.2,1) both}
+.farah-ship-reveal-card small{display:block;color:#f6d786;letter-spacing:.2em;font:800 11px/1.5 var(--font-body)}
+.farah-reveal-art{height:185px;margin:12px 0 4px;display:grid;place-items:center;border-radius:10px;background:radial-gradient(ellipse,#357aa67c,transparent 69%)}
+.farah-reveal-art img{max-width:95%;max-height:100%;object-fit:contain;filter:drop-shadow(0 0 15px #70c9ff)}
+.farah-ship-reveal-card h2{margin:5px 0;color:#ffdf9a;font:900 25px/1.2 var(--font-body)}
+.farah-ship-reveal-card p{margin:3px 0 16px;color:#c5e8f9;font:700 13px/1.3 var(--font-body)}
+.farah-ship-reveal-card button{width:100%;padding:11px;border:1px solid #ffe096;border-radius:8px;background:linear-gradient(#b87935,#66451f);color:white;font:800 15px/1.2 var(--font-body);cursor:pointer}
+@keyframes farahCardArrival{from{opacity:0;transform:translateY(50px) scale(.74) rotate(-5deg)}70%{opacity:1;transform:translateY(-6px) scale(1.025)}to{transform:none}}
+@media(max-width:600px){.farah-tutorial{left:6px;right:6px;max-width:none;bottom:max(8px,env(safe-area-inset-bottom))}.farah-tutorial>img{width:112px;max-height:190px}.farah-dialogue{padding:11px 12px;margin:0 0 4px -8px}.farah-dialogue p{font-size:12px;margin:5px 0 8px}.farah-actions button{font-size:11px;padding:6px 9px}}
+@media(max-width:600px){.farah-tutorial[data-step="enhance"]{top:88px;bottom:auto;left:6px;right:6px;max-width:none}.farah-tutorial[data-step="enhance"]>img{width:76px;max-height:118px}.farah-tutorial[data-step="enhance"] .farah-dialogue{margin-bottom:0}}
+@media(max-width:600px){.farah-profile-active .captain-select-overlay{place-items:start center}.farah-profile-active .captain-select-dialog{max-height:calc(100dvh - 210px)}.farah-tutorial[data-step="profile"]{width:calc(100vw - 12px);left:6px;bottom:max(6px,env(safe-area-inset-bottom))}.farah-tutorial[data-step="profile"]>img{width:84px;max-height:140px}.farah-tutorial[data-step="profile"] .farah-dialogue{max-width:none}}
+@media(max-width:600px){.farah-tutorial.farah-portrait-hidden{width:calc(100vw - 12px)}.farah-tutorial.farah-portrait-hidden .farah-dialogue{margin-left:0}.farah-tutorial.farah-portrait-hidden[data-step="profile"]{width:calc(100vw - 12px)}}
+.farah-tutorial>img.farah-expression-change{animation:farahExpressionSettle .28s ease both}
+@keyframes farahExpressionSettle{from{opacity:.18;transform:translateY(3px) scale(.985);filter:blur(1px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}

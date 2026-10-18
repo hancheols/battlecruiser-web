@@ -1,0 +1,73 @@
+.mars-scenario{position:fixed;inset:0;z-index:2147483300;display:flex;align-items:flex-end;justify-content:center;padding:16px max(12px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:linear-gradient(180deg,#02061233 0%,#02061233 38%,#020612b8 100%);pointer-events:auto}
+.mars-scenario[hidden]{display:none!important}
+.mars-scenario-card{position:relative;display:flex;align-items:flex-end;width:min(480px,100%);min-height:250px;filter:drop-shadow(0 15px 35px #000c)}
+.mars-scenario-portrait{position:relative;z-index:2;width:clamp(118px,24vw,225px);height:clamp(175px,35vw,300px);flex:none;object-fit:contain;object-position:bottom;filter:drop-shadow(0 0 16px #7aceff44)}
+.mars-scenario-dialogue{position:relative;flex:1;min-width:0;margin:0 0 12px -23px;padding:17px 20px 15px 26px;border:1px solid #8ab6de;border-radius:7px 19px 7px 19px;background:linear-gradient(135deg,#172d45f5,#081725f7 66%,#1c263bf2);box-shadow:inset 0 1px #f0ffff66,inset 0 0 24px #2b7dad2d,0 12px 30px #000a}
+.mars-scenario-dialogue::before{content:"";position:absolute;inset:5px;border:1px solid #618baa66;border-radius:3px 14px 3px 14px;pointer-events:none}
+.mars-scenario-kicker{display:block;color:#85d8fa;font:800 10px/1.4 var(--font-body);letter-spacing:.2em}
+.mars-scenario-name{display:block;margin:4px 0 7px;color:#fff2bf;font:900 clamp(16px,2vw,21px)/1.25 var(--font-body);letter-spacing:.04em;text-shadow:0 0 12px #ffca5559}
+.mars-scenario-text{margin:0;min-height:45px;color:#f1f7fc;font:600 clamp(12px,1.35vw,15px)/1.6 var(--font-body);word-break:keep-all;white-space:pre-line}
+.mars-scenario-actions{display:flex;justify-content:flex-end;margin-top:13px}
+.mars-scenario-next{min-width:110px;padding:9px 18px;border:1px solid #ffdc81;border-radius:5px 12px 5px 12px;background:linear-gradient(120deg,#7d5823,#38280f);color:#fff5cf;font:900 13px/1.2 var(--font-body);letter-spacing:.06em;box-shadow:inset 0 0 13px #ffdf7547,0 0 14px #ffc95c33}
+.mars-scenario-next:hover,.mars-scenario-next:focus-visible{filter:brightness(1.2);outline:2px solid #fff0b0;outline-offset:2px}
+.mars-scenario[data-speaker="eva"] .mars-scenario-name{color:#b7eaff;text-shadow:0 0 12px #54c6ff88}
+.mars-scenario[data-speaker="captain"] .mars-scenario-name{color:#e8f6ff;text-shadow:0 0 12px #78aeffaa}
+@media(max-width:600px){.mars-scenario{padding:8px 6px max(8px,env(safe-area-inset-bottom))}.mars-scenario-card{min-height:200px}.mars-scenario-portrait{width:90px;height:165px}.mars-scenario-dialogue{margin:0 0 3px -12px;padding:12px 10px 11px 15px}.mars-scenario-kicker{font-size:8px}.mars-scenario-name{font-size:15px}.mars-scenario-text{font-size:12px;max-height:33dvh;overflow:auto}.mars-scenario-next{min-width:88px;padding:8px 11px}}
+@media(prefers-reduced-motion:reduce){.mars-scenario *{animation:none!important;transition:none!important}}
+/* 화성 클리어 사령부 지원: 화면 중앙에 보상 아이콘을 띄운 뒤 물자창고로 날려 보내는 연출 */
+.mars-reward-flight{position:fixed;inset:0;z-index:2147483310;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at 50% 48%,#1b3d5c99 0%,#020612d9 70%);animation:mars-reward-fade-in .3s ease-out both;pointer-events:auto}
+.mars-reward-flight.is-leaving{animation:mars-reward-fade-out .9s ease-in .35s both}
+.mars-reward-panel{display:flex;flex-direction:column;align-items:center;gap:6px;width:min(440px,100%);padding:20px 16px 18px;border:1px solid #8ab6de;border-radius:8px 20px 8px 20px;background:linear-gradient(135deg,#172d45f2,#081725f5 66%,#1c263bf0);box-shadow:inset 0 1px #f0ffff66,inset 0 0 24px #2b7dad2d,0 18px 40px #000c;text-align:center}
+.mars-reward-flight.is-leaving .mars-reward-panel{border-color:transparent;background:transparent;box-shadow:none;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease}
+.mars-reward-panel>small{color:#85d8fa;font:800 10px/1.4 var(--font-body);letter-spacing:.2em}
+.mars-reward-panel>strong{color:#fff2bf;font:900 clamp(18px,4.5vw,24px)/1.25 var(--font-body);letter-spacing:.06em;text-shadow:0 0 14px #ffca5577}
+.mars-reward-panel>p{margin:4px 0 0;color:#b9d7ee;font:600 12px/1.4 var(--font-body)}
+.mars-reward-flight.is-leaving .mars-reward-panel>small,.mars-reward-flight.is-leaving .mars-reward-panel>strong,.mars-reward-flight.is-leaving .mars-reward-panel>p,.mars-reward-flight.is-leaving .mars-reward-item b,.mars-reward-flight.is-leaving .mars-reward-item em{opacity:0;transition:opacity .25s ease}
+.mars-reward-items{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px}
+.mars-reward-item{display:flex;flex-direction:column;align-items:center;gap:4px;width:84px;animation:mars-reward-pop .45s cubic-bezier(.2,1.6,.4,1) var(--delay,0ms) both}
+.mars-reward-icon{display:grid;place-items:center;width:64px;height:64px;border:1px solid #ffdc8199;border-radius:50%;background:radial-gradient(circle,#ffe7a03d 0%,#0b1a2bcc 70%);box-shadow:0 0 18px #ffc95c55,inset 0 0 12px #ffdf7533}
+.mars-reward-icon img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 6px #ffd76a88)}
+.mars-reward-item b{color:#e8f6ff;font:800 12px/1.2 var(--font-body)}
+.mars-reward-item em{color:#ffe08a;font:900 14px/1.2 var(--font-body);font-style:normal;text-shadow:0 0 10px #ffc95c66}
+.mars-reward-ghost{position:fixed;z-index:2147483320;margin:0;pointer-events:none;will-change:transform,opacity}
+.deck-shortcut.warehouse.mars-reward-received{animation:mars-reward-depot .55s ease-out}
+@keyframes mars-reward-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes mars-reward-fade-out{from{background-color:transparent}to{opacity:0}}
+@keyframes mars-reward-pop{0%{opacity:0;transform:scale(.3) translateY(18px)}100%{opacity:1;transform:none}}
+@keyframes mars-reward-depot{0%{filter:none;transform:scale(1)}35%{filter:brightness(1.7) drop-shadow(0 0 14px #ffd76a);transform:scale(1.08)}100%{filter:none;transform:scale(1)}}
+@media(max-width:600px){.mars-reward-item{width:72px}.mars-reward-icon{width:54px;height:54px}.mars-reward-icon img{width:36px;height:36px}}
+/* 교신 수신 줄: 초상화 자리에 신호 파동, 대사 깜빡임 */
+.mars-scenario[data-channel="incoming"] .mars-scenario-portrait{object-fit:contain;object-position:center;padding:32px 16px;filter:drop-shadow(0 0 12px #54c6ff);animation:scenario-signal-pulse .9s ease-in-out infinite}
+.mars-scenario[data-channel="incoming"] .mars-scenario-name{color:#9fe8ff;text-shadow:0 0 12px #54c6ffaa}
+.mars-scenario[data-channel="incoming"] .mars-scenario-kicker{color:#ffd98a;animation:scenario-signal-blink 1s steps(2,end) infinite}
+.mars-scenario[data-channel="incoming"] .mars-scenario-text{color:#cfeeff;letter-spacing:.02em}
+.mars-scenario[data-channel="incoming"] .mars-scenario-dialogue{border-color:#5fcfff;box-shadow:inset 0 1px #f0ffff66,inset 0 0 28px #2b9dd055,0 0 22px #3fb8ff44,0 12px 30px #000a}
+/* 원거리 교신 줄: 초상화가 통신 화면처럼 푸르게 깜빡이며 주사선이 흐름 */
+.mars-scenario[data-channel="remote"] .mars-scenario-portrait{filter:drop-shadow(0 0 14px #54c6ff88) sepia(.35) hue-rotate(160deg) saturate(1.6) brightness(1.05);animation:scenario-remote-flicker 3.2s steps(1,end) infinite}
+.mars-scenario[data-channel="remote"] .mars-scenario-card::after{content:"";position:absolute;left:0;bottom:0;z-index:3;width:clamp(118px,24vw,225px);height:clamp(175px,35vw,300px);pointer-events:none;
+  background:repeating-linear-gradient(180deg,#9fe8ff22 0 1px,transparent 1px 4px);-webkit-mask:linear-gradient(180deg,transparent,#000 15%,#000 85%,transparent);mask:linear-gradient(180deg,transparent,#000 15%,#000 85%,transparent);animation:scenario-scan 2.4s linear infinite}
+.mars-scenario[data-channel="remote"] .mars-scenario-kicker::after{content:" · REMOTE LINK";color:#ffd98a}
+@media(max-width:600px){.mars-scenario[data-channel="remote"] .mars-scenario-card::after{width:90px;height:165px}}
+@keyframes scenario-signal-pulse{0%,100%{opacity:.75;transform:scale(.94)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes scenario-signal-blink{0%{opacity:1}50%{opacity:.35}}
+@keyframes scenario-remote-flicker{0%,100%{opacity:1}47%{opacity:1}48%{opacity:.55}49%{opacity:1}86%{opacity:.8}87%{opacity:1}}
+@keyframes scenario-scan{from{background-position:0 0}to{background-position:0 40px}}
+/* 전투 중 함장 혼잣말 자막(전투를 멈추지 않음) */
+.scenario-battle-toast{position:absolute;left:50%;top:104px;z-index:60;display:flex;align-items:center;gap:10px;width:min(320px,calc(100% - 32px));padding:8px 14px 8px 8px;transform:translateX(-50%);pointer-events:none;
+  border:1px solid #8ab6de;border-radius:7px 16px 7px 16px;background:linear-gradient(135deg,#172d45f0,#081725f2);box-shadow:inset 0 1px #f0ffff55,0 10px 24px #000a;animation:scenario-toast-in .35s cubic-bezier(.2,1.3,.4,1) both}
+.scenario-battle-toast.is-leaving{animation:scenario-toast-out .45s ease-in forwards}
+.scenario-battle-toast img{width:46px;height:46px;flex:none;object-fit:cover;object-position:top;border-radius:50%;border:1px solid #9fd2ff;background:#0b1a2b}
+.scenario-battle-toast b{display:block;color:#e8f6ff;font:800 12px/1.3 var(--font-body);letter-spacing:.04em}
+.scenario-battle-toast p{margin:2px 0 0;color:#fff;font:700 15px/1.4 var(--font-body)}
+@keyframes scenario-toast-in{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes scenario-toast-out{to{opacity:0;transform:translate(-50%,-10px)}}
+/* 표정 그림(얼굴 클로즈업): 상반신 초상화보다 살짝 작게, 아래쪽 대화창에 붙여 보여 준다. 표정이 바뀌면 짧게 들썩이며 전환 */
+.mars-scenario-portrait.portrait-close-up{object-position:center bottom;transform-origin:50% 100%;-webkit-mask:linear-gradient(180deg,#000 70%,transparent 100%);mask:linear-gradient(180deg,#000 70%,transparent 100%)}
+.mars-scenario-portrait.portrait-expression-change{animation:portrait-expression-change .28s ease-out}
+@keyframes portrait-expression-change{0%{opacity:.35;transform:translateY(4px) scale(.98)}60%{opacity:1;transform:translateY(-2px) scale(1.01)}100%{opacity:1;transform:none}}
+
+/* 선택지: 대화 중 두 갈래 중 하나를 고른다 */
+.mars-scenario-choices{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.mars-scenario-choices[hidden]{display:none}
+.mars-scenario-choice{padding:9px 14px;border:1px solid #ffdc81;border-radius:5px 12px 5px 12px;background:linear-gradient(120deg,#7d5823,#38280f);color:#fff5cf;font:inherit;cursor:pointer;text-align:left}
+.mars-scenario-choice:hover,.mars-scenario-choice:focus-visible{filter:brightness(1.2);outline:2px solid #fff0b0;outline-offset:2px}

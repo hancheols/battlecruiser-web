@@ -1,0 +1,557 @@
+/* 지구연합 · 회의장 — 글꼴은 game-fonts.css 변수만 사용 */
+.union-panel.union-live{text-align:left;padding:14px 12px 28px;max-width:560px;margin:0 auto;color:#dbe8ff;font-family:var(--font-body)}
+.union-live h1,.union-live h2,.union-live h3{font-family:var(--font-display);margin:0}
+.union-live p{margin:0;color:#9db3d8;font-size:12px}
+.union-head{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid #2c3f66;border-radius:12px;background:linear-gradient(135deg,#101b33,#0b1226)}
+.union-head h2{font-size:19px;color:#e8f0ff}
+.union-head>div:last-child{min-width:0;flex:1}
+.union-crest{flex:none;width:52px;height:52px;display:grid;place-items:center;font-size:30px;color:#7aa2ff;border:1px solid #3a5694;border-radius:12px;background:#0a1226;text-shadow:0 0 14px #4a74d8}
+.union-crest.small{width:40px;height:40px;font-size:22px}
+.union-exp{margin-top:7px;height:5px;border-radius:3px;background:#1a2a4a;overflow:hidden}
+.union-exp i{display:block;height:100%;background:#7aa2ff}
+.union-lead{margin:12px 2px;line-height:1.5}
+.union-tabs{display:flex;gap:6px;margin:12px 0}
+.union-tabs button{flex:1;min-height:40px;border:1px solid #2c3f66;border-radius:10px;background:#0c1630;color:#9db3d8;font-family:var(--font-body);font-size:13px}
+.union-tabs button[aria-selected="true"]{border-color:#7aa2ff;background:#17284d;color:#fff}
+.union-block{margin-bottom:14px;padding:12px;border:1px solid #243558;border-radius:12px;background:#0b1328}
+.union-block h3{font-size:14px;color:#cfe0ff;margin-bottom:8px}
+.union-notice{line-height:1.5;white-space:pre-wrap;color:#c4d4f2!important;font-size:13px!important}
+.union-field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:12px;color:#9db3d8}
+.union-field input,.union-field textarea,.union-field select,.union-search input,.union-row select{min-height:38px;padding:7px 9px;border:1px solid #2c3f66;border-radius:8px;background:#08101f;color:#e8f0ff;font-family:var(--font-body);font-size:13px;box-sizing:border-box;width:100%}
+.union-field textarea{resize:vertical}
+.union-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:#9db3d8}
+.union-row select{width:auto}
+.union-btn{min-height:38px;padding:0 14px;border:1px solid #4a74d8;border-radius:9px;background:#1b3366;color:#fff;font-family:var(--font-body);font-size:13px}
+.union-btn.small{min-height:32px;padding:0 10px;font-size:12px}
+.union-btn.danger{border-color:#8a3a46;background:#3a1620;color:#ffc9d0}
+.union-btn:disabled{opacity:.45}
+.union-actions{display:flex;justify-content:center}
+.union-members,.union-cards,.union-facilities{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.union-member{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;padding:9px 10px;border:1px solid #1f3053;border-radius:10px;background:#0a1224;position:relative}
+.union-member.self{border-color:#4a74d8}
+.union-member-main{display:flex;align-items:center;gap:8px;min-width:0}
+.union-member-main b{font-size:13px;color:#e8f0ff;overflow-wrap:anywhere}
+.union-member-main>span{font-size:11px;color:#8aa0c8}
+.union-member-meta{display:flex;align-items:center;gap:10px;font-size:11px;color:#8aa0c8;font-family:var(--font-num)}
+.role{padding:1px 7px;border-radius:9px;font-size:10px;border:1px solid #2c3f66;color:#9db3d8}
+.role-leader{border-color:#d4a84a;color:#ffd987}
+.role-officer{border-color:#7aa2ff;color:#b9ceff}
+.union-more{width:32px;height:32px;border:1px solid #2c3f66;border-radius:8px;background:#0c1630;color:#cfe0ff;font-size:16px}
+.union-menu{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;padding-top:4px}
+.union-menu button{min-height:34px;padding:0 12px;border:1px solid #2c3f66;border-radius:8px;background:#122042;color:#dbe8ff;font-family:var(--font-body);font-size:12px}
+.union-menu button.danger{border-color:#8a3a46;color:#ffc9d0}
+.union-card{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #243558;border-radius:12px;background:#0b1328}
+.union-card-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.union-card-main b{font-size:14px;color:#e8f0ff}
+.union-card-main span{font-size:11px;color:#8aa0c8;font-family:var(--font-num)}
+.union-card-main small{font-size:11px;color:#9db3d8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.union-search{margin-bottom:10px}
+.union-emblems{display:flex;gap:6px;flex-wrap:wrap}
+.union-emblems button{width:44px;height:44px;border:1px solid #2c3f66;border-radius:10px;background:#0c1630;color:#9db3d8;font-size:22px}
+.union-emblems button[aria-pressed="true"]{border-color:#7aa2ff;color:#7aa2ff;background:#17284d}
+.union-empty{padding:18px 8px;text-align:center;color:#8aa0c8;font-size:12px}
+.union-facilities li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px dashed #2c3f66;border-radius:12px;background:#09101f}
+.union-facilities li div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.union-facilities b{font-size:14px;color:#aebfdc}
+.union-facilities span{font-size:11px;color:#7b90b8}
+.union-facilities em{flex:none;font-style:normal;font-size:11px;color:#7b90b8;border:1px solid #2c3f66;border-radius:9px;padding:2px 8px}
+
+/* 연합 광장(메인 장면) */
+.union-hint{text-align:center;font-size:12px;color:#8aa0c8}
+.union-back{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.union-back button{min-height:36px;padding:0 12px;border:1px solid #2c3f66;border-radius:9px;background:#0c1630;color:#cfe0ff;font-family:var(--font-body);font-size:13px}
+.union-back b{font-family:var(--font-display);font-size:15px;color:#e8f0ff}
+.union-status{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 10px;border:1px solid #2c3f66;border-radius:12px;background:#0b1328}
+.union-status div:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.union-status b{font-family:var(--font-display);font-size:14px;color:#e8f0ff}
+.union-status span{font-size:11px;color:#8aa0c8}
+.union-scene{position:relative;width:100%;aspect-ratio:1024/1336;border:1px solid #2c3f66;border-radius:14px;overflow:hidden;background:#050a18;box-shadow:0 0 28px #1b3366aa inset}
+.union-scene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.union-plaque{opacity:1;position:absolute;transform:translate(-50%,-50%);min-width:92px;max-width:46%;padding:8px 14px 8px 12px;border:1px solid #8fb0ff;border-radius:6px 14px 14px 6px;background:linear-gradient(180deg,#44577f,#141f3a 70%);color:#fff;font-family:var(--font-display);text-align:center;box-shadow:0 4px 14px #000a,0 0 14px #4a74d855;clip-path:polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%)}
+.union-plaque b{display:block;font-size:14px;letter-spacing:.02em;line-height:1.2}
+.union-plaque small{display:block;margin-top:2px;font-family:var(--font-body);font-size:10px;color:#9db3d8}
+.union-plaque:active{filter:brightness(1.25)}
+.union-plaque.soon{background:linear-gradient(180deg,#323d58,#111829 70%);color:#b7c4e0;border-color:#4b5f8a}
+.union-plaque .dot{position:absolute;top:-4px;right:-2px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e5484d;color:#fff;font-style:normal;font-family:var(--font-num);font-size:11px;line-height:18px;box-sizing:border-box}
+.union-soon{text-align:center;padding:26px 14px}
+.union-soon p{margin:10px 0 14px;line-height:1.55;font-size:13px;color:#c4d4f2}
+.union-soon em{font-style:normal;font-size:12px;color:#7b90b8;border:1px solid #2c3f66;border-radius:9px;padding:3px 10px}
+
+/* 장면 애니메이션(은은하게). 움직임을 줄이는 설정이면 모두 멈춘다 */
+.union-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.union-scene .spin,.union-scene .atom,.union-scene .pkt,.union-scene .neb{transform-box:fill-box;transform-origin:center}
+.union-scene .tw{animation:u-tw 3.4s ease-in-out infinite}.union-scene .tw1{animation-delay:-1.1s;animation-duration:4.6s}.union-scene .tw2{animation-delay:-2.3s;animation-duration:2.8s}
+.union-scene .neb{animation:u-neb 18s ease-in-out infinite alternate}
+.union-scene .pulse{animation:u-pulse 4.5s ease-in-out infinite}
+.union-scene .beacon{animation:u-blink 2.2s ease-in-out infinite}.union-scene .beacon.b2{animation-delay:-1.1s}
+.union-scene .win{animation:u-win 5s ease-in-out infinite}.union-scene .a0{animation-delay:-.4s}.union-scene .a1{animation-delay:-2.1s}.union-scene .a2{animation-delay:-3.5s}.union-scene .b0{animation-delay:-1.3s;animation-duration:6.4s}.union-scene .b1{animation-delay:-4s;animation-duration:6.4s}.union-scene .b2{animation-delay:-2.6s;animation-duration:6.4s}
+.union-scene .spin{animation:u-spin 16s linear infinite}
+.union-scene .atom{animation:u-spin 22s linear infinite reverse}
+.union-scene .liquid{animation:u-liquid 3.6s ease-in-out infinite}
+.union-scene .holo{animation:u-holo 3.2s steps(1,end) infinite}
+.union-scene .pkt{animation:u-pkt 5.5s linear infinite;opacity:0}.union-scene .pkt.p1{animation-delay:-1.8s}.union-scene .pkt.p2{animation-delay:-3.6s}
+@keyframes u-tw{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes u-neb{from{transform:translate(-6px,0)}to{transform:translate(8px,4px)}}
+@keyframes u-pulse{0%,100%{opacity:.75}50%{opacity:1}}
+@keyframes u-blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes u-win{0%,100%{opacity:.95}45%{opacity:.35}70%{opacity:.8}}
+@keyframes u-spin{to{transform:rotate(360deg)}}
+@keyframes u-liquid{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes u-holo{0%{opacity:1}46%{opacity:.4}50%{opacity:1}92%{opacity:.7}}
+@keyframes u-pkt{0%{transform:translateY(0);opacity:0}10%{opacity:.9}90%{opacity:.6}100%{transform:translateY(480px);opacity:0}}
+.union-plaque{transition:transform .15s,filter .15s}
+.union-plaque:hover{filter:brightness(1.15)}
+@media (prefers-reduced-motion:reduce){.union-scene svg *{animation:none!important}}
+.union-scene .union-plaque{min-width:72px;padding:5px 10px 5px 9px;opacity:.94;white-space:nowrap;max-width:none}
+.union-scene .union-plaque b{font-size:12px}
+.union-scene .union-plaque small{font-size:9px;margin-top:1px}
+
+/* 명판: 투명 유리 + 얇은 빛 테두리 + 모서리 브래킷 (배경 이미지의 푸른 홀로그램 톤) */
+.union-scene .union-plaque,.union-scene .union-plaque.soon{
+  background:linear-gradient(180deg,rgba(150,205,255,.10),rgba(20,60,130,.06));
+  border:1px solid rgba(190,228,255,.75);border-radius:3px;clip-path:none;opacity:1;
+  box-shadow:0 0 10px rgba(110,190,255,.45),inset 0 0 10px rgba(150,210,255,.22);
+  -webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);
+  color:#fff;padding:5px 12px;
+}
+.union-scene .union-plaque::before,.union-scene .union-plaque::after{content:"";position:absolute;width:8px;height:8px;pointer-events:none;border:2px solid #dff2ff;filter:drop-shadow(0 0 3px #7fc4ff)}
+.union-scene .union-plaque::before{left:-4px;top:-4px;border-right:0;border-bottom:0}
+.union-scene .union-plaque::after{right:-4px;bottom:-4px;border-left:0;border-top:0}
+.union-scene .union-plaque b{text-shadow:0 0 6px rgba(0,30,80,.95),0 1px 2px rgba(0,20,60,.95),0 0 12px rgba(120,200,255,.7)}
+.union-scene .union-plaque small{color:#d6ecff;text-shadow:0 0 5px rgba(0,30,80,.95),0 1px 2px rgba(0,20,60,.9)}
+.union-scene .union-plaque.soon{border-color:rgba(190,228,255,.5);border-style:dashed;box-shadow:0 0 8px rgba(110,190,255,.25),inset 0 0 8px rgba(150,210,255,.15)}
+.union-scene .union-plaque:hover,.union-scene .union-plaque:focus-visible{background:linear-gradient(180deg,rgba(170,220,255,.22),rgba(40,90,170,.14));box-shadow:0 0 16px rgba(130,210,255,.8),inset 0 0 12px rgba(170,225,255,.35);filter:none;outline:none}
+.union-scene .union-plaque:active{transform:translate(-50%,-50%) scale(.97)}
+/* 가독성 보정: 흐림 제거, 옅은 푸른 유리 + 선명한 테두리 + 글자 외곽선 */
+.union-scene .union-plaque,.union-scene .union-plaque.soon{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(8,32,86,.26);border-width:1.5px;border-color:rgba(225,244,255,.95)}
+.union-scene .union-plaque.soon{border-color:rgba(225,244,255,.75)}
+.union-scene .union-plaque b{text-shadow:-1px 0 #06204f,1px 0 #06204f,0 -1px #06204f,0 1px #06204f,0 0 8px rgba(0,25,70,.9),0 0 14px rgba(120,200,255,.6)}
+.union-scene .union-plaque small{text-shadow:-1px 0 #06204f,1px 0 #06204f,0 -1px #06204f,0 1px #06204f}
+/* 크기 30% 확대 */
+.union-scene .union-plaque{min-width:94px;padding:7px 16px}
+.union-scene .union-plaque b{font-size:15.6px}
+.union-scene .union-plaque small{font-size:11.7px;margin-top:2px}
+.union-scene .union-plaque::before,.union-scene .union-plaque::after{width:10px;height:10px}
+.union-scene .union-plaque .dot{min-width:23px;height:23px;line-height:23px;font-size:14px;border-radius:12px;top:-8px;right:-6px}
+
+/* 효과 레이어: 시설로 이어지는 길, 첨탑 뒤를 지나는 우주선 */
+.union-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.union-fx .fly{opacity:0}
+.union-fx .fly-a{animation:u-fly-a 46s linear infinite;animation-delay:-38s}
+.union-fx .fly-b{animation:u-fly-b 46s linear infinite;animation-delay:-14s}
+.union-fx .ship-body{transform:scale(1.35)}
+@keyframes u-fly-a{0%{opacity:1;transform:translate(-120px,350px)}18%{opacity:1;transform:translate(1160px,372px)}18.1%,100%{opacity:0;transform:translate(1160px,372px)}}
+@keyframes u-fly-b{0%{opacity:1;transform:translate(1160px,300px)}16%{opacity:1;transform:translate(-120px,284px)}16.1%,100%{opacity:0;transform:translate(-120px,284px)}}
+.union-fx .ship-body{transform:scale(1)}
+.union-fx .nav{animation:u-blink 1.6s ease-in-out infinite}.union-fx .nav.n2{animation-delay:-.8s}
+@media (prefers-reduced-motion:reduce){.union-fx .fly{display:none}}
+
+/* 시설 건물 푸른 네온 외곽선 */
+.union-fx .nz-glow{fill:none;stroke:#1fa2ff;stroke-width:14;stroke-linejoin:round;opacity:.75;animation:u-neon 3.2s ease-in-out infinite}
+.union-fx .nz-fill{fill:rgba(60,170,255,.08);stroke:none}
+.union-fx .nz-line{fill:none;stroke:#aee6ff;stroke-width:3.4;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 3px #3bb6ff)}
+.union-fx .nz:nth-child(2) .nz-glow{animation-delay:-.8s}.union-fx .nz:nth-child(3) .nz-glow{animation-delay:-1.6s}.union-fx .nz:nth-child(4) .nz-glow{animation-delay:-2.4s}
+@keyframes u-neon{0%,100%{opacity:.5}50%{opacity:.95}}
+.union-scene:has(.union-plaque[data-view="rnd"]:hover) .nz[data-fac="rnd"] .nz-fill,.union-scene:has(.union-plaque[data-view="archive"]:hover) .nz[data-fac="archive"] .nz-fill,.union-scene:has(.union-plaque[data-view="tech"]:hover) .nz[data-fac="tech"] .nz-fill,.union-scene:has(.union-plaque[data-view="thorium"]:hover) .nz[data-fac="thorium"] .nz-fill{fill:rgba(90,190,255,.28)}
+@media (prefers-reduced-motion:reduce){.union-fx .nz-glow{animation:none}}
+
+/* 회의장 네온 + 명판을 네온과 같은 색(#aee6ff 선, #1fa2ff 번짐)으로 */
+.union-fx .nz:nth-child(5) .nz-glow{animation-delay:-3s}
+.union-scene:has(.union-plaque[data-view="hall"]:hover) .nz[data-fac="hall"] .nz-fill{fill:rgba(90,190,255,.28)}
+.union-scene .union-plaque,.union-scene .union-plaque.soon{
+  border-color:#aee6ff;
+  box-shadow:0 0 6px #1fa2ff,0 0 14px rgba(31,162,255,.7),inset 0 0 8px rgba(31,162,255,.4)}
+.union-scene .union-plaque.soon{border-color:rgba(174,230,255,.8);box-shadow:0 0 5px #1fa2ff,0 0 11px rgba(31,162,255,.5),inset 0 0 6px rgba(31,162,255,.3)}
+.union-scene .union-plaque::before,.union-scene .union-plaque::after{border-color:#aee6ff;filter:drop-shadow(0 0 3px #1fa2ff)}
+.union-scene .union-plaque:hover,.union-scene .union-plaque:focus-visible{box-shadow:0 0 9px #1fa2ff,0 0 20px rgba(31,162,255,.9),inset 0 0 12px rgba(31,162,255,.5)}
+
+/* 엠블럼 박스·연합 정보 바: 우주연합 톤(네온 블루 + 유리 질감) */
+.union-crest{position:relative;border:1px solid #aee6ff;border-radius:4px;color:#d6f3ff;
+  background:radial-gradient(circle at 50% 35%,rgba(60,150,255,.38),rgba(8,24,64,.92) 70%);
+  box-shadow:0 0 8px rgba(31,162,255,.7),inset 0 0 10px rgba(31,162,255,.45);
+  text-shadow:0 0 8px #3bb6ff,0 0 16px #1fa2ff;
+  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
+.union-crest::before,.union-crest::after{content:"";position:absolute;width:9px;height:9px;pointer-events:none;border:2px solid #e6f8ff}
+.union-crest::before{left:2px;top:2px;border-right:0;border-bottom:0}
+.union-crest::after{right:2px;bottom:2px;border-left:0;border-top:0}
+.union-crest.small::before,.union-crest.small::after{width:7px;height:7px}
+.union-status,.union-head{position:relative;border:1px solid rgba(174,230,255,.55);border-radius:6px;
+  background:linear-gradient(100deg,rgba(14,42,100,.85),rgba(6,16,44,.92) 60%,rgba(10,30,76,.85));
+  box-shadow:0 0 10px rgba(31,162,255,.28),inset 0 0 14px rgba(31,162,255,.12)}
+.union-status::after,.union-head::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#aee6ff,transparent);opacity:.8}
+.union-status b,.union-head h2{text-shadow:0 0 10px rgba(80,180,255,.55)}
+
+/* 명판 테두리·바탕 투명화: 건물 네온 외곽선보다 한 단계 약하게 */
+.union-scene .union-plaque,.union-scene .union-plaque.soon{
+  background:rgba(8,32,86,.10);
+  border-color:rgba(174,230,255,.38);
+  box-shadow:0 0 6px rgba(31,162,255,.22),inset 0 0 6px rgba(31,162,255,.12)}
+.union-scene .union-plaque.soon{border-color:rgba(174,230,255,.3)}
+.union-scene .union-plaque::before,.union-scene .union-plaque::after{border-color:rgba(214,243,255,.5);filter:none}
+.union-scene .union-plaque:hover,.union-scene .union-plaque:focus-visible{border-color:rgba(174,230,255,.9);background:rgba(40,100,190,.2);box-shadow:0 0 12px rgba(31,162,255,.7),inset 0 0 10px rgba(31,162,255,.3)}
+.union-scene .union-plaque:hover::before,.union-scene .union-plaque:hover::after{border-color:#e6f8ff}
+
+/* 장면을 화면 높이까지 채움: 이미지(스테이지)는 가운데 기준 cover, 명판은 컨테이너 기준으로 위치 계산 후 잘리지 않게 고정 */
+.union-scene{aspect-ratio:auto;height:calc(100dvh - 300px);min-height:360px;container-type:size;
+  --sw:max(100cqw,calc(100cqh * 1024 / 1336));--sh:max(100cqh,calc(100cqw * 1336 / 1024))}
+.union-stage{position:absolute;left:50%;top:50%;width:var(--sw);height:var(--sh);transform:translate(-50%,-50%)}
+.union-stage .union-bg,.union-stage .union-fx{position:absolute;inset:0;width:100%;height:100%}
+.union-scene .union-plaque{
+  left:clamp(70px,calc(50cqw + (var(--x) - 50) * var(--sw) / 100),calc(100cqw - 70px));
+  top:clamp(28px,calc(50cqh + (var(--y) - 50) * var(--sh) / 100),calc(100cqh - 28px))}
+/* 광장 화면은 하단 메뉴 바로 위까지 장면으로 채운다(기본 하단 여백 제거) */
+#earth-union:has(.union-scene){padding-bottom:0}
+#earth-union .union-panel:has(.union-scene){padding-bottom:0}
+
+/* 광장 전체 화면: 좌우·상하 여백 없이 상단 HUD 아래부터 하단 메뉴 위까지 장면으로 채움. 연합 정보 바는 장면 위에 띄움 */
+#earth-union:has(.union-scene){padding:0}
+.union-panel.union-live{position:relative}
+.union-panel.union-live:has(.union-scene){max-width:none;margin:0;padding:var(--hud,96px) 0 0}
+.union-panel.union-live:has(.union-scene) .union-scene{border:0;border-radius:0;box-shadow:none;margin:0}
+.union-panel.union-live:has(.union-scene) .union-status{position:absolute;z-index:3;top:calc(var(--hud,96px) + 8px);left:10px;right:10px;margin:0;
+  background:linear-gradient(100deg,rgba(14,42,100,.72),rgba(6,16,44,.7) 60%,rgba(10,30,76,.72));-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.union-scene .union-plaque{top:clamp(84px,calc(50cqh + (var(--y) - 50) * var(--sh) / 100),calc(100cqh - 28px))}
+body #earth-union.screen:has(.union-scene){padding:0!important}
+
+/* 건물 잘림 방지: 이미지를 화면 폭에 정확히 맞추고 아래(대로)에 붙인다. 위에 남는 공간은 하늘과 이어지는 우주 그라데이션 */
+.union-scene{--sw:100cqw;--sh:calc(100cqw * 1336 / 1024);
+  background:linear-gradient(180deg,#030a22 0%,#0a2a6e 45%,#1a5cbc 85%,#2a74d2 100%)}
+.union-stage{left:0;top:auto;bottom:0;transform:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 64px);mask-image:linear-gradient(180deg,transparent 0,#000 64px)}
+.union-scene .union-plaque{
+  left:clamp(66px,calc(var(--x) * var(--sw) / 100),calc(100cqw - 66px));
+  top:clamp(84px,calc(100cqh - var(--sh) + var(--y) * var(--sh) / 100),calc(100cqh - 28px))}
+
+/* 연합명 배너: 크게, 각진 프레임 + 이중 네온 + 빛 스윕 + 엠블럼 회전 링 */
+.union-panel.union-live:has(.union-scene) .union-banner{
+  display:flex;align-items:center;gap:16px;padding:14px 18px;box-sizing:border-box;overflow:hidden;
+  border:1px solid rgba(174,230,255,.85);border-radius:0;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  background:
+    radial-gradient(120% 140% at 0% 0%,rgba(90,170,255,.35),transparent 55%),
+    radial-gradient(90% 120% at 100% 100%,rgba(140,110,255,.28),transparent 60%),
+    linear-gradient(115deg,rgba(10,34,92,.94),rgba(4,12,38,.92) 55%,rgba(14,40,104,.94));
+  box-shadow:0 0 18px rgba(31,162,255,.55),inset 0 0 22px rgba(31,162,255,.25);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.union-banner::before{content:"";position:absolute;inset:5px;pointer-events:none;border:1px solid rgba(174,230,255,.28);
+  clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)}
+.union-banner::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(200,235,255,.22),transparent);animation:ub-sweep 5.5s ease-in-out infinite}
+@keyframes ub-sweep{0%,55%{left:-40%}100%{left:120%}}
+.ub-crest{position:relative;flex:none;width:76px;height:76px;display:grid;place-items:center}
+.ub-crest::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(174,230,255,.6);animation:u-spin 18s linear infinite}
+.ub-crest::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(31,162,255,.35);box-shadow:0 0 14px rgba(31,162,255,.45)}
+.ub-crest .union-crest{width:64px;height:64px;font-size:34px}
+.ub-main{position:relative;z-index:1;flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.ub-kicker{font-family:var(--font-num);font-size:10px;letter-spacing:.22em;color:#8fd0ff;text-shadow:0 0 6px rgba(31,162,255,.8)}
+.ub-name{font-family:var(--font-display);font-size:24px;line-height:1.15;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  background:linear-gradient(180deg,#ffffff,#bfe6ff 60%,#7fc4ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 8px rgba(31,162,255,.65))}
+.ub-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:#cfe6ff}
+.ub-meta em{font-style:normal;font-family:var(--font-num);color:#fff}
+.ub-lv{padding:2px 10px;border:1px solid #ffd27a;border-radius:10px;color:#ffe2a6;font-family:var(--font-num);font-size:11px;
+  background:linear-gradient(180deg,rgba(255,200,100,.25),rgba(120,70,10,.25));box-shadow:0 0 8px rgba(255,190,90,.45)}
+.ub-exp{position:relative;height:6px;border-radius:3px;background:rgba(10,30,80,.85);border:1px solid rgba(174,230,255,.35);overflow:hidden;max-width:260px}
+.ub-exp i{display:block;height:100%;min-width:4px;background:linear-gradient(90deg,#1fa2ff,#aee6ff);box-shadow:0 0 8px #1fa2ff}
+@media (prefers-reduced-motion:reduce){.union-banner::after,.ub-crest::before{animation:none}}
+.union-status.union-banner::after{right:auto;height:auto;opacity:1}
+.union-banner .ub-name{font-size:24px;text-shadow:none}
+.union-banner .ub-meta span{font-size:12px;color:#cfe6ff}
+.union-banner .ub-meta .ub-lv{font-size:11px;color:#ffe2a6}
+
+/* 배너 절반 크기 */
+.union-panel.union-live:has(.union-scene) .union-banner{gap:10px;padding:7px 12px;min-height:0}
+.union-banner .ub-crest{width:44px;height:44px}
+.union-banner .ub-crest::before{inset:-4px}
+.union-banner .ub-crest::after{inset:-7px}
+.union-banner .ub-crest .union-crest{width:38px;height:38px;font-size:20px}
+.union-banner .ub-crest .union-crest::before,.union-banner .ub-crest .union-crest::after{width:6px;height:6px}
+.union-banner .ub-main{gap:2px}
+.union-banner .ub-kicker{font-size:8px;letter-spacing:.18em}
+.union-banner .ub-name{font-size:17px}
+.union-banner .ub-meta{gap:8px}
+.union-banner .ub-meta span{font-size:11px}
+.union-banner .ub-meta .ub-lv{font-size:10px;padding:1px 7px}
+.union-banner .ub-exp{height:4px}
+
+/* 회의장 위쪽 하늘: 이미지 시작점 위의 빈 공간부터 하늘 일부까지 우주색 → 투명 그라데이션으로 덮는다 */
+.union-scene::before{content:"";position:absolute;left:0;right:0;top:0;z-index:1;pointer-events:none;
+  height:calc(100cqh - var(--sh) + 190px);
+  background:linear-gradient(180deg,#030a22 0%,rgba(5,20,62,.92) 30%,rgba(14,58,140,.55) 62%,rgba(30,110,210,.18) 85%,transparent 100%)}
+.union-stage{z-index:0;-webkit-mask-image:none;mask-image:none}
+.union-scene .union-plaque{z-index:2}
+/* 이미지 윗경계 제거: 이미지 상단 150px을 서서히 나타나게 */
+.union-stage{-webkit-mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.35) 60px,#000 150px);mask-image:linear-gradient(180deg,transparent 0,rgba(0,0,0,.35) 60px,#000 150px)}
+
+/* 섬세한 네온: 화면 픽셀 기준의 가는 선(크기와 무관하게 일정) + 얇은 번짐 */
+.union-fx .nz-line{stroke-width:1.3px;vector-effect:non-scaling-stroke;stroke:#d4f3ff;stroke-linejoin:round;filter:drop-shadow(0 0 1.5px #5cc4ff) drop-shadow(0 0 3px #1fa2ff)}
+.union-fx .nz-glow{stroke-width:4px;vector-effect:non-scaling-stroke;opacity:.55}
+.union-fx .nz-fill{fill:rgba(60,170,255,.05)}
+
+/* ═══════════ 연합 휘장(SVG) ═══════════ */
+.crest-svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 6px rgba(80,170,255,.55))}
+.crest-svg text{font-family:var(--font-display)}
+.union-banner .ub-crest{width:66px;height:55px}
+.union-banner .ub-crest::before,.union-banner .ub-crest::after{display:none}
+
+/* ═══════════ 시설 화면 공통 ═══════════ */
+.union-panel.union-live:has(.fac){padding:0 0 28px;max-width:560px}
+.fac{--acc:#7fd0ff;--acc2:#1fa2ff;--glow:rgba(31,162,255,.45);display:flex;flex-direction:column;gap:12px;padding:0 12px}
+.fac-thorium{--acc:#6ff5cf;--acc2:#16c79a;--glow:rgba(22,199,154,.45)}
+.fac-tech{--acc:#cdb4ff;--acc2:#8f6bff;--glow:rgba(143,107,255,.45)}
+.fac-rnd{--acc:#8fd8ff;--acc2:#2f9bff;--glow:rgba(47,155,255,.45)}
+.fac-archive{--acc:#ffd894;--acc2:#ffaa33;--glow:rgba(255,170,51,.42)}
+.fac-hero{position:relative;margin:0 -12px;height:168px;overflow:hidden;display:flex;align-items:flex-end;
+  background:#050c22 url(union-scene.webp?v=2) no-repeat;background-size:320% auto;border-bottom:1px solid var(--acc)}
+.fac-hero::before{content:"";position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(3,10,34,.15) 0%,rgba(3,10,34,.25) 45%,rgba(3,10,34,.92) 100%),
+  radial-gradient(120% 90% at 50% 100%,var(--glow),transparent 70%)}
+.fac-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);box-shadow:0 0 12px var(--acc2)}
+.fac-back{position:absolute;z-index:2;left:12px;top:10px;min-height:32px;padding:0 12px;border:1px solid rgba(174,230,255,.5);border-radius:3px;
+  background:rgba(4,14,40,.6);color:#e6f6ff;font-family:var(--font-body);font-size:12px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.fac-hero-text{position:relative;z-index:1;padding:0 16px 14px;display:flex;flex-direction:column;gap:2px}
+.fac-hero-text small{font-family:var(--font-num);font-size:10px;letter-spacing:.24em;color:var(--acc);text-shadow:0 0 8px var(--acc2)}
+.fac-hero-text h2{margin:0;font-family:var(--font-display);font-size:26px;color:#fff;text-shadow:0 0 14px var(--glow),0 2px 4px #000}
+.fac-hero-text span{font-size:12px;color:#c8dcf5}
+.fac-tag{position:absolute;z-index:2;right:12px;top:12px;font-style:normal;font-size:10px;letter-spacing:.06em;padding:4px 9px;border:1px solid var(--acc);color:var(--acc);
+  background:rgba(4,14,40,.6);border-radius:2px;box-shadow:0 0 8px var(--glow)}
+.fac-panel{position:relative;margin:0;padding:12px 12px 14px;border:1px solid rgba(174,230,255,.18);
+  background:linear-gradient(180deg,rgba(14,30,72,.72),rgba(6,14,36,.85));border-radius:2px;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.fac-panel::before{content:"";position:absolute;left:0;top:0;width:36px;height:2px;background:var(--acc);box-shadow:0 0 8px var(--acc2)}
+.fac-panel h3{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;font-family:var(--font-display);font-size:14px;color:#eef8ff}
+.fac-panel h3 i{width:6px;height:6px;align-self:center;background:var(--acc);transform:rotate(45deg);box-shadow:0 0 6px var(--acc2)}
+.fac-panel h3 small{font-family:var(--font-num);font-size:9px;letter-spacing:.2em;color:var(--acc);opacity:.85}
+.fac-btn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:38px;padding:0 18px;border:1px solid var(--acc);border-radius:2px;
+  background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(0,0,0,.2)),var(--acc2);
+  color:#fff;font-family:var(--font-display);font-size:13px;letter-spacing:.04em;box-shadow:0 0 10px var(--glow);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.fac-btn small{font-family:var(--font-body);font-size:9px;letter-spacing:0;color:rgba(255,255,255,.8)}
+.fac-btn:disabled{opacity:.55;filter:saturate(.5);cursor:not-allowed}
+.fac-btn.small{min-height:30px;padding:0 13px;font-size:12px}
+.fac-btn.danger{--acc:#ff9aa8;--acc2:#b8324a;--glow:rgba(184,50,74,.4)}
+.fac-bar{position:relative;height:8px;margin-top:8px;background:rgba(4,12,32,.9);border:1px solid rgba(174,230,255,.22)}
+.fac-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));box-shadow:0 0 8px var(--acc2)}
+.fac-bar span{position:absolute;right:0;top:11px;font-size:10px;color:#9fb6d6}
+.fac-bar:has(span){margin-bottom:16px}
+.mono{font-family:var(--font-num);letter-spacing:.04em}
+.fac-split{display:flex;align-items:center;gap:16px}
+.fac-gauge{position:relative;flex:none;width:118px;height:118px}
+.fac-gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.fac-gauge .g-track{fill:none;stroke:rgba(174,230,255,.12);stroke-width:9}
+.fac-gauge .g-fill{fill:none;stroke:var(--acc);stroke-width:9;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--acc2))}
+.fac-gauge div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.fac-gauge b{font-family:var(--font-num);font-size:18px;color:#fff}
+.fac-gauge small{font-size:10px;color:#9fb6d6}
+.fac-stats{list-style:none;margin:0;padding:0;flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.fac-stats li{display:flex;justify-content:space-between;gap:8px;padding-bottom:6px;border-bottom:1px dashed rgba(174,230,255,.14);font-size:12px;color:#9fb6d6}
+.fac-stats b{color:#fff;font-family:var(--font-num)}
+.fac-claim{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fac-claim>div{display:flex;flex-direction:column;gap:2px}
+.fac-claim span{font-size:11px;color:#9fb6d6}
+.fac-claim b{font-family:var(--font-num);font-size:22px;color:var(--acc);text-shadow:0 0 10px var(--glow)}
+.fac-claim b small{font-size:11px;color:#c8dcf5;font-family:var(--font-body)}
+.fac-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.fac-log li{display:grid;grid-template-columns:72px 1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid rgba(174,230,255,.08);font-size:12px}
+.fac-log span{color:#7f95b8}.fac-log b{color:#dceeff;font-weight:500}.fac-log em{font-style:normal;font-family:var(--font-num);color:var(--acc)}
+.fac-card{padding:10px;margin-top:8px;border:1px solid rgba(174,230,255,.14);background:rgba(4,12,34,.6);border-left:2px solid var(--acc)}
+.fac-panel h3+.fac-card{margin-top:0}
+.fac-card-head{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.fac-card-head b{color:#fff}.fac-card-head span{font-size:11px;color:#9fb6d6}
+.fac-card-foot{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:11px;color:#9fb6d6;flex-wrap:wrap}
+.fac-card-foot .fac-btn{margin-left:auto}
+.fac-card-foot b{color:#fff}
+.fac-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0;text-align:center}
+.fac-empty p{margin:0;font-size:12px;line-height:1.6;color:#9fb6d6}
+.fac-tree{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fac-tree-col{display:flex;flex-direction:column;align-items:stretch;min-width:0}
+.fac-tree-col h4{margin:0 0 6px;text-align:center;font-family:var(--font-display);font-size:12px;color:var(--acc);letter-spacing:.1em}
+.fac-node{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--acc);background:radial-gradient(circle at 50% 0,var(--glow),rgba(4,12,34,.85) 70%);
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%)}
+.fac-node b{font-size:11px;color:#fff;text-align:center;line-height:1.2}
+.fac-node small{font-family:var(--font-num);font-size:9px;color:#9fb6d6}
+.fac-node.locked{border-color:rgba(174,230,255,.2);background:rgba(4,12,34,.7);filter:grayscale(.6);opacity:.7}
+.pips{display:flex;gap:3px}.pips i{width:6px;height:6px;border:1px solid var(--acc);transform:rotate(45deg)}.pips i.on{background:var(--acc);box-shadow:0 0 4px var(--acc2)}
+.fac-link{align-self:center;width:2px;height:12px;background:linear-gradient(var(--acc),transparent)}
+.fac-op{display:flex;gap:10px;padding:10px;margin-top:8px;border:1px solid rgba(255,216,148,.18);
+  background:linear-gradient(90deg,rgba(60,36,8,.35),rgba(4,12,34,.7) 60%);border-left:2px solid var(--acc)}
+.fac-panel h3+.fac-op{margin-top:0}
+.fac-op-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.fac-op-main b{font-family:var(--font-display);font-size:14px;color:#fff}
+.fac-op-main span{font-size:11px;color:#c8b896}
+.fac-stars{font-size:11px;color:var(--acc);letter-spacing:1px;text-shadow:0 0 6px var(--acc2)}.fac-stars s{text-decoration:none;color:rgba(255,216,148,.2);text-shadow:none}
+.fac-op-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.fac-op-side span{font-size:10px;color:#9fb6d6}
+.grade{font-family:var(--font-display);font-size:18px;line-height:1}.grade-S{color:#ffe08a;text-shadow:0 0 10px #ffaa33}.grade-A{color:#9fe0ff}.grade-B{color:#b9c9e6}.grade-none{color:#5a6c8c}
+.fac-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tier{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid rgba(255,216,148,.25);background:rgba(4,12,34,.6)}
+.tier b{font-family:var(--font-display);font-size:22px}.tier span{font-size:11px;color:#c8dcf5}
+.tier.s b{color:#ffe08a;text-shadow:0 0 10px #ffaa33}.tier.a b{color:#9fe0ff}.tier.b b{color:#b9c9e6}
+.fac-rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.fac-rank li{display:flex;align-items:center;gap:12px;font-size:12px;color:#c8dcf5}
+.fac-rank i{display:grid;place-items:center;width:22px;height:22px;font-style:normal;font-family:var(--font-num);font-size:11px;border:1px solid var(--acc);color:var(--acc)}
+.fac-rank li:first-child i{background:var(--acc);color:#2a1800}
+.fac-rank b{flex:1;color:#fff}
+
+/* ═══════════ 회의장 ═══════════ */
+.hall-command{display:flex;align-items:center;gap:14px;padding:4px 4px 0}
+.hall-crest{flex:none;width:104px;height:86px}
+.hall-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hall-id small{font-family:var(--font-num);font-size:9px;letter-spacing:.22em;color:#8fd0ff}
+.hall-id h3{margin:0;font-family:var(--font-display);font-size:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  background:linear-gradient(180deg,#fff,#bfe6ff 60%,#7fc4ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(31,162,255,.55))}
+.hall-lv{display:flex;align-items:center;gap:8px}
+.hall-lv .ub-lv{padding:1px 8px;border:1px solid #ffd27a;border-radius:10px;color:#ffe2a6;font-family:var(--font-num);font-size:10px;background:linear-gradient(180deg,rgba(255,200,100,.25),rgba(120,70,10,.25))}
+.hall-lv .ub-exp{flex:1;height:5px;background:rgba(10,30,80,.85);border:1px solid rgba(174,230,255,.35);overflow:hidden}
+.hall-lv .ub-exp i{display:block;height:100%;background:linear-gradient(90deg,#1fa2ff,#aee6ff);box-shadow:0 0 8px #1fa2ff}
+.hall-lv em{font-style:normal;font-family:var(--font-num);font-size:10px;color:#9fb6d6}
+.hall-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hall-stats div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid rgba(174,230,255,.18);background:rgba(8,20,52,.7)}
+.hall-stats span{font-size:10px;color:#9fb6d6}
+.hall-stats b{font-family:var(--font-num);font-size:18px;color:#fff}
+.hall-stats b small{font-size:11px;color:#7f95b8}
+.hall-stats b.on{color:#7affc8;text-shadow:0 0 8px rgba(60,255,170,.5)}
+.fac-tabs{margin:0;gap:0;border-bottom:1px solid rgba(174,230,255,.2)}
+.fac-tabs button{flex:1;min-height:40px;border:0;border-radius:0;background:transparent;color:#8aa0c8;font-family:var(--font-display);font-size:13px;position:relative}
+.fac-tabs button[aria-selected="true"]{background:linear-gradient(180deg,transparent,rgba(31,162,255,.18));color:#fff}
+.fac-tabs button[aria-selected="true"]::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:#aee6ff;box-shadow:0 0 8px #1fa2ff}
+.tab-dot{display:inline-grid;place-items:center;min-width:16px;height:16px;margin-left:4px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-style:normal;font-family:var(--font-num);font-size:10px}
+.fac .union-body{display:flex;flex-direction:column;gap:12px}
+.brief{position:relative;padding:10px 12px;border:1px solid rgba(174,230,255,.22);background:
+  repeating-linear-gradient(180deg,rgba(127,208,255,.05) 0 2px,transparent 2px 4px),rgba(4,14,40,.75)}
+.brief-text{margin:0;font-size:13px;line-height:1.6;color:#dceeff;white-space:pre-wrap}
+.brief-edit{width:100%;box-sizing:border-box;min-height:64px;padding:0;border:0;background:transparent;color:#dceeff;font-family:var(--font-body);font-size:13px;line-height:1.6;resize:vertical;outline:none}
+.brief-actions{display:flex;justify-content:flex-end;margin-top:6px}
+.brief-panel .union-row{margin-top:10px}
+.roster{gap:6px}
+.roster-row{display:flex!important;flex-wrap:wrap;align-items:center;gap:10px!important;padding:8px 10px!important;border:1px solid rgba(174,230,255,.12)!important;border-radius:0!important;
+  background:linear-gradient(90deg,rgba(14,34,82,.75),rgba(4,12,34,.55))!important}
+.roster-row.self{border-color:rgba(174,230,255,.5)!important;box-shadow:inset 3px 0 0 #aee6ff}
+.roster-rank{flex:none;width:26px;display:flex;justify-content:center}
+.rank-svg{width:20px;height:auto}
+.rank-leader{color:#ffd27a;filter:drop-shadow(0 0 4px rgba(255,190,90,.7))}
+.rank-officer{color:#8fd0ff;filter:drop-shadow(0 0 4px rgba(31,162,255,.7))}
+.rank-member{color:#7f95b8}
+.roster-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.roster-name{display:flex;align-items:center;gap:6px;min-width:0}
+.roster-name b{font-size:13px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster-me{font-style:normal;font-size:9px;padding:0 5px;border:1px solid #aee6ff;color:#aee6ff}
+.roster-sub{font-size:11px;color:#9fb6d6}
+.roster-bar{height:3px;background:rgba(174,230,255,.1)}
+.roster-bar i{display:block;height:100%;background:linear-gradient(90deg,#1fa2ff,#aee6ff)}
+.roster-meta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:10px;color:#7f95b8}
+.roster-meta b{font-family:var(--font-num);font-size:13px;color:#e6f4ff}
+.roster-meta span{display:flex;align-items:center;gap:4px}
+.roster-meta span i{width:6px;height:6px;border-radius:50%;background:#4d5d7c}
+.roster-meta span.on{color:#7affc8}.roster-meta span.on i{background:#3dffb0;box-shadow:0 0 6px #3dffb0}
+.app-actions{flex-direction:row;gap:6px}
+.roster-row .union-more{border-radius:2px;background:rgba(4,14,40,.8);border-color:rgba(174,230,255,.3)}
+.fac .union-menu button{border-radius:2px;background:rgba(14,34,82,.85)}
+.fac .union-lead{margin:0;font-size:12px;line-height:1.6;color:#c8dcf5}
+.fac-union-card{background:linear-gradient(90deg,rgba(14,34,82,.75),rgba(4,12,34,.6))!important;border-radius:0!important;border-color:rgba(174,230,255,.18)!important}
+.card-crest{flex:none;width:40px;height:56px}
+.fac-union-card .ub-lv{font-style:normal;padding:0 6px;border:1px solid #ffd27a;border-radius:8px;color:#ffe2a6;font-size:10px;margin-right:4px}
+.create-preview{width:150px;height:124px;margin:0 auto 6px}
+.fac .union-emblems button{border-radius:2px;background:rgba(4,14,40,.8)}
+.fac .union-emblems button[aria-pressed="true"]{border-color:#aee6ff;box-shadow:0 0 10px rgba(31,162,255,.6);color:#fff}
+
+/* 시설 지시선: 명판은 평평한 네온 선 위에 올라앉는다. 위치는 배경 이미지 좌표(--lx, --ly)로 계산 */
+.union-scene .union-plaque{
+  left:calc(var(--lx) * var(--sw) / 1024);
+  top:calc(100cqh - var(--sh) + var(--ly) * var(--sh) / 1336);
+  transform:translate(-50%,-100%)}
+.union-scene .union-plaque:active{transform:translate(-50%,-100%) scale(.97)}
+.union-fx .lead path{fill:none;stroke:#d4f3ff;stroke-width:1.8px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round;
+  filter:drop-shadow(0 0 2px #5cc4ff) drop-shadow(0 0 5px #1fa2ff)}
+.union-fx .lead circle{fill:#eaf8ff;stroke:#1fa2ff;stroke-width:2px;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 4px #1fa2ff) drop-shadow(0 0 8px #1fa2ff)}
+
+/* 짧은 이름(기록관): 명판 폭을 글자 길이에 맞춤 */
+.union-scene .union-plaque.short{min-width:70px;padding:6px 10px}
+.union-scene .union-plaque.short b{font-size:14px}
+
+/* 명판: 배경·테두리 완전 투명, 글자만 */
+.union-scene .union-plaque,.union-scene .union-plaque.soon{background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:4px 8px}
+.union-scene .union-plaque::before,.union-scene .union-plaque::after{display:none}
+.union-scene .union-plaque:hover,.union-scene .union-plaque:focus-visible{background:none;border:0;box-shadow:none;outline:none}
+.union-scene .union-plaque b{text-shadow:-1px 0 #06204f,1px 0 #06204f,0 -1px #06204f,0 1px #06204f,0 0 8px rgba(0,25,70,.9),0 0 14px rgba(120,200,255,.6)}
+
+/* 건물 외곽선: 평소엔 숨기고, 건물을 누르면 나타난다. 클릭 영역은 외곽선 안쪽 전체 */
+.union-fx .nz{opacity:0;transition:opacity .35s ease}
+.union-fx .nz.on{opacity:1}
+.union-fx .nz-hit{fill:transparent;stroke:none;pointer-events:all;cursor:pointer}
+
+/* ═══════════ 살아 있는 도시 레이어 ═══════════ */
+.union-life{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.union-life .life-dn{opacity:.0;animation:life-night 90s ease-in-out infinite alternate}
+@keyframes life-night{0%{opacity:0}35%{opacity:0}100%{opacity:.5}}
+.union-life .life-band{animation:life-pulse 3.8s cubic-bezier(.4,0,.6,1) infinite}
+@keyframes life-pulse{0%{transform:translateY(-220px);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(560px);opacity:0}}
+.union-life .ring{fill:none;stroke:#9fdcff;stroke-width:2;vector-effect:non-scaling-stroke;opacity:0;transform-box:fill-box;transform-origin:center;animation:life-ring 4.6s ease-out infinite}
+.union-life .ring.r2{animation-delay:-2.3s}
+@keyframes life-ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(14);opacity:0}}
+@media (prefers-reduced-motion:reduce){.union-life *{animation:none!important}}
+
+/* ═══════════ 시설 화면 질감 (색은 그대로) ═══════════ */
+.fac-panel{animation:fac-in .5s ease both}
+.fac-panel:nth-of-type(2){animation-delay:.08s}.fac-panel:nth-of-type(3){animation-delay:.16s}.fac-panel:nth-of-type(4){animation-delay:.24s}
+@keyframes fac-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fac-panel::after{content:"";position:absolute;right:0;bottom:0;width:22px;height:22px;pointer-events:none;
+  border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);opacity:.6}
+.fac-bar i{background-size:200% 100%;animation:fac-shimmer 2.6s linear infinite}
+@keyframes fac-shimmer{from{background-position:0 0}to{background-position:-200% 0}}
+.fac-gauge .g-fill{animation:fac-glow 2.8s ease-in-out infinite}
+@keyframes fac-glow{0%,100%{filter:drop-shadow(0 0 3px var(--acc2))}50%{filter:drop-shadow(0 0 9px var(--acc2))}}
+.fac-hero-text h2{animation:fac-title 4s ease-in-out infinite}
+@keyframes fac-title{0%,100%{text-shadow:0 0 12px var(--glow),0 2px 4px #000}50%{text-shadow:0 0 22px var(--glow),0 2px 4px #000}}
+.fac-node{transition:transform .2s ease}
+.fac-node:not(.locked):hover{transform:translateY(-2px)}
+.fac-op{transition:transform .2s ease,background .2s ease}
+.fac-op:hover{transform:translateX(3px)}
+.fac-btn:not(:disabled):hover{filter:brightness(1.2)}
+.pips i.on{animation:fac-pip 2.4s ease-in-out infinite}
+@keyframes fac-pip{0%,100%{box-shadow:0 0 3px var(--acc2)}50%{box-shadow:0 0 8px var(--acc2)}}
+@media (prefers-reduced-motion:reduce){.fac-panel,.fac-bar i,.fac-gauge .g-fill,.fac-hero-text h2,.pips i.on{animation:none!important}}
+
+/* 대로 중앙선을 따라 흐르는 빛 줄기 (줄기 + 주변 빛, 두 줄기가 시간차를 두고 내려감) */
+.union-life .life-band{display:none}
+.union-life .life-glow{opacity:.55;animation:life-pulse 4.6s cubic-bezier(.4,0,.6,1) infinite}
+.union-life .life-streak{animation:life-pulse 4.6s cubic-bezier(.4,0,.6,1) infinite}
+.union-life .life-streak.s2{animation-delay:-2.3s}
+
+/* 파동 중심: 대로 끝의 원(512,1292). 빛줄기는 원에서 시작해 중앙선을 따라 위로 흐른다 */
+.union-life .life-glow,.union-life .life-streak{animation:life-up 3.6s ease-in infinite}
+.union-life .life-streak.s2{animation-delay:-1.8s}
+@keyframes life-up{0%{transform:translateY(0);opacity:0}8%{opacity:1}85%{opacity:.9}100%{transform:translateY(-470px);opacity:0}}
+.union-life .ring{animation:life-ring 4.6s ease-out infinite}
+@keyframes life-ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+
+/* 밤이 되면 건물 창에 불이 켜진다 (낮에는 꺼져 있음) */
+.union-life .lit:nth-child(3n) rect{animation-delay:-1.4s}.union-life .lit:nth-child(3n+1) rect{animation-delay:-3.1s}
+
+/* 앙헬라: 회의장 앞을 가리지 않고 지나간다 (가림 영역 밖) */
+/* 바랴그 수직 이착륙: R&D 센터 뒤에 숨어 있다가 수직으로 떠오르고, 다시 건물 뒤로 내려간다 */
+
+/* 건물 유리 효과: 건물 외곽선 안쪽에만 백청색 빛이 흐르고, 밤에는 은은하게 짙어진다 */
+.union-life .glass{pointer-events:none}
+.union-life .glass-tint{opacity:.16;mix-blend-mode:screen}
+.union-life .glass-night{animation:glass-night 90s ease-in-out infinite alternate}
+@keyframes glass-night{0%,30%{opacity:.25}100%{opacity:.5}}
+.union-life .glass-sheen{mix-blend-mode:screen;animation:glass-sweep 9s linear infinite}
+@keyframes glass-sweep{from{transform:translateX(0)}to{transform:translateX(1900px)}}
+
+/* 창문 불빛: 밤이 되면 찍어 둔 창문 자리에 백청색 불이 켜진다 */
+.union-life .win-night{opacity:0;animation:win-night 90s ease-in-out infinite alternate}
+@keyframes win-night{0%,30%{opacity:0}100%{opacity:1}}
+.union-life .wl{fill:#bff3ff;filter:drop-shadow(0 0 2px #7fe0ff) drop-shadow(0 0 5px #3fc8ff);animation:wl-flick 6s ease-in-out infinite}
+.union-life .wl.w1{animation-delay:-1.7s}.union-life .wl.w2{animation-delay:-3.1s}.union-life .wl.w3{animation-delay:-4.6s}.union-life .wl.w4{animation-delay:-5.3s}
+@keyframes wl-flick{0%,100%{opacity:.75}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.union-life .wl{animation:none}}
+
+/* 미가입 상태의 연합 가입 / 창설 화면 머리말 */
+.join-head{display:flex;flex-direction:column;gap:4px;padding:18px 16px 14px;border:1px solid rgba(174,230,255,.35);border-radius:4px;background:linear-gradient(120deg,rgba(14,42,100,.7),rgba(6,16,44,.8))}
+.join-head small{font-family:var(--font-num);font-size:10px;letter-spacing:.22em;color:#8fd0ff}
+.join-head h2{margin:0;font-family:var(--font-display);font-size:22px;color:#fff}
+.join-head span{font-size:12px;color:#c8dcf5}
+
+/* 체험 연합 표시 */
+.trial-tag { display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; vertical-align: middle; opacity: 0.85; }
+.roster-name .post { display: block; margin-top: 2px; font-size: 11px; opacity: 0.7; }

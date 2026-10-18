@@ -1,0 +1,42 @@
+/* Portrait-phone layout: keep combat controls inside the visible viewport. */
+@media (max-width:600px){
+  #battle .battle-viewport:not(.arena-battle) .battle-controls{
+    top:auto;
+    bottom:max(8px,env(safe-area-inset-bottom));
+    width:min(170px,48vw);
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window{
+    width:min(96vw,430px);
+    height:min(92dvh,calc(96vw * 16 / 9));
+    max-height:92dvh;
+    aspect-ratio:auto;
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window .ship-exploration-card-wrap{
+    grid-template-columns:30px minmax(0,1fr) 30px;
+    width:100%;
+    min-width:0;
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window .ship-exploration-card-wrap .ship-exploration-card.acquisition-detail-card{
+    width:100%!important;
+    min-width:0;
+    max-width:100%;
+    max-height:min(64dvh,calc(92dvh - 114px));
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window .ship-exploration-card-wrap .ship-exploration-card.acquisition-detail-card:not(.acquisition-item-card){
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-card.acquisition-detail-card::before{
+    top:2px;
+  }
+}
+@media (max-width:350px){
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window .ship-exploration-card-wrap{
+    grid-template-columns:24px minmax(0,1fr) 24px;
+  }
+  .ship-exploration-overlay.ship-exploration-reveal .ship-exploration-window .ship-exploration-nav{
+    width:24px;
+  }
+}

@@ -1,0 +1,185 @@
+.alien-shop-overlay{position:fixed;inset:0;z-index:15000;display:grid;place-items:center;padding:14px;background:radial-gradient(circle at 50% 25%,#28305e8c,#02050de8 72%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:alien-shop-appear .22s ease-out}
+.alien-shop-dialog{position:relative;isolation:isolate;width:min(100%,460px);height:min(760px,calc(100dvh - 28px));min-height:480px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #b8a66d;border-radius:20px;color:#f4f6ff;background:linear-gradient(155deg,#263351 0%,#0a1429 22%,#081320 72%,#14213b 100%);box-shadow:inset 0 1px #fff8cb88,inset 0 0 0 4px #d4b47410,0 0 0 1px #344359,0 22px 80px #000e,0 0 40px #a9904b48}
+.alien-shop-dialog::before{content:"";position:absolute;inset:4px;z-index:-1;border:1px solid #bdab7140;border-radius:16px;pointer-events:none}
+.alien-shop-dialog::after{content:"";position:absolute;top:0;left:-60%;width:50%;height:180px;transform:skewX(-25deg);background:linear-gradient(90deg,transparent,#fff7d516,transparent);pointer-events:none;animation:alien-shop-sheen 8s linear infinite}
+.alien-shop-toolbar{position:relative;z-index:5;flex:none;min-height:48px;padding-top:5px!important;padding-bottom:5px!important;display:flex;align-items:center;gap:8px;padding:0 12px 0 16px;border-bottom:1px solid #a799665c;background:linear-gradient(180deg,#31435db5,#111c30e8)}
+.alien-shop-brand{margin-right:auto;color:#e8cc86;font-size:10px;font-weight:900;letter-spacing:.13em;white-space:nowrap;text-shadow:0 0 8px #e6bb6288}
+.alien-shop-balances{display:flex;gap:5px}.alien-shop-balance-row>span{min-width:58px;height:27px;display:flex;align-items:center;justify-content:center;gap:4px;padding:2px 5px;border:1px solid #b998636b;border-radius:15px;background:linear-gradient(140deg,#27324d,#111c30);box-shadow:inset 0 1px #ffffff26;color:#fff0c7}.alien-shop-balance-row>span:nth-child(2){border-color:#7cb9d87d;color:#d7f6ff}.alien-shop-balance-row>span:nth-child(3){border-color:#f2cd668c;color:#ffe9a1}.alien-shop-balances img{width:16px;height:16px;object-fit:contain}.alien-shop-balances b{font-size:11px;white-space:nowrap}
+.alien-shop-close,.alien-shop-purchase-close{flex:none;width:28px;height:28px;display:grid;place-items:center;border:1px solid #8d9bb2;border-radius:8px;background:#111b2dcc;color:#f2f5ff;font-size:21px;line-height:1;cursor:pointer}.alien-shop-close:hover,.alien-shop-purchase-close:hover{border-color:#f6d48d;color:#fff1c1}
+.alien-shop-hero{position:relative;flex:none;height:191px;overflow:hidden;border-bottom:1px solid #d7b45d99;background:radial-gradient(circle at 76% 37%,#6b55aa70,transparent 44%),radial-gradient(circle at 65% 95%,#e2ab4b31,transparent 55%),linear-gradient(118deg,#15132b,#1b2443 49%,#132f3c)}
+.alien-shop-hero::before{content:"";position:absolute;left:55%;top:20px;width:185px;height:185px;border:1px solid #f2d48d60;border-radius:50%;box-shadow:0 0 0 14px #dbad4d0c,0 0 0 33px #c2f4ff08,inset 0 0 25px #b778ff33;transform:rotate(-22deg)}
+.alien-shop-hero::after{content:"";position:absolute;inset:auto 0 0;height:44px;background:linear-gradient(transparent,#081522d9);pointer-events:none}
+.alien-shop-stars{position:absolute;inset:0;background-image:radial-gradient(#f6eecc 1px,transparent 1px),radial-gradient(#9edbff 1px,transparent 1px);background-size:38px 41px,77px 63px;opacity:.36}
+.alien-shop-merchant{position:absolute;z-index:1;right:-19px;bottom:-61px;width:235px;height:257px;object-fit:contain;object-position:bottom right;filter:drop-shadow(-13px 7px 17px #0009) drop-shadow(0 0 13px #72d2ff55);pointer-events:none}
+.alien-shop-hero-copy{position:relative;z-index:2;width:58%;padding:23px 0 0 21px;text-shadow:0 2px 9px #000d}.alien-shop-kicker{display:block;color:#d5ba79;font-size:9px;font-weight:800;letter-spacing:.1em}.alien-shop-hero h2{margin:6px 0 10px;color:#ffecbc;font-size:27px;line-height:1.12;letter-spacing:-.04em;text-shadow:0 0 17px #e2ac5666,0 2px 5px #000}.alien-shop-hero p{max-width:220px;margin:0;color:#d8e7ee;font-size:10px;line-height:1.45;word-break:keep-all}.alien-shop-merchant-sign{display:inline-block;margin-top:10px;padding:4px 8px;border:1px solid #e0be756b;border-radius:99px;background:#162338bd;color:#f7d78f;font-size:8px;font-weight:800}
+.alien-shop-tabs{position:relative;z-index:2;flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:10px 13px 7px;background:#0b182a}.alien-shop-tabs button{height:32px;min-width:0;border:1px solid #516276;border-radius:8px;background:linear-gradient(#1e3045,#101f33);color:#acbdcb;font-size:10px;font-weight:800;white-space:nowrap;cursor:pointer}.alien-shop-tabs button.active{border-color:#d2ae6c;background:linear-gradient(145deg,#745938,#283044 66%);color:#ffedbf;box-shadow:inset 0 1px #ffe7ab70,0 0 12px #dcb46444}
+.alien-shop-section-heading{flex:none;display:flex;align-items:end;justify-content:space-between;padding:7px 16px 8px}.alien-shop-section-heading div{display:grid;gap:1px}.alien-shop-section-heading small{color:#9caaaF;font-size:8px;font-weight:800;letter-spacing:.17em}.alien-shop-section-heading strong{color:#faf0d8;font-size:15px}.alien-shop-section-count{color:#8ea9b9;font-size:9px}
+.alien-shop-grid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:9px;padding:2px 14px 14px;scrollbar-width:thin;scrollbar-color:#937e5f #111c2d}.alien-shop-grid::-webkit-scrollbar{width:5px}.alien-shop-grid::-webkit-scrollbar-thumb{border-radius:5px;background:#9c8460}
+.alien-shop-good{position:relative;min-width:0;min-height:177px;display:flex;flex-direction:column;align-items:stretch;overflow:hidden;padding:11px 10px 9px;border:1px solid #50647c;border-radius:13px;background:radial-gradient(circle at 50% 12%,#43698861,transparent 56%),linear-gradient(153deg,#243650,#101d32 68%,#0c192c);box-shadow:inset 0 1px #c6e8ff2b,0 5px 12px #0007}.alien-shop-good.premium{border-color:#c7a3629c;background:radial-gradient(circle at 50% 12%,#99724655,transparent 57%),linear-gradient(153deg,#30354c,#171d32 70%);box-shadow:inset 0 1px #ffe7ac55,0 5px 12px #0007}.alien-shop-good::before{content:"";position:absolute;inset:0;background:linear-gradient(122deg,transparent 15%,#fff7d610 39%,transparent 57%);pointer-events:none}
+.alien-shop-cash-good{border-color:#d5ad5e;background:radial-gradient(circle at 50% 12%,#b8873155,transparent 58%),linear-gradient(153deg,#41351f,#211b16 70%)}.alien-shop-cash-good .alien-shop-good-badge{border-color:#e5c66d;background:#664b17;color:#fff0ab}.alien-shop-cash-good .alien-shop-good-bottom>span{color:#ffe49a;font-size:11px;font-weight:900}.alien-shop-exchange-result{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 0;padding:8px 10px;border:1px solid #72b8c966;border-radius:8px;background:#102c38;color:#b9eaf4;font-size:11px}.alien-shop-exchange-result b{color:#e4fbff;font-size:14px}.alien-shop-payment-note{margin:12px 1px 0;padding:9px 10px;border-left:2px solid #d4ad62;background:#30291d;color:#f3d89b;font-size:10px;line-height:1.5;word-break:keep-all}
+.alien-shop-good-art.alien-shop-thorium-box-stack{width:100%;height:66px;display:flex;align-items:center;justify-content:center;gap:0}.alien-shop-thorium-box-stack img{width:min(24%,54px);height:58px;object-fit:contain;filter:drop-shadow(0 4px 5px #0009) drop-shadow(0 0 7px #47cfff55)}
+.alien-shop-good-art{height:66px;display:grid;place-items:center}.alien-shop-good-art img{width:70px;height:65px;object-fit:contain;filter:drop-shadow(0 5px 7px #0009) drop-shadow(0 0 9px #7eaeff44)}.alien-shop-good-badge{align-self:flex-start;margin-top:1px;padding:2px 5px;border:1px solid #78b8bd77;border-radius:3px;background:#113c4a99;color:#bdf7f0;font-size:7px;font-weight:800;letter-spacing:.04em}.alien-shop-good.premium .alien-shop-good-badge{border-color:#dbbd8077;background:#5d462d99;color:#ffe4a5}.alien-shop-good h3{display:flex;align-items:baseline;gap:4px;margin:4px 0 1px;color:#f5f7fb;font-size:12px;white-space:nowrap}.alien-shop-good h3 small{color:#f2d595;font-size:10px}.alien-shop-good p{min-height:26px;margin:0;color:#aebfd0;font-size:8px;line-height:1.4;word-break:keep-all}.alien-shop-good-bottom{display:flex;align-items:end;justify-content:space-between;gap:4px;margin-top:auto}.alien-shop-owned{color:#8daabc;font-size:8px;white-space:nowrap}.alien-shop-good-bottom button{min-width:78px;min-height:26px;padding:2px 6px;border:1px solid #d4b777;border-radius:7px;background:linear-gradient(160deg,#66512f,#273348);box-shadow:inset 0 1px #fbeac380,0 2px 5px #0007;color:#fff5d8;cursor:pointer}.alien-shop-good-bottom button:hover{filter:brightness(1.2)}.alien-shop-price{display:inline-flex;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:900;white-space:nowrap}.alien-shop-price img{width:15px;height:15px;object-fit:contain}.alien-shop-price.thorium{color:#c6f7ff}
+.alien-shop-footer{flex:none;min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:5px;padding:0 15px;border-top:1px solid #bba4746c;background:linear-gradient(#1a2b3e,#101c30)}.alien-shop-footer span{color:#a8b7c4;font-size:8px}.alien-shop-inventory{border:0;background:transparent;color:#f2d68e;font-size:10px;font-weight:900;white-space:nowrap;cursor:pointer}
+.alien-shop-purchase{position:absolute;z-index:10;inset:0;display:grid;place-items:center;padding:17px;background:#030915c9;backdrop-filter:blur(5px)}.alien-shop-purchase-card{position:relative;width:min(100%,320px);padding:22px 17px 17px;border:1px solid #d4b376;border-radius:16px;background:radial-gradient(circle at 50% 0,#46516c,#19243b 45%,#0c1727);box-shadow:inset 0 1px #fff2cc88,0 18px 45px #000d,0 0 27px #dcbb6555}.alien-shop-purchase-close{position:absolute;right:12px;top:11px}.alien-shop-purchase-card>small{color:#d4b980;font-size:8px;font-weight:900;letter-spacing:.16em}.alien-shop-purchase-card h3{margin:3px 0 15px;color:#fff2d4;font-size:21px}.alien-shop-purchase-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid #677b91;border-radius:10px;background:#0b1c30}.alien-shop-purchase-item img{width:64px;height:62px;object-fit:contain}.alien-shop-purchase-item div{display:grid;gap:4px}.alien-shop-purchase-item strong{font-size:13px}.alien-shop-purchase-item span{color:#a9c0d1;font-size:9px;line-height:1.4}.alien-shop-purchase-ledger{display:grid;grid-template-columns:1fr auto;align-items:center;gap:9px;margin:15px 2px;color:#b4c4d1;font-size:11px}.alien-shop-purchase-ledger .alien-shop-price{font-size:13px}.alien-shop-purchase-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:18px}.alien-shop-purchase-actions button{height:37px;border:1px solid #627890;border-radius:8px;background:#1a2b40;color:#d6e4ec;font-size:11px;font-weight:900;cursor:pointer}.alien-shop-purchase-actions .alien-shop-confirm{border-color:#edcb85;background:linear-gradient(155deg,#b5893f,#624928);box-shadow:inset 0 1px #ffebbd,0 0 12px #f9cf7666;color:#161a22}.alien-shop-purchase-actions .alien-shop-confirm:disabled{border-color:#526172;background:#273445;box-shadow:none;color:#a1afbb;cursor:not-allowed}
+.alien-shop-toast{position:absolute;z-index:15;left:50%;bottom:53px;max-width:calc(100% - 32px);padding:9px 13px;border:1px solid #d8bb7a;border-radius:9px;background:#1e2a3ff2;box-shadow:0 6px 20px #000a;color:#fff0c9;font-size:10px;font-weight:800;text-align:center;white-space:normal;opacity:0;transform:translate(-50%,8px);transition:opacity .18s,transform .18s;pointer-events:none}.alien-shop-toast.visible{opacity:1;transform:translate(-50%,0)}
+.alien-shop-dialog button:focus-visible{outline:2px solid #fbe2a0;outline-offset:2px}
+@keyframes alien-shop-appear{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}@keyframes alien-shop-sheen{0%,20%{left:-60%}42%,100%{left:160%}}
+@media(max-width:390px){.alien-shop-overlay{padding:8px}.alien-shop-dialog{height:calc(100dvh - 16px);min-height:0}.alien-shop-brand{font-size:8px}.alien-shop-balance-row>span{min-width:57px}.alien-shop-balances b{font-size:9px}.alien-shop-hero{height:172px}.alien-shop-merchant{right:-17px;bottom:-58px;width:207px;height:238px}.alien-shop-hero-copy{padding-left:15px;padding-top:20px}.alien-shop-hero h2{font-size:23px}.alien-shop-hero p{font-size:9px}.alien-shop-tabs{padding-inline:8px;gap:3px}.alien-shop-tabs button{font-size:9px}.alien-shop-grid{gap:6px;padding-inline:8px}.alien-shop-good{padding:8px 7px;min-height:170px}.alien-shop-good h3{font-size:11px}.alien-shop-good-bottom button{min-width:69px}}
+.alien-shop-merchant{animation:alien-shop-merchant-hover 4s ease-in-out infinite alternate}.alien-shop-good-bottom button:active,.alien-shop-purchase-actions button:active{transform:translateY(2px);filter:brightness(.88)}
+@keyframes alien-shop-merchant-hover{from{transform:translateY(3px)}to{transform:translateY(-5px)}}
+@media(max-height:540px){.alien-shop-dialog{height:calc(100dvh - 16px);min-height:0}.alien-shop-hero{height:125px}.alien-shop-merchant{height:195px;width:190px;bottom:-60px}.alien-shop-hero-copy{padding-top:11px}.alien-shop-hero h2{font-size:21px;margin:3px 0 5px}.alien-shop-merchant-sign{margin-top:5px}}
+@media(prefers-reduced-motion:reduce){.alien-shop-overlay,.alien-shop-dialog::after,.alien-shop-merchant{animation:none}.alien-shop-toast{transition:none}}
+.alien-shop-good-art .alien-shop-token-single{width:57px;height:57px;object-fit:contain;filter:drop-shadow(0 5px 7px #000a) drop-shadow(0 0 8px #ffd66e66)}
+.alien-shop-grid>.alien-shop-daily-gift,.alien-shop-grid>.alien-shop-featured-shelf,.alien-shop-grid>.alien-shop-token-stall{grid-column:1/-1;min-width:0}
+.alien-shop-thorium-mountain{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 50% 75%,#32bdfa26,transparent 58%)}.alien-shop-thorium-mountain::before{content:"";position:absolute;left:12%;right:12%;bottom:3px;height:24px;z-index:-1;background:linear-gradient(155deg,#185a8b,#12283c 75%);clip-path:polygon(0 100%,14% 38%,28% 68%,48% 0,62% 54%,78% 22%,100% 100%);filter:drop-shadow(0 0 7px #37bdff)}.alien-shop-good-art .alien-shop-thorium-mountain>img{position:absolute;height:auto;object-fit:contain;filter:drop-shadow(0 0 7px #36caff88)}.alien-shop-good-art .alien-shop-thorium-mountain .alien-shop-thorium-mountain-box{z-index:3;left:50%;bottom:-2px;top:auto;width:49px;height:38px;transform:translateX(-50%);filter:drop-shadow(0 3px 5px #000b) drop-shadow(0 0 7px #59cfff66)}
+.alien-shop-featured-grid .alien-shop-good-bottom button:disabled{border-color:#64717e;background:linear-gradient(#34414d,#202b35);box-shadow:none;color:#aeb9c2;cursor:default;filter:none}
+.alien-shop-daily-gift{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border:1px solid #d7bb73;border-radius:12px;background:radial-gradient(ellipse at 10% 0,#c18a3330,transparent 55%),linear-gradient(135deg,#27334a,#111e31);box-shadow:inset 0 1px #fff2c74d,0 5px 12px #0005}
+.alien-shop-gift-copy{min-width:0;display:grid;gap:3px}.alien-shop-gift-copy>small{color:#d9bd78;font-size:8px;letter-spacing:.14em;font-weight:900}.alien-shop-gift-copy>strong{color:#ffedc2;font-size:15px}.alien-shop-gift-copy>span{color:#aebed0;font-size:9px}.alien-shop-gift-history-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.alien-shop-gift-history{display:inline-flex;align-items:center;gap:3px;padding:2px 5px;border:1px solid #74869755;border-radius:8px;background:#07132288;color:#d9e6ed;font-size:8px}.alien-shop-gift-history img{width:14px;height:14px;object-fit:contain}
+.alien-shop-daily-gift>button{flex:none;min-width:88px;min-height:39px;display:grid;place-items:center;padding:4px 8px;border:1px solid #ffdc8a;border-radius:9px;background:linear-gradient(150deg,#b38a43,#684a24);box-shadow:inset 0 1px #fff0c6,0 0 12px #efc76430;color:#fff2cc;font-size:10px;font-weight:900;cursor:pointer}.alien-shop-daily-gift>button small{color:#ead7a7;font-size:8px}.alien-shop-daily-gift>button:disabled{border-color:#5d6875;background:linear-gradient(#46515e,#283341);box-shadow:none;color:#aab5bf;cursor:default}
+.alien-shop-featured-shelf>header,.alien-shop-token-stall>header{display:flex;align-items:center;justify-content:space-between;margin:0 1px 7px}.alien-shop-featured-shelf>header strong,.alien-shop-token-stall>header strong{color:#f4dfaa;font-size:12px}.alien-shop-featured-shelf>header span,.alien-shop-token-stall>header span{color:#9eb1c1;font-size:8px}.alien-shop-featured-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.alien-shop-featured-grid .alien-shop-good{min-height:146px;padding:7px 6px 6px;border-radius:10px}.alien-shop-featured-grid .alien-shop-good-art{height:47px;margin-bottom:3px}.alien-shop-featured-grid .alien-shop-good-art img{max-width:46px;max-height:45px}.alien-shop-featured-grid .alien-shop-good-badge{padding:2px 4px;font-size:6px}.alien-shop-featured-grid .alien-shop-good h3{display:block;overflow:hidden;font-size:9px;text-overflow:ellipsis}.alien-shop-featured-grid .alien-shop-good h3 small{font-size:8px}.alien-shop-featured-grid .alien-shop-good p{min-height:24px;font-size:7px}.alien-shop-featured-grid .alien-shop-good-bottom{align-items:center;flex-wrap:wrap}.alien-shop-featured-grid .alien-shop-owned{display:none}.alien-shop-featured-grid .alien-shop-good-bottom button{width:100%;min-width:0;min-height:24px;padding:2px 3px}.alien-shop-featured-grid .alien-shop-price{font-size:9px}.alien-shop-featured-grid .alien-shop-price img{width:12px;height:12px}
+.alien-shop-token-stall{margin-top:3px;padding:10px;border:1px solid #8d764b77;border-radius:12px;background:linear-gradient(145deg,#1c293c,#0d192a)}.alien-shop-stall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.alien-shop-stall-slot{min-width:0;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:1px dashed #647184;border-radius:9px;background:#111e30;color:#9aabbb;text-align:center}.alien-shop-stall-slot.unlocked{border-style:solid;border-color:#9b8b6277;background:radial-gradient(circle at 50% 10%,#9a7b3722,transparent 70%),#172437}.alien-shop-stall-number{color:#9bafc0;font-size:7px;letter-spacing:.1em}.alien-shop-stall-icon{font-size:14px}.alien-shop-stall-slot strong{font-size:8px}.alien-shop-stall-slot button{max-width:100%;padding:3px 5px;border:1px solid #c8a967;border-radius:5px;background:#433822;color:#f3dda6;font-size:7px;font-weight:800;cursor:pointer}.alien-shop-stall-slot button:disabled{border-color:#4b5a69;background:#243244;color:#8e9cac;cursor:default}.alien-shop-token-stall>p{margin:7px 1px 0;color:#94a7b7;font-size:8px;line-height:1.4}
+@media(max-width:390px){.alien-shop-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.alien-shop-featured-grid .alien-shop-good{min-height:150px}.alien-shop-stall-slot{min-height:76px}.alien-shop-daily-gift{padding:9px}.alien-shop-daily-gift>button{min-width:79px}}
+.alien-shop-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.alien-shop-featured-grid .alien-shop-good{min-height:177px;padding:11px 10px 9px;border-radius:13px}.alien-shop-featured-grid .alien-shop-good-art{height:66px;margin-bottom:0}.alien-shop-featured-grid .alien-shop-good-art img{max-width:none;max-height:none}.alien-shop-featured-grid .alien-shop-good-badge{padding:2px 5px;font-size:7px}.alien-shop-featured-grid .alien-shop-good h3{font-size:12px}.alien-shop-featured-grid .alien-shop-good h3 small{font-size:10px}.alien-shop-featured-grid .alien-shop-good p{min-height:26px;font-size:8px}.alien-shop-featured-grid .alien-shop-good-bottom{align-items:end;flex-wrap:nowrap}.alien-shop-featured-grid .alien-shop-owned{display:inline;color:#8daabc;font-size:8px}.alien-shop-featured-grid .alien-shop-good-bottom button{width:auto;min-width:78px;min-height:26px;padding:2px 6px}.alien-shop-featured-grid .alien-shop-price{font-size:11px}.alien-shop-featured-grid .alien-shop-price img{width:15px;height:15px}
+@media(max-width:390px){.alien-shop-featured-grid{gap:6px}.alien-shop-featured-grid .alien-shop-good{min-height:170px;padding:8px 7px 9px}.alien-shop-featured-grid .alien-shop-good-bottom button{min-width:69px}}
+.alien-shop-loose-coins{position:relative;width:130px;height:66px}.alien-shop-good-art .alien-shop-loose-coins img{position:absolute;width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 3px 3px #000a) drop-shadow(0 0 3px #ffcb6070)}.alien-shop-good-art .alien-shop-loose-coins.scattered img{width:29px;height:29px}
+.alien-shop-tray-grid{display:inline-grid;place-items:center;width:max-content;max-width:100%;max-height:66px;filter:drop-shadow(0 3px 4px #000b) drop-shadow(0 0 4px #ffcb6044)}.alien-shop-tray-fragment{display:block;overflow:hidden}.alien-shop-good-art .alien-shop-tray-fragment img{display:block;height:auto;max-width:none;filter:none}
+.alien-shop-twenty-five{width:150px;height:66px;display:flex;align-items:center;justify-content:center;gap:6px;filter:drop-shadow(0 3px 4px #000b)}.alien-shop-five-group{position:relative;display:block;width:82px;height:54px;flex:none}.alien-shop-five-group .alien-shop-loose-coins{position:absolute;left:0;top:6px;transform:scale(.65);transform-origin:top left}
+.alien-shop-thorium-boxes-four{position:relative;width:124px;height:66px;flex:none}
+.alien-shop-thorium-boxes-four>span{position:absolute;left:0;display:flex;gap:8px}
+.alien-shop-thorium-boxes-four>.rear{z-index:1;top:-11px;left:10px}
+.alien-shop-thorium-boxes-four>.front{z-index:2;top:13px;left:0}
+.alien-shop-thorium-box-stack .alien-shop-thorium-boxes-four img{width:56px;height:58px;flex:none;object-fit:contain;filter:drop-shadow(0 4px 5px #0009) drop-shadow(0 0 7px #47cfff55)}
+.alien-shop-stall-grid{grid-template-columns:minmax(0,1fr);gap:9px}
+.alien-shop-stall-pair{position:relative;min-width:0;padding:8px;border:1px solid #9b8b625c;border-radius:12px;background:linear-gradient(145deg,#17253a,#0d192a);box-shadow:inset 0 1px #ffffff12}
+.alien-shop-stall-pair.locked{border-style:dashed;border-color:#708197;background:linear-gradient(145deg,#172235,#0c1727)}
+.alien-shop-stall-pair-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.alien-shop-stall-slot{min-height:177px;gap:7px;padding:10px 7px;border:1px solid #60738a;border-radius:12px;background:radial-gradient(circle at 50% 12%,#43698855,transparent 58%),linear-gradient(153deg,#243650,#101d32 68%,#0c192c);box-shadow:inset 0 1px #c6e8ff22,0 5px 12px #0006;color:#d4e3ef}
+.alien-shop-stall-slot.unlocked{border-color:#9b8b6277;background:radial-gradient(circle at 50% 10%,#9a7b3722,transparent 70%),linear-gradient(153deg,#243650,#101d32 68%,#0c192c)}
+.alien-shop-stall-number{font-size:8px}
+.alien-shop-stall-icon{font-size:22px;color:#f5dfaa;text-shadow:0 0 12px #f4ce7466}
+.alien-shop-stall-slot strong{font-size:10px}
+.alien-shop-pair-lock{position:absolute;z-index:2;top:74px;left:50%;display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid #b9c8d699;border-radius:18px;background:linear-gradient(145deg,#1f2d40ed,#0a1424f2);box-shadow:0 4px 12px #0009,inset 0 1px #ffffff24;color:#eef4fc;white-space:nowrap;transform:translateX(-50%);pointer-events:none}
+.alien-shop-pair-lock span{font-size:16px;filter:drop-shadow(0 0 5px #b8d9ff)}
+.alien-shop-pair-lock b{font-size:9px;letter-spacing:.04em}
+.alien-shop-pair-action{width:100%;min-height:28px;margin-top:7px;padding:4px 8px;border:1px solid #c8a967;border-radius:7px;background:linear-gradient(180deg,#54462a,#302817);box-shadow:inset 0 1px #fff5c433;color:#f3dda6;font-size:9px;font-weight:900;cursor:pointer}
+.alien-shop-pair-action:disabled{border-color:#4b5a69;background:linear-gradient(180deg,#29384b,#1a293b);box-shadow:none;color:#91a0b1;cursor:default}
+@media(max-width:390px){.alien-shop-stall-slot{min-height:170px}.alien-shop-pair-lock{top:70px}}
+.alien-shop-good-art.alien-shop-thorium-mountain{height:76px;background:transparent}
+.alien-shop-good-art.alien-shop-thorium-mountain::before{display:none}
+.alien-shop-good-art.alien-shop-thorium-mountain .alien-shop-thorium-pile-image{position:relative;left:auto;top:auto;width:min(82px,100%);height:76px;max-width:none;object-fit:contain;filter:drop-shadow(0 3px 6px #0009) drop-shadow(0 0 8px #37bfff66)}
+
+/* 잔액: 1줄은 골드·토륨·사자증표, 그 아래 줄은 탐색트론·연구인력 */
+.alien-shop-balances{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.alien-shop-balance-row{display:flex;gap:5px}
+.alien-shop-balance-row.sub>span{height:22px;min-width:54px}
+.alien-shop-balance-row.sub img{width:14px;height:14px}
+.alien-shop-balance-row.sub b{font-size:10px}
+
+/* Membership Service: 오늘 특가 아래 판매대 카드와 4칸 팝업 */
+.alien-shop-membership{margin:14px 0 6px}
+.alien-shop-membership-card{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:12px 14px;border:1px solid #e9c46a;border-radius:12px;background:linear-gradient(120deg,#1d2a44,#0b1322 60%,#2b1f08);color:#fff3c4;font:inherit;cursor:pointer;box-shadow:0 0 16px #3b8cff33,inset 0 1px 0 #fff3c433}
+.membership-title{font-size:15px;font-weight:900;letter-spacing:.08em;text-shadow:0 0 8px #e9c46a66}
+.membership-art{display:flex;align-items:center;gap:8px}
+.membership-art .membership-ship{width:86px;height:58px;object-fit:contain}
+.membership-side{display:flex;flex-direction:column;gap:6px}
+.membership-side img{width:38px;height:38px;object-fit:contain}
+.alien-shop-membership-pop{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,5,10,.72)}
+.membership-pop-card{position:relative;width:min(420px,100%);padding:16px;border:1px solid #e9c46a;border-radius:14px;background:linear-gradient(165deg,#16233d,#070b14);color:#f4ecd2;box-shadow:0 0 30px #3b8cff44}
+.membership-pop-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.membership-pop-card header small{display:block;font-size:11px;letter-spacing:.2em;color:#7fb4ff}
+.membership-pop-card header h2{margin:2px 0 8px;font-size:20px;color:#ffe29b}
+.membership-pop-close{width:30px;height:30px;border:1px solid #e9c46a;border-radius:50%;background:#0b1322;color:#fff3c4;font-size:18px;cursor:pointer}
+.membership-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.membership-slot{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:1px solid #5b6b86;border-radius:10px;background:#0b1322;text-align:center}
+.membership-slot img{width:56px;height:56px;object-fit:contain}
+.membership-slot strong{font-size:13px;color:#fff3c4}
+.membership-slot small{font-size:11px;color:#9cc4ff}
+.membership-price{font-size:12px;color:#e9c46a;font-weight:800}
+.membership-slot button{margin-top:4px;padding:6px 12px;border:1px solid #e9c46a;border-radius:6px;background:#1d2a44;color:#fff3c4;font:inherit;cursor:pointer}
+.membership-slot button:disabled{opacity:.5;cursor:default}
+.membership-slot.is-bought{opacity:.6}
+.membership-pop-note{margin:10px 0 0;font-size:11px;text-align:center;opacity:.7}
+
+/* Membership Service 판매대 카드(다시 디자인): 금색 프레임, 푸른 빛, 왼쪽 함선·오른쪽 보급품 */
+.alien-shop-membership{margin:16px 0 8px}
+.alien-shop-membership-card{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:118px;padding:14px 16px;border:1px solid #f0cf7a;border-radius:14px;background:radial-gradient(120% 90% at 100% 0%,#2b4a7a 0%,#0e1a30 45%,#1a1206 100%);color:#fff3c4;font:inherit;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 0 0 4px #070b14,inset 0 0 0 5px #e9c46a55,0 0 22px #3b8cff44}
+.alien-shop-membership-card::before{content:"";position:absolute;top:-40%;bottom:-40%;left:-60%;width:30%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,#fff3c433,transparent);animation:membership-sheen 4.5s ease-in-out infinite;pointer-events:none}
+.membership-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.membership-copy small{font-size:10px;letter-spacing:.24em;color:#7fb4ff}
+.membership-copy strong{font-size:18px;letter-spacing:.04em;background:linear-gradient(180deg,#fff8dc,#e9c46a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.membership-copy em{font-style:normal;font-size:11px;color:#c9d9f0;opacity:.85}
+.membership-art{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.membership-art .membership-ship{width:96px;height:64px;object-fit:contain;filter:drop-shadow(0 4px 6px #000c)}
+.membership-side{display:flex;flex-direction:column;gap:6px}
+.membership-side img{width:34px;height:34px;object-fit:contain;border-radius:8px;background:#0b1322;border:1px solid #e9c46a66;padding:3px;box-sizing:border-box}
+@keyframes membership-sheen{0%,40%{left:-60%}100%{left:120%}}
+
+/* Membership Service 칸의 상품 예시: 2x2 아이콘 */
+.membership-examples{display:grid;grid-template-columns:repeat(2,44px);gap:8px;flex:0 0 auto}
+.membership-examples img{width:44px;height:44px;object-fit:contain;border-radius:10px;background:#0b1322;border:1px solid #e9c46a66;padding:4px;box-sizing:border-box;filter:drop-shadow(0 3px 4px #000c)}
+
+/* Membership Service 버튼: 보급품·토륨 상점 탭의 폭을 합친 크기, 탭과 같은 높이, 테두리·광택 유지 */
+.alien-shop-membership-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:10px 13px 0;background:#0b182a}
+.alien-shop-membership-row .alien-shop-membership-card{grid-column:2 / span 2;height:32px;min-height:0;width:auto;padding:0 8px;margin:0;display:flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden}
+.alien-shop-membership-card .membership-title{font-size:13px;font-weight:900;letter-spacing:.06em;white-space:nowrap;background:linear-gradient(180deg,#fff8dc,#e9c46a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 2px #000)}
+.alien-shop-membership-card.active{filter:brightness(1.25)}
+
+/* 멤버십 버튼 좌우의 봉황 장식(오른쪽은 왼쪽을 거울 대칭) */
+.alien-shop-membership-row .alien-shop-membership-card{position:relative}
+.membership-phoenix{position:absolute;top:50%;left:6px;width:44px;height:24px;transform:translateY(-50%);pointer-events:none;filter:drop-shadow(0 0 3px #e9c46a88)}
+.membership-phoenix svg{display:block;width:100%;height:100%}
+.membership-phoenix.right{left:auto;right:6px;transform:translateY(-50%) scaleX(-1)}
+
+/* 멤버십 버튼 좌우의 사자 장식: 기본(박스 뒤) + 앞발·앞뒷발만 잘라 낸 앞쪽 층, 오른쪽은 거울 복사 */
+.alien-shop-membership-row{position:relative}
+.alien-shop-membership-row .alien-shop-membership-card{position:relative;z-index:2}
+.membership-lion{position:absolute;top:-15.2px;width:38.4px;height:62.4px;pointer-events:none}
+.membership-lion.left{left:calc(18px + (100% - 41px) / 4 - 26.4px)}
+.membership-lion.right{right:calc(18px + (100% - 41px) / 4 - 26.4px);transform:scaleX(-1)}
+.membership-lion.base{z-index:1}
+.membership-lion.front{z-index:3}
+.membership-lion .lion-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 6px #000c)}
+.membership-lion .lion-paw{clip-path:polygon(58% 46%,100% 46%,100% 64%,58% 64%)}
+.membership-lion .lion-hind{clip-path:polygon(24% 60%,62% 60%,62% 88%,24% 88%)}
+
+/* 멤버십 판매대: 구매 버튼의 사자증표 아이콘, 함선 판매 칸은 이미지를 크게 */
+.membership-token-icon{width:16px;height:16px;object-fit:contain;vertical-align:-3px}
+.alien-shop-good.is-ship .alien-shop-good-art{height:66px;overflow:visible}
+.alien-shop-good.is-ship .alien-shop-good-art img{width:auto;height:92px;max-width:none;object-fit:contain}
+.alien-shop-good.is-ship h3{margin-top:12px}
+.alien-shop-good.is-ship p{margin-bottom:-12px}
+
+/* 멤버십 판매대: 구매 버튼은 다른 상품 카드처럼 오른쪽에 둔다 */
+.membership-bottom button{margin-left:auto}
+
+/* 멤버십 판매대: 상품 이름과 설명을 구매 버튼 바로 위(아래쪽)에 맞춘다 */
+.alien-shop-good.membership-card .membership-bottom{align-items:flex-end;margin-top:auto}
+.membership-info{flex:1;min-width:0}
+.membership-info h3{display:block;margin:0 0 2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px}
+.membership-info p{margin:0;font-size:8px;line-height:1.3;color:#aebfd0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+
+/* 멤버십 판매대: MEMBERSHIP 표시는 상품명 위에 함께 둔다 */
+.membership-info .membership-badge{position:static;display:inline-block;margin:0 0 3px;padding:1px 6px;font-size:8px;letter-spacing:.06em}
+
+/* 멤버십 판매대: 설명이 한 줄이어도 두 줄 높이를 잡아 간격을 맞춘다 */
+.membership-info p{min-height:calc(8px * 1.3 * 2)}
+
+/* 멤버십 서비스 판매대: 금박 프레임과 푸른 발광으로 다른 판매대와 구분 */
+.membership-stage{grid-column:1/-1;position:relative;padding:12px 12px 14px;margin-bottom:6px;border:1px solid #e9c46a;border-radius:14px;background:radial-gradient(120% 80% at 50% 0%,#23375e 0%,#0b1426 55%,#1a1206 100%);box-shadow:inset 0 0 0 4px #070b14,inset 0 0 0 5px #e9c46a55,0 0 22px #3b8cff44}
+.membership-stage-head{text-align:center;margin-bottom:10px;font-size:11px;font-weight:900;letter-spacing:.3em;background:linear-gradient(90deg,#8a5a16,#fff3c4,#e9c46a,#fff3c4,#8a5a16);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:membership-head-sheen 6s linear infinite}
+.membership-stage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.membership-stage .alien-shop-good{border-color:#e9c46a;box-shadow:inset 0 0 0 1px #3a2a0c,0 0 12px #e9c46a33}
+.membership-locked{grid-column:1/-1;position:relative;min-height:230px;border:1px solid #e9c46a;border-radius:14px;overflow:hidden;background:#070b14;box-shadow:0 0 22px #3b8cff44}
+.membership-locked-preview{padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;filter:blur(3px) brightness(.55);pointer-events:none}
+.membership-lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,8,15,.35)}
+.membership-unlock-button{display:flex;align-items:center;gap:8px;padding:14px 20px;border:1px solid #fff3c4;border-radius:12px;background:linear-gradient(120deg,#8a5a16,#e9c46a 50%,#8a5a16);color:#2a1a04;font:inherit;font-size:15px;font-weight:900;box-shadow:0 0 18px #e9c46a88;cursor:pointer}
+.membership-unlock-coins{display:inline-flex;gap:2px}
+.membership-unlock-coins img{width:22px;height:22px;object-fit:contain}
+.membership-unlock-confirm{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(3,5,10,.72)}
+.membership-unlock-card{width:min(300px,100%);padding:18px;border:1px solid #e9c46a;border-radius:14px;background:linear-gradient(165deg,#16233d,#070b14);color:#f4ecd2;text-align:center;box-shadow:0 0 26px #3b8cff44}
+.membership-unlock-card h3{margin:0 0 8px;color:#ffe29b;font-size:16px;letter-spacing:.08em}
+.membership-unlock-card p{margin:0 0 14px;font-size:13px;line-height:1.5}
+.membership-unlock-actions{display:flex;gap:8px;justify-content:center}
+.membership-unlock-actions button{min-width:90px;padding:8px 12px;border:1px solid #e9c46a;border-radius:8px;background:#1d2a44;color:#fff3c4;font:inherit;cursor:pointer}
+.membership-unlock-actions button[data-unlock-yes]{background:linear-gradient(120deg,#8a5a16,#e9c46a,#8a5a16);color:#2a1a04;font-weight:900}
+@keyframes membership-head-sheen{0%{background-position:0% 50%}100%{background-position:200% 50%}}

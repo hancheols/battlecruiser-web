@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- SSR 함선 선택 교환권: 금색 상품권 형태 (물결 무늬 바탕, 오목 모서리 안쪽 테두리, 아치형 제목, 인장, 홀로그램) -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1b8"/><stop offset=".22" stop-color="#f6cf62"/><stop offset=".5" stop-color="#e2ad3a"/>
+      <stop offset=".72" stop-color="#f9db7c"/><stop offset="1" stop-color="#c58d22"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6d2"/><stop offset=".5" stop-color="#b98320"/><stop offset="1" stop-color="#7a5310"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9ff3ff"/><stop offset=".3" stop-color="#d7a6ff"/><stop offset=".55" stop-color="#ffd1f0"/><stop offset=".8" stop-color="#b4ffcf"/><stop offset="1" stop-color="#8fd8ff"/>
+    </linearGradient>
+    <radialGradient id="seal" cx=".4" cy=".35" r=".7">
+      <stop offset="0" stop-color="#d9b066"/><stop offset=".6" stop-color="#8a5f1d"/><stop offset="1" stop-color="#5c3d0e"/>
+    </radialGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffd25e" stop-opacity=".5"/><stop offset="1" stop-color="#ffd25e" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="wave" width="24" height="5" patternUnits="userSpaceOnUse">
+      <path d="M0 2.5 q6 -2.2 12 0 t12 0" fill="none" stroke="#9a6a14" stroke-opacity=".28" stroke-width=".8"/>
+    </pattern>
+    <clipPath id="card"><rect x="0" y="0" width="220" height="118" rx="5"/></clipPath>
+    <path id="arc" d="M30 56 Q110 14 190 56"/>
+  </defs>
+  <circle cx="128" cy="128" r="122" fill="url(#glow)"/>
+  <g transform="translate(128 130) rotate(-10) scale(1.06) translate(-110 -59)">
+    <!-- 그림자 -->
+    <rect x="3" y="6" width="220" height="118" rx="6" fill="#2a1a04" opacity=".45"/>
+    <!-- 바탕: 금박 + 물결 무늬 + 광택 -->
+    <rect x="0" y="0" width="220" height="118" rx="5" fill="url(#gold)" stroke="url(#edge)" stroke-width="2"/>
+    <g clip-path="url(#card)">
+      <rect x="0" y="0" width="220" height="118" fill="url(#wave)"/>
+      <rect x="-70" y="-20" width="46" height="160" fill="url(#shine)" transform="rotate(18) translate(120 0)" opacity=".85"/>
+    </g>
+    <!-- 오목 모서리 안쪽 테두리 -->
+    <path d="M18 8 H202 A10 10 0 0 0 212 18 V100 A10 10 0 0 0 202 110 H18 A10 10 0 0 0 8 100 V18 A10 10 0 0 0 18 8 Z" fill="none" stroke="#6b470c" stroke-width="1.4" opacity=".75"/>
+    <path d="M21 12 H199 A8 8 0 0 0 208 21 V97 A8 8 0 0 0 199 106 H21 A8 8 0 0 0 12 97 V21 A8 8 0 0 0 21 12 Z" fill="none" stroke="#fff3c6" stroke-width=".8" opacity=".7"/>
+    <!-- 일련번호 -->
+    <text x="200" y="24" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-size="7" fill="#5c3d0e" letter-spacing=".5">No. SSR-0001</text>
+    <!-- 아치형 제목 -->
+    <text font-family="Georgia, 'Times New Roman', serif" font-size="9.5" fill="#5c3d0e" letter-spacing="1.2"><textPath href="#arc" startOffset="50%" text-anchor="middle">SHIP SELECT VOUCHER</textPath></text>
+    <!-- 큰 글씨 -->
+    <text x="110" y="82" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="34" fill="#b3161f" stroke="#fff4d0" stroke-width=".6" letter-spacing="2">SSR</text>
+    <line x1="72" y1="90" x2="148" y2="90" stroke="#6b470c" stroke-width=".7" opacity=".7"/>
+    <text x="110" y="99" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="6.5" fill="#5c3d0e" letter-spacing="1.2">ONE SHIP OF YOUR CHOICE</text>
+    <!-- 원형 인장: 날개 달린 별 -->
+    <circle cx="32" cy="88" r="13" fill="url(#seal)" stroke="#f3d48a" stroke-width="1"/>
+    <circle cx="32" cy="88" r="10" fill="none" stroke="#f3d48a" stroke-width=".6" stroke-dasharray="1.5 1.5"/>
+    <path d="M32 81 l1.8 5 h5.2 l-4.2 3 l1.6 5 l-4.4 -3 l-4.4 3 l1.6 -5 l-4.2 -3 h5.2 z" fill="#ffe9a0"/>
+    <path d="M18 86 q6 -3 9 1 M46 86 q-6 -3 -9 1" stroke="#ffe9a0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <!-- 홀로그램 스티커 -->
+    <g transform="translate(176 76)">
+      <rect width="24" height="24" rx="3" fill="url(#holo)" stroke="#fff" stroke-opacity=".8" stroke-width=".8"/>
+      <path d="M12 4 l2.4 5.6 6 .4 -4.6 3.8 1.5 5.8 -5.3 -3.2 -5.3 3.2 1.5 -5.8 -4.6 -3.8 6 -.4 z" fill="#fff" opacity=".75"/>
+      <rect width="24" height="24" rx="3" fill="url(#shine)" opacity=".6"/>
+    </g>
+  </g>
+</svg>

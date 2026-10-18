@@ -1,0 +1,15 @@
+#command-deck .deck-shortcut.store,
+#command-deck .deck-shortcut.store:hover,
+#command-deck .deck-shortcut.store:focus,
+#command-deck .deck-shortcut.store:focus-visible,
+#command-deck .deck-shortcut.store:active{left:-1vw!important;right:auto!important;top:calc(185px + 2vh)!important;width:min(30.8vw,123px)!important;height:min(20.54vw,82px)!important;padding:0!important;gap:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;filter:none!important;transform:none!important;clip-path:none!important;display:block!important;overflow:visible!important}
+#command-deck .deck-shortcut.store::before,
+#command-deck .deck-shortcut.store::after{content:none!important;display:none!important;border:0!important;background:none!important;box-shadow:none!important}
+#command-deck .deck-shortcut.store .deck-shop-sign{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:left center!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 3px 5px #0009) drop-shadow(0 0 4px #37e8ffb3) drop-shadow(0 0 9px #258dff73);animation:shop-sign-neon-pulse 2.6s ease-in-out infinite}
+@keyframes shop-sign-neon-pulse{0%,100%{filter:drop-shadow(0 3px 5px #0009) drop-shadow(0 0 4px #37e8ffb3) drop-shadow(0 0 9px #258dff73)}50%{filter:drop-shadow(0 3px 5px #0009) drop-shadow(0 0 8px #42f0ff) drop-shadow(0 0 19px #258dffcc) drop-shadow(0 0 26px #277dff70)}}
+#command-deck .deck-shortcut.store::after{content:none!important;display:none!important}
+#command-deck .deck-shortcut.store>.shop-sign-sparkle{position:absolute;z-index:2;display:grid!important;place-items:center;width:14px;height:14px;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;color:#fffbd2;font:900 13px/1 var(--font-body);letter-spacing:0;text-shadow:0 0 4px #fff,0 0 9px #ffdc64,0 0 15px #ff9f35;pointer-events:none;opacity:0;animation:shop-sign-twinkle 6s ease-in-out infinite}
+#command-deck .deck-shortcut.store>.shop-sign-sparkle.sparkle-a{left:58%;top:69%;animation-delay:-2s}
+#command-deck .deck-shortcut.store>.shop-sign-sparkle.sparkle-b{left:70%;top:60%;animation-delay:-4s}
+#command-deck .deck-shortcut.store>.shop-sign-sparkle.sparkle-c{left:54%;top:69%;animation-delay:0s}
+@keyframes shop-sign-twinkle{0%,100%{opacity:0;transform:scale(.2) rotate(-25deg)}8%{opacity:1;transform:scale(1.15) rotate(8deg)}20%{opacity:.8;transform:scale(.72) rotate(25deg)}27%{opacity:0;transform:scale(.25) rotate(45deg)} }

@@ -1,0 +1,51 @@
+/* Shrink the five bridge menu graphics while keeping their hit areas in place. */
+#command-deck .deck-shortcut.warehouse>img{transform:scale(.9);transform-origin:center}
+#command-deck .deck-shortcut.store>.deck-shop-sign,
+#command-deck .deck-shortcut.events>i{transform:translateX(2vw) scale(.9);transform-origin:center}
+#command-deck .deck-shortcut.research{width:min(25vw,112px)!important;height:85px!important;padding:0!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible}
+#command-deck .deck-shortcut.research::before,#command-deck .deck-shortcut.research::after{content:none!important;display:none!important}
+/* 연구실은 이제 격납고·물자창고와 같은 서비스 버튼이므로, 마우스오버·포커스·클릭 반응은
+   bridge-service-buttons.css 에서 세 버튼을 똑같이 처리합니다. 여기서는 평소 상태만 둡니다. */
+#command-deck .deck-shortcut.research{border:0!important;outline:0!important;outline-offset:0!important;background:transparent!important;background-color:transparent!important;box-shadow:none!important;filter:none!important}
+#command-deck .deck-shortcut.research>i,#command-deck .deck-shortcut.research>img{border:0!important;border-radius:0!important;outline:0!important;background:transparent!important;box-shadow:none!important}
+#command-deck .deck-shortcut.research>i::before,#command-deck .deck-shortcut.research>i::after{content:none!important;display:none!important}
+#command-deck .deck-shortcut.research>img{display:block;width:100%;height:68px;object-fit:contain;border:0;border-radius:0;background:transparent;box-shadow:none;filter:drop-shadow(0 3px 6px #0008);transform:scale(.855,.9);transform-origin:center}
+#command-deck .deck-shortcut.research>span{display:block;width:100%;margin-top:-1px;text-align:center;color:#effaff;font-size:10px;font-weight:950;text-shadow:0 1px 3px #000,0 0 7px #000}
+#command-deck .deck-shortcut.hangar>img{transform:translateY(2%) scale(.9);transform-origin:center}
+#command-deck .deck-shortcut.store,
+#command-deck .deck-shortcut.store:hover,
+#command-deck .deck-shortcut.store:focus,
+#command-deck .deck-shortcut.store:focus-visible,
+#command-deck .deck-shortcut.store:active{left:calc(-1vw - 3vw)!important}
+#command-deck .deck-shortcut.events,
+#command-deck .deck-shortcut.events:hover,
+#command-deck .deck-shortcut.events:focus,
+#command-deck .deck-shortcut.events:focus-visible,
+#command-deck .deck-shortcut.events:active{left:calc(15px - 3vw)!important;right:auto!important}
+
+/* Raise every bridge shortcut by 5% of the viewport height. */
+#command-deck .deck-shortcut.store,
+#command-deck .deck-shortcut.store:hover,
+#command-deck .deck-shortcut.store:focus,
+#command-deck .deck-shortcut.store:focus-visible,
+#command-deck .deck-shortcut.store:active{top:calc(185px - 6vh)!important}
+#command-deck .deck-shortcut.events,
+#command-deck .deck-shortcut.events:hover,
+#command-deck .deck-shortcut.events:focus,
+#command-deck .deck-shortcut.events:focus-visible,
+#command-deck .deck-shortcut.events:active{top:calc(310px - 8vh)!important}
+#command-deck .deck-shortcut.research,
+#command-deck .deck-shortcut.research:hover,
+#command-deck .deck-shortcut.research:focus,
+#command-deck .deck-shortcut.research:focus-visible,
+#command-deck .deck-shortcut.research:active{top:calc(205px - 8vh)!important}
+#command-deck .deck-shortcut.hangar,
+#command-deck .deck-shortcut.hangar:hover,
+#command-deck .deck-shortcut.hangar:focus,
+#command-deck .deck-shortcut.hangar:focus-visible,
+#command-deck .deck-shortcut.hangar:active{top:calc(310px - 8vh)!important}
+#command-deck .deck-shortcut.warehouse,
+#command-deck .deck-shortcut.warehouse:hover,
+#command-deck .deck-shortcut.warehouse:focus,
+#command-deck .deck-shortcut.warehouse:focus-visible,
+#command-deck .deck-shortcut.warehouse:active{top:calc(415px - 8vh)!important;right:calc(15px - 1vw)!important;left:auto!important}

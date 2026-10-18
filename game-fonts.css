@@ -1,0 +1,25 @@
+/* 게임 전체 글꼴 "함교 표준": 제목·버튼 Do Hyeon / 이름·대사 IBM Plex Sans KR / 숫자·영문 Rajdhani.
+   다른 스타일 파일들은 글꼴을 직접 쓰지 않고 아래 변수를 씁니다. 글꼴을 바꿀 때는 이 세 줄만 고치면 됩니다. */
+:root{
+  --font-display:"Do Hyeon","IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+  --font-num:"Rajdhani","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+}
+
+/* 제목·버튼: 화면 제목, 전투개시·전선 출격, 대화창 화자 이름, 승리/패배, 획득·강화 연출 제목.
+   Do Hyeon은 굵기가 하나뿐이라 브라우저가 가짜 굵게를 만들지 않도록 막습니다. */
+h1,h2,
+#battle-start b,
+#home .deck-launch span,
+.mars-scenario-name,
+.farah-tutorial [data-farah-title],
+#battle-result-title,
+.loot-title-long,.loot-title-short,
+.ascend-title,
+.mars-reward-panel>strong,
+.enhancement-title{font-family:var(--font-display)!important;font-synthesis:none}
+
+/* 숫자: 상단 자원, 물자창고 자원 배지, 전투 시간. 자릿수가 바뀌어도 폭이 흔들리지 않게 맞춥니다. */
+.captain-gold-balance b,.captain-thorium-balance b,.captain-drone-balance b,.captain-precision-drone-balance b,.captain-staff-balance b,.captain-token-balance b,
+.inventory-resource-badge,
+#battle-clock{font-family:var(--font-num)!important;font-variant-numeric:tabular-nums}

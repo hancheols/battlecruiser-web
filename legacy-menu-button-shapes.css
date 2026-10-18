@@ -1,0 +1,71 @@
+/* Restore the earlier rounded, framed menu-button silhouette; preserve current positions. */
+#command-deck button.deck-shortcut.events,
+#command-deck button.deck-shortcut.research,
+#command-deck button.deck-shortcut.hangar,
+#command-deck button.deck-shortcut.warehouse{
+  box-sizing:border-box!important;
+  width:75px!important;height:74px!important;min-width:75px!important;
+  display:grid!important;grid-template-rows:1fr auto;align-content:center;justify-items:center;
+  gap:2px!important;padding:5px!important;
+  border:1px solid #7bdff4!important;border-radius:16px!important;
+  background:linear-gradient(145deg,#173b64ed,#101933ee)!important;
+  box-shadow:inset 0 1px #d9fbff44,0 7px 15px #0008!important;
+  clip-path:none!important;overflow:hidden!important;
+}
+#command-deck button.deck-shortcut.events::before,
+#command-deck button.deck-shortcut.events::after,
+#command-deck button.deck-shortcut.research::before,
+#command-deck button.deck-shortcut.research::after,
+#command-deck button.deck-shortcut.hangar::before,
+#command-deck button.deck-shortcut.hangar::after,
+#command-deck button.deck-shortcut.warehouse::before,
+#command-deck button.deck-shortcut.warehouse::after{content:none!important;display:none!important}
+
+#command-deck button.deck-shortcut.events>i{
+  position:relative!important;inset:auto!important;display:grid!important;place-items:center!important;
+  width:36px!important;height:36px!important;margin:0!important;padding:2px!important;
+  border:1px solid #f889ae!important;border-radius:10px!important;
+  background:linear-gradient(145deg,#723766,#25183b)!important;
+  box-shadow:inset 0 1px #fff5,0 0 10px #f889ae44!important;clip-path:none!important;
+}
+#command-deck button.deck-shortcut.events>i,
+#command-deck button.deck-shortcut.research>i,
+#command-deck button.deck-shortcut.hangar>i,
+#command-deck button.deck-shortcut.warehouse>i{
+  position:relative!important;inset:auto!important;display:grid!important;place-items:center!important;
+  width:36px!important;height:36px!important;margin:0!important;padding:2px!important;
+  border:1px solid #7bdff4!important;border-radius:10px!important;
+  background:linear-gradient(145deg,#244158,#0b1828)!important;
+  box-shadow:inset 0 1px #fff4,0 0 9px #50dfff38!important;clip-path:none!important;color:#9cf5ff!important;
+}
+#command-deck button.deck-shortcut.research>i{border-color:#c696ff!important;color:#e0c2ff!important;box-shadow:inset 0 1px #fff4,0 0 9px #b885ff38!important}
+#command-deck button.deck-shortcut.warehouse>i{border-color:#75e7bd!important;color:#9fffd9!important;box-shadow:inset 0 1px #fff4,0 0 9px #75e7bd38!important}
+#command-deck button.deck-shortcut.events>i{border-color:#ff9aae!important;color:#ffd7e0!important}
+#command-deck button.deck-shortcut>i::after{content:none!important;display:none!important}
+#command-deck button.deck-shortcut>i>svg{display:block!important;width:26px!important;height:26px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important;filter:drop-shadow(0 0 3px #fff3)!important}
+#command-deck button.deck-shortcut.events>i>.deck-event-active-icon{
+  display:block!important;width:32px!important;height:32px!important;max-width:32px!important;max-height:32px!important;
+  object-fit:contain!important;transform:none!important;filter:drop-shadow(0 1px 3px #0009)!important;
+}
+#command-deck button.deck-shortcut.events>span{
+  position:static!important;inset:auto!important;display:block!important;width:auto!important;
+  padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+  color:#fff!important;font-size:10px!important;font-weight:900!important;letter-spacing:.08em!important;
+  text-shadow:0 1px 3px #000!important;transform:none!important;
+}
+
+#command-deck button.deck-shortcut.research>img{display:block!important;width:58px!important;height:43px!important;max-width:58px!important;max-height:43px!important;object-fit:contain!important;transform:none!important;filter:drop-shadow(0 2px 4px #0009)!important}
+#command-deck button.deck-shortcut.research>span,
+#command-deck button.deck-shortcut.warehouse>span{position:static!important;inset:auto!important;display:block!important;width:auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#effaff!important;font-size:10px!important;font-weight:900!important;letter-spacing:.04em!important;text-align:center!important;text-shadow:0 1px 3px #000,0 0 6px #000!important;transform:none!important}
+
+#command-deck button.deck-shortcut.hangar>img{display:block!important;width:60px!important;height:60px!important;max-width:60px!important;max-height:60px!important;object-fit:contain!important;transform:none!important;filter:drop-shadow(0 2px 4px #0009)!important}
+#command-deck button.deck-shortcut.warehouse>img{display:block!important;width:49px!important;height:46px!important;max-width:49px!important;max-height:46px!important;object-fit:contain!important;transform:none!important;filter:drop-shadow(0 2px 4px #0009)!important}
+
+#command-deck button.deck-shortcut.events:hover,
+#command-deck button.deck-shortcut.research:hover,
+#command-deck button.deck-shortcut.hangar:hover,
+#command-deck button.deck-shortcut.warehouse:hover,
+#command-deck button.deck-shortcut.events:focus-visible,
+#command-deck button.deck-shortcut.research:focus-visible,
+#command-deck button.deck-shortcut.hangar:focus-visible,
+#command-deck button.deck-shortcut.warehouse:focus-visible{border-color:#d8f7ff!important;outline:1px solid #8eeeff66!important;outline-offset:1px!important;filter:brightness(1.08)!important;transform:translateY(-2px)!important}

@@ -1,0 +1,75 @@
+.enemy-unit.monster-suicidemon {
+  width: 38px;
+  height: 40px;
+  margin: -20px 0 0 -19px;
+  z-index: 9;
+  overflow: visible;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  opacity: 0;
+  transform: scale(.42);
+  transition: left .08s linear, top .08s linear, opacity .18s ease, transform .18s ease;
+}
+
+.enemy-unit.monster-suicidemon.entered {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.enemy-unit.monster-suicidemon::before {
+  display: none;
+}
+
+.enemy-unit.monster-suicidemon .enemy-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(255, 57, 137, .6));
+  animation: suicide-monster-flight .32s ease-in-out infinite alternate;
+}
+
+.enemy-unit.monster-suicidemon .enemy-hp {
+  width: 32px;
+  height: 2px;
+  top: -7px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #8d285d;
+  background: #260716;
+}
+
+.enemy-unit.monster-suicidemon .enemy-hp i {
+  background: linear-gradient(90deg, #ff9ac9, #ff386f);
+}
+
+.enemy-unit.monster-suicidemon.arming .enemy-sprite {
+  animation: suicide-monster-arm .28s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 9px rgba(255, 47, 90, .95));
+}
+
+.enemy-unit.monster-suicidemon.destroyed {
+  opacity: 0;
+  transform: scale(1.45);
+}
+
+.fx-explosion.suicide {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-color: rgba(255, 69, 118, .98);
+  background: radial-gradient(circle, rgba(255, 239, 211, .95) 0 12%, rgba(255, 75, 120, .86) 30%, rgba(137, 28, 100, .26) 58%, transparent 73%);
+  box-shadow: 0 0 22px 8px rgba(255, 53, 107, .55);
+}
+
+@keyframes suicide-monster-flight {
+  from { transform: translateY(-2px) scaleX(.94); }
+  to { transform: translateY(2px) scaleX(1.06); }
+}
+
+@keyframes suicide-monster-arm {
+  from { transform: scale(.9); opacity: .78; }
+  to { transform: scale(1.12); opacity: 1; }
+}

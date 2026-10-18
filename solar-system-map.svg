@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 420"><defs>
+<radialGradient id="sun"><stop stop-color="#fffde0"/><stop offset=".55" stop-color="#ffd16a"/><stop offset="1" stop-color="#df581c"/></radialGradient>
+<radialGradient id="shade" cx="25%" cy="25%" r="80%"><stop stop-color="#ffffff55"/><stop offset=".45" stop-color="#0000"/><stop offset="1" stop-color="#000e"/></radialGradient>
+<radialGradient id="halo"><stop stop-color="#ffbc5255"/><stop offset="1" stop-color="#ff951000"/></radialGradient>
+<filter id="rock"><feTurbulence baseFrequency=".12" numOctaves="4" seed="9"/><feColorMatrix values=".6 0 0 0 .15 .25 0 0 0 .04 .1 0 0 0 .02 0 0 0 1 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+<pattern id="bands" width="60" height="12" patternUnits="userSpaceOnUse"><rect width="60" height="12" fill="#c0a181"/><path d="M0 3Q15 7 30 3T60 3" stroke="#805a42" stroke-width="4"/></pattern>
+<linearGradient id="orbitLight"><stop stop-color="#5185b5" stop-opacity=".08"/><stop offset=".5" stop-color="#abeaff" stop-opacity=".65"/><stop offset="1" stop-color="#759bbb" stop-opacity=".12"/></linearGradient>
+<filter id="sunGlow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<style>.starlight{animation:twinkle 9s ease-in-out infinite alternate}.orbit-flow{animation:flow 120s linear infinite}.solar-halo{animation:breathe 16s ease-in-out infinite alternate}.dust-flow{animation:flow 180s linear infinite}@keyframes flow{to{stroke-dashoffset:-600}}@keyframes twinkle{to{opacity:.25}}@keyframes breathe{to{opacity:.55}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+<g class="starlight" fill="#bddaff" opacity=".65"><circle cx="33" cy="40" r="1"/><circle cx="400" cy="42" r="1"/><circle cx="180" cy="90" r="1"/><circle cx="310" cy="330" r="1"/><circle cx="78" cy="300" r="1"/><circle cx="421" cy="252" r="1"/></g>
+<g fill="none" stroke="url(#orbitLight)" stroke-width=".8" transform="rotate(-19 240 205)"><ellipse cx="240" cy="205" rx="64" ry="43"/><ellipse cx="240" cy="205" rx="96" ry="65"/><ellipse cx="240" cy="205" rx="130" ry="88"/><ellipse cx="240" cy="205" rx="170" ry="115"/><ellipse cx="240" cy="205" rx="205" ry="143"/><g class="orbit-flow" stroke="#bcecff" stroke-dasharray="2 110" stroke-linecap="round" opacity=".75"><ellipse cx="240" cy="205" rx="96" ry="65"/><ellipse cx="240" cy="205" rx="170" ry="115"/><ellipse cx="240" cy="205" rx="205" ry="143"/></g></g>
+<ellipse class="dust-flow" cx="240" cy="205" rx="227" ry="180" fill="none" stroke="#b3d6ff" stroke-width="7" stroke-dasharray=".7 7 1 11" opacity=".3"/>
+<circle class="solar-halo" cx="223" cy="199" r="100" fill="url(#halo)"/><circle cx="223" cy="199" r="31" fill="url(#sun)" filter="url(#sunGlow)"/>
+<g><circle cx="283" cy="175" r="5" fill="#a38f7d"/><circle cx="150" cy="162" r="9" fill="#d4a86e"/><circle cx="149" cy="162" r="9" fill="url(#shade)"/><circle cx="310" cy="242" r="13" fill="#367aaf"/><path d="m304 233 8 2-4 5 6 3-4 6-5-4-4-6Z" fill="#749378"/><circle cx="310" cy="242" r="13" fill="url(#shade)"/></g>
+<circle cx="341" cy="151" r="17" fill="#b15e36"/><circle cx="341" cy="151" r="17" filter="url(#rock)"/><circle cx="341" cy="151" r="17" fill="url(#shade)"/>
+<circle cx="98" cy="241" r="25" fill="url(#bands)"/><circle cx="98" cy="241" r="25" fill="url(#shade)"/>
+<g transform="rotate(-25 338 302)"><ellipse cx="338" cy="302" rx="47" ry="14" fill="none" stroke="#a28d70" stroke-width="9"/><circle cx="338" cy="302" r="23" fill="#c8af7e"/><circle cx="338" cy="302" r="23" fill="url(#shade)"/><path d="M291 302a47 14 0 0 0 94 0" fill="none" stroke="#cabc9b" stroke-width="6"/></g>
+<circle cx="395" cy="277" r="10" fill="#cc9748"/><circle cx="395" cy="277" r="10" fill="url(#shade)"/>
+<circle cx="150" cy="70" r="14" fill="#81bfc9"/><circle cx="150" cy="70" r="14" fill="url(#shade)"/><circle cx="66" cy="129" r="13" fill="#3b61a0"/><circle cx="66" cy="129" r="13" fill="url(#shade)"/>
+</svg>

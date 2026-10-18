@@ -1,0 +1,24 @@
+/* Keep the illustrated EVENT badge, while making its label and menu boundary legible. */
+#command-deck button.deck-shortcut.events>i{
+  transform:translate(3vw,-1vh) scale(.9)!important;
+}
+#command-deck button.deck-shortcut.events>span{
+  box-sizing:border-box!important;
+  left:3px!important;
+  right:auto!important;
+  width:72px!important;
+  bottom:0!important;
+  padding:2px 3px 3px!important;
+  border:1px solid #ffd37abb!important;
+  border-radius:5px!important;
+  background:linear-gradient(180deg,#352238df,#091827ed)!important;
+  box-shadow:inset 0 1px #fff3,0 0 8px #f9b95d55!important;
+  transform:translate(3vw,-1vh)!important;
+}
+#deck-event-list{
+  box-sizing:border-box!important;
+  border:2px solid #8ce9ff!important;
+  box-shadow:inset 0 0 0 1px #efffff3b,inset 0 1px #fff8,0 13px 28px #000c,0 0 18px #35c8f577!important;
+}
+#deck-event-list::before{border-top:2px solid #8ce9ff!important;border-left:2px solid #8ce9ff!important}
+#deck-event-list .deck-event-entry{border:1px solid #a8e9ffaa!important}

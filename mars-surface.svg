@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="512" viewBox="0 0 1024 512">
+<defs><filter id="terrain"><feTurbulence type="fractalNoise" baseFrequency=".012 .025" numOctaves="5" seed="17" stitchTiles="stitch"/><feColorMatrix type="matrix" values=".6 0 0 0 .22  .23 0 0 0 .06  .10 0 0 0 .025  0 0 0 1 0"/></filter><filter id="soft"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<rect width="1024" height="512" fill="#b85c32"/><rect width="1024" height="512" filter="url(#terrain)"/>
+<g fill="#613422" opacity=".45" filter="url(#soft)"><path d="M70 270Q180 140 310 245T530 245L590 315Q405 285 290 325T70 270"/><path d="M630 80Q720 40 790 160L875 200 830 245 725 200Z"/></g>
+<g fill="none" stroke="#df9865" opacity=".25"><ellipse cx="160" cy="350" rx="35" ry="24" stroke-width="5"/><ellipse cx="600" cy="330" rx="20" ry="17" stroke-width="4"/><ellipse cx="885" cy="290" rx="46" ry="36" stroke-width="6"/><ellipse cx="415" cy="100" rx="23" ry="18" stroke-width="3"/></g>
+</svg>

@@ -1,0 +1,117 @@
+/* Compact, right-flush bridge services: half the former 176px width. */
+#command-deck button.deck-shortcut.bridge-service-button{
+  --deck-accent:#70eaff;
+  --deck-accent-soft:#1b789a;
+  box-sizing:border-box!important;
+  position:absolute;
+  left:auto!important;
+  right:0!important;
+  width:88px!important;
+  min-width:88px!important;
+  height:76px!important;
+  display:grid!important;
+  grid-template-columns:1fr;
+  grid-template-rows:42px 18px;
+  place-items:center;
+  gap:2px!important;
+  padding:5px 3px 6px!important;
+  overflow:hidden!important;
+  cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--deck-accent) 72%,#18263a)!important;
+  border-right:0!important;
+  border-radius:5px 0 0 12px!important;
+  background:
+    linear-gradient(105deg,color-mix(in srgb,var(--deck-accent-soft) 34%,transparent),transparent 43%),
+    repeating-linear-gradient(90deg,#ffffff06 0 1px,transparent 1px 7px),
+    linear-gradient(145deg,#12283b,#091522 66%,#11101d)!important;
+  color:#f4fbff!important;
+  box-shadow:inset 0 1px #d8faff24,inset 0 -2px #0008,0 0 12px color-mix(in srgb,var(--deck-accent) 25%,transparent),0 5px 0 #07101c!important;
+  clip-path:none!important;
+  isolation:isolate;
+  /* MISSION 버튼처럼 마우스오버·클릭 반응이 즉시 나타나도록 전환 효과를 두지 않습니다. */
+  transition:none!important;
+}
+#command-deck button.deck-shortcut.research.bridge-service-button{--deck-accent:#c696ff;--deck-accent-soft:#7553a6}
+#command-deck button.deck-shortcut.hangar.bridge-service-button{--deck-accent:#72e4ff;--deck-accent-soft:#1b789a}
+#command-deck button.deck-shortcut.warehouse.bridge-service-button{--deck-accent:#75e7bd;--deck-accent-soft:#2b8067}
+
+#command-deck button.deck-shortcut.bridge-service-button::before{
+  content:""!important;display:block!important;position:absolute;z-index:-1;
+  left:7px;right:4px;top:0;bottom:auto;width:auto;height:2px;
+  border:0!important;clip-path:none!important;
+  background:linear-gradient(90deg,transparent,var(--deck-accent),transparent)!important;
+  box-shadow:0 0 8px var(--deck-accent)!important;pointer-events:none;
+}
+#command-deck button.deck-shortcut.bridge-service-button::after{
+  content:""!important;display:block!important;position:absolute;
+  left:auto;right:5px;top:auto;bottom:5px;width:3px;height:3px;
+  border:0!important;border-radius:50%!important;
+  background:var(--deck-accent)!important;
+  box-shadow:0 0 7px 2px var(--deck-accent)!important;pointer-events:none;
+}
+
+#command-deck button.deck-shortcut.bridge-service-button>.service-badge{
+  grid-column:1;grid-row:1;justify-self:center;align-self:center;
+  position:relative!important;inset:auto!important;
+  width:38px!important;height:38px!important;margin:0!important;padding:0!important;
+  display:grid!important;place-items:center;
+  border:1px solid color-mix(in srgb,var(--deck-accent) 65%,#10243a)!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--deck-accent-soft) 55%,#183044),#07111e 70%)!important;
+  box-shadow:inset 0 1px #ffffff35,0 0 8px color-mix(in srgb,var(--deck-accent) 35%,transparent)!important;
+  clip-path:none!important;color:var(--deck-accent)!important;
+  filter:none!important;transform:none!important;
+}
+#command-deck button.deck-shortcut.bridge-service-button>.hangar-badge{border-radius:7px 7px 3px 3px!important}
+#command-deck button.deck-shortcut.bridge-service-button>.warehouse-badge{border-radius:6px!important}
+#command-deck button.deck-shortcut.bridge-service-button>.service-badge::before,
+#command-deck button.deck-shortcut.bridge-service-button>.service-badge::after{content:none!important;display:none!important}
+#command-deck button.deck-shortcut.bridge-service-button>.service-badge svg{
+  position:relative;display:block;width:33px!important;height:33px!important;overflow:visible;
+  fill:none;stroke:none;filter:drop-shadow(0 0 3px var(--deck-accent))!important;
+}
+#command-deck button.deck-shortcut.bridge-service-button .badge-ring{
+  fill:none;stroke:color-mix(in srgb,var(--deck-accent) 68%,#eefaff);stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+#command-deck button.deck-shortcut.bridge-service-button .badge-mark{
+  fill:none;stroke:var(--deck-accent);stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+#command-deck button.deck-shortcut.bridge-service-button .badge-core{fill:#eaffff;stroke:var(--deck-accent);stroke-width:1}
+#command-deck button.deck-shortcut.bridge-service-button .badge-detail{fill:var(--deck-accent);stroke:#efffff;stroke-width:.7}
+#command-deck button.deck-shortcut.bridge-service-button .warehouse-badge .badge-mark{stroke-width:1.8}
+
+/* Reuse the same hangar emblem in fleet management. */
+#collection .fleet-hangar-emblem .badge-ring{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#collection .fleet-hangar-emblem .badge-mark{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#collection .fleet-hangar-emblem .badge-detail{fill:currentColor;stroke:#efffff;stroke-width:.7}
+
+#command-deck button.deck-shortcut.bridge-service-button>.deck-command-copy{
+  grid-column:1;grid-row:2;justify-self:stretch;align-self:center;
+  position:relative!important;inset:auto!important;
+  width:100%!important;min-width:0;margin:0!important;padding:0!important;
+  display:block!important;border:0!important;border-radius:0!important;
+  background:none!important;box-shadow:none!important;transform:none!important;text-align:center!important;
+}
+#command-deck button.deck-shortcut.bridge-service-button>.deck-command-copy b{
+  display:block;color:#f4fbff!important;font-size:12px!important;font-weight:900;
+  letter-spacing:0;line-height:1.1;white-space:nowrap;
+  text-shadow:0 0 8px color-mix(in srgb,var(--deck-accent) 50%,transparent)!important;
+}
+#command-deck button.deck-shortcut.warehouse.bridge-service-button>.deck-command-copy b{font-size:11px!important}
+/* MISSION 버튼과 같은 마우스오버 반응: 1.14배 밝아지고, 테두리 색은 그대로, 바깥 2px에 외곽선, 1px 위로 */
+#command-deck button.deck-shortcut.bridge-service-button:hover,
+#command-deck button.deck-shortcut.bridge-service-button:focus-visible{
+  filter:brightness(1.14)!important;border-color:color-mix(in srgb,var(--deck-accent) 72%,#18263a)!important;
+  outline:2px solid color-mix(in srgb,var(--deck-accent) 38%,transparent)!important;
+  outline-offset:2px!important;transform:translateY(-1px)!important;
+  box-shadow:inset 0 1px #d8faff24,inset 0 -2px #0008,0 0 12px color-mix(in srgb,var(--deck-accent) 25%,transparent),0 5px 0 #07101c!important;
+}
+/* 래더·미션 버튼과 같은 누름 반응: 눌리면 2px 내려가고, 그림자와 밝기는 그대로 유지 */
+#command-deck button.deck-shortcut.bridge-service-button:active{
+  transform:translateY(2px)!important;
+  box-shadow:inset 0 1px #d8faff24,inset 0 -2px #0008,0 0 12px color-mix(in srgb,var(--deck-accent) 25%,transparent),0 5px 0 #07101c!important;
+}
+#command-deck button.deck-shortcut.bridge-service-button:active:not(:hover):not(:focus-visible){filter:none!important}
+

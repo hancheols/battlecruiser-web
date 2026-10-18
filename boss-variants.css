@@ -1,0 +1,643 @@
+.boss-unit.boss-giant-dokchimmon {
+  width: 128px;
+  height: 176px;
+  margin: -88px 0 0 -64px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-giant-dokchimmon::before,
+.boss-unit.boss-giant-dokchimmon::after {
+  display: none;
+}
+
+.boss-unit.boss-giant-dokchimmon .boss-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: monster-wing-flight .42s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 8px rgba(255, 83, 188, .8)) drop-shadow(0 0 19px rgba(131, 37, 112, .92));
+}
+
+.boss-unit.boss-giant-dokchimmon.poison-casting .boss-sprite {
+  filter: brightness(1.28) saturate(1.55) drop-shadow(0 0 9px #d8ff72) drop-shadow(0 0 24px #56ee36);
+}
+
+.fx-giant-dokchimmon-burst {
+  position: absolute;
+  z-index: 31;
+  width: 22px;
+  height: 22px;
+  margin: -11px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f3ffcf 0 8%, #baff61 17%, #4ce939 39%, rgba(36, 151, 45, .55) 57%, transparent 70%);
+  box-shadow: 0 0 10px #e4ff91, 0 0 27px #62f03d, 0 0 48px rgba(39, 189, 58, .75);
+  animation: giant-dokchimmon-burst .9s ease-out forwards;
+}
+
+.fx-giant-dokchimmon-cloud {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 18%, rgba(193, 255, 101, .64) 0 3%, rgba(89, 245, 65, .27) 16%, rgba(42, 191, 54, .13) 35%, transparent 68%);
+  mix-blend-mode: screen;
+  animation: giant-dokchimmon-cloud 1.4s ease-out forwards;
+}
+
+.fx-giant-dokchimmon-droplet {
+  position: absolute;
+  z-index: 32;
+  width: 5px;
+  height: 8px;
+  margin: -4px 0 0 -2px;
+  border-radius: 65% 65% 70% 70%;
+  background: radial-gradient(circle at 38% 25%, #f3ffd0 0 12%, #baff55 28%, #45e635 66%, #15942d 100%);
+  box-shadow: 0 0 5px #eaff98, 0 0 11px #52ed3c;
+  pointer-events: none;
+  animation: giant-dokchimmon-droplet .52s ease-out forwards;
+}
+
+@keyframes giant-dokchimmon-burst {
+  0% { opacity: 0; transform: scale(.3); }
+  22% { opacity: 1; transform: scale(1.35); }
+  100% { opacity: 0; transform: scale(11); }
+}
+
+@keyframes giant-dokchimmon-cloud {
+  0% { opacity: 0; transform: scale(.14); }
+  25% { opacity: .9; transform: scale(.66); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes giant-dokchimmon-droplet {
+  0% { opacity: 0; transform: translate(0, 5px) scale(.35) rotate(-15deg); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--drop-x), var(--drop-y)) scale(1.05) rotate(18deg); }
+}
+
+.boss-unit.boss-mid-raptor {
+  width: 170px;
+  height: 132px;
+  margin: -66px 0 0 -85px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-mid-raptor::before,
+.boss-unit.boss-mid-raptor::after {
+  display: none;
+}
+
+.boss-unit.boss-mid-raptor .boss-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: raptor-wing-flight .34s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 8px #ff6672) drop-shadow(0 0 20px #d91435);
+}
+
+.boss-unit.boss-mid-raptor.hit .boss-sprite {
+  filter: brightness(1.75) drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px #ff284b);
+}
+
+.boss-unit.boss-primitive-raptor .boss-sprite {
+  filter: drop-shadow(0 0 8px #54deff) drop-shadow(0 0 20px #0876b4);
+}
+
+.boss-unit.boss-primitive-raptor.hit .boss-sprite {
+  filter: brightness(1.75) drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px #21baff);
+}
+
+@keyframes raptor-wing-flight {
+  from { transform: scaleX(.97) rotate(-.8deg); }
+  to { transform: scaleX(1.03) rotate(.8deg); }
+}
+
+.boss-unit.boss-ancient-beast {
+  width: min(132vw, 620px);
+  height: min(132vw, 620px);
+  margin: calc(min(132vw, 620px) / -2) 0 0 calc(min(132vw, 620px) / -2);
+  top: -70% !important;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-ancient-beast.entered { top: -6% !important; }
+
+.boss-unit.boss-ancient-beast::before,
+.boss-unit.boss-ancient-beast::after { display: none; }
+
+.boss-unit.boss-ancient-beast .boss-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px #ff887a) drop-shadow(0 0 32px #7b081e);
+  animation: ancient-beast-breathe 2.4s ease-in-out infinite alternate;
+}
+
+.boss-unit.boss-ancient-beast.ancient-beast-berserk .boss-sprite {
+  filter: brightness(1.3) saturate(1.42) drop-shadow(0 0 15px #fff0df) drop-shadow(0 0 38px #f31733);
+  animation-duration: .7s;
+}
+
+.boss-unit.boss-ancient-beast.ancient-beast-retreating {
+  top: -70% !important;
+  opacity: 0;
+  transform: scale(.9);
+  transition: top 1.15s cubic-bezier(.28,.78,.32,1), opacity 1.05s ease, transform 1.15s ease;
+}
+
+.enemy-unit.monster-raptor {
+  width: 58px;
+  height: 46px;
+  margin: -23px 0 0 -29px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  opacity: 0;
+  overflow: visible;
+  transform: scale(.38);
+  transition: opacity .16s ease, transform .3s cubic-bezier(.16,.8,.3,1), filter .1s;
+}
+
+.enemy-unit.monster-raptor.entered { opacity: 1; transform: scale(1); }
+.enemy-unit.monster-raptor::before { display: none; }
+.enemy-unit.monster-raptor .enemy-sprite { animation: raptor-wing-flight .3s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px #ff6976) drop-shadow(0 0 10px #be1534); }
+.enemy-unit.monster-raptor .enemy-hp { z-index: 5; left: 50%; top: -5px; width: 52px; height: 3px; transform: translateX(-50%); background: #2b0710; border: 1px solid #803043; }
+.enemy-unit.monster-raptor .enemy-hp i { background: #ff5d70; }
+.fx-enemy.ancient-bone-spike { width: 11px; height: 31px; margin: -16px 0 0 -6px; border: 1px solid #f6dfbf; border-radius: 54% 54% 18% 18%; clip-path: polygon(50% 0, 92% 70%, 68% 100%, 32% 100%, 8% 70%); background: linear-gradient(90deg, #6f392f, #fff4d8 38%, #d5a66e 62%, #57251f); box-shadow: 0 0 5px #fff2d4, 0 0 15px #ff4b42; filter: drop-shadow(0 0 4px #ff5a4b); }
+@keyframes ancient-beast-breathe { from { transform: scale(.985) translateY(0); } to { transform: scale(1.018) translateY(3px); } }
+
+.enemy-unit.monster-plasma-bug{z-index:8;width:68px;height:48px;margin:-24px 0 0 -34px;border:0;background:none;box-shadow:none;opacity:0;overflow:visible;transform:translateY(22px) scale(.12);transition:opacity .2s ease,transform .35s ease,filter .1s}
+.enemy-unit.monster-plasma-bug.emerging{animation:plasma-bug-emerge .9s cubic-bezier(.18,.7,.24,1) forwards}
+.enemy-unit.monster-plasma-bug.plasma-bug-dormant{opacity:0;transform:translateY(22px) scale(.12);animation:none}
+.enemy-unit.monster-plasma-bug.entered{opacity:1;transform:translateY(0) scale(1)}
+.enemy-unit.monster-plasma-bug::before{content:"";position:absolute;left:-7px;right:-7px;bottom:-8px;height:20px;border:0;border-radius:50%;background:radial-gradient(ellipse,#20101a 0 34%,#6e4c4899 52%,transparent 73%);box-shadow:0 0 12px #07132488;transform:scale(1.2);opacity:0;pointer-events:none}
+.enemy-unit.monster-plasma-bug.emerging::before{animation:plasma-bug-burrow .9s ease-out forwards}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth{position:absolute;inset:-14px;z-index:0;pointer-events:none}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth::before{content:"";position:absolute;left:8px;right:8px;bottom:1px;height:22px;border:2px solid #8b786e;border-radius:50%;opacity:0;transform:scale(.18)}
+.enemy-unit.monster-plasma-bug.emerging .plasma-bug-earth::before{animation:plasma-bug-crack .9s ease-out forwards}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i{position:absolute;left:50%;top:67%;width:8px;height:6px;background:linear-gradient(135deg,#ac9381,#3a2928 72%);border:1px solid #c0a08b;clip-path:polygon(0 45%,70% 0,100% 100%,12% 83%);opacity:0}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(1){--chip-x:-39px;--chip-y:-24px;--chip-turn:-100deg}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(2){--chip-x:-29px;--chip-y:13px;--chip-turn:83deg}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(3){--chip-x:-5px;--chip-y:-35px;--chip-turn:145deg}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(4){--chip-x:31px;--chip-y:-25px;--chip-turn:120deg}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(5){--chip-x:38px;--chip-y:10px;--chip-turn:-75deg}
+.enemy-unit.monster-plasma-bug .plasma-bug-earth i:nth-child(6){--chip-x:5px;--chip-y:19px;--chip-turn:70deg}
+.enemy-unit.monster-plasma-bug.emerging .plasma-bug-earth i{animation:plasma-bug-chip .9s cubic-bezier(.18,.5,.3,1) forwards}
+.enemy-unit.monster-plasma-bug .plasma-bug-legs{position:absolute;inset:0;z-index:2;opacity:0;pointer-events:none}
+.enemy-unit.monster-plasma-bug.entered:not(.plasma-bug-anchored) .plasma-bug-legs{opacity:.7}
+.enemy-unit.monster-plasma-bug .plasma-bug-legs i{position:absolute;top:15px;width:17px;height:29px;background:linear-gradient(90deg,#876a68,#241d32 60%,#58bbdd);clip-path:polygon(38% 0,70% 0,45% 35%,100% 65%,80% 73%,35% 57%,12% 100%,0 90%,18% 48%);filter:drop-shadow(0 0 2px #31a4c8)}
+.enemy-unit.monster-plasma-bug .plasma-bug-legs i:first-child{left:0;transform-origin:80% 28%;animation:plasma-bug-leg-left .42s ease-in-out infinite alternate}
+.enemy-unit.monster-plasma-bug .plasma-bug-legs i:last-child{right:0;transform-origin:20% 28%;animation:plasma-bug-leg-right .42s ease-in-out infinite alternate-reverse}
+.enemy-unit.monster-plasma-bug .enemy-sprite,.enemy-unit.monster-plasma-bug .enemy-firing-sprite{position:absolute;z-index:1;left:0;top:0;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;filter:drop-shadow(0 0 4px #45b5ef) drop-shadow(0 0 9px #193a8e);pointer-events:none}
+.enemy-unit.monster-plasma-bug.entered:not(.plasma-bug-anchored) .enemy-sprite{animation:plasma-bug-crawl .42s ease-in-out infinite alternate}
+.enemy-unit.monster-plasma-bug .enemy-firing-sprite{opacity:0;width:180%;height:180%;left:-40%;top:-40%}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .enemy-sprite{opacity:0}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .enemy-firing-sprite{opacity:1;transform:rotate(calc(var(--bug-angle,0rad) + 180deg));clip-path:polygon(27% 0,100% 0,100% 100%,27% 100%,24% 72%,27% 45%)}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.charging .enemy-firing-sprite{animation:plasma-bug-charge .42s ease-in-out infinite alternate}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.firing .enemy-firing-sprite{clip-path:none;animation:plasma-bug-recoil .52s ease-out}
+.enemy-unit.monster-plasma-bug.charging::after{content:"";position:absolute;z-index:3;left:20%;top:49%;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle,#fff 0 10%,#a4faff 30%,#24b7ff 63%,transparent 75%);box-shadow:0 0 11px #bbf6ff,0 0 24px #28bbff;animation:plasma-bug-energy .42s ease-in-out infinite alternate;pointer-events:none}
+.enemy-unit.monster-plasma-bug .enemy-hp{z-index:5;left:50%;top:-8px;width:46px;height:3px;transform:translateX(-50%);background:#081121;border:1px solid #4380b0}
+.enemy-unit.monster-plasma-bug .enemy-hp i{background:#59d7ff}
+.enemy-unit.monster-plasma-bug.destroyed{animation:plasma-bug-break .36s ease-out forwards}
+.fx-enemy.plasma-bug{z-index:26;width:17px;height:8px;margin:-4px 0 0 -8px;border-radius:50%;background:radial-gradient(ellipse,#fff 0 15%,#99efff 32%,#20bdff 62%,transparent 78%);box-shadow:0 0 8px #fff,0 0 18px #2bc6ff,0 0 30px #176aff}
+.fx-explosion.plasma-bug{z-index:27;width:32px;height:32px;margin:-16px;border-radius:50%;background:radial-gradient(circle,#fff 0 8%,#b6f6ff 24%,#28bfff 49%,transparent 72%);box-shadow:0 0 9px #fff,0 0 24px #39caff,0 0 36px #286de8}
+@keyframes plasma-bug-emerge{0%{opacity:0;transform:translateY(28px) scale(.12);filter:brightness(.25)}45%{opacity:1;transform:translateY(10px) scale(.72);filter:brightness(1.5)}100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}}
+@keyframes plasma-bug-burrow{0%{opacity:0;transform:scale(.15)}35%{opacity:1;transform:scale(1.25)}100%{opacity:0;transform:scale(1.8)}}
+@keyframes plasma-bug-crack{0%{opacity:0;transform:scale(.18)}28%{opacity:.95;transform:scale(1.1)}70%{opacity:.75;transform:scale(1.45)}100%{opacity:0;transform:scale(1.8)}}
+@keyframes plasma-bug-chip{0%,15%{opacity:0;transform:translate(0,0) rotate(0)}38%{opacity:1}100%{opacity:0;transform:translate(var(--chip-x),var(--chip-y)) rotate(var(--chip-turn))}}
+@keyframes plasma-bug-leg-left{from{transform:rotate(-15deg) translateY(-2px)}to{transform:rotate(16deg) translateY(2px)}}
+@keyframes plasma-bug-leg-right{from{transform:scaleX(-1) rotate(-15deg) translateY(2px)}to{transform:scaleX(-1) rotate(16deg) translateY(-2px)}}
+@keyframes plasma-bug-crawl{from{transform:rotate(var(--bug-angle,0rad)) translateX(-1px) rotate(-2deg)}to{transform:rotate(var(--bug-angle,0rad)) translateX(1px) rotate(2deg)}}
+@keyframes plasma-bug-charge{from{transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(.94);filter:drop-shadow(0 0 5px #62d8ff)}to{transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(1.06);filter:drop-shadow(0 0 16px #b7f6ff) drop-shadow(0 0 25px #258fff)}}
+@keyframes plasma-bug-energy{from{opacity:.5;transform:scale(.5)}to{opacity:1;transform:scale(1.7)}}
+@keyframes plasma-bug-recoil{0%{opacity:.6;filter:brightness(1.7)}25%{opacity:1;filter:brightness(1.4)}100%{opacity:0;filter:brightness(1)}}
+@keyframes plasma-bug-break{to{opacity:0;transform:scale(1.4) rotate(15deg);filter:brightness(2.5)}}
+
+.boss-unit.boss-red-overlord {
+  width: 285px;
+  height: 252px;
+  margin: -126px 0 0 -142.5px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-green-overlord {
+  width: 285px;
+  height: 252px;
+  margin: -126px 0 0 -142.5px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-red-overlord::before,
+.boss-unit.boss-red-overlord::after,
+.boss-unit.boss-green-overlord::before,
+.boss-unit.boss-green-overlord::after {
+  display: none;
+}
+
+.boss-unit.boss-red-overlord .boss-sprite,
+.boss-unit.boss-green-overlord .boss-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: red-overlord-breathe 1.2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 8px #ff5f38) drop-shadow(0 0 24px #ae1824);
+}
+
+.boss-unit.boss-green-overlord .boss-sprite {
+  filter: drop-shadow(0 0 9px #a4ed43) drop-shadow(0 0 27px #3b9b22);
+}
+
+.boss-unit.boss-red-overlord.berserk .boss-sprite {
+  animation-duration: .38s;
+  filter: brightness(1.42) saturate(1.65) drop-shadow(0 0 10px #fff0c0) drop-shadow(0 0 28px #ff2518);
+}
+
+.enemy-unit.overlord-minion {
+  z-index: 8;
+  filter: brightness(1.18) drop-shadow(0 0 4px #ff5d46);
+}
+
+.enemy-unit.green-overlord-minion {
+  filter: brightness(1.12) drop-shadow(0 0 5px #8bed40);
+}
+
+@keyframes red-overlord-breathe {
+  from { transform: scale(.96) rotate(-.5deg); }
+  to { transform: scale(1.04) rotate(.5deg); }
+}
+
+.boss-unit.boss-flame-beast {
+  width: 303px;
+  height: 258px;
+  margin: -129px 0 0 -151.5px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.boss-unit.boss-flame-beast::before,
+.boss-unit.boss-flame-beast::after {
+  display: none;
+}
+
+.boss-unit.boss-flame-beast .boss-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 9px #fff0b0) drop-shadow(0 0 26px #ff2d1e);
+}
+
+.flame-beast-wing,
+.flame-beast-head {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: url("enemy-flame-beast.png") center / contain no-repeat;
+  pointer-events: none;
+}
+
+.flame-beast-wing.left {
+  clip-path: polygon(0 0, 48% 0, 45% 55%, 0 68%);
+  transform-origin: 43% 32%;
+  animation: flame-beast-left-wing .46s ease-in-out infinite alternate;
+}
+
+.flame-beast-wing.right {
+  clip-path: polygon(52% 0, 100% 0, 100% 68%, 55% 55%);
+  transform-origin: 57% 32%;
+  animation: flame-beast-right-wing .46s ease-in-out infinite alternate;
+}
+
+.flame-beast-head {
+  z-index: 3;
+  clip-path: polygon(46% 9%, 60% 10%, 68% 18%, 69% 30%, 64% 42%, 51% 43%, 43% 35%, 40% 25%);
+  transform-origin: 55% 29%;
+}
+
+.boss-unit.boss-flame-beast.flame-beast-firing .flame-beast-head {
+  animation: flame-beast-head-recoil 1s ease-in-out forwards;
+  filter: brightness(1.38) drop-shadow(0 0 7px #fff1a2) drop-shadow(0 0 19px #ff4c1f);
+}
+
+.fx-enemy.flameball {
+  width: 24px;
+  height: 24px;
+  margin: -12px;
+  border: 1px solid #fff1a0;
+  border-radius: 52% 48% 56% 44%;
+  background: radial-gradient(circle at 36% 29%, #fff 0 7%, #fff2a0 12%, #ffc83f 26%, #ff6a1e 48%, #db181d 70%, #690416 92%);
+  box-shadow: 0 0 8px #fff4bd, 0 0 20px #ff9b27, 0 0 38px #ed201d;
+  filter: drop-shadow(0 0 5px #ffec8c);
+}
+
+.fx-enemy.flameball::before,
+.fx-enemy.flameball::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 66%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffec72, #ff7422 42%, #c7161b 72%, transparent);
+  filter: blur(.4px);
+}
+
+.fx-enemy.flameball::before { width: 12px; height: 22px; }
+.fx-enemy.flameball::after { width: 25px; height: 14px; opacity: .72; transform: translateX(-50%) rotate(28deg); }
+
+.fx-explosion.flame {
+  background: radial-gradient(circle, #fff9c5 0 9%, #ffe75c 18%, #ff7b22 42%, #e71e1c 61%, transparent 73%);
+  box-shadow: 0 0 10px #fff3aa, 0 0 28px #ff6d21, 0 0 48px #db1d21;
+}
+
+.fire-dust-sparks {
+  position: absolute;
+  z-index: 28;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fire-dust-sparks > i {
+  position: absolute;
+  left: var(--spark-x);
+  top: var(--spark-y);
+  width: 3.5px;
+  height: 5px;
+  margin: -2.5px 0 0 -1.75px;
+  border-radius: 58% 42% 60% 40%;
+  background: radial-gradient(circle at 45% 24%, #fff 0 9%, #ffe76b 22%, #ff7023 53%, #d61b22 78%, transparent 81%);
+  box-shadow: 0 0 2.5px #fff2a8, 0 0 6px #ff5421;
+  animation: fire-dust-spark 1.05s var(--spark-delay) ease-in-out infinite;
+}
+
+.fx-fire-dust-storm {
+  position: absolute;
+  z-index: 29;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 24%, rgba(255, 137, 38, .16), transparent 66%);
+  pointer-events: none;
+  animation: fire-dust-storm-fade 2.2s ease-out forwards;
+}
+
+.fx-fire-dust-storm > i {
+  position: absolute;
+  left: var(--petal-x);
+  top: -8%;
+  width: 9px;
+  height: 15px;
+  border-radius: 72% 20% 70% 28%;
+  background: linear-gradient(145deg, #fff7a3 0 9%, #ffb832 27%, #ff5723 57%, #b60e26 82%, transparent 84%);
+  box-shadow: 0 0 5px #fff2a2, 0 0 13px #ff4d23;
+  animation: fire-dust-petal var(--petal-duration) var(--petal-delay) cubic-bezier(.2,.65,.3,1) forwards;
+}
+
+@keyframes flame-beast-left-wing { from { transform: rotate(1.8deg) scaleY(.96); } to { transform: rotate(-2.2deg) scaleY(1.035); } }
+@keyframes flame-beast-right-wing { from { transform: rotate(-1.8deg) scaleY(.96); } to { transform: rotate(2.2deg) scaleY(1.035); } }
+@keyframes flame-beast-head-recoil { 0% { transform: translateY(0); } 55% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+
+@keyframes fire-dust-storm-fade { 0% { opacity: 0; } 18% { opacity: 1; } 78% { opacity: .92; } 100% { opacity: 0; } }
+@keyframes fire-dust-petal { 0% { opacity: 0; transform: translate(0,0) rotate(0) scale(.55); } 12% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--petal-drift),112vh) rotate(var(--petal-spin)) scale(1.16); } }
+
+@keyframes fire-dust-spark {
+  0%,100% { opacity: .35; transform: translateY(3px) scale(.72) rotate(-7deg); }
+  45% { opacity: 1; transform: translateY(-4px) scale(1.22) rotate(8deg); }
+}
+
+/* Oort Cloud gate 20 final boss */
+.boss-unit.boss-oort-final {
+  width: min(104vw, 504px);
+  height: min(104vw, 504px);
+  margin:calc(min(104vw, 504px) / -2) 0 0 calc(min(104vw, 504px) / -2);
+  top: -58% !important;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.boss-unit.boss-oort-final.entered { top: 5% !important; }
+.boss-unit.boss-oort-final::before,
+.boss-unit.boss-oort-final::after { display:none; }
+.boss-unit.boss-oort-final .boss-sprite {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  mix-blend-mode:screen;
+  filter:drop-shadow(0 0 12px #ff455b) drop-shadow(0 0 34px #af102b) saturate(1.2);
+  animation:oort-final-boss-pulse 1.8s ease-in-out infinite alternate;
+}
+.boss-unit.boss-oort-final.hit .boss-sprite { filter:brightness(1.8) saturate(1.4) drop-shadow(0 0 12px #fff2dc) drop-shadow(0 0 34px #ff1f3d); }
+.boss-unit.boss-oort-final .oort-final-wing,
+.boss-unit.boss-oort-final .oort-final-tail,
+.boss-unit.boss-oort-final .oort-final-head {
+  position:absolute;
+  z-index:2;
+  inset:0;
+  pointer-events:none;
+  background:url("oort-final-boss.png") center/contain no-repeat;
+  mix-blend-mode:screen;
+  opacity:.42;
+}
+.boss-unit.boss-oort-final .oort-final-wing { clip-path:polygon(0 42%,50% 43%,54% 78%,0 100%); animation:oort-final-wing-flap 1.15s ease-in-out infinite alternate; }
+.boss-unit.boss-oort-final .oort-final-wing.right { transform:scaleX(-1); animation-name:oort-final-wing-flap-right; }
+.boss-unit.boss-oort-final .oort-final-tail { clip-path:polygon(32% 0,68% 0,58% 76%,49% 100%,40% 76%); animation:oort-final-tail-sway 1.6s ease-in-out infinite alternate; }
+.boss-unit.boss-oort-final .oort-final-head { clip-path:polygon(38% 67%,62% 67%,65% 100%,35% 100%); animation:oort-final-head-lunge .8s ease-in-out infinite alternate; opacity:.58; }
+.boss-unit.boss-oort-final.oort-final-berserk .oort-final-wing,
+.boss-unit.boss-oort-final.oort-final-berserk .oort-final-tail,
+.boss-unit.boss-oort-final.oort-final-berserk .oort-final-head { opacity:.82; filter:brightness(1.8) saturate(1.5) drop-shadow(0 0 12px #ff304b); }
+.boss-unit.boss-oort-final.oort-final-wing-firing .oort-final-wing { opacity:.95; filter:brightness(1.8) drop-shadow(0 0 14px #ffb2a0); }
+.boss-unit.boss-oort-final.oort-final-tail-firing .oort-final-tail { opacity:1; filter:brightness(1.7) saturate(1.5) drop-shadow(0 0 16px #9aff69); }
+.boss-unit.boss-oort-final .oort-final-slime { filter:hue-rotate(65deg) saturate(1.5); }
+.boss-unit.boss-oort-final + .mid-boss-secondary { display:none; }
+.ally-unit.oort-final-slime { filter:brightness(1.1) saturate(.8) hue-rotate(55deg) drop-shadow(0 0 8px #a3ff5d); }
+.ally-unit.oort-final-acid-petrified { filter:grayscale(.7) sepia(.65) saturate(1.6) brightness(.9) drop-shadow(0 0 10px #d0ff66); }
+.ally-unit.oort-final-acid-petrified::after { content:'산성 석화'; position:absolute; z-index:28; left:50%; top:-14px; transform:translateX(-50%); color:#d9ff88; font:900 6px/1 var(--font-body); text-shadow:0 0 6px #72ff38; white-space:nowrap; }
+.enemy-unit.monster-plasma-bug .plasma-bug-legs { display:none!important; animation:none!important; }
+ .enemy-unit.monster-plasma-bug.entered:not(.plasma-bug-anchored) .enemy-sprite { display:block!important; animation:none!important; transform:rotate(var(--bug-angle,0rad))!important; transform-origin:center; }
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .enemy-firing-sprite {
+  width:125%; height:125%; left:-12.5%; top:-12.5%; clip-path:none!important;
+  object-fit:contain; transform:rotate(calc(var(--bug-angle,0rad) + 180deg));
+  transform-origin:center; filter:drop-shadow(0 0 5px #63dfff) drop-shadow(0 0 13px #258fff);
+}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.charging .enemy-firing-sprite { animation:plasma-bug-charge-natural .55s ease-in-out infinite alternate; }
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.firing .enemy-firing-sprite { animation:plasma-bug-fire-natural .52s ease-out; }
+.fx-enemy.oort-slime { z-index:27; width:18px; height:24px; margin:-12px 0 0 -9px; border:1px solid #4d3b47; border-radius:54% 46% 62% 38%; background:linear-gradient(155deg,#78636f 0 12%,#241b29 30%,#050307 78%); box-shadow:0 0 7px #b0809b,0 0 16px #08040c; transform:rotate(24deg); }
+.fx-oort-slime-impact { position:absolute; z-index:39; width:52px; height:42px; margin:-21px 0 0 -26px; border-radius:48% 52% 58% 42%; background:radial-gradient(ellipse at 50% 30%,#4b3a4b,#130d19 58%,transparent 74%); box-shadow:0 0 7px #9b6d93,0 0 18px #050307; animation:oort-slime-splash .68s ease-out forwards; pointer-events:none; }
+@keyframes plasma-bug-charge-natural { from{transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(.97)} to{transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(1.04)} }
+@keyframes plasma-bug-fire-natural { 0%{opacity:.7;transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(1)} 30%{opacity:1;transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(1.08)} 100%{opacity:0;transform:rotate(calc(var(--bug-angle,0rad) + 180deg)) scale(1)} }
+@keyframes oort-slime-splash { from{opacity:0;transform:scale(.25) rotate(-8deg)} 24%{opacity:1;transform:scale(1.08) rotate(4deg)} to{opacity:0;transform:scale(1.5) rotate(-3deg)} }
+@keyframes oort-final-wing-flap { from{transform:rotate(-2deg) scaleY(.97)} to{transform:rotate(2deg) scaleY(1.045)} }
+@keyframes oort-final-wing-flap-right { from{transform:scaleX(-1) rotate(2deg) scaleY(.97)} to{transform:scaleX(-1) rotate(-2deg) scaleY(1.045)} }
+@keyframes oort-final-tail-sway { from{transform:translateX(-2px) rotate(-1deg)} to{transform:translateX(2px) rotate(1.5deg)} }
+@keyframes oort-final-head-lunge { from{transform:translateY(1px) rotate(-1deg)} to{transform:translateY(5px) rotate(1deg)} }
+@keyframes oort-final-boss-pulse {
+  from { transform:scale(.985) translateY(1px); filter:drop-shadow(0 0 8px #ff455b) drop-shadow(0 0 22px #af102b) saturate(1.1); }
+  to { transform:scale(1.02) translateY(-2px); filter:drop-shadow(0 0 14px #ff9a72) drop-shadow(0 0 35px #d51634) saturate(1.35); }
+}
+
+/* Oort 20 final boss slime: make the telegraph, projectile and hit unmistakable. */
+.boss-unit.boss-oort-final.oort-final-tail-firing .oort-final-tail {
+  opacity:1;
+  filter:brightness(2.1) saturate(1.8) drop-shadow(0 0 14px #b6ff5d) drop-shadow(0 0 30px #52ff3d);
+}
+.boss-unit.boss-oort-final.oort-final-tail-firing::before {
+  content:"";
+  display:block;
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:70%;
+  width:32px;
+  height:54px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(ellipse,#f5ffb8 0 8%,#9dff48 24%,#4cd52c 48%,transparent 75%);
+  box-shadow:0 0 9px #efffb0,0 0 24px #63ff3b;
+  animation:oort-slime-charge .42s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.fx-enemy.oort-slime {
+  z-index:42;
+  width:24px;
+  height:34px;
+  margin:-17px 0 0 -12px;
+  border:2px solid #eaff9b;
+  border-radius:54% 46% 62% 38%;
+  background:radial-gradient(ellipse at 35% 25%,#fffbd0 0 8%,#caff57 18%,#55e626 48%,#168c2b 72%,transparent 78%);
+  box-shadow:0 0 7px #fff,0 0 16px #a7ff49,0 0 28px #43df32;
+  filter:drop-shadow(0 0 6px #dfff75);
+}
+.fx-oort-slime-launch {
+  position:absolute;
+  z-index:41;
+  width:38px;
+  height:58px;
+  margin:-29px 0 0 -19px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,#fffdd5 0 8%,#caff5a 20%,#55e52e 48%,transparent 75%);
+  box-shadow:0 0 10px #fff,0 0 25px #74ff40,0 0 42px #28c52b;
+  animation:oort-slime-launch .62s ease-out forwards;
+  pointer-events:none;
+}
+.fx-oort-slime-impact {
+  z-index:45;
+  width:92px;
+  height:70px;
+  margin:-35px 0 0 -46px;
+  border:2px solid #dfff86;
+  border-radius:48% 52% 58% 42%;
+  background:radial-gradient(ellipse at 50% 30%,#faffc7 0 9%,#a8ff46 22%,#42d52f 47%,#0d601f 66%,transparent 78%);
+  box-shadow:0 0 10px #fff,0 0 26px #8dff48,0 0 46px #35d32d;
+  animation:oort-slime-splash .8s ease-out forwards;
+}
+.ally-unit.oort-final-slime {
+  filter:brightness(1.2) saturate(1.1) hue-rotate(55deg) drop-shadow(0 0 10px #c8ff68) drop-shadow(0 0 20px #57df30);
+}
+@keyframes oort-slime-charge { from { opacity:.55; transform:translate(-50%,-50%) scale(.72); } to { opacity:1; transform:translate(-50%,-50%) scale(1.18); } }
+@keyframes oort-slime-launch { 0% { opacity:0; transform:scale(.3); } 20% { opacity:1; transform:scale(1.1); } 100% { opacity:0; transform:scale(1.8); } }
+
+/* Plasma bug photon cannon: starts in the firing-pose aperture, then grows in flight. */
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.firing::before {
+  content:"";
+  position:absolute;
+  z-index:6;
+  left:20%;
+  top:49%;
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:radial-gradient(circle,#fff 0 12%,#e3ffff 24%,#58cfff 52%,transparent 76%);
+  box-shadow:0 0 8px #fff,0 0 18px #51dfff,0 0 30px #287cff;
+  animation:plasma-bug-muzzle-flash .52s ease-out forwards;
+  pointer-events:none;
+}
+.fx-enemy.plasma-bug {
+  z-index:43;
+  width:48px;
+  height:48px;
+  margin:-24px 0 0 -24px;
+  border:0;
+  border-radius:50%;
+  background:url("photon-shell.png") center/contain no-repeat;
+  box-shadow:none;
+  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 16px #52dfff) drop-shadow(0 0 30px #3978ff);
+  animation:plasma-bug-photon-flight 520ms cubic-bezier(.18,.72,.3,1) forwards;
+}
+@keyframes plasma-bug-muzzle-flash {
+  0% { opacity:0; transform:scale(.45); }
+  18% { opacity:1; transform:scale(1.45); }
+  100% { opacity:0; transform:scale(.7); }
+}
+@keyframes plasma-bug-photon-flight {
+  0% { opacity:0; transform:translate(0,0) scale(.22); }
+  12% { opacity:1; transform:translate(calc(var(--dx) * .03),calc(var(--dy) * .03)) scale(.28); }
+  72% { opacity:1; transform:translate(calc(var(--dx) * .72),calc(var(--dy) * .72)) scale(.72); }
+  100% { opacity:.98; transform:translate(var(--dx),var(--dy)) scale(1.08); }
+}
+
+/* Magenta Tas gate 10: a two-round alternating right-arm / long-arm boss encounter. */
+.boss-unit.tas-right-arm,.boss-unit.tas-long-arm{z-index:12;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;pointer-events:none}
+.space-battlefield:has(.boss-unit.tas-right-arm){overflow:visible}
+.boss-unit.tas-right-arm{left:50%;top:-90px;width:min(64vw,620px);height:min(64vw,620px);margin:0;opacity:0;transform:translate(-50%,-8%);transition:opacity .7s ease,transform .7s ease}
+.boss-unit.tas-right-arm.entered{left:50%;top:-90px;opacity:1;transform:translate(-50%,0)}
+.boss-unit.tas-right-arm .boss-sprite,.boss-unit.tas-long-arm .boss-sprite{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 9px #ff493d88) drop-shadow(0 0 24px #ce182b66)}
+.boss-unit.tas-right-arm .boss-sprite{object-position:top center}
+.boss-unit.tas-right-arm.tas-right-arm-swipe{animation:tas-right-arm-swipe 3.5s ease-in-out both}
+@keyframes tas-right-arm-swipe{0%,100%{transform:translate(-50%,0) rotate(0)}14%{transform:translate(-50%,-4%) rotate(-3deg)}85%{transform:translate(-50%,-4%) rotate(-3deg)}}
+.boss-unit.tas-long-arm{left:-8%;top:1%;width:142%;height:76%;margin:0;opacity:0;transform:translateX(104%);transform-origin:100% 48%;transition:opacity .7s ease,transform 1.5s cubic-bezier(.18,.78,.2,1)}
+.boss-unit.tas-long-arm.entered{left:-8%;top:1%;opacity:1;transform:translateX(0) rotate(0deg)}
+.boss-unit.tas-long-arm .boss-sprite{filter:drop-shadow(0 0 10px #ff453e88) drop-shadow(0 0 28px #d7192e6b)}
+.tas-long-arm-comet{position:absolute;z-index:2;width:20px;height:62px;opacity:0;pointer-events:none;transform-origin:50% 0;clip-path:polygon(50% 0,69% 23%,100% 72%,67% 66%,50% 100%,32% 66%,0 72%,31% 23%);background:linear-gradient(180deg,#fff 0%,#fff6a6 10%,#ffb52f 27%,#ff541a 58%,#e51a17aa 78%,transparent 100%);filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px #ff8a24) drop-shadow(0 0 17px #f21d22)}
+.tas-long-arm-comet::after{content:"";position:absolute;left:50%;top:0;width:4px;height:22%;transform:translateX(-50%);border-radius:50%;background:#fff;box-shadow:0 0 5px #fff,0 0 13px #fff0a0,0 0 22px #ff721e}
+.tas-long-arm-comet.comet-a{left:1%;top:49%;transform:rotate(-24deg)}.tas-long-arm-comet.comet-b{left:43%;top:40%;transform:rotate(9deg)}.tas-long-arm-comet.comet-c{left:13%;top:80%;transform:rotate(-35deg)}.tas-long-arm-comet.comet-d{left:41%;top:91%;transform:rotate(12deg)}
+.boss-unit.tas-long-arm.tas-long-arm-swinging .tas-long-arm-comet{opacity:1;animation:tas-nail-comet .34s ease-in-out infinite alternate}
+@keyframes tas-nail-comet{from{filter:brightness(.9) drop-shadow(0 0 3px #fff) drop-shadow(0 0 7px #ff7021);scale:.92}to{filter:brightness(1.45) drop-shadow(0 0 5px #fff) drop-shadow(0 0 13px #ffb02c) drop-shadow(0 0 23px #f1261e);scale:1.12}}
+.tas-sniper-reticle{position:absolute;z-index:35;left:50%;top:48%;width:44px;height:44px;transform:translate(-50%,-50%);border:1px solid #ffb66f;border-radius:50%;box-shadow:0 0 7px #ff482f, inset 0 0 9px #ff502955;pointer-events:none;animation:tas-sniper-pulse .5s ease-in-out infinite alternate}
+.tas-sniper-reticle::before,.tas-sniper-reticle::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#ffdfad;box-shadow:0 0 5px #ff4f33}
+.tas-sniper-reticle::before{width:58px;height:1px}.tas-sniper-reticle::after{width:1px;height:58px}
+.tas-sniper-reticle i{position:absolute;inset:7px;border:1px dashed #fff1d3;border-radius:50%}.tas-sniper-reticle b{position:absolute;left:50%;top:-9px;transform:translateX(-50%);padding:1px 4px;border:1px solid #ff845a;border-radius:4px;background:#350d18;color:#ffe2ba;font:900 6px/1 var(--font-body);letter-spacing:.12em}
+@keyframes tas-sniper-pulse{from{opacity:.62;scale:.92}to{opacity:1;scale:1.08}}
+.boss-unit.tas-long-arm.tas-long-arm-raising{transform:translateX(0) rotate(9deg);transition:transform 5s linear}
+.boss-unit.tas-long-arm.tas-long-arm-holding{transform:translateX(0) rotate(9deg);transition:transform 2s linear}
+.boss-unit.tas-long-arm.tas-long-arm-swinging{transform:translateX(0) rotate(-22deg);transition:transform 4s cubic-bezier(.32,.04,.6,1)}
+.boss-unit.tas-long-arm.tas-long-arm-returning{transform:translateX(0) rotate(0deg);transition:transform 4s cubic-bezier(.18,.72,.25,1)}
+.boss-unit.tas-right-arm.tas-arm-retreating{opacity:0;transform:translate(-50%,-105vh);transition:opacity .85s ease,transform .95s ease-in}
+.boss-unit.tas-long-arm.tas-arm-retreating{opacity:0;transform:translateX(110%) rotate(0deg);transition:opacity .85s ease,transform .95s ease-in}
+.fx-tas-arm-claw{position:absolute;z-index:26;width:38px;height:5px;margin:-2.5px 0 0 0;border-radius:100% 0 100% 0;background:linear-gradient(90deg,#fff 0%,#ffc4b9 18%,#ff3d34 55%,#99071d 100%);box-shadow:0 0 5px #fff,0 0 12px #ff3838,0 0 23px #c90028;transform-origin:0 50%;pointer-events:none;animation:tas-arm-claw-flight .62s cubic-bezier(.16,.74,.2,1) var(--claw-delay,0ms) both}
+@keyframes tas-arm-claw-flight{0%{opacity:0;transform:translate(0,0) rotate(var(--angle)) scaleX(.12)}14%{opacity:1}100%{opacity:.86;transform:translate(var(--dx),var(--dy)) rotate(var(--angle)) scaleX(1)}}
+@media(max-width:620px){.boss-unit.tas-right-arm{left:50%;top:-82px;width:78vw;height:78vw}.boss-unit.tas-right-arm.entered{left:50%;top:-82px}.boss-unit.tas-long-arm{left:-17%;top:5%;width:155%;height:72%}}

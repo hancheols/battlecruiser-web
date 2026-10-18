@@ -1,0 +1,44 @@
+/* 몬스터 사망 효과. monster-death-fx.js 가 전투 효과 층(#battle-effects)에 붙입니다.
+   --s: 몬스터 크기(px), --c: 섬광·파편 색, --goo: 체액 색 */
+.mdx{position:absolute;width:var(--s);height:var(--s);transform:translate(-50%,-50%);pointer-events:none;z-index:24}
+.mdx>*{position:absolute;left:50%;top:50%;pointer-events:none}
+
+/* 갈라지는 몸체: 몬스터 그림을 좌우 반으로 잘라 흩어지게 함 */
+.mdx-half{width:var(--s);height:var(--s);margin:calc(var(--s)/-2);background:var(--img) center/contain no-repeat;will-change:transform,opacity,filter}
+.mdx-half.l{clip-path:polygon(0 0,54% 0,44% 38%,56% 62%,46% 100%,0 100%);animation:mdx-half-l var(--split,.5s) cubic-bezier(.25,.6,.35,1) forwards}
+.mdx-half.r{clip-path:polygon(54% 0,100% 0,100% 100%,46% 100%,56% 62%,44% 38%);animation:mdx-half-r var(--split,.5s) cubic-bezier(.25,.6,.35,1) forwards}
+
+/* 중심 섬광과 충격파 링 */
+.mdx-core{width:calc(var(--s)*.9);height:calc(var(--s)*.9);margin:calc(var(--s)*-.45);border-radius:50%;background:radial-gradient(circle,#fff 0 18%,color-mix(in srgb,var(--c) 85%,#fff) 34%,color-mix(in srgb,var(--c) 55%,transparent) 58%,transparent 72%);mix-blend-mode:screen;animation:mdx-core .3s ease-out forwards}
+.mdx-ring{width:var(--s);height:var(--s);margin:calc(var(--s)/-2);border-radius:50%;border:2px solid color-mix(in srgb,var(--c) 80%,#fff);box-shadow:0 0 10px var(--c),inset 0 0 8px var(--c);animation:mdx-ring .38s ease-out forwards}
+.mdx-ring.late{animation-delay:.08s;border-width:1px;opacity:0}
+
+/* 파편(각진 조각)과 체액 방울: --a 방향, --d 거리, --r 회전, --z 크기 */
+.mdx-shard{width:var(--z);height:calc(var(--z)*1.6);margin:calc(var(--z)/-2);background:linear-gradient(180deg,#fff,var(--c));clip-path:polygon(50% 0,100% 70%,40% 100%,0 55%);filter:drop-shadow(0 0 3px var(--c));animation:mdx-fly var(--t,.48s) cubic-bezier(.12,.75,.3,1) forwards}
+.mdx-goo{width:var(--z);height:var(--z);margin:calc(var(--z)/-2);border-radius:50%;background:radial-gradient(circle at 35% 35%,color-mix(in srgb,var(--goo) 50%,#fff),var(--goo) 60%);animation:mdx-fly var(--t,.42s) cubic-bezier(.2,.8,.4,1) forwards}
+.mdx-ember{width:3px;height:3px;margin:-1.5px;border-radius:50%;background:#ffe2a0;box-shadow:0 0 5px 1px var(--c);animation:mdx-ember var(--t,.7s) ease-out forwards}
+
+/* 대형·보스: 실사 화염 그림, 연기, 2차 폭발 */
+.mdx-fire{width:calc(var(--s)*var(--k,1.4));height:calc(var(--s)*var(--k,1.4));margin:calc(var(--s)*var(--k,1.4)/-2);background:url("missile-explosion-2.png") center/contain no-repeat;animation:mdx-fire var(--t,.7s) cubic-bezier(.15,.8,.3,1) var(--delay,0s) both;transform-origin:center}
+.mdx-fire.alt{background-image:url("missile-explosion-3.png")}
+.mdx-smoke{width:calc(var(--s)*1.3);height:calc(var(--s)*1.3);margin:calc(var(--s)*-.65);border-radius:50%;background:radial-gradient(circle,#3a3236ee 0%,#221d22cc 40%,transparent 70%);filter:blur(5px);animation:mdx-smoke var(--t,1s) ease-out var(--delay,.15s) both}
+.mdx-body{width:var(--s);height:var(--s);margin:calc(var(--s)/-2);background:var(--img) center/contain no-repeat;animation:mdx-overheat var(--t,.3s) ease-in forwards}
+.mdx-body.boss{animation:mdx-boss-throes var(--t,.85s) linear forwards}
+
+/* 보스 마지막 순간: 전장 전체 섬광과 흔들림 */
+.mdx-screen-flash{position:absolute;inset:0;z-index:40;background:radial-gradient(circle at var(--fx,50%) var(--fy,30%),#fff 0%,#fff6dd 30%,#ffd28a99 55%,transparent 80%);pointer-events:none;animation:mdx-screen-flash .55s ease-out forwards}
+.mdx-shake{animation:mdx-shake .5s linear}
+
+@keyframes mdx-half-l{0%{transform:none;filter:brightness(3.2) saturate(0);opacity:1}15%{filter:brightness(1.5) saturate(.85)}62%{opacity:1}100%{transform:translate(-38%,14%) rotate(-38deg) scale(.9);opacity:0;filter:brightness(1.2)}}
+@keyframes mdx-half-r{0%{transform:none;filter:brightness(3.2) saturate(0);opacity:1}15%{filter:brightness(1.5) saturate(.85)}62%{opacity:1}100%{transform:translate(38%,18%) rotate(34deg) scale(.9);opacity:0;filter:brightness(1.2)}}
+@keyframes mdx-core{0%{transform:scale(.25);opacity:1}100%{transform:scale(1.5);opacity:0}}
+@keyframes mdx-ring{0%{transform:scale(.3);opacity:1}100%{transform:scale(2.3);opacity:0}}
+@keyframes mdx-fly{0%{transform:rotate(var(--a)) translateY(0) rotate(0);opacity:1}65%{opacity:1}100%{transform:rotate(var(--a)) translateY(calc(var(--d)*-1)) rotate(var(--r));opacity:0}}
+@keyframes mdx-ember{0%{transform:rotate(var(--a)) translateY(0);opacity:1}100%{transform:rotate(var(--a)) translateY(calc(var(--d)*-1)) translateX(6px);opacity:0}}
+@keyframes mdx-fire{0%{transform:scale(.2) rotate(-8deg);opacity:0}12%{opacity:1}55%{opacity:.95}100%{transform:scale(1) rotate(6deg);opacity:0}}
+@keyframes mdx-smoke{0%{transform:scale(.4);opacity:0}25%{opacity:1}60%{opacity:.8}100%{transform:scale(1.6) translateY(-10%);opacity:0}}
+@keyframes mdx-overheat{0%{filter:brightness(1)}40%{filter:brightness(2.4) sepia(1) saturate(4) hue-rotate(-20deg)}100%{filter:brightness(3.5) saturate(0);transform:scale(1.06);opacity:0}}
+@keyframes mdx-boss-throes{0%,100%{transform:translate(0,0)}10%{transform:translate(-4px,2px);filter:brightness(2.2) saturate(0)}20%{transform:translate(3px,-3px);filter:none}35%{transform:translate(-3px,-2px);filter:brightness(1.8) sepia(1) hue-rotate(-25deg) saturate(3)}50%{transform:translate(4px,3px);filter:none}65%{transform:translate(-2px,3px);filter:brightness(2.4) saturate(0)}80%{transform:translate(2px,-2px);filter:brightness(1.6)}95%{opacity:1;filter:brightness(4) saturate(0)}100%{opacity:0;filter:brightness(5) saturate(0)}}
+@keyframes mdx-screen-flash{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+@keyframes mdx-shake{0%,100%{transform:none}15%{transform:translate(-7px,4px)}30%{transform:translate(6px,-5px)}45%{transform:translate(-5px,-3px)}60%{transform:translate(4px,4px)}75%{transform:translate(-2px,2px)}}
+@media (prefers-reduced-motion:reduce){.mdx-shard,.mdx-goo,.mdx-ember,.mdx-fire,.mdx-smoke{display:none}.mdx-shake{animation:none}}

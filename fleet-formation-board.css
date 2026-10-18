@@ -1,0 +1,105 @@
+/* The artwork and all four hit areas share one 2:3 coordinate system. */
+#collection{background:radial-gradient(ellipse at center,#102c40,#040c14 75%)!important;padding:106px 0 104px!important}
+#collection.active{display:flex;align-items:center;justify-content:center;height:100dvh;min-height:540px}
+#collection .formation-power-spacer{display:none}
+#collection .formation-stage{position:relative;isolation:isolate;flex:none;container-type:inline-size;width:min(100%,calc((100dvh - 210px)*.6666667));max-width:480px;min-width:0;height:auto;aspect-ratio:2/3;margin:0;padding:0;border:0;border-radius:0;overflow:visible;background:url('fleet-formation-board-v5.png') center/100% 100% no-repeat;box-shadow:0 0 30px #0009}
+#collection .formation-stage::before,#collection .formation-stage::after{content:none!important;display:none!important}
+#collection .formation-stage .fleet-heading{position:absolute;z-index:3;top:1.1%;left:23%;right:23%;text-align:center;pointer-events:none}
+#collection .formation-stage .fleet-heading small{font-size:clamp(6px,1.7cqw,8px);letter-spacing:.14em;color:#82cdeb;text-shadow:0 1px 4px #000}
+#collection .formation-stage .fleet-heading h1{margin:3px 0 0;font-size:clamp(13px,4.2cqw,20px);letter-spacing:.14em;text-shadow:0 2px 5px #000,0 0 14px #36c9ff77}
+#collection .formation-stage .formation-slot{position:absolute!important;z-index:2;display:block;box-sizing:border-box;transform:none!important;margin:0;padding:0;border:0!important;border-radius:0;background:none!important;box-shadow:none!important;filter:none;transition:none;cursor:pointer}
+#collection .formation-stage .formation-slot::before,#collection .formation-stage .formation-slot::after{content:none!important;display:none!important;animation:none!important}
+#collection .formation-stage .formation-slot::before{content:""!important;display:block!important;position:absolute;z-index:1;top:23%;right:8%;bottom:25%;left:8%;border-radius:50%;pointer-events:none;background:conic-gradient(from 12deg,transparent 0 10deg,#8eeaff 13deg,#1687c9 22deg,transparent 30deg 74deg,#52d9ff 79deg,#baf7ff 84deg,transparent 89deg 178deg,#1386c6 185deg,#6fe4ff 195deg,transparent 202deg 284deg,#b4f5ff 291deg,#248fc9 303deg,transparent 310deg);-webkit-mask:radial-gradient(ellipse,transparent 0 61%,#000 63% 64%,transparent 66%);mask:radial-gradient(ellipse,transparent 0 61%,#000 63% 64%,transparent 66%);filter:drop-shadow(0 0 3px #47cfff);animation:fleet-station-rotate 48s linear infinite!important}
+#collection .formation-stage .slot-1::before,#collection .formation-stage .slot-3::before{animation-direction:reverse!important;animation-duration:56s!important}
+#collection .formation-stage .formation-slot.slot-0{left:26.25%!important;top:8%!important;width:47.5%!important;height:24.7%!important}
+#collection .formation-stage .formation-slot.slot-1{left:3.1%!important;top:35.5%!important;width:42.75%!important;height:21.85%!important}
+#collection .formation-stage .formation-slot.slot-2{left:54.15%!important;top:35.5%!important;width:42.75%!important;height:21.85%!important}
+#collection .formation-stage .formation-slot.slot-3{left:34.04%!important;top:68.355%!important;width:31.92%!important;height:17.29%!important}
+#collection .formation-stage .fleet-station-role{display:none!important}
+#collection .formation-stage .formation-slot .hologram-mount{position:absolute;z-index:3;top:18%;bottom:24%;left:3%;width:94%;height:auto;background:none;clip-path:none;overflow:visible;pointer-events:none}
+#collection .formation-stage .slot-0 .hologram-mount{top:23%;bottom:18%}
+#collection .formation-stage .slot-0 .hologram-mount{transform:translateY(3cqw)}
+#collection .formation-stage .slot-3 .hologram-mount{top:18%;bottom:21%}
+#collection .formation-stage .formation-slot .hologram-mount img{display:block;width:100%;height:100%;max-width:none;object-fit:contain;transform:none!important;opacity:1;filter:drop-shadow(0 5px 4px #00111ccc) drop-shadow(0 0 1px #fff);transition:filter .25s}
+#collection .formation-stage .slot-0 .hologram-mount img{transform:translateY(1%)!important}
+#collection .formation-stage .slot-0 .pedestal-label{top:93%}
+#collection .formation-stage .formation-slot:hover .hologram-mount img,#collection .formation-stage .formation-slot.drag-over .hologram-mount img{filter:drop-shadow(0 5px 4px #00111ccc) drop-shadow(0 0 1px #fff)}
+#collection .formation-stage .formation-slot .hologram-base{position:absolute;inset:18% 8% 24%;width:auto;height:auto!important;margin:0;border:0!important;background:none!important;box-shadow:none!important;overflow:visible;pointer-events:none}
+#collection .formation-stage .formation-slot .hologram-base::before,#collection .formation-stage .formation-slot .hologram-base::after{display:none!important;content:none!important;animation:none!important}
+#collection .formation-stage .formation-slot .hologram-ticker,#collection .formation-stage .formation-slot .hologram-base>span:first-child{display:none!important}
+#collection .formation-stage .formation-slot .empty-hologram{position:absolute;inset:0;display:grid!important;width:auto;height:auto;place-items:center;font-size:clamp(8px,2.6cqw,12px);color:#b3e6f5!important;letter-spacing:.04em;animation:none;text-shadow:0 1px 5px #000}
+#collection .formation-stage .formation-slot.occupied .empty-hologram{display:none!important}
+#collection .formation-stage .formation-slot .pedestal-label{position:absolute;z-index:5;top:91%;bottom:auto;left:0;transform:translateY(-50%);width:100%;height:auto;display:none;flex-direction:column;gap:1px;line-height:1.1;white-space:normal;text-align:center;pointer-events:none}
+#collection .formation-stage .formation-slot.occupied .pedestal-label{display:flex!important;left:0;width:100%;overflow:hidden}
+#collection .formation-stage .slot-0 .pedestal-label{top:92%}
+#collection .formation-stage .slot-3 .pedestal-label{top:89%}
+#collection .formation-stage .formation-slot .pedestal-label small{font-size:clamp(6px,1.6cqw,8px)!important;line-height:1.1;letter-spacing:.03em}
+#collection .formation-stage .formation-slot .pedestal-label b{max-width:96%;font-size:clamp(9px,2.7cqw,13px)!important;line-height:1.1;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#collection .formation-stage .formation-slot.frigate-locked{filter:none;opacity:.85}
+#collection .formation-stage .formation-slot.frigate-locked .empty-hologram{visibility:hidden}
+#collection .formation-stage .frigate-slot-lock{top:50%;font-size:clamp(16px,5cqw,24px)}
+#collection .formation-stage .formation-slot.dragging{opacity:.4}
+#collection .formation-stage .formation-slot.drag-over{outline:1px solid #bcf6ff;outline-offset:-5px}
+#collection .formation-stage .formation-actions{position:absolute;z-index:5;left:21%;right:21%;bottom:1.2%;height:10%;min-height:0;margin:0;padding:2px;transform:none;display:flex;justify-content:center;box-sizing:border-box;clip-path:polygon(5% 0,95% 0,100% 24%,100% 76%,95% 100%,5% 100%,0 76%,0 24%);border:1px solid #071522;background:linear-gradient(180deg,#071522 0%,#0c2538 48%,#030b12 100%);box-shadow:0 0 0 2px #02080d,0 0 9px #061827}
+#collection .formation-stage .formation-actions button.fleet-hangar-button[data-panel]{position:relative!important;isolation:isolate!important;overflow:hidden!important;width:100%!important;min-width:0!important;max-width:none!important;min-height:0!important;height:100%!important;margin:0!important;padding:1px 5px!important;gap:0!important;flex-direction:row!important;justify-content:center!important;clip-path:polygon(6% 0,94% 0,100% 24%,100% 76%,94% 100%,6% 100%,0 76%,0 24%)!important;border:1px solid #4bd3ff!important;border-radius:0!important;color:#4bd3ff!important;background:linear-gradient(180deg,#061b2dcc,#041322bb)!important;background-image:linear-gradient(180deg,#061b2dcc,#041322bb),url('fleet-hangar-panel-texture.png')!important;background-position:center!important;background-size:auto 100%!important;background-repeat:repeat-x!important;box-shadow:inset 0 1px #2aabef88,inset 0 -2px #020b14,0 0 0 1px #02080d!important;transform:none!important;letter-spacing:.12em!important;text-shadow:0 0 7px #12aaff,0 1px 3px #000!important}
+#collection .formation-stage .formation-actions button.fleet-hangar-button::before{content:none!important;display:none!important}
+#collection .formation-stage .formation-actions button.fleet-hangar-button::after{content:""!important;display:block!important;position:absolute;z-index:0;inset:5px 3%;pointer-events:none;border:1px solid #26a9ec88;clip-path:polygon(5% 0,95% 0,100% 24%,100% 76%,95% 100%,5% 100%,0 76%,0 24%);background:linear-gradient(90deg,#08aaff0a,#08aaff18 50%,#08aaff0a)}
+#collection .formation-stage .formation-actions button[data-panel].fleet-hangar-button>*{position:relative;z-index:2}
+#collection .formation-stage .formation-actions button[data-panel].fleet-hangar-button .fleet-hangar-copy{display:flex;align-items:center;justify-content:center;width:100%}
+#collection .formation-stage .formation-actions button[data-panel].fleet-hangar-button .fleet-hangar-copy b{font-size:clamp(10px,3cqw,14px)!important;color:#4bd3ff!important}
+#collection .formation-stage .fleet-hangar-copy{flex-direction:column;gap:2px}
+#collection .formation-stage .fleet-hangar-copy small{display:block!important;margin:0;color:#9beaff!important;font-size:clamp(6px,1.7cqw,8px)!important;font-weight:800;letter-spacing:.2em;text-shadow:0 0 5px #39cfff!important}
+#collection .formation-stage .formation-slot.occupied .hologram-mount img{filter:drop-shadow(0 5px 4px #00111ccc) drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff) drop-shadow(0 0 5px #c8f7ff)}
+@keyframes fleet-station-rotate{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#collection .formation-stage .formation-slot::before,#collection .formation-stage::before{animation:none!important}}
+@media(max-height:540px){#collection.active{height:auto;min-height:540px}#collection .formation-stage{width:min(100%,220px)}}
+
+/* Keep mounted fleet ships free of the white outline and tint their grounding shadow cyan. */
+#collection .formation-stage .formation-slot .hologram-mount img,#collection .formation-stage .formation-slot:hover .hologram-mount img,#collection .formation-stage .formation-slot.drag-over .hologram-mount img,#collection .formation-stage .formation-slot.occupied .hologram-mount img{filter:drop-shadow(0 5px 4px #49eaff80) drop-shadow(1px 0 0 #49eaff80) drop-shadow(-1px 0 0 #49eaff80) drop-shadow(0 1px 0 #49eaff80) drop-shadow(0 -1px 0 #49eaff80)!important;opacity:.85!important}
+
+/* Place the ship class in each slot's upper nameplate and the ship name in its lower plate. */
+#collection .formation-stage .formation-slot.occupied .pedestal-label{position:absolute;inset:0;top:0;bottom:0;left:0;width:100%;height:100%;display:block!important;transform:none;overflow:visible}
+#collection .formation-stage .formation-slot .pedestal-label small{position:absolute;top:2%;left:4%;width:92%;font-size:clamp(9px,2.325cqw,12px)!important;line-height:1;letter-spacing:.04em;text-align:center;white-space:nowrap;text-shadow:0 1px 4px #00111c,0 0 5px #39caff88}
+#collection .formation-stage .formation-slot .pedestal-label b{position:absolute;bottom:1%;left:4%;width:92%;max-width:none;font-size:clamp(9.6px,2.58cqw,13.2px)!important;font-weight:700!important;line-height:1.4;margin-bottom:-.2em;letter-spacing:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px #00111c,0 0 5px #39caff88}
+#collection .formation-stage .slot-0 .pedestal-label small{top:6%;transform:translateY(5cqw)}
+#collection .formation-stage .slot-0 .pedestal-label b{transform:translateY(calc(2% + 3cqw))}
+#collection .formation-stage .slot-3 .pedestal-label small{top:4%}
+#collection .formation-stage .slot-3 .pedestal-label b{bottom:1%}
+#collection .formation-stage .slot-1 .pedestal-label small,#collection .formation-stage .slot-2 .pedestal-label small{transform:translateY(4.5cqw)}
+#collection .formation-stage .slot-1 .pedestal-label b,#collection .formation-stage .slot-2 .pedestal-label b{transform:translateY(4.5cqw)}
+#collection .formation-stage .slot-3 .pedestal-label small{transform:translateY(-1.5cqw)}
+#collection .formation-stage .slot-3 .pedestal-label b{transform:translateY(.5cqw)}
+/* 슬롯 별등급(A안): 이름표 바로 위 별 줄. 빈 별도 보이도록 밝게, 함선 그림 위에서도 읽히도록 어두운 바탕 */
+#collection .formation-stage .formation-slot .slot-star-row{position:absolute;left:50%;bottom:calc(1% + 1.2 * clamp(9.6px,2.58cqw,13.2px) + 5px);transform:translateX(-50%);z-index:6;display:flex;gap:1px;padding:1px 7px 2px;border:1px solid #ffd76a33;border-radius:9px;background:linear-gradient(180deg,#04101bee,#04101bcc);box-shadow:0 2px 6px #000a;font:900 clamp(10px,2.6cqw,13px)/1.25 var(--font-body);pointer-events:none;white-space:nowrap}
+#collection .formation-stage .formation-slot .slot-star-row i{font-style:normal;color:#5d6f86;text-shadow:0 1px 0 #000}
+#collection .formation-stage .formation-slot .slot-star-row i.on{color:#ffd76a;text-shadow:0 0 6px #ffb83f,0 1px 0 #5a3405}
+#collection .formation-stage .formation-slot .slot-star-row.is-max{border-color:#ffe7a0aa;box-shadow:0 0 10px #ffc24a88,0 2px 6px #000a}
+/* L급 함선 이름: 광택(금속 반짝임) 없이 다른 등급처럼 등급색 그대로 표시 */
+#collection .formation-slot.occupied .pedestal-label.rarity-label-L b{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ship-rarity-color,#ff526d);animation:none}
+/* 별 줄도 함선 이름과 같은 만큼 슬롯별로 아래로 내려, 항상 이름 바로 위(약 5px)에 붙도록 맞춥니다. */
+#collection .formation-stage .slot-0 .slot-star-row{transform:translate(-50%,calc(2% + 3cqw))}
+#collection .formation-stage .slot-1 .slot-star-row,#collection .formation-stage .slot-2 .slot-star-row{transform:translate(-50%,4.5cqw)}
+
+/* 함대관리 패널 그림 위 홀로그램 효과 층(회전 광택·주황 램프·숨쉬기·주사선) (command-deck.js 가 .board-fx 를 넣음). 슬롯(z2)·제목(z3) 아래에 깔린다. */
+@property --board-sweep-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
+#collection .formation-stage .board-fx{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+#collection .formation-stage .board-fx>*{position:absolute;pointer-events:none}
+/* 격자 바닥(네온 테두리 안쪽) 영역 */
+#collection .formation-stage .board-scanlines{inset:0;clip-path:polygon(12% 6%,88% 6%,96% 13%,96% 87%,88% 93.5%,12% 93.5%,4% 87%,4% 13%)}
+/* 숨쉬기: 같은 그림을 빛으로 겹쳐 4초 주기로 은은하게 밝아짐 */
+#collection .formation-stage .board-glow{inset:0;background:url('fleet-formation-board-v5.png') center/100% 100% no-repeat;mix-blend-mode:screen;filter:saturate(1.4) brightness(1.1);opacity:0;animation:board-breathe 4.2s ease-in-out infinite}
+/* 회전 광택: 같은 그림의 밝은 사본을 회전하는 부채꼴로 보여 네온선·격자를 따라 빛이 돈다 */
+#collection .formation-stage .board-sweep{inset:0;background:url('fleet-formation-board-v5.png') center/100% 100% no-repeat;mix-blend-mode:screen;filter:brightness(1.7) saturate(1.5);opacity:.85;
+  -webkit-mask:conic-gradient(from var(--board-sweep-angle) at 50% 50%,transparent 0deg,transparent 300deg,#000 350deg,transparent 360deg);mask:conic-gradient(from var(--board-sweep-angle) at 50% 50%,transparent 0deg,transparent 300deg,#000 350deg,transparent 360deg);
+  animation:board-sweep 9s linear infinite}
+/* 주사선: 아주 옅은 가로 줄이 천천히 흐르고 가끔 미세하게 깜빡임 */
+#collection .formation-stage .board-scanlines{background:repeating-linear-gradient(180deg,#8fe4ff14 0 1px,transparent 1px 4px);mix-blend-mode:screen;animation:board-scanlines 3s linear infinite,board-flicker 7.3s steps(1,end) infinite}
+/* 금속 틀의 주황 램프: 램프마다 다른 박자로 깜빡임 */
+#collection .formation-stage .board-lamp{width:7%;height:2.2%;margin:-1.1% 0 0 -3.5%;border-radius:50%;mix-blend-mode:screen;
+  background:radial-gradient(ellipse,#fff1c8 0%,#ffb347cc 30%,#ff7a1f55 58%,transparent 72%);animation:board-lamp var(--lamp-speed,3s) ease-in-out var(--lamp-delay,0s) infinite}
+@keyframes board-breathe{0%,100%{opacity:0}50%{opacity:.22}}
+@keyframes board-sweep{to{--board-sweep-angle:360deg}}
+@keyframes board-scanlines{to{background-position:0 8px}}
+@keyframes board-flicker{0%,100%{opacity:1}61%{opacity:1}62%{opacity:.4}63%{opacity:1}88%{opacity:.75}89%{opacity:1}}
+@keyframes board-lamp{0%,100%{opacity:.25}40%{opacity:.9}55%{opacity:.55}62%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#collection .formation-stage .board-fx>*{animation:none!important}#collection .formation-stage .board-sweep{display:none}}

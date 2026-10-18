@@ -1,0 +1,8 @@
+#command-deck button.deck-shortcut.events>i>.deck-event-active-icon{filter:drop-shadow(0 2px 5px #0009) drop-shadow(0 0 8px #71eaffb8) drop-shadow(0 0 15px #d99cff66)!important;animation:event-emblem-glow 2.8s ease-in-out infinite}
+#command-deck button.deck-shortcut.events>span{bottom:1px!important;transform:translateX(2vw)!important;color:#fff0ae!important;font-size:11px!important;font-weight:1000!important;letter-spacing:.18em!important;text-shadow:0 0 3px #fff,0 0 8px #ffc85b,0 0 16px #ff8d45,0 2px 4px #000!important}
+#command-deck button.deck-shortcut.events>span::before,
+#command-deck button.deck-shortcut.events>span::after{position:absolute;bottom:1px;color:#bdf8ff;font-size:9px;line-height:1;text-shadow:0 0 5px #62eeff,0 0 11px #fff;animation:event-sparkle 1.8s ease-in-out infinite;pointer-events:none}
+#command-deck button.deck-shortcut.events>span::before{content:"✦";left:6px}
+#command-deck button.deck-shortcut.events>span::after{content:"✧";right:6px;animation-delay:.9s}
+@keyframes event-emblem-glow{0%,100%{opacity:.92;transform:scale(1)}50%{opacity:1;transform:scale(1.025)}}
+@keyframes event-sparkle{0%,100%{opacity:.42;transform:scale(.72) rotate(-12deg)}50%{opacity:1;transform:scale(1.2) rotate(12deg)}}

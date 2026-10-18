@@ -1,0 +1,28 @@
+.eva9-tutorial{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147483200;display:flex;align-items:end;width:min(650px,calc(100vw - 24px));pointer-events:none;filter:drop-shadow(0 14px 26px #000b)}
+.eva9-tutorial[hidden]{display:none!important}
+.eva9-tutorial.dialogue-collapsed{display:none!important}
+.eva9-tutorial-chip{position:fixed;z-index:2147483200;right:max(8px,env(safe-area-inset-right));top:max(8px,env(safe-area-inset-top));padding:8px 12px;border:1px solid #a9bffa;border-radius:7px;background:#1c2d49e8;color:#f4f7ff;font:800 12px/1.2 var(--font-body);box-shadow:0 5px 18px #000a;cursor:pointer}
+.eva9-tutorial-chip[hidden]{display:none!important}
+.eva9-tutorial>img{width:clamp(118px,18vw,188px);max-height:265px;object-fit:contain;object-position:bottom;flex:none}
+.eva9-dialogue{position:relative;flex:1;min-width:0;margin:0 0 12px -12px;padding:16px 18px 14px;border:1px solid #a9bffaaf;border-radius:13px;background:linear-gradient(145deg,#23324aef,#11192bf7 70%);box-shadow:inset 0 1px #ffffff5a,0 12px 28px #000a;color:#eef4ff;pointer-events:auto}
+.eva9-dialogue:before{content:'';position:absolute;left:-9px;bottom:26px;width:17px;height:17px;transform:rotate(45deg);border-left:1px solid #a9bffaaf;border-bottom:1px solid #a9bffaaf;background:#182338}
+.eva9-dialogue-head{display:flex;align-items:start;justify-content:space-between;gap:8px}
+.eva9-dialogue-head small{color:#a8baff;letter-spacing:.14em;font:800 10px/1.5 var(--font-body)}
+.eva9-dialogue-head button{flex:none;padding:3px 6px;border:1px solid #a8baff88;border-radius:5px;background:#2b3956;color:#e1e8ff;font:700 10px/1.3 var(--font-body);cursor:pointer}
+.eva9-dialogue strong{display:block;margin-top:6px;color:#dce5ff;font:800 clamp(15px,1.5vw,19px)/1.35 var(--font-body)}
+.eva9-dialogue p{margin:8px 0 12px;color:#e7edfb;font:500 clamp(12px,1.15vw,14px)/1.55 var(--font-body);word-break:keep-all}
+.eva9-actions{display:flex;justify-content:flex-end}
+.eva9-actions button{padding:8px 13px;border:1px solid #c3d0ff;border-radius:7px;background:linear-gradient(130deg,#626caa,#263f74);color:white;font:800 12px/1.3 var(--font-body);cursor:pointer}
+.eva9-actions button[hidden]{display:none}
+.eva9-dialogue button:hover{filter:brightness(1.2)}
+.eva9-tutorial.portrait-hidden{width:min(440px,calc(100vw - 24px))}
+.eva9-tutorial.portrait-hidden>img{display:none}
+.eva9-tutorial.portrait-hidden .eva9-dialogue{margin-left:0}
+.eva9-tutorial.portrait-hidden .eva9-dialogue:before{display:none}
+body[data-eva-step="profileOpen"] .captain-profile-open,body[data-eva-step="mailOpen"] .captain-profile-mail-button,body[data-eva-step="mailSelect"] .captain-mail-row.eva-mail-target,body[data-eva-step="mailClaim"] .captain-mail-claim,body[data-eva-step="mailNext"] .captain-mail-back,body[data-eva-step="explore10"] #ship-pool .summon-action.ten,body[data-eva-step="exploreConfirm"] .ship-explore-confirm,body[data-eva-step="exploreResult"] .ship-explore-return,body[data-eva-step="weaponTab"] .research-tab[data-research="weapon"],body[data-eva-step="weapon10"] [data-tactical-pull="10"],body[data-eva-step="weaponResult"] .tactical-research-finish,body[data-eva-step="frigateOpen"] [data-tactical-develop="frigate"],body[data-eva-step="frigateNode"] [data-branch-node="firepower1"],body[data-eva-step="frigateDevelop"] .cannon-tech-action,body[data-eva-step="frigateClose"] .tactical-tech-close,body[data-eva-step="fleetNav"] .fixed-nav [data-screen="collection"],body[data-eva-step="frigateSlot"] #collection [data-fleet-slot="3"],body[data-eva-step="littleBoy"] #collection .fleet-ship-choice[data-ship-name="리틀보이"]{outline:2px solid #e2e9ff!important;outline-offset:3px;box-shadow:0 0 0 5px #727fff77,0 0 23px #8caaffaa!important;animation:eva9TargetPulse 1.7s ease-in-out infinite alternate}
+@keyframes eva9TargetPulse{to{box-shadow:0 0 0 7px #727fff44,0 0 34px #b5caffdd}}
+.eva9-tutorial[data-step="exploreResult"],.eva9-tutorial[data-step="weaponResult"],.eva9-tutorial[data-step="frigateNode"],.eva9-tutorial[data-step="frigateDevelop"],.eva9-tutorial[data-step="frigateClose"]{top:max(68px,calc(env(safe-area-inset-top) + 60px));bottom:auto}
+.eva9-tutorial[data-step="exploreResult"]>img,.eva9-tutorial[data-step="weaponResult"]>img,.eva9-tutorial[data-step^="frigate"]>img{max-height:185px;width:115px}
+@media(max-width:600px){.eva9-tutorial{left:6px;right:6px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 12px)}.eva9-tutorial>img{width:82px;max-height:155px}.eva9-dialogue{margin:0 0 3px -6px;padding:10px 11px}.eva9-dialogue p{font-size:12px;margin:5px 0 8px;max-height:28dvh;overflow:auto}.eva9-tutorial.portrait-hidden{width:calc(100vw - 12px)}.eva9-tutorial.portrait-hidden .eva9-dialogue{margin-left:0}.eva9-tutorial[data-step="exploreResult"],.eva9-tutorial[data-step="weaponResult"],.eva9-tutorial[data-step="frigateNode"],.eva9-tutorial[data-step="frigateDevelop"],.eva9-tutorial[data-step="frigateClose"]{top:max(64px,calc(env(safe-area-inset-top) + 56px));bottom:auto}.eva9-tutorial[data-step="exploreResult"]>img,.eva9-tutorial[data-step="weaponResult"]>img,.eva9-tutorial[data-step^="frigate"]>img{width:70px;max-height:120px}}
+@media(prefers-reduced-motion:reduce){body[data-eva-step] .eva9-tutorial,body[data-eva-step] .eva9-dialogue{animation:none}}
+

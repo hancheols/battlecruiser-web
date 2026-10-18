@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#fff7ae"/><stop offset=".25" stop-color="#ffdf4d"/><stop offset=".65" stop-color="#d88a0b"/><stop offset="1" stop-color="#783700"/></linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c76d05"/><stop offset="1" stop-color="#713300"/></linearGradient>
+    <filter id="g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <path d="M5 41l10-8h25l9 8-6 13H11z" fill="url(#side)"/>
+  <path d="M5 41l10-8h25l9 8-10 5H15z" fill="url(#bar)" stroke="#fff19a"/>
+  <path d="M20 31l9-8h24l8 8-7 10H27z" fill="url(#side)"/>
+  <path d="M20 31l9-8h24l8 8-8 5H29z" fill="url(#bar)" stroke="#fff4ac" filter="url(#g)"/>
+  <path d="M30 22l7-7h17l6 7-6 7H35z" fill="url(#side)"/>
+  <path d="M30 22l7-7h17l6 7-7 4H36z" fill="url(#bar)" stroke="#fff8bd"/>
+  <path d="M19 38h16M35 28h15M39 20h12" stroke="#fffbd7" stroke-width="1.5" stroke-linecap="round" opacity=".76"/>
+</svg>

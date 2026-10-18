@@ -1,0 +1,106 @@
+/* Keep bridge controls in the same responsive coordinate system as the art. */
+@media (max-width:480px){
+  #command-deck{
+    --bridge-u:min(.208333vw,.135135dvh);
+    height:100dvh;
+    min-height:0;
+  }
+  #command-deck .bridge-scene{
+    width:max(100%,83.333dvh);
+  }
+  #command-deck button.deck-shortcut.bridge-service-button{
+    width:calc(88 * var(--bridge-u))!important;
+    min-width:calc(88 * var(--bridge-u))!important;
+    height:calc(76 * var(--bridge-u))!important;
+    grid-template-rows:calc(42 * var(--bridge-u)) calc(18 * var(--bridge-u));
+    gap:calc(2 * var(--bridge-u))!important;
+    padding:calc(5 * var(--bridge-u)) calc(3 * var(--bridge-u)) calc(6 * var(--bridge-u))!important;
+  }
+  #command-deck button.deck-shortcut.research.bridge-service-button{top:calc(146 * var(--bridge-u))!important;right:0!important}
+  #command-deck button.deck-shortcut.hangar.bridge-service-button{top:calc(251 * var(--bridge-u))!important;right:0!important}
+  #command-deck button.deck-shortcut.warehouse.bridge-service-button{top:calc(356 * var(--bridge-u))!important;right:0!important}
+  #command-deck button.deck-shortcut.bridge-service-button>.service-badge{
+    width:calc(38 * var(--bridge-u))!important;
+    height:calc(38 * var(--bridge-u))!important;
+  }
+  #command-deck button.deck-shortcut.bridge-service-button>.service-badge svg{
+    width:calc(33 * var(--bridge-u))!important;
+    height:calc(33 * var(--bridge-u))!important;
+  }
+  #command-deck button.deck-shortcut.bridge-service-button>.deck-command-copy b{
+    font-size:clamp(9px,calc(12 * var(--bridge-u)),12px)!important;
+  }
+  #command-deck button.deck-shortcut.warehouse.bridge-service-button>.deck-command-copy b{
+    font-size:clamp(8px,calc(11 * var(--bridge-u)),11px)!important;
+  }
+  #command-deck button.deck-shortcut.store,
+  #command-deck button.deck-shortcut.store:hover,
+  #command-deck button.deck-shortcut.store:focus,
+  #command-deck button.deck-shortcut.store:focus-visible,
+  #command-deck button.deck-shortcut.store:active{
+    top:calc(141 * var(--bridge-u))!important;
+    left:calc(-19 * var(--bridge-u))!important;
+    width:calc(123 * var(--bridge-u))!important;
+    height:calc(82 * var(--bridge-u))!important;
+  }
+  #command-deck button.deck-shortcut.events,
+  #command-deck button.deck-shortcut.events:hover,
+  #command-deck button.deck-shortcut.events:focus,
+  #command-deck button.deck-shortcut.events:focus-visible,
+  #command-deck button.deck-shortcut.events:active{
+    top:calc(251 * var(--bridge-u))!important;
+    left:calc(1 * var(--bridge-u))!important;
+    width:calc(75 * var(--bridge-u))!important;
+    height:calc(85 * var(--bridge-u))!important;
+  }
+  #command-deck button.deck-shortcut.events>span{
+    width:calc(72 * var(--bridge-u))!important;
+    font-size:clamp(8px,calc(11 * var(--bridge-u)),11px)!important;
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button,
+  #command-deck .deck-mission.mission-button.deck-command-button{
+    bottom:calc(90px + 153 * var(--bridge-u));
+    width:calc(176 * var(--bridge-u));
+    height:calc(64 * var(--bridge-u));
+    gap:calc(9 * var(--bridge-u));
+    padding:calc(7 * var(--bridge-u));
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button{
+    left:calc(20 * var(--bridge-u));
+    grid-template-columns:minmax(0,1fr) calc(43 * var(--bridge-u));
+  }
+  #command-deck .deck-mission.mission-button.deck-command-button{
+    right:calc(20 * var(--bridge-u));
+    grid-template-columns:calc(43 * var(--bridge-u)) minmax(0,1fr) auto;
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button .deck-action-badge,
+  #command-deck .deck-mission.mission-button.deck-command-button .deck-action-badge{
+    width:calc(43 * var(--bridge-u));
+    height:calc(48 * var(--bridge-u));
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button .deck-action-badge svg,
+  #command-deck .deck-mission.mission-button.deck-command-button .deck-action-badge svg{
+    width:calc(38 * var(--bridge-u));
+    height:calc(42 * var(--bridge-u));
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button .deck-command-copy b,
+  #command-deck .deck-mission.mission-button.deck-command-button .deck-command-copy b{
+    font-size:clamp(11px,calc(17 * var(--bridge-u)),17px);
+  }
+  #command-deck .deck-level.ladder-button.deck-command-button .deck-command-copy small{
+    font-size:clamp(7px,calc(8 * var(--bridge-u)),8px);
+  }
+  #command-deck .deck-mission.mission-button.deck-command-button em{
+    margin-bottom:calc(7 * var(--bridge-u));
+    padding:calc(3 * var(--bridge-u)) calc(5 * var(--bridge-u));
+    font-size:clamp(7px,calc(9 * var(--bridge-u)),9px);
+  }
+  #command-deck .deck-launch{
+    left:calc(26 * var(--bridge-u));
+    right:calc(26 * var(--bridge-u));
+    bottom:calc(90px + 23 * var(--bridge-u));
+    height:calc(112 * var(--bridge-u));
+  }
+  #command-deck .deck-launch b{font-size:clamp(24px,calc(36 * var(--bridge-u)),36px)}
+  #command-deck .deck-launch span{font-size:clamp(9px,calc(12 * var(--bridge-u)),12px)}
+}

@@ -1,0 +1,69 @@
+/* 플라즈마버그 동작 (battle-engine.js: PLASMA_BUG_MARKUP, updatePlasmaBugAttack, firePlasmaBugPierce)
+   그림 1장을 머리·가슴(.pb-front)과 복부(.pb-abd)로 나눠 움직인다.
+   --pb-heading: 머리 방향(그림의 머리는 +x), --pb-glow: 충전 빛 세기(0~1)
+   boss-variants.css 의 예전 공격 자세 그림 규칙보다 뒤에 불러와야 한다. */
+.enemy-unit.monster-plasma-bug .pb-rig{position:absolute;inset:0;z-index:1;transform:rotate(var(--pb-heading,1.5708rad))}
+.enemy-unit.monster-plasma-bug .pb-body{position:absolute;inset:0;transition:transform .24s ease-out}
+.enemy-unit.monster-plasma-bug .pb-front,.enemy-unit.monster-plasma-bug .pb-abd-wrap,.enemy-unit.monster-plasma-bug .pb-abd{position:absolute;inset:0}
+.enemy-unit.monster-plasma-bug .pb-img,.enemy-unit.monster-plasma-bug .pb-glow{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.enemy-unit.monster-plasma-bug .pb-front{z-index:1;clip-path:polygon(53% 0,100% 0,100% 100%,53% 100%)}
+.enemy-unit.monster-plasma-bug .pb-abd-wrap{z-index:2;transform-origin:56% 50%;transition:transform .52s cubic-bezier(.3,1.6,.5,1),filter .3s;
+  filter:brightness(calc(1 + var(--pb-lift,0) * .22)) drop-shadow(0 0 calc(var(--pb-glow,0) * 9px) #6fe3ff)}
+.enemy-unit.monster-plasma-bug .pb-abd{clip-path:polygon(0 0,57.5% 0,57.5% 100%,0 100%)}
+.enemy-unit.monster-plasma-bug .pb-glow{mix-blend-mode:screen;opacity:var(--pb-glow,0);filter:grayscale(1) brightness(1.3) sepia(1) hue-rotate(155deg) saturate(5) contrast(1.4)}
+.enemy-unit.monster-plasma-bug.plasma-bug-cooling .pb-glow{transition:opacity .9s}
+.enemy-unit.monster-plasma-bug .pb-shadow{position:absolute;left:8%;right:4%;top:22%;bottom:10%;border-radius:50%;background:radial-gradient(ellipse,#000c 0%,#0006 55%,transparent 72%);filter:blur(2px);transform:translate(3px,5px);z-index:0;transition:transform .52s ease-out,opacity .52s}
+.enemy-unit.monster-plasma-bug .pb-shadow.pb-abd-shadow{left:2%;right:46%;top:18%;bottom:14%}
+
+/* 기어오기: 몸을 좌우로 흔들며 걷는다 */
+.enemy-unit.monster-plasma-bug.entered:not(.plasma-bug-anchored) .pb-body{animation:pb-crawl .19s ease-in-out infinite alternate}
+.enemy-unit.monster-plasma-bug.entered:not(.plasma-bug-anchored) .pb-front{animation:pb-step .1s ease-in-out infinite alternate}
+
+/* 사거리 도달: 다리를 버티고(납작) 복부를 치켜듦(커지고 밝아지며 그림자가 벌어짐) */
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored{--pb-lift:1}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .pb-body{transform:scale(1.04,.93)}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .pb-abd-wrap{transform:translateX(-5%) scale(1.3)}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored .pb-abd-shadow{transform:translate(-9px,14px) scale(1.4);opacity:.65}
+.enemy-unit.monster-plasma-bug.plasma-bug-anchored.firing .pb-abd-wrap{animation:pb-recoil .45s ease-out}
+
+/* 예전 충전 구슬(엉덩이 아닌 위치)은 쓰지 않는다 */
+.enemy-unit.monster-plasma-bug.charging::after{display:none!important}
+
+/* 출현 구멍, 걸음 흙먼지 */
+.fx-plasma-bug-hole{position:absolute;z-index:1;width:62px;height:40px;margin:-20px 0 0 -31px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(ellipse,#050203 0 30%,#2a1916 46%,#6b4f4299 60%,transparent 72%);animation:pb-hole 2.6s ease-out forwards}
+.fx-plasma-bug-dust{position:absolute;z-index:2;width:18px;height:18px;margin:-9px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#9c8476aa,#6b574c55 50%,transparent 70%);filter:blur(1px);animation:pb-dust .8s ease-out forwards}
+
+/* 충전 조준선과 엉덩이 끝 에너지 구슬 */
+.fx-plasma-bug-aim{position:absolute;z-index:25;height:2px;transform-origin:0 50%;transform:var(--angle) translateY(-50%);pointer-events:none;opacity:0;
+  background:repeating-linear-gradient(90deg,#6fe3ff 0 7px,transparent 7px 12px);filter:drop-shadow(0 0 3px #6fe3ff)}
+.fx-plasma-bug-orb{position:absolute;z-index:26;width:16px;height:16px;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(.2);
+  background:radial-gradient(circle,#fff 0 18%,#c9f7ff 32%,#6fe3ff 55%,#1a8cff00 72%);box-shadow:0 0 12px #6fe3ff,0 0 24px #2a9dff88}
+
+/* 발사 섬광, 관통 플라즈마 구(꼬리 포함), 냉각 김 */
+.fx-plasma-bug-muzzle{position:absolute;z-index:27;width:46px;height:46px;margin:-23px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,#fff 0 16%,#d6f8ff 30%,#4fc8ff88 52%,transparent 70%);animation:pb-muzzle .3s ease-out forwards}
+.fx-plasma-bug-pierce{position:absolute;z-index:27;width:20px;height:20px;margin:-10px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#fff 0 22%,#c9f7ff 38%,#4fc8ff 60%,transparent 74%);box-shadow:0 0 10px #fff,0 0 20px #39caff,0 0 34px #286de8}
+.fx-plasma-bug-pierce::before{content:"";position:absolute;left:50%;top:50%;width:58px;height:12px;margin-top:-6px;border-radius:6px;transform-origin:0 50%;transform:rotate(var(--pb-shot-angle,0rad)) translateX(-100%);
+  background:linear-gradient(90deg,transparent,#3fb8ff55 45%,#bff4ffcc 90%);filter:blur(1px)}
+.fx-plasma-bug-steam{position:absolute;z-index:26;width:14px;height:14px;margin:-7px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,#dfeaf2aa,#9fb4c444 55%,transparent 72%);filter:blur(2px);animation:pb-steam .9s ease-out forwards}
+
+/* 아군 피격: 전기 불꽃 + 함선 번쩍임 */
+.fx-plasma-bug-struck{position:absolute;z-index:28;width:0;height:0;pointer-events:none}
+.fx-plasma-bug-struck b{position:absolute;left:0;top:0;width:2px;height:16px;margin:-8px -1px;background:linear-gradient(#fff,#6fe3ff);box-shadow:0 0 6px #6fe3ff;opacity:0;animation:pb-struck .38s steps(2,end) forwards}
+.fx-plasma-bug-struck b:nth-child(1){--a:0deg}.fx-plasma-bug-struck b:nth-child(2){--a:60deg;animation-delay:.03s}.fx-plasma-bug-struck b:nth-child(3){--a:120deg}
+.fx-plasma-bug-struck b:nth-child(4){--a:180deg;animation-delay:.05s}.fx-plasma-bug-struck b:nth-child(5){--a:240deg}.fx-plasma-bug-struck b:nth-child(6){--a:300deg;animation-delay:.02s}
+.plasma-bug-struck{filter:brightness(2.2) drop-shadow(0 0 8px #6fe3ff)!important;transition:filter .2s}
+
+@keyframes pb-crawl{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+@keyframes pb-step{from{transform:scaleY(.96)}to{transform:scaleY(1.04)}}
+@keyframes pb-recoil{0%{transform:translateX(-5%) scale(1.3)}30%{transform:translateX(3%) scale(1.12)}100%{transform:translateX(-5%) scale(1.3)}}
+@keyframes pb-hole{0%{opacity:0;transform:scale(.4)}12%{opacity:1;transform:scale(1)}70%{opacity:.9}100%{opacity:0;transform:scale(1)}}
+@keyframes pb-dust{0%{opacity:.8;transform:scale(.4)}100%{opacity:0;transform:scale(1.6)}}
+@keyframes pb-muzzle{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes pb-steam{0%{opacity:0;transform:scale(.5)}25%{opacity:.9}100%{opacity:0;transform:translateY(-18px) scale(1.8)}}
+@keyframes pb-struck{0%{opacity:1;transform:rotate(var(--a)) translateY(-6px)}100%{opacity:0;transform:rotate(var(--a)) translateY(-22px)}}
+@media (prefers-reduced-motion:reduce){.enemy-unit.monster-plasma-bug .pb-body,.enemy-unit.monster-plasma-bug .pb-front{animation:none!important}.fx-plasma-bug-dust,.fx-plasma-bug-steam{display:none}}
