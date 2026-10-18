@@ -44,3 +44,9 @@
 @media(max-width:600px){.farah-tutorial.farah-portrait-hidden{width:calc(100vw - 12px)}.farah-tutorial.farah-portrait-hidden .farah-dialogue{margin-left:0}.farah-tutorial.farah-portrait-hidden[data-step="profile"]{width:calc(100vw - 12px)}}
 .farah-tutorial>img.farah-expression-change{animation:farahExpressionSettle .28s ease both}
 @keyframes farahExpressionSettle{from{opacity:.18;transform:translateY(3px) scale(.985);filter:blur(1px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+/* 하단 버튼을 가리지 않도록 패널을 상단으로 */
+.farah-tutorial.farah-top{top:max(64px,calc(env(safe-area-inset-top,0px) + 64px));bottom:auto;align-items:start}
+.farah-tutorial.farah-top .farah-dialogue:before{bottom:auto;top:28px}
+/* 눌러야 할 버튼을 깜빡이는 테두리로 강조 */
+.farah-target-pulse{outline:3px solid #ffd77a;outline-offset:3px;border-radius:10px;animation:farahTargetBlink 1s ease-in-out infinite}
+@keyframes farahTargetBlink{0%,100%{outline-color:#ffd77a;box-shadow:0 0 0 0 #ffd77a80}50%{outline-color:#ffd77a00;box-shadow:0 0 22px 8px #ffd77acc}}

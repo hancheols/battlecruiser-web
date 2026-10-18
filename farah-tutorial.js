@@ -10,6 +10,29 @@
   try{dialogueCollapsed=localStorage.getItem(COLLAPSED_KEY)==='true';}catch{}
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}};
   const active=()=>!!state.step&&state.step!=='complete';
+  // 하단 버튼을 눌러야 하는 단계: 함대관리·함교 메뉴, 출격, 전투 개시
+  const TOP_STEP=/^(fleetNav|home[1-5]|sortie[1-5]|prep[1-5]|combat[1-5])$/;
+  // 눌러야 할 버튼 위치 (깜빡이는 테두리로 강조)
+  const targetFor=()=>{
+    const step=state.step;
+    if(step==='fleetNav')return '.fixed-nav button[data-screen="collection"]';
+    if(step==='chooseSlot')return '#collection [data-fleet-slot="1"]';
+    if(step==='chooseShip')return '#collection .fleet-ship-choice[data-ship-name="스타 크루저"]';
+    if(/^home[1-5]$/.test(step))return '.fixed-nav button[data-screen="home"]';
+    if(/^sortie[1-5]$/.test(step))return '#home .deck-launch';
+    if(/^prep[1-5]$/.test(step))return '#battle-start';
+    return '';
+  };
+  let highlighted=null;
+  const highlight=()=>{
+    const selector=active()?targetFor():'';
+    const el=selector?document.querySelector(selector):null;
+    if(el===highlighted)return;
+    highlighted?.classList.remove('farah-target-pulse');
+    highlighted=el;
+    el?.classList.add('farah-target-pulse');
+  };
+  setInterval(highlight,400);
   const profileReady=()=>{try{const p=JSON.parse(localStorage.getItem('starfleet-commander-profile-v1')||'{}');return !!(p.character&&p.lastName?.trim());}catch{return false;}};
   let panel,reveal,chip,currentMood='';
   if(state.step&&state.version!==2){
@@ -51,6 +74,8 @@
     document.body.classList.toggle('farah-profile-active',state.step==='profile');
     reveal.hidden=state.step!=='reveal';const line=lines[state.step];panel.hidden=!line;
     panel.classList.toggle('farah-collapsed',!!line&&dialogueCollapsed);
+    // 눌러야 할 버튼이 화면 하단(함교·함대관리 메뉴, 출격·전투 버튼)에 있으면 패널을 상단으로 올려 버튼을 가리지 않게 합니다.
+    panel.classList.toggle('farah-top',TOP_STEP.test(state.step));
     chip.hidden=!line||!dialogueCollapsed;
     if(!line)return;
     panel.dataset.step=state.step;
@@ -103,7 +128,8 @@
     if(/^sortie[1-5]$/.test(state.step))return !!target.closest('#home .deck-launch');
     if(/^prep[1-5]$/.test(state.step))return !!target.closest('#battle-start');
     if(/^combat[1-5]$/.test(state.step))return !!target.closest('.battle-controls')||!!target.closest('#battle-result button')&&target.closest('#battle-result button').textContent.trim()==='재도전';
-    if(state.step==='enhance')return !!target.closest('#collection,#ship-detail-modal,.ship-upgrade-modal,.ship-enhancement-modal,.owned-library-sheet,#bulk-enhancement-result');
+    // 성급 강화 연출(.ascend-overlay)은 아무 곳이나 눌러서 건너뛰거나 닫을 수 있어야 합니다.
+    if(state.step==='enhance')return !!target.closest('#collection,#ship-detail-modal,.ship-upgrade-modal,.ship-enhancement-modal,.owned-library-sheet,#bulk-enhancement-result,.ascend-overlay');
     return false;
   };
   document.addEventListener('click',event=>{if(!active()||allowClick(event.target))return;event.preventDefault();event.stopImmediatePropagation();window.notice?.('파라의 현재 안내 단계를 먼저 완료해 주세요.');},true);
