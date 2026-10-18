@@ -43,7 +43,8 @@
     mailClaim:()=>({title:'보급품 수령',body:'메일에 첨부된 보급품을 모두 수령하세요.'}),
     mailNext:()=>({title:'다음 메일 확인',body:`수령하지 않은 보급 메일이 ${pendingIds().length}통 더 있습니다. 「뒤로」 버튼을 눌러 메일 목록으로 돌아가세요.`}),
     labPrompt:()=>({title:'연구실로 이동',body:'연구실로 이동하겠습니다.',action:'연구실로 이동'}),
-    explore10:()=>({title:'전함 탐색',body:'전력 증강을 위해 새로운 함선을 탐색하겠습니다. 성간을 탐색하여 사용할 수 있는 함선을 찾아내면 신호를 보내주는 고성능 드론입니다. 1대 혹은 10대씩 보낼 수 있습니다. 보급받은 드론으로 10회 탐색을 해보세요.'}),
+    explore10a:()=>({title:'전함 탐색',body:'함대가 강해지기 위해선 함선이 많이 필요합니다. 탐색드론을 보내서 함선을 찾게 할 수 있습니다.',action:'다음'}),
+    explore10:()=>({title:'전함 탐색',body:'보급받은 드론으로 10회 탐색을 하겠습니다.'}),
     exploreConfirm:()=>({title:'탐색 확인',body:'탐색드론 10대를 보내는 것을 확정해 주세요.'}),
     exploreResult:()=>({title:'탐색 결과 확인',body:'발견한 함선과 보급품을 확인하세요. 마지막 결과까지 본 뒤 돌아가기를 누르세요.'}),
     weaponTab:()=>({title:'전술무기 연구',body:'이번에는 전술무기연구를 알려드리겠습니다. 연구실의 무기 연구 탭을 누르세요.'}),
@@ -87,8 +88,9 @@
       if(ensureMailSupplies())setStep('profileOpen');else setStep('labPrompt');
     }else if(state.step==='labPrompt'){
       window.closeCaptainProfile?.();
-      if(window.openResearchLab?.()!==false){window.summonTab?.('ship');setStep('explore10');}
-    }else if(state.step==='final')finish();
+      if(window.openResearchLab?.()!==false){window.summonTab?.('ship');setStep('explore10a');}
+    }else if(state.step==='explore10a')setStep('explore10');
+    else if(state.step==='final')finish();
   };
   const allowClick=target=>{
     if(target.closest('.eva9-tutorial,.eva9-tutorial-chip'))return true;
@@ -169,7 +171,7 @@
     setTimeout(()=>{
       if(!state.step){start();return;}
       if(!active())return;
-      if(['explore10','weaponTab','weapon10','frigateOpen'].includes(state.step))window.openResearchLab?.();
+      if(['explore10a','explore10','weaponTab','weapon10','frigateOpen'].includes(state.step))window.openResearchLab?.();
       if(['frigateSlot','littleBoy','final'].includes(state.step))window.openFleetManagement?.();
     },120);
   });
