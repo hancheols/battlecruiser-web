@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "kr.co.timeswitch.battlecruiser",
+      "sha256_cert_fingerprints": [
+        "61:6D:C0:48:89:FA:CF:EF:3F:27:E6:AA:3A:88:2E:83:C0:14:FB:10:A1:4E:99:FD:74:6D:67:0B:87:5C:2D:22"
+      ]
+    }
+  }
+]
