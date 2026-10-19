@@ -58,9 +58,11 @@
     fleetNav:()=>({title:'함대관리로 이동',body:'이제 함대에 프리깃 함선을 증원할 수 있습니다. 아래 함대관리 버튼을 누르세요.'}),
     frigateSlot:()=>({title:'프리깃 슬롯',body:'편성 화면에서 프리깃 슬롯을 누르세요.'}),
     littleBoy:()=>({title:'리틀보이 출전',body:'엔지니어 Farah에게 받으신 리틀보이를 출전시키겠습니다. 목록에서 리틀보이를 선택하세요.'}),
-    final:()=>({title:'연구실 안내 완료',body:'연구실은 함대 전력을 강화하는 데 핵심적인 역할을 하고 있습니다. 또 뵙겠습니다, 함장님.',action:'안내 완료'})
+    final:()=>({title:'연구실 안내 완료',body:'연구실은 함대 전력을 강화하는 데 핵심적인 역할을 하고 있습니다. 또 뵙겠습니다, 함장님.',action:'고마워, 에바'})
   };
   const setStep=step=>{state.step=step;save();paint();};
+  // 하단 버튼을 눌러야 하는 단계 (함대관리 메뉴, 10회 탐색·연구 버튼, 프리깃 개발 버튼 등)
+  const EVA_TOP_STEP=/^(fleetNav|frigateSlot|littleBoy|explore10|weapon10|frigateOpenDev)$/;
   // 연구일지와 범용연구코어 보유량 (연구실 저장값을 그대로 읽습니다)
   const researchCounts=()=>{try{const r=JSON.parse(localStorage.getItem('starfleet-tactical-weapon-research-v1')||'{}')||{};return {journal:Math.max(0,Math.floor(Number(r.researchJournal)||0)),core:Math.max(0,Math.floor(Number(r.researchCore)||0))};}catch{return {journal:0,core:0};}};
   const deliverCompletionGift=()=>window.deliverCaptainMail?.({id:COMPLETION_MAIL,title:'EVA-9 · 연구실 교육 완료 선물',sender:'EVA-9 · 연구실 운영관',body:'전함 탐색과 전술무기 연구 교육을 완료하셨습니다. 다음 함대 개발에 필요한 보급품을 보내드립니다.',rewards:{gold:2000,thorium:100,scoutTron:10,researchStaff:10}});
@@ -68,6 +70,8 @@
   const paint=()=>{
     if(!panel)return;
     const line=lines[state.step]?.();panel.hidden=!line;
+    // 하단 버튼(함대관리 메뉴, 10회 탐색·연구, 프리깃 개발 등)을 눌러야 할 때는 말풍선을 상단으로 올려 버튼을 가리지 않게 합니다.
+    panel.classList.toggle('eva9-top',EVA_TOP_STEP.test(state.step));
     panel.classList.toggle('dialogue-collapsed',!!line&&!!state.dialogueCollapsed);
     chip.hidden=!line||!state.dialogueCollapsed;
     document.body.dataset.evaStep=line?state.step:'';
