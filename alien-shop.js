@@ -29,14 +29,6 @@
   }));
   const DAILY_KEY = 'starfleet-shop-daily-gift-v1';
   const FEATURED_KEY = 'starfleet-shop-featured-v2';
-  // 보급품 탭은 매일 같은 순서로 고정 표시한다: 탐색드론 1·10, 연구인력 1·10, 아레나 티켓, 골드 10,000
-  const FIXED_FEATURED_SKUS = ['scout-drone-1', 'scout-drone-10', 'research-crew-1', 'research-crew-10', 'daily-arena-ticket', 'featured-gold-10000'];
-  const FIXED_DAILY_GOODS = [
-    { sku: 'scout-drone-1', itemId: 'scoutTron', name: '탐색드론', image: 'icons/scout-drone.png', detail: '함선 탐색에 필요한 정찰 장비 1대', amount: 1, currency: 'thorium', price: 100, badge: '탐색 보급', groups: ['featured'] },
-    { sku: 'scout-drone-10', itemId: 'scoutTron', name: '탐색드론 10대', image: 'icons/scout-drone.png', detail: '함선 탐색에 필요한 정찰 장비 10대', amount: 10, currency: 'thorium', price: 900, badge: '10% 할인', groups: ['featured'] },
-    { sku: 'research-crew-1', itemId: 'researchStaff', name: '연구인력', image: 'icons/research-personnel-20261002.png', detail: '전술무기 연구에 투입할 인력 1명', amount: 1, currency: 'thorium', price: 50, badge: '연구 필수', groups: ['featured'] },
-    { sku: 'research-crew-10', itemId: 'researchStaff', name: '연구인력 10명', image: 'icons/research-personnel-20261002.png', detail: '전술무기 연구에 투입할 인력 10명', amount: 10, currency: 'thorium', price: 450, badge: '10% 할인', groups: ['featured'] }
-  ];
   const STALL_KEY = 'starfleet-shop-token-stalls-v1';
   const FEATURED_GOODS = [
     ...[1, 5, 10, 20].map((amount, index) => ({
@@ -180,8 +172,13 @@
     const key = todayKey();
     let state;
     try { state = JSON.parse(localStorage.getItem(FEATURED_KEY) || 'null'); } catch {}
-    if (!state || state.date !== key || !Array.isArray(state.skus) || state.skus.join('|') !== FIXED_FEATURED_SKUS.join('|')) {
-      state = { date: key, skus: [...FIXED_FEATURED_SKUS], bought: [], arenaAmount: 1 };
+    if (!state || state.date !== key || !Array.isArray(state.skus)) {
+      const shuffled = [...FEATURED_GOODS, { sku: 'daily-arena-ticket' }];
+      for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const swap = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+      }
+      state = { date: key, skus: shuffled.slice(0, 4).map(good => good.sku), bought: [], arenaAmount: 1 + Math.floor(Math.random() * 5) };
       try { localStorage.setItem(FEATURED_KEY, JSON.stringify(state)); } catch {}
     }
     if (!Number(state.arenaAmount)) { state.arenaAmount = 1 + Math.floor(Math.random() * 5); try { localStorage.setItem(FEATURED_KEY, JSON.stringify(state)); } catch {} }
@@ -198,7 +195,7 @@
   }
   function featuredGoodFor(sku) {
     if (sku === "daily-arena-ticket") return arenaFeaturedGood();
-    return FIXED_DAILY_GOODS.find(good => good.sku === sku) || FEATURED_GOODS.find(good => good.sku === sku);
+    return FEATURED_GOODS.find(good => good.sku === sku);
   }
 
   function playPurchaseThankyou() {
@@ -415,7 +412,11 @@
       button.classList.toggle('active', selected && !membershipOpen);
       button.setAttribute('aria-selected', String(selected));
     });
-    const goods = GOODS.filter(good => good.groups.includes(activeTab));
+    // 보급품 탭은 항상 같은 순서로 보여 준다: 탐색드론 1·10, 연구인력 1·10, 아레나 티켓, 골드 10,000
+    const SUPPLY_ORDER = ['scout-drone', 'scout-drone-ten', 'research-crew', 'research-crew-ten', 'arena-ticket', 'featured-gold-10000'];
+    const goods = activeTab === 'supply'
+      ? SUPPLY_ORDER.map(sku => GOODS.find(good => good.sku === sku) || FEATURED_GOODS.find(good => good.sku === sku)).filter(Boolean)
+      : GOODS.filter(good => good.groups.includes(activeTab));
     const todaysFeaturedGoods = dailyFeaturedState().skus.map(sku => featuredGoodFor(sku)).filter(Boolean);
     const markup = activeTab === 'black-market'
       ? TOKEN_PACKS.map(cashCardMarkup).join('')
