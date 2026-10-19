@@ -95,7 +95,7 @@
     popSeen=false;summonOpened=false;
     if(run.index<run.list.length-1){
       run.index+=1;
-      if(run.list===LUCA_SCRIPT){luca.index=run.index;save();}
+      if(run.list===LUCA_SCRIPT||run.list===DRONE_SCRIPT){luca.index=run.index;save();}
       paint();
     }else finishRun();
   };
@@ -113,10 +113,17 @@
 
   const grantDrone=()=>{const loot=read(LOOT_KEY,{});loot.scoutTron=(Number(loot.scoutTron)||0)+1;write(LOOT_KEY,loot);};
   const startDrone=()=>{
-    luca.phase='drone';save();
+    luca.phase='drone';luca.index=0;save();
     write(DRONE_FLAG,'1');   // 1회 무료 탐색 잠금 해제
     grantDrone();
     run={list:DRONE_SCRIPT,index:0,onDone:()=>{luca.phase='done';save();}};
+    paint();
+  };
+
+  // 드론 안내 도중 새로고침한 경우 저장된 위치부터 이어서 진행합니다.
+  const resumeDrone=()=>{
+    const index=Math.min(Math.max(0,Number(luca.index)||0),DRONE_SCRIPT.length-1);
+    run={list:DRONE_SCRIPT,index,onDone:()=>{luca.phase='done';save();}};
     paint();
   };
 
@@ -185,6 +192,7 @@
     const wrapped=function(...args){
       const result=original.apply(this,args);
       if(luca.phase==='drone_pending'&&!run)startDrone();
+      else if(luca.phase==='drone'&&!run)resumeDrone();
       return result;
     };
     wrapped.__lucaWrapped=true;
