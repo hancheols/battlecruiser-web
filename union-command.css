@@ -1,0 +1,64 @@
+/* 연합사령부 — 연합 임무 메뉴와 파견 화면. 시설 공통 디자인(fac-*)을 그대로 쓰고, 금빛 테마와 임무 전용 부품만 얹는다. */
+.fac-command{--acc:#ffd27a;--acc2:#ff9a3d;--glow:rgba(255,154,61,.42)}
+
+.cmd-wrap{display:grid;gap:12px;padding:0 0 18px}
+.cmd-wrap .fac-panel{margin:0}
+.cmd-back-row{display:flex}
+.cmd-back{width:auto}
+.cmd-intro{margin:0 0 12px;color:#d8cfb8;font-size:13px;line-height:1.6;text-wrap:pretty}
+.cmd-notice{margin:0;padding:10px 12px;border:1px solid #ffd27a88;border-radius:12px;background:#2a1d0ad9;color:#ffe9b8;font-size:13px;line-height:1.5}
+
+/* 현재 임무 상태 띠 */
+.cmd-status{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--acc2);border-radius:14px;background:linear-gradient(90deg,rgba(255,154,61,.18),rgba(8,14,34,.78));box-shadow:0 0 18px var(--glow)}
+.cmd-status>div{display:grid;gap:2px;min-width:0}
+.cmd-status small{font-size:11px;letter-spacing:.12em;color:#ffd9a0}
+.cmd-status b{font-family:var(--font-display);font-weight:400;font-size:17px;color:#fff}
+.cmd-status>span{font-size:13px;color:#e9dfc8}
+.cmd-status.ready{border-color:#8ff0b0;box-shadow:0 0 18px rgba(143,240,176,.35);background:linear-gradient(90deg,rgba(143,240,176,.16),rgba(8,14,34,.78))}
+.cmd-status.ready small{color:#b8f5cf}
+.cmd-clock{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:700;color:#ffe2a6;letter-spacing:.04em}
+.cmd-clock-big{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:700;font-size:34px;letter-spacing:.06em;text-align:center;color:#ffe2a6;text-shadow:0 0 14px var(--glow);margin:4px 0 10px}
+
+/* 메뉴 칸: 시설 버튼과 같은 결의 큰 버튼 */
+.cmd-menu{display:grid;gap:10px}
+.cmd-cell{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:12px 14px;border:1px solid #6b5a3a;border-radius:14px;background:linear-gradient(90deg,#1c1834e6,#0b1330e6);color:#f5f1e6;text-align:left;cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s}
+.cmd-cell>div{min-width:0;flex:1}
+.cmd-cell b{display:block;font-family:var(--font-display);font-weight:400;font-size:17px;letter-spacing:.02em}
+.cmd-cell small{display:block;margin-top:3px;color:#c9bfa6;font-size:12px;line-height:1.4}
+.cmd-cell:not(:disabled):hover,.cmd-cell:not(:disabled):focus-visible{border-color:var(--acc);box-shadow:0 0 18px var(--glow);transform:translateY(-1px);outline:none}
+.cmd-cell:not(:disabled):active{transform:translateY(1px)}
+.cmd-cell:disabled{opacity:.5;cursor:not-allowed}
+.cmd-cell.live::after{content:"";position:absolute;inset:-1px;border-radius:14px;border:1px solid var(--acc);animation:cmd-pulse 2.4s ease-in-out infinite;pointer-events:none}
+.cmd-ico{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid #ffd27a66;background:radial-gradient(circle,#ffd27a33,transparent 72%);color:var(--acc);font-size:20px}
+.cmd-tag{flex:none;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:999px;border:1px solid var(--acc2);color:#ffe2a6;white-space:nowrap}
+.cmd-cell.soon .cmd-tag{border-color:#5a5a6a;color:#a9a9b8}
+.cmd-cell.soon .cmd-ico{border-color:#5a5a6a;color:#8c8c9c;background:none}
+@keyframes cmd-pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* 지역 행: 난이도 표시 */
+.cmd-region small{margin-bottom:6px}
+.cmd-pips{display:flex;gap:4px;align-items:center}
+.cmd-pips i{width:6px;height:6px;background:#4a3d25;transform:rotate(45deg)}
+.cmd-pips i.on{background:var(--acc);box-shadow:0 0 6px var(--acc2)}
+
+/* 사실 목록 */
+.cmd-facts{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.cmd-facts li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff14;font-size:13px}
+.cmd-facts span{color:#b7ad95;flex:none}
+.cmd-facts b{text-align:right;color:#fff;font-family:var(--font-num);font-weight:700;letter-spacing:.02em;min-width:0}
+.cmd-preview{margin:0 0 12px;font-size:12px;color:#ffd9a0}
+
+/* 함선 선택 */
+.cmd-slots{display:grid;gap:8px;margin-bottom:12px}
+.cmd-slot{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:8px;font-size:13px;color:#d8cfb8}
+.cmd-slot select{width:100%;min-width:0;min-height:44px;padding:0 10px;border:1px solid #6b5a3a;border-radius:10px;background:#0b1430;color:#f5f1e6;font:inherit;font-size:13px}
+.cmd-slot select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.cmd-check{list-style:none;margin:0 0 14px;padding:10px 12px;display:grid;gap:6px;border:1px solid #ffffff1a;border-radius:12px;background:#07102acc;font-size:12.5px}
+.cmd-check .ok{color:#8ff0b0}
+.cmd-check .ng{color:#ff9a9a}
+
+.cmd-action{width:100%;margin-top:4px}
+.cmd-action.danger{border-color:#ff8f7a;box-shadow:0 0 0 2px #7a3b33,0 10px 24px #020818}
+.cmd-action:disabled{opacity:.45;filter:saturate(.4);cursor:not-allowed}
+
+@media (prefers-reduced-motion:reduce){.cmd-cell.live::after{animation:none;opacity:.7}}

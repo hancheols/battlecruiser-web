@@ -493,7 +493,8 @@ function initializeFleetFormation(){
   const enhancementConfig={maxStars:5,copyCost:1,statRateByRarity:{R:.2,SR:.2,SSR:.3,L:.4}};
   const maxStarsFor=(ship,rarityOverride)=>{const rarity=rarityOverride||ship?.rarity;if(rarity==='R')return 3;if(ship?.baseRarity==='R'&&rarity==='SR')return 1;return enhancementConfig.maxStars;};
   const normalizedVariants=ship=>{const entry=enhancementState[shipKey(ship)]||{},baseRarity=ship?.rarity||'R',grouped=new Map(),add=(item,fallbackRarity)=>{const rarity=item.rarity||fallbackRarity,stars=Math.min(maxStarsFor(ship,rarity),Math.max(0,Math.floor(Number(item.stars)||0))),copies=Math.max(0,Math.floor(Number(item.copies)||0));if(!copies)return;const key=`${ship?.type||''}|${ship?.name||''}|${rarity}|${stars}`,current=grouped.get(key);grouped.set(key,{stars,copies:(current?.copies||0)+copies,rarity});};if(Array.isArray(entry.variants))entry.variants.forEach(item=>add(item,baseRarity));else add({stars:entry.stars,copies:entry.copies},baseRarity);return [...grouped.values()];};
-  const shipVariants=ship=>normalizedVariants(ship);
+  // 연합 임무에 파견된 함선은 보유 수에서 빼서, 함대관리·전투·아레나가 쓰지 못하게 한다(union-command.js가 집계).
+  const shipVariants=ship=>normalizedVariants(ship).map(item=>({...item,copies:Math.max(0,item.copies-(window.shipReservedCopies?.(ship.type,ship.name,item.rarity,item.stars)||0))})).filter(item=>item.copies>0);
   const shipProgress=(ship,starsOverride,rarityOverride)=>{const variants=shipVariants(ship).filter(item=>!rarityOverride||item.rarity===rarityOverride);if(Number.isFinite(Number(starsOverride))){const selected=variants.find(item=>item.stars===Number(starsOverride));return selected||{stars:Number(starsOverride)||0,copies:0,rarity:rarityOverride||ship.rarity};}const selected=variants.reduce((best,item)=>item.stars>best.stars?item:best,{stars:0,copies:0,rarity:rarityOverride||ship.rarity});return {stars:selected.stars,copies:variants.reduce((sum,item)=>sum+item.copies,0),rarity:selected.rarity};};
   const starterShipGrantKey='starfleet-starter-ship-0star-v1';
   if(localStorage.getItem(starterShipGrantKey)!=='granted'){
@@ -758,6 +759,9 @@ function initializeFleetFormation(){
   window.addEventListener('tactical-research-updated',event=>{if(event.detail?.field==='frigate')syncFrigateSlotLock();});
   window.getFleetAssignments=()=>fleetAssignments.map(ship=>{if(!ship)return null;let progress=shipProgress(ship,ship.enhancementStars,ship.rarity);if(progress.copies<1)progress=shipProgress(ship,undefined,ship.rarity);ship.enhancementStars=progress.stars;return {...ship,enhancementStars:progress.stars};});
   window.getFleetCatalog=()=>availableFleetShips.map(ship=>({...ship,enhancementStars:shipProgress(ship).stars,copies:shipProgress(ship).copies}));
+  window.getOwnedShipVariants=()=>availableFleetShips.flatMap(ship=>shipVariants(ship).map(item=>({type:ship.type,name:ship.name,image:ship.image,weapon:ship.profile?.[1]||'',rarity:item.rarity,stars:item.stars,copies:item.copies})));
+  // 임무 파견 직후 호출: 파견된 함선을 함대 편성 슬롯에서 빼고 저장한다.
+  window.refreshFleetAfterReservation=()=>{let changed=false;fleetAssignments.forEach((ship,index)=>{if(!ship)return;let progress=shipProgress(ship,ship.enhancementStars,ship.rarity);if(progress.copies<1)progress=shipProgress(ship,undefined,ship.rarity);if(progress.copies<1){fleetAssignments[index]=null;renderFleetSlot(index);changed=true;}});if(changed)saveFleetAssignments();};
   window.getOwnedFleetVariants=()=>availableFleetShips.flatMap(ship=>shipVariants(ship).filter(variant=>variant.copies>0).map(variant=>({...ship,...variant})));
   // Share the fleet-management enhancement rules with the independent PvP simulator.
   // 아레나 가동률: 페가수스 관통 레이저는 4초 발사 후 3초 재장전(주기 7초)이라 DPS를 57%로 계산한다. 코덱스 표시와 PvE는 변하지 않는다.
