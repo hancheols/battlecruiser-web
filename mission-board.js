@@ -259,6 +259,11 @@
     });
     modal.querySelector('.mission-document').addEventListener('click', event => {
       const category = categoryFor(activeCategory);
+      // 모두 받기는 현재 탭의 보상만 받는다.
+      if (event.target.closest('[data-mission-claim-all]')) {
+        claimAllIn(category);
+        return;
+      }
       const missionButton = event.target.closest('[data-mission-claim]');
       if (missionButton) {
         const mission = category.missions.find(item => item.id === missionButton.dataset.missionClaim);
@@ -287,13 +292,52 @@
     });
   };
 
+  // 현재 탭(일일·주간·업적)에서 받을 수 있는 보상 개수 (미션 단계 + 마일스톤)
+  const claimableIn = category => {
+    let count = category.missions.filter(mission => isComplete(category, mission)).length;
+    const completed = category.missions.filter(mission => achieved(category, mission)).length;
+    category.milestones.forEach(milestone => {
+      if (completed >= milestone.goal && !ensurePeriod(category).milestones.includes(`${category.id}:milestone:${milestone.goal}`)) count += 1;
+    });
+    return count;
+  };
+
+  // "모두 받기": 이 탭의 완료된 미션 보상과 마일스톤 보상을 한 번에 받는다.
+  const claimAllIn = category => {
+    const store = ensurePeriod(category);
+    const grants = [];
+    category.missions.forEach(mission => {
+      while (isComplete(category, mission)) {
+        const index = claimedCount(category, mission);
+        grants.push(mission.tiers[index].reward);
+        store.claimed.push(claimKey(category.id, mission, index));
+      }
+    });
+    const completed = category.missions.filter(mission => achieved(category, mission)).length;
+    category.milestones.forEach(milestone => {
+      const key = `${category.id}:milestone:${milestone.goal}`;
+      if (completed >= milestone.goal && !store.milestones.includes(key)) {
+        store.milestones.push(key);
+        grants.push(milestone);
+      }
+    });
+    if (!grants.length) return 0;
+    saveStore();
+    grants.forEach(reward => grantReward(reward));
+    const gold = grants.reduce((sum, reward) => sum + (Number(reward.gold) || 0), 0);
+    const thorium = grants.reduce((sum, reward) => sum + (Number(reward.thorium) || 0), 0);
+    window.notice?.(`${category.label} 보상 ${grants.length}건 획득 · 골드 ${format(gold)} / 토륨 ${thorium}`);
+    renderMissionBoard();
+    return grants.length;
+  };
+
   const renderMissionBoard = () => {
     const modal = document.getElementById('mission-modal');
     if (!modal) return;
     const category = categoryFor(activeCategory);
     const completed = category.missions.filter(mission => achieved(category, mission)).length;
     modal.querySelector('.mission-tabs').innerHTML = categories.map(item => `<button type="button" role="tab" data-mission-category="${item.id}" aria-selected="${item.id === category.id}" class="${item.id === category.id ? 'selected' : ''}"><span>${item.label}</span><small>${item.missions.filter(mission => achieved(item, mission)).length}/${item.missions.length}</small></button>`).join('');
-    modal.querySelector('.mission-document-head').innerHTML = `<div><small>${category.code}</small><b>${category.label === 'ACHIEVEMENT' ? '업적 기록' : '작전 명령서'}</b></div><div><span>${category.reset}</span><strong>${completed}<em> / ${category.missions.length}</em></strong></div>`;
+    modal.querySelector('.mission-document-head').innerHTML = `<div><small>${category.code}</small><b>${category.label === 'ACHIEVEMENT' ? '업적 기록' : '작전 명령서'}</b></div><button type="button" class="mission-claim-all" data-mission-claim-all ${claimableIn(category) > 0 ? '' : 'disabled'}>모두 받기</button><div><span>${category.reset}</span><strong>${completed}<em> / ${category.missions.length}</em></strong></div>`;
     const milestones = modal.querySelector('.mission-milestones');
     milestones.hidden = !category.milestones.length;
     milestones.innerHTML = category.milestones.map((milestone, index) => milestoneMarkup(milestone, index, category, completed)).join('');

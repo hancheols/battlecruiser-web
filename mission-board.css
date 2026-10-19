@@ -100,3 +100,8 @@
 
 /* 달성한 미션이 있을 때 미션 버튼에 붉은 굵은 '!' (배경·테두리 없음) */
 #command-deck .deck-mission.mission-button.deck-command-button .mission-alert{position:absolute;top:-8px;right:-6px;z-index:3;font-size:26px;font-weight:900;line-height:1;color:#ff2424;text-shadow:0 0 3px #000,0 0 8px #ff0000aa;pointer-events:none}
+
+/* 작전명령서 우측 "모두 받기" 버튼 */
+.mission-claim-all{flex:none;align-self:center;padding:7px 14px;border:1px solid #ffe2a0;border-radius:8px;background:linear-gradient(180deg,#b98a3f,#6d4a1d);color:#fff8e6;font:800 13px/1 var(--font-body,system-ui);letter-spacing:.04em;cursor:pointer;box-shadow:0 0 12px #ffd77a55,inset 0 1px #fff3c466}
+.mission-claim-all:hover:not(:disabled){filter:brightness(1.15)}
+.mission-claim-all:disabled{opacity:.4;cursor:default;box-shadow:none}
