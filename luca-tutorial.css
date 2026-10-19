@@ -1,0 +1,11 @@
+.luca-tutorial{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));right:max(12px,env(safe-area-inset-right));z-index:2147483200;display:flex;align-items:end;gap:0;max-width:min(660px,calc(100vw - 24px));margin:0 auto;pointer-events:none;filter:drop-shadow(0 12px 22px #000a)}
+.luca-tutorial[hidden]{display:none!important}
+.luca-tutorial.luca-top{top:max(68px,calc(env(safe-area-inset-top,0px) + 60px));bottom:auto;align-items:start}
+.luca-tutorial>img{width:clamp(108px,17vw,180px);max-height:260px;object-fit:contain;object-position:bottom;flex:none;align-self:end}
+.luca-dialogue{pointer-events:auto;position:relative;margin:0 0 12px -12px;padding:14px 16px 13px;min-width:0;flex:1;border:1px solid #b7d5e6a6;border-radius:13px;background:linear-gradient(145deg,#14263cf4,#09131ff6 70%);box-shadow:inset 0 1px #ffffff3b,0 12px 28px #0009;color:#f4f6f5}
+.luca-dialogue small{display:block;color:#7bc7ec;letter-spacing:.14em;font:700 10px/1.4 var(--font-body,system-ui)}
+.luca-dialogue p{margin:6px 0 10px;font:500 clamp(13px,1.2vw,15px)/1.55 var(--font-body,system-ui);word-break:keep-all;color:#f4f6f5}
+.luca-dialogue button{cursor:pointer;border:1px solid #e3b86d;border-radius:7px;background:linear-gradient(#a27335,#573b20);color:#fff;padding:7px 14px;font:700 12px/1.3 var(--font-body,system-ui)}
+.luca-dialogue button[hidden]{display:none}
+.luca-dialogue button:hover{filter:brightness(1.2)}
+@media(max-width:600px){.luca-tutorial{left:6px;right:6px;bottom:max(8px,env(safe-area-inset-bottom))}.luca-tutorial>img{width:96px;max-height:170px}}
