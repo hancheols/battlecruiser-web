@@ -1,5 +1,5 @@
 /* 타이틀(대문) 화면 */
-#title-screen{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:18px;padding:calc(env(safe-area-inset-top,0px) + 56px) 20px calc(env(safe-area-inset-bottom,0px) + 36px);background:#030914 url('galaxy-lobby-background.png') center / cover no-repeat;color:#eff8ff;text-align:center;overflow:hidden;transition:opacity .45s ease}
+#title-screen{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:18px;padding:calc(env(safe-area-inset-top,0px) + 56px) 20px calc(env(safe-area-inset-bottom,0px) + 36px);background:#030914 url('title-background.jpg') center / cover no-repeat;color:#eff8ff;text-align:center;overflow:hidden;transition:opacity .45s ease}
 #title-screen::before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#02060fcc 0%,#02060f30 38%,#02060f30 56%,#02060fe0 100%);pointer-events:none}
 #title-screen[hidden]{display:none}
 #title-screen.leaving{opacity:0;pointer-events:none}
