@@ -16,8 +16,8 @@
   ];
   const GOODS = [
     { sku: 'arena-ticket', itemId: 'arenaTicket', name: '아레나 티켓', image: 'icons/arena-button.png', detail: '무료 5회 소진 후 자동전투 1회 추가', amount: 1, currency: 'thorium', price: 20, badge: 'ARENA', groups: ['supply'], arenaTicket: true },
-    { sku: 'scout-drone', itemId: 'scoutTron', name: '탐색트론', image: 'icons/scout-drone.png', detail: '함선 탐색에 필요한 정찰 장비', amount: 1, currency: 'thorium', price: 100, badge: '탐색 보급', groups: ['featured', 'supply'] },
-    { sku: 'scout-drone-ten', itemId: 'scoutTron', name: '탐색트론 묶음', image: 'icons/scout-drone.png', detail: '탐색트론 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 900, badge: '10개 묶음', groups: ['supply'] },
+    { sku: 'scout-drone', itemId: 'scoutTron', name: '탐색드론', image: 'icons/scout-drone.png', detail: '함선 탐색에 필요한 정찰 장비', amount: 1, currency: 'thorium', price: 100, badge: '탐색 보급', groups: ['featured', 'supply'] },
+    { sku: 'scout-drone-ten', itemId: 'scoutTron', name: '탐색드론 묶음', image: 'icons/scout-drone.png', detail: '탐색드론 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 900, badge: '10개 묶음', groups: ['supply'] },
     { sku: 'research-crew', itemId: 'researchStaff', name: '연구인력', image: 'icons/research-personnel-20261002.png', detail: '전술무기 연구에 투입할 인력', amount: 1, currency: 'thorium', price: 50, badge: '연구 필수', groups: ['featured', 'supply'] },
     { sku: 'research-crew-ten', itemId: 'researchStaff', name: '연구인력 묶음', image: 'icons/research-personnel-20261002.png', detail: '연구인력 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 450, badge: '10개 묶음', groups: ['supply'] },
   ];
@@ -421,7 +421,7 @@
     const markup = activeTab === 'black-market'
       ? TOKEN_PACKS.map(cashCardMarkup).join('')
       : activeTab === 'research' ? THORIUM_OFFERS.map(cardMarkup).join('')
-      : activeTab === 'featured' ? `${dailyGiftMarkup()}<section class="alien-shop-featured-shelf"><header><strong>오늘의 보급품</strong></header><div class="alien-shop-featured-grid">${todaysFeaturedGoods.map(cardMarkup).join('')}</div></section>`
+      : activeTab === 'featured' ? `${dailyGiftMarkup()}<section class="alien-shop-featured-shelf"><header><strong>오늘의 할인 상품</strong></header><div class="alien-shop-featured-grid">${todaysFeaturedGoods.map(cardMarkup).join('')}</div></section>`
       : goods.map(cardMarkup).join('');
     overlay.querySelector('.alien-shop-grid').innerHTML = membershipOpen ? (isMembershipUnlocked() ? membershipStageMarkup() : membershipLockedMarkup()) : markup;
     overlay.querySelector('[data-membership-unlock]') && (overlay.querySelector('[data-membership-unlock]').onclick = openMembershipUnlockConfirm);

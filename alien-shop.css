@@ -68,7 +68,7 @@
 .alien-shop-good-art.alien-shop-thorium-mountain::before{display:none}
 .alien-shop-good-art.alien-shop-thorium-mountain .alien-shop-thorium-pile-image{position:relative;left:auto;top:auto;width:min(82px,100%);height:76px;max-width:none;object-fit:contain;filter:drop-shadow(0 3px 6px #0009) drop-shadow(0 0 8px #37bfff66)}
 
-/* 잔액: 1줄은 골드·토륨·사자증표, 그 아래 줄은 탐색트론·연구인력 */
+/* 잔액: 1줄은 골드·토륨·사자증표, 그 아래 줄은 탐색드론·연구인력 */
 .alien-shop-balances{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .alien-shop-balance-row{display:flex;gap:5px}
 .alien-shop-balance-row.sub>span{height:22px;min-width:54px}

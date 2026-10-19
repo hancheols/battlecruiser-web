@@ -1,6 +1,6 @@
 (() => {
   // 미션 한 개는 tiers 배열을 가진다. 일일·주간 명령은 단계가 하나이고, 업적은 단계별로 차례대로 달성한다.
-  // reward: { gold, thorium, items: [{ itemId, amount }] } — items는 탐색 보급품(탐색트론 등).
+  // reward: { gold, thorium, items: [{ itemId, amount }] } — items는 탐색 보급품(탐색드론 등).
   const categories = [
     {
       id: 'daily', label: 'DAILY', code: 'DAILY OPERATIONS', reset: '갱신 13H 42M',
@@ -127,7 +127,7 @@
   const detailFor = (mission, tier) => (mission.detail || '').replace('{goal}', format(tier.goal));
 
   const rewardMarkup = reward => {
-    const items = (reward.items || []).map(item => `<span><img class="mission-item-icon" src="icons/scout-drone.png" alt=""/>탐색트론 ${format(item.amount)}</span>`).join('');
+    const items = (reward.items || []).map(item => `<span><img class="mission-item-icon" src="icons/scout-drone.png" alt=""/>탐색드론 ${format(item.amount)}</span>`).join('');
     return `${reward.gold ? `<span><i class="mission-resource-icon gold" aria-hidden="true"></i>${format(reward.gold)}</span>` : ""}${reward.thorium ? `<span><i class="mission-resource-icon thorium" aria-hidden="true"></i>${reward.thorium}</span>` : ''}${items}`;
   };
 
@@ -282,7 +282,7 @@
       ensurePeriod(category).milestones.push(key);
       saveStore();
       grantReward(milestone);
-      window.notice?.(`${category.label} 마일스톤 보상 획득 · ${milestone.gold ? `골드 ${format(milestone.gold)}` : ""}${milestone.thorium ? ` / 토륨 ${milestone.thorium}` : ''}${milestone.items ? ' / 탐색트론 10' : ''}`);
+      window.notice?.(`${category.label} 마일스톤 보상 획득 · ${milestone.gold ? `골드 ${format(milestone.gold)}` : ""}${milestone.thorium ? ` / 토륨 ${milestone.thorium}` : ''}${milestone.items ? ' / 탐색드론 10' : ''}`);
       renderMissionBoard();
     });
   };
