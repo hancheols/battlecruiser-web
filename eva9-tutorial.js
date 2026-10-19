@@ -41,7 +41,7 @@
     mailOpen:()=>({title:'메일함',body:'함장 프로필에서 메일 버튼을 선택하세요.'}),
     mailSelect:()=>({title:'보급 메일 확인',body:pendingIds().length>1?`보급품이 첨부된 메일을 모두 열어 수령하세요. 남은 메일은 ${pendingIds().length}통입니다.`:'보급품이 첨부된 메일을 열어 주세요.'}),
     mailClaim:()=>({title:'보급품 수령',body:'메일에 첨부된 보급품을 모두 수령하세요.'}),
-    mailNext:()=>({title:'다음 메일 확인',body:`수령하지 않은 보급 메일이 ${pendingIds().length}통 더 있습니다. 「뒤로」 버튼을 눌러 메일 목록으로 돌아가세요.`}),
+    mailNext:()=>({title:'다음 메일 확인',body:`수령하지 않은 보급 메일이 ${pendingIds().length}통 더 있습니다. [메일 목록으로] 버튼을 눌러주세요.`}),
     labPrompt:()=>({title:'연구실로 이동',body:'연구실로 이동하겠습니다.',action:'연구실로 이동'}),
     explore10a:()=>({title:'전함 탐색',body:'함대가 강해지기 위해선 함선이 많이 필요합니다. 탐색드론을 보내서 함선을 찾게 할 수 있습니다.',action:'다음'}),
     explore10:()=>({title:'전함 탐색',body:'보급받은 드론으로 10회 탐색을 하겠습니다.'}),
