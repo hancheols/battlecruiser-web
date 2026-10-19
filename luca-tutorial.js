@@ -173,7 +173,7 @@
     const wait=current()?.wait;
     if(wait==='member'&&event.target.closest('.alien-shop-membership-card'))setTimeout(advance,0);
     else if(wait==='guarantee'&&event.target.closest('.ssr-guarantee-selected'))setTimeout(advance,0);
-  });
+  },true);
 
   // 연구실을 열 때 탐색드론 안내를 시작합니다.
   const wrapOpenLab=()=>{
