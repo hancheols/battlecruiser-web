@@ -8,7 +8,7 @@
   {let accumulated=0;GROUPS.forEach(([group,count])=>{if(!GROUP_POINTS[group])return;for(let division=count;division>0;division--){TIER_STARTS.push(accumulated);accumulated+=GROUP_POINTS[group];}});}
   const indexForScore=score=>{const value=Math.max(0,Number(score)||0);let index=0;while(index<TIER_STARTS.length-1&&value>=TIER_STARTS[index+1])index+=1;return index;};
   const TIERS=[];
-  GROUPS.forEach(([group,count,color])=>{for(let division=count;division>0;division--)TIERS.push({group,division,color,label:group==='LEGEND'?group:`${group} ${division}`,index:TIERS.length,min:TIERS.length<24?TIER_STARTS[TIERS.length]:group==='LEGEND'?6000:4800,cap:group==='HERO'?division:group==='LEGEND'?1:null});});
+  GROUPS.forEach(([group,count,color])=>{for(let division=count;division>0;division--)TIERS.push({group,division,color,label:group==='LEGEND'?group:`${group} ${division}`,index:TIERS.length,min:TIERS.length<24?TIER_STARTS[TIERS.length]:group==='LEGEND'?4600:3600+200*(TIERS.length-24),cap:group==='HERO'?division:group==='LEGEND'?1:null});});
   const day=now=>Math.floor((now+OFFSET)/DAY);
   const isWednesday=d=>new Date(d*DAY).getUTCDay()===3;
   const clone=o=>JSON.parse(JSON.stringify(o));
