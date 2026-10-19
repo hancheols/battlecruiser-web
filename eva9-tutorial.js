@@ -144,6 +144,15 @@
   window.addEventListener('captain-mail-opened',event=>{if(state.step==='mailSelect'&&pendingIds().includes(event.detail?.id)){state.mailId=event.detail.id;setStep('mailClaim');}});
   window.addEventListener('captain-mail-claimed',event=>{if(state.step==='mailClaim'&&event.detail?.id===state.mailId){if(pendingIds().length)setStep('mailNext');else nextAfterMail();}});
   window.addEventListener('ship-exploration-completed',event=>{if(state.step==='exploreConfirm'&&Number(event.detail?.count)===10)setStep('exploreResult');});
+  // 10회 연구 단계에서는 [10회 연구] 버튼에 광택 효과를 줘서 찾기 쉽게 합니다.
+  let shineTarget=null;
+  setInterval(()=>{
+    const target=state.step==='weapon10'?document.querySelector('[data-tactical-pull="10"]'):null;
+    if(target===shineTarget)return;
+    shineTarget?.classList.remove('eva9-shine');
+    shineTarget=target;
+    target?.classList.add('eva9-shine');
+  },400);
   window.addEventListener('weapon-research-completed',event=>{if(state.step==='weapon10'&&Number(event.detail?.count)===10)setStep('weaponResult');});
   window.addEventListener('tactical-research-updated',event=>{if(state.step==='frigateDevelop'&&event.detail?.field==='frigate'&&Number(event.detail?.level)>=1)setStep('frigateClose');});
   window.addEventListener('game-screen-changed',event=>{if(state.step==='fleetNav'&&event.detail?.screen==='collection')setStep('frigateSlot');});

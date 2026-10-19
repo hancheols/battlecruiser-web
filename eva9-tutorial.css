@@ -26,3 +26,7 @@ body[data-eva-step="profileOpen"] .captain-profile-open,body[data-eva-step="mail
 @media(max-width:600px){.eva9-tutorial{left:6px;right:6px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 12px)}.eva9-tutorial>img{width:82px;max-height:155px}.eva9-dialogue{margin:0 0 3px -6px;padding:10px 11px}.eva9-dialogue p{font-size:12px;margin:5px 0 8px;max-height:28dvh;overflow:auto}.eva9-tutorial.portrait-hidden{width:calc(100vw - 12px)}.eva9-tutorial.portrait-hidden .eva9-dialogue{margin-left:0}.eva9-tutorial[data-step="exploreResult"],.eva9-tutorial[data-step="weaponResult"],.eva9-tutorial[data-step="frigateNode"],.eva9-tutorial[data-step="frigateDevelop"],.eva9-tutorial[data-step="frigateClose"]{top:max(64px,calc(env(safe-area-inset-top) + 56px));bottom:auto}.eva9-tutorial[data-step="exploreResult"]>img,.eva9-tutorial[data-step="weaponResult"]>img,.eva9-tutorial[data-step^="frigate"]>img{width:70px;max-height:120px}}
 @media(prefers-reduced-motion:reduce){body[data-eva-step] .eva9-tutorial,body[data-eva-step] .eva9-dialogue{animation:none}}
 
+/* 10회 연구 버튼 광택 효과 (튜토리얼 중에만 붙음) */
+.eva9-shine{position:relative;overflow:hidden;outline:2px solid #ffd77a;outline-offset:2px;box-shadow:0 0 16px 3px #ffd77a99}
+.eva9-shine::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);transform:translateX(-120%);animation:eva9Shine 1.8s ease-in-out infinite}
+@keyframes eva9Shine{0%{transform:translateX(-120%)}60%,100%{transform:translateX(120%)}}
