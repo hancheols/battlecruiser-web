@@ -148,3 +148,6 @@
 .arena-help-triangle .tri-node.dread circle{fill:#183a66;stroke:#9bd0ff}
 .arena-help-triangle .tri-node.destroy circle{fill:#5a3216;stroke:#ffb27a}
 .arena-help-triangle .tri-node.cruiser circle{fill:#2d2360;stroke:#b9a4ff}
+
+/* 대전 기록의 티켓 수량: 누르면 상점 보급품 탭으로 이동 */
+.arena-ticket-link{padding:0;border:0;background:none;color:inherit;font:inherit;text-decoration:underline dotted;cursor:pointer}

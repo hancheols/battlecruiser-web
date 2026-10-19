@@ -160,13 +160,15 @@
       </section>
       <button class="arena-battle-button" data-match><strong>아레나 출전</strong><span>${ticketLeft?'무료 대전 '+ticketLeft+' / 5':'아레나 티켓 1장 사용'}</span></button>
       ${deckBlock('defense','수비 함대',s)}${deckBlock('attack','공격 함대',s)}
-      <footer class="arena-status">${emblem(me.tier)}<div><small>현재 등급</small><div class="arena-tier-line"><b>${me.tier.label}</b><button type="button" class="arena-tier-help" data-rules aria-label="등급과 보상 정보">?</button></div><span>${fmt(s.score)}점 · ${me.rank}위</span></div><div><small>대전 기록</small><b>${s.wins}승 ${s.losses}패</b><span>티켓 ${s.tickets}장</span></div></footer>
+      <footer class="arena-status">${emblem(me.tier)}<div><small>현재 등급</small><div class="arena-tier-line"><b>${me.tier.label}</b><button type="button" class="arena-tier-help" data-rules aria-label="등급과 보상 정보">?</button></div><span>${fmt(s.score)}점 · ${me.rank}위</span></div><div><small>대전 기록</small><b>${s.wins}승 ${s.losses}패</b><button type="button" class="arena-ticket-link" data-arena-ticket-shop>티켓 ${s.tickets}장</button></div></footer>
       <p class="arena-settlement">일일: 그날 대전 1회 이상 · 주간: 일일 보상 5회 이상 수령 (수요일 0시 KST 정산)<br>일일 ${rewardText(daily)} / 주간 ${rewardText(weekly)}</p>
       <div class="arena-matchup-entry"><button type="button" class="arena-help-btn" data-matchup-help aria-label="함종 상성 안내">?</button><span>함종 상성 안내</span></div>
       <div class="arena-matchup-help" data-matchup-panel hidden>${matchupHelpHtml()}</div>`);
     overlay.querySelector('[data-match]').onclick=()=>openPreview();
     overlay.querySelectorAll('[data-edit-deck]').forEach(b=>b.onclick=()=>editDeck(b.dataset.editDeck));
     overlay.querySelector('[data-rules]').onclick=rules;
+    // 티켓 수량을 누르면 상점의 보급품 탭(아레나 티켓 판매대)으로 이동한다.
+    overlay.querySelector('[data-arena-ticket-shop]').onclick=()=>window.openAlienShop?.('supply');
     // 메인 화면 하단 ? 버튼: 함종 상성 안내 팝업
     overlay.querySelector('[data-matchup-help]').onclick=()=>{const panel=overlay.querySelector('[data-matchup-panel]');panel.hidden=!panel.hidden;};
     overlay.querySelector('[data-matchup-panel]').onclick=()=>{overlay.querySelector('[data-matchup-panel]').hidden=true;};
