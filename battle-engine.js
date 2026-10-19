@@ -7751,6 +7751,8 @@
     const primary = shooterTargetFor(ally);
     if (!primary) return false;
     playPenetrateBeamSound();
+    // 레이저가 발사되는 동안에는 함선 방향을 바꾸지 않는다.
+    ally.facingLockUntil = performance.now() + NEMESIS_LASER.duration + 60;
     const beams = nemesisMuzzlePoints(ally).map((from, index) => {
       const target = index ? shooterTargetsFor(ally)[1] || primary : primary;
       const targetPoint = pointOf(target);
