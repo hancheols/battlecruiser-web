@@ -28,7 +28,7 @@
   const complete=deck=>deck?.length===4&&deck.slice(0,3).every(s=>s&&s.type!=='frigate')&&(!deck[3]||deck[3].type==='frigate')&&new Set(deck.filter(Boolean).map(shipKey)).size===deck.filter(Boolean).length;
   const frigateUnlocked=()=>Math.max(research().frigate?.level||0,research().frigateTree?.firepower1||0)>=1;
   // 등급 인덱스(0~29). 점수 구간을 TIERS 인덱스로 바꾼 값이다.
-  function tierIndexOf(score){return score>=6000?29:score>=4800?24:Math.min(23,Math.floor(score/200));}
+  function tierIndexOf(score){return score>=6000?29:score>=4800?24:(C.indexForScore?C.indexForScore(score):Math.min(23,Math.floor(score/200)));}
   // 플레이어 연구 트리 레벨에 계수를 곱한 봇용 연구 상태.
   function scaledResearch(factor){
     const base=research(),out={...base};
@@ -39,7 +39,7 @@
     const catalog=(window.getFleetCatalog?.()||[]).filter(s=>!s.isFrame),main=catalog.filter(s=>s.type!=='frigate'&&s.profile?.[0]),support=catalog.filter(s=>s.type==='frigate');
     if(main.length<3)throw Error('함선 정보를 불러오는 중입니다. 잠시 후 다시 열어주세요.');
     const names=['NOVA PRIME','청룡 함대','SIRIUS','ORION','RED COMET','은하수','POLARIS','아틀라스','VANGUARD','해오라기','ACE-77','STARBLADE','SOLARIS','NEBULA','이클립스','묵룡'];
-    const scores=[6400,...Array.from({length:15},(_,i)=>5950-i*65),...Array.from({length:24},(_,i)=>i*200+70),0,45,110,170];
+    const scores=[6400,...Array.from({length:15},(_,i)=>5950-i*65),...Array.from({length:24},(_,i)=>(C.TIER_STARTS?.[i]??i*200)+10),0,45,110,170];
     // 봇 전투력은 플레이어 편성 수준에 맞춘다. 상위 등급 봇은 플레이어와 같은 수준(계수 1), 하위 등급 봇은 60% 수준이다.
     const top=owned().filter(s=>s.type!=='frigate'&&s.profile?.[0]).sort((a,b)=>b.enhancementStars-a.enhancementStars).slice(0,3);
     const playerStars=top.length?top.reduce((n,s)=>n+s.enhancementStars,0)/top.length:0;

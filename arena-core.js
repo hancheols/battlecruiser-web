@@ -2,8 +2,13 @@
   'use strict';
   const DAY=86400000,OFFSET=9*3600000;
   const GROUPS=[['Iron',3,'#8c9fa8'],['Bronze',3,'#cd8b55'],['Silver',3,'#c3d5e5'],['Gold',5,'#f7cb59'],['Diamond',5,'#63cfff'],['Platinum',5,'#d4bfff'],['HERO',5,'#ef80ef'],['LEGEND',1,'#ffcf82']];
+  // 등급 1단계(예: 아이언 3→2→1)마다 필요한 점수. 히어로·레전드는 순위 규칙으로 정한다.
+  const GROUP_POINTS={Iron:50,Bronze:50,Silver:100,Gold:150,Diamond:200,Platinum:250};
+  const TIER_STARTS=[];
+  {let accumulated=0;GROUPS.forEach(([group,count])=>{if(!GROUP_POINTS[group])return;for(let division=count;division>0;division--){TIER_STARTS.push(accumulated);accumulated+=GROUP_POINTS[group];}});}
+  const indexForScore=score=>{const value=Math.max(0,Number(score)||0);let index=0;while(index<TIER_STARTS.length-1&&value>=TIER_STARTS[index+1])index+=1;return index;};
   const TIERS=[];
-  GROUPS.forEach(([group,count,color])=>{for(let division=count;division>0;division--)TIERS.push({group,division,color,label:group==='LEGEND'?group:`${group} ${division}`,index:TIERS.length,min:TIERS.length<24?TIERS.length*200:group==='LEGEND'?6000:4800,cap:group==='HERO'?division:group==='LEGEND'?1:null});});
+  GROUPS.forEach(([group,count,color])=>{for(let division=count;division>0;division--)TIERS.push({group,division,color,label:group==='LEGEND'?group:`${group} ${division}`,index:TIERS.length,min:TIERS.length<24?TIER_STARTS[TIERS.length]:group==='LEGEND'?6000:4800,cap:group==='HERO'?division:group==='LEGEND'?1:null});});
   const day=now=>Math.floor((now+OFFSET)/DAY);
   const isWednesday=d=>new Date(d*DAY).getUTCDay()===3;
   const clone=o=>JSON.parse(JSON.stringify(o));
@@ -16,7 +21,7 @@
   function standings(players){
     const rows=sorted(players);let heroSeat=0;
     return rows.map((p,i)=>{
-      let index=Math.min(23,Math.floor(Math.max(0,p.score)/200));
+      let index=indexForScore(p.score);
       if(i===0&&p.score>=6000){index=29;}
       else if(p.score>=4800&&heroSeat<15){heroSeat++;index=heroSeat<=1?28:heroSeat<=3?27:heroSeat<=6?26:heroSeat<=10?25:24;}
       return {...p,rank:i+1,tier:TIERS[index]};
@@ -154,5 +159,5 @@
     frames.push({time,teams:teams.map(team=>team.map(u=>({hp:u.hp,maxHp:u.maxHp,shield:u.shield,energy:u.energy})))});
     return {win,time,frames,events,seed};
   }
-  return {typeBonus,TIERS,GROUPS,DAY,OFFSET,day,isWednesday,standings,rewards,seasonRewards,delta,random,chooseOpponent,weaponFields,weaponBonus,frigateBonus,development,stats,simulate,clone};
+  return {typeBonus,TIERS,TIER_STARTS,indexForScore,GROUPS,DAY,OFFSET,day,isWednesday,standings,rewards,seasonRewards,delta,random,chooseOpponent,weaponFields,weaponBonus,frigateBonus,development,stats,simulate,clone};
 });
