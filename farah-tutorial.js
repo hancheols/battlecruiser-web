@@ -42,8 +42,39 @@
     el?.classList.add('farah-target-pulse');
   };
   setInterval(highlight,400);
+  // 전투를 지켜보는 동안 파라가 함대 정보를 무작위로 9초씩 알려 줍니다.
+  const BATTLE_TIPS=[
+    '함선은 중전함, 전투순양함, 구축함 3종류가 있어.',
+    '프리깃은 특수 기술을 사용하는 함선이야',
+    '함종마다 특징이 다르니 잘 파악해야해.',
+    '함종과 무기에 따라 함선을 업그레이드하는 재료로 쓸 수도 있어.',
+    '함선골조는 귀한 재료니까 잘 사용해야해.',
+    '나중에 \'아르카\'를 찾아가봐, 필요한 물건을 구할 수도 있거든.',
+    '토륨은 쓸모가 많은 광물이라 너도나도 갖고싶어하지.',
+    '가끔 귀하신 분들은 동전처럼 생긴 증표를 갖고 있던데... 너도 있어?',
+    '이따금 전장에서 우주해적을 만날 수도 있어, 그녀석들 꼭 잡아야해!',
+    '중전함은 장갑과 실드에 특화되어 있어서 전장에서 생존력이 좋지.',
+    '전투순양함은 화력도 좋지만, 다양한 전술기능을 가지고 있어.',
+    '구축함은 높은 공격력과 파괴적인 기술을 가지고 있어.',
+    '다양한 함선과 무기를 두루두루 갖추고 있으면 좋아.'
+  ];
+  const tickTips=()=>{
+    if(!panel)return;
+    const now=Date.now();
+    if(!/^combat[1-5]$/.test(state.step)){if(tip){tip=null;paint();}nextTipAt=0;return;}
+    if(tip&&now>=tipUntil){tip=null;nextTipAt=now+3000;paint();return;}
+    if(!tip&&now>=nextTipAt){
+      let index;
+      do{index=Math.floor(Math.random()*BATTLE_TIPS.length);}while(BATTLE_TIPS.length>1&&index===lastTip);
+      lastTip=index;
+      tip={text:BATTLE_TIPS[index]};tipUntil=now+9000;paint();
+    }
+  };
+  setInterval(tickTips,500);
   const profileReady=()=>{try{const p=JSON.parse(localStorage.getItem('starfleet-commander-profile-v1')||'{}');return !!(p.character&&p.lastName?.trim());}catch{return false;}};
   let panel,reveal,chip,currentMood='';
+  // 전투 중 함대 정보 안내 상태 (무작위 9초 표시)
+  let tip=null,tipUntil=0,nextTipAt=0,lastTip=-1;
   if(state.step&&state.version!==2){
     const old=state.step,map={welcome:'reveal',formation:'fleetNav',formationReady:'chooseSlot',start:'sortie1',gate1:'gate1Won',start2:'home2',gate2:'gate2Won',start3:'home3',gate3:'gate3Won',start4:'home4',enhance:'enhance',enhanced:'home5',mail:'final',labShip:'complete',explore:'complete',weapon:'complete',done:'complete'};
     state.step=map[old]||old;state.version=2;save();
@@ -83,7 +114,7 @@
   const paint=()=>{
     if(!panel||!reveal)return;
     document.body.classList.toggle('farah-profile-active',state.step==='profile');
-    reveal.hidden=state.step!=='reveal';const line=lines[state.step];panel.hidden=!line;
+    reveal.hidden=state.step!=='reveal';const line=tip?{mood:'focused',title:'함대 정보',body:tip.text}:lines[state.step];panel.hidden=!line;
     panel.classList.toggle('farah-collapsed',!!line&&dialogueCollapsed);
     // 눌러야 할 버튼이 화면 하단(함교·함대관리 메뉴, 출격·전투 버튼)에 있으면 패널을 상단으로 올려 버튼을 가리지 않게 합니다.
     panel.classList.toggle('farah-top',TOP_STEP.test(state.step));
