@@ -183,3 +183,10 @@
 .membership-unlock-actions button{min-width:90px;padding:8px 12px;border:1px solid #e9c46a;border-radius:8px;background:#1d2a44;color:#fff3c4;font:inherit;cursor:pointer}
 .membership-unlock-actions button[data-unlock-yes]{background:linear-gradient(120deg,#8a5a16,#e9c46a,#8a5a16);color:#2a1a04;font-weight:900}
 @keyframes membership-head-sheen{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+
+/* 오늘의 할인 상품 새로고침 버튼 (우측 끝) */
+.alien-shop-featured-shelf>header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.alien-shop-refresh{display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:5px 10px;border:1px solid #e9c46a;border-radius:999px;background:#0b1322;color:#fff3c4;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.alien-shop-refresh svg{width:16px;height:16px;flex:none}
+.alien-shop-refresh small{font-size:10px;opacity:.7}
+.alien-shop-refresh:disabled{opacity:.45;cursor:default}

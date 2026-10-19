@@ -175,16 +175,68 @@
     // 저장된 목록에 더 이상 없는 상품이 있으면(예전 버전 기록) 오늘 목록을 다시 뽑아 4칸을 채운다.
     const staleSku = Array.isArray(state?.skus) && state.skus.some(sku => sku !== 'daily-arena-ticket' && !FEATURED_GOODS.some(good => good.sku === sku));
     if (!state || state.date !== key || !Array.isArray(state.skus) || staleSku) {
-      const shuffled = [...FEATURED_GOODS, { sku: 'daily-arena-ticket' }];
-      for (let index = shuffled.length - 1; index > 0; index -= 1) {
-        const swap = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
-      }
-      state = { date: key, skus: shuffled.slice(0, 4).map(good => good.sku), bought: [], arenaAmount: 1 + Math.floor(Math.random() * 5) };
+      const picked = pickFeaturedSkus();
+      state = { date: key, skus: picked.skus, discounts: picked.discounts, bought: [], refreshes: 0, arenaAmount: 1 + Math.floor(Math.random() * 5) };
+      try { localStorage.setItem(FEATURED_KEY, JSON.stringify(state)); } catch {}
+    }
+    if (!state.discounts) {
+      state.discounts = Object.fromEntries(state.skus.map(sku => [sku, randomDiscount()]));
       try { localStorage.setItem(FEATURED_KEY, JSON.stringify(state)); } catch {}
     }
     if (!Number(state.arenaAmount)) { state.arenaAmount = 1 + Math.floor(Math.random() * 5); try { localStorage.setItem(FEATURED_KEY, JSON.stringify(state)); } catch {} }
-    return { ...state, bought: Array.isArray(state.bought) ? state.bought : [] };
+    return { ...state, bought: Array.isArray(state.bought) ? state.bought : [], refreshes: Math.max(0, Number(state.refreshes) || 0), discounts: state.discounts || {} };
+  }
+
+  // 할인율은 10~50%(10% 단위) 중 무작위. 오늘 특가 4칸을 무작위로 뽑고 각 칸에 할인율을 정한다.
+  const DISCOUNT_STEPS = [10, 20, 30, 40, 50];
+  function randomDiscount() {
+    return DISCOUNT_STEPS[Math.floor(Math.random() * DISCOUNT_STEPS.length)];
+  }
+  function pickFeaturedSkus() {
+    const shuffled = [...FEATURED_GOODS.map(good => good.sku), 'daily-arena-ticket'];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swap = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[swap]] = [shuffled[swap], shuffled[index]];
+    }
+    const skus = shuffled.slice(0, 4);
+    return { skus, discounts: Object.fromEntries(skus.map(sku => [sku, randomDiscount()])) };
+  }
+  // 할인율을 적용한 상품 정보. 기준가는 원래 표시 가격(20% 할인 상품은 기준가에서 20%를 뺀 값)이다.
+  function applyDiscount(good, pct) {
+    if (!pct) return good;
+    const base = good.arenaTicket ? good.amount * 2000 : good.badge === '20% 할인' ? Math.round(good.price / 0.8) : good.price;
+    return { ...good, price: Math.round(base * (100 - pct) / 100), badge: `${pct}% 할인`, detail: String(good.detail || '').replace(/·\s*\d+% 할인/, `· ${pct}% 할인`), basePrice: base };
+  }
+  // 새로고침: 1일 최대 2회(1회 무료, 2회 10,000골드). 사자증표 소지자는 3회(2회 무료, 3회 5,000골드).
+  function refreshButtonMarkup() {
+    const state = dailyFeaturedState();
+    const holder = Number(balances().lionToken) > 0;
+    const max = holder ? 3 : 2;
+    const used = state.refreshes;
+    const left = Math.max(0, max - used);
+    const cost = holder ? (used < 2 ? 0 : 5000) : (used < 1 ? 0 : 10000);
+    const label = left === 0 ? '소진' : cost === 0 ? '무료' : `${cost.toLocaleString('ko-KR')} 골드`;
+    return `<button type="button" class="alien-shop-refresh" data-featured-refresh ${left === 0 ? 'disabled' : ''} aria-label="새로고침 ${label}, 남은 ${left}회"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${label}</span><small>${left}/${max}</small></button>`;
+  }
+  function refreshFeatured() {
+    const state = dailyFeaturedState();
+    const holder = Number(balances().lionToken) > 0;
+    const max = holder ? 3 : 2;
+    const used = state.refreshes;
+    if (used >= max) { showToast('오늘 새로고침을 모두 사용했습니다.'); return; }
+    const cost = holder ? (used < 2 ? 0 : 5000) : (used < 1 ? 0 : 10000);
+    const current = balances();
+    if (cost > 0 && Number(current.gold) < cost) { showToast('골드가 부족합니다.'); return; }
+    const picked = pickFeaturedSkus();
+    const next = { ...state, skus: picked.skus, discounts: picked.discounts, refreshes: used + 1 };
+    try {
+      if (cost > 0) { current.gold -= cost; localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); }
+      localStorage.setItem(FEATURED_KEY, JSON.stringify(next));
+    } catch { showToast('새로고침을 저장하지 못했습니다.'); return; }
+    window.updateGameResourceHud?.();
+    window.dispatchEvent(new Event('game-resources-updated'));
+    render();
+    showToast(cost > 0 ? `${cost.toLocaleString('ko-KR')} 골드로 새로고침했습니다.` : '새로고침했습니다.');
   }
 
   // 오늘 특가 아레나 티켓: 매일 1~5장 무작위, 50% 할인(장당 1,000골드, 기준가 2,000골드)
@@ -196,8 +248,8 @@
     return arenaGoodFor(Number(dailyFeaturedState().arenaAmount) || 1);
   }
   function featuredGoodFor(sku) {
-    if (sku === "daily-arena-ticket") return arenaFeaturedGood();
-    return FEATURED_GOODS.find(good => good.sku === sku);
+    const good = sku === "daily-arena-ticket" ? arenaFeaturedGood() : FEATURED_GOODS.find(item => item.sku === sku);
+    return good ? applyDiscount(good, dailyFeaturedState().discounts?.[sku]) : good;
   }
 
   function playPurchaseThankyou() {
@@ -423,7 +475,7 @@
     const markup = activeTab === 'black-market'
       ? TOKEN_PACKS.map(cashCardMarkup).join('')
       : activeTab === 'research' ? THORIUM_OFFERS.map(cardMarkup).join('')
-      : activeTab === 'featured' ? `${dailyGiftMarkup()}<section class="alien-shop-featured-shelf"><header><strong>오늘의 할인 상품</strong></header><div class="alien-shop-featured-grid">${todaysFeaturedGoods.map(cardMarkup).join('')}</div></section>`
+      : activeTab === 'featured' ? `${dailyGiftMarkup()}<section class="alien-shop-featured-shelf"><header><strong>오늘의 할인 상품</strong>${refreshButtonMarkup()}</header><div class="alien-shop-featured-grid">${todaysFeaturedGoods.map(cardMarkup).join('')}</div></section>`
       : goods.map(cardMarkup).join('');
     overlay.querySelector('.alien-shop-grid').innerHTML = membershipOpen ? (isMembershipUnlocked() ? membershipStageMarkup() : membershipLockedMarkup()) : markup;
     overlay.querySelector('[data-membership-unlock]') && (overlay.querySelector('[data-membership-unlock]').onclick = openMembershipUnlockConfirm);
@@ -658,9 +710,11 @@
         activeTab = event.target.closest('[data-shop-tab]').dataset.shopTab;
         membershipOpen = false;
         render();
+      } else if (event.target.closest('[data-featured-refresh]')) {
+        if (!event.target.closest('[data-featured-refresh]').disabled) refreshFeatured();
       } else if (event.target.closest('[data-shop-sku]')) {
         const good = GOODS.find(entry => entry.sku === event.target.closest('[data-shop-sku]').dataset.shopSku);
-        const featuredGood = FEATURED_GOODS.find(entry => entry.sku === event.target.closest('[data-shop-sku]').dataset.shopSku);
+        const featuredGood = featuredGoodFor(event.target.closest('[data-shop-sku]').dataset.shopSku);
         const offer = THORIUM_OFFERS.find(entry => entry.sku === event.target.closest('[data-shop-sku]').dataset.shopSku);
         if (good || featuredGood || offer) openPurchase(good || featuredGood || offer);
       } else if (event.target.closest('[data-cash-pack]')) {
