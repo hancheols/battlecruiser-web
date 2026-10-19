@@ -473,6 +473,9 @@
     const currentGeneration = generation;
     refs.enemyLayer.replaceChildren();
     refs.allyLayer.replaceChildren();
+    // 아레나 전용 함대 바와 전투 기록은 일반 전투에 남지 않도록 지운다.
+    refs.field?.querySelector('.arena-hud')?.remove();
+    refs.field?.querySelector('.arena-combat-log')?.remove();
     refs.effects.replaceChildren();
     refs.lattice.replaceChildren();
     refs.battleResult.hidden = true;

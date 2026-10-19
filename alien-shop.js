@@ -172,7 +172,9 @@
     const key = todayKey();
     let state;
     try { state = JSON.parse(localStorage.getItem(FEATURED_KEY) || 'null'); } catch {}
-    if (!state || state.date !== key || !Array.isArray(state.skus)) {
+    // 저장된 목록에 더 이상 없는 상품이 있으면(예전 버전 기록) 오늘 목록을 다시 뽑아 4칸을 채운다.
+    const staleSku = Array.isArray(state?.skus) && state.skus.some(sku => sku !== 'daily-arena-ticket' && !FEATURED_GOODS.some(good => good.sku === sku));
+    if (!state || state.date !== key || !Array.isArray(state.skus) || staleSku) {
       const shuffled = [...FEATURED_GOODS, { sku: 'daily-arena-ticket' }];
       for (let index = shuffled.length - 1; index > 0; index -= 1) {
         const swap = Math.floor(Math.random() * (index + 1));
