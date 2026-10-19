@@ -57,14 +57,7 @@
   }
   function initial(){const deck=(window.getFleetAssignments?.()||[]);while(deck.length<4)deck.push(null);return {version:1,botVersion:4,score:0,wins:0,losses:0,draws:0,tickets:0,freeUsed:0,freeDay:C.day(Date.now()),settledDay:C.day(Date.now()),attack:deck.map(ident),defense:deck.map(ident),defenseSnapshot:complete(deck)?snapshot(deck):null,bots:makeBots(),inbox:[],history:[],pending:null};}
   const playerName=()=>{const p=read('starfleet-commander-profile-v1',{});return p.lastName?`${p.character||''} ${p.lastName}`:'나의 함대';};
-  // 레전드 보유자는 한 번 정해지면 기기에 저장해 두고, 점수가 떨어져도 유지한다.
-  const LEGEND_KEY='starfleet-arena-legend-v1';
-  const savedLegendId=()=>{try{return localStorage.getItem(LEGEND_KEY)||null;}catch{return null;}};
-  const board=state=>{
-    const rows=C.standings([{id:SELF,name:playerName(),score:state.score,deck:state.defenseSnapshot},...state.bots],savedLegendId());
-    if(rows.legendId&&rows.legendId!==savedLegendId()){try{localStorage.setItem(LEGEND_KEY,rows.legendId);}catch{}}
-    return rows;
-  };
+  const board=state=>C.standings([{id:SELF,name:playerName(),score:state.score,deck:state.defenseSnapshot},...state.bots]);
   const mine=state=>board(state).find(p=>p.id===SELF);
   // 등급 상승 토륨 보상: 처음 도달한 등급마다 계정당 한 번만 지급한다. 중간 등급을 건너뛰면 지나친 등급도 함께 지급한다. 다이아몬드는 보상 없음.
   const TIER_THORIUM={Bronze:100,Silver:200,Gold:300,Diamond:400,Platinum:500,'HERO 5':1000,'HERO 4':1000,'HERO 3':1000,'HERO 2':1000,'HERO 1':1500,LEGEND:2000};

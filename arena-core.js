@@ -18,24 +18,17 @@
   const typeBonus=(a,b)=>{if(TYPE_BEATS[a?.type]===b?.type)return TYPE_EDGE;if(TYPE_BEATS[b?.type]===a?.type)return -TYPE_EDGE;return 0;};
   const edgeScale=(u,target)=>{const r=Number(u.dev?.damage)||0;return (1+r+typeBonus(u,target))/(1+r);};
   const sorted=players=>[...players].sort((a,b)=>b.score-a.score||String(a.id).localeCompare(String(b.id)));
-  // 히어로: 3600점 이상 상위 16명. 레전드: 3600점 이상 인원이 4명 이상이 되면 최고 점수 1명이 탄생하고,
-  // 이후에는 점수가 떨어져도 레전드 보유자는 유지된다(legendId로 전달). 레전드는 히어로 자리에 포함되지 않는다.
-  const HERO_MIN=3600,HERO_SEATS=16,LEGEND_MIN_HEROES=4;
-  function standings(players,legendId=null){
+  // 히어로: 3600점부터, 200점 구간마다 HERO 5 → 4 → 3 → 2 → 1 (3600~3799 HERO 5 … 4400~4599 HERO 1).
+  // 레전드: 4600점 이상. 순위 제한과 레전드 보유자 저장은 두지 않는다(추후 다시 정한다).
+  const HERO_MIN=3600,LEGEND_MIN=4600;
+  function standings(players){
     const rows=sorted(players);
-    const eligible=rows.filter(p=>p.score>=HERO_MIN);
-    let legend=legendId?rows.find(p=>p.id===legendId)||null:null;
-    if(!legend&&eligible.length>=LEGEND_MIN_HEROES)legend=eligible[0];
-    const legendRowId=legend?legend.id:null;
-    let heroSeat=0;
-    const result=rows.map((p,i)=>{
+    return rows.map((p,i)=>{
       let index=indexForScore(p.score);
-      if(p.id===legendRowId)index=29;
-      else if(p.score>=HERO_MIN&&heroSeat<HERO_SEATS){heroSeat++;index=heroSeat<=1?28:heroSeat<=3?27:heroSeat<=6?26:heroSeat<=10?25:24;}
+      if(p.score>=LEGEND_MIN)index=29;
+      else if(p.score>=HERO_MIN)index=Math.min(28,24+Math.floor((p.score-HERO_MIN)/200));
       return {...p,rank:i+1,tier:TIERS[index]};
     });
-    result.legendId=legendRowId;
-    return result;
   }
   // 일일 보상 (등급 인덱스 구간): [시작, 끝, 골드, 토륨]. 히어로 5·4(24~25)와 3·2·1(26~28)은 구간을 나눴다.
   const DAILY_REWARDS=[[0,2,10000,200],[3,5,15000,220],[6,8,20000,250],[9,13,25000,280],[14,18,30000,300],[19,23,35000,350],[24,25,40000,400],[26,28,50000,500],[29,29,70000,800]];
