@@ -57,7 +57,9 @@
     gate1Won:{mood:'confident',title:'첫 승리',body:'잘했어! 아틀라스도 1대 보급됐어. 먼저 함대관리로 돌아가자.',action:'함대관리로 이동'},
     branch:{mood:'confident',title:'튜토리얼을 더 진행할까?',body:'이제 직접 둘러봐도 되고, 내가 화성 5관문과 함선 강화까지 계속 안내해도 돼.',action:'튜토리얼 계속',secondary:'괜찮아'},
     gate2Won:{mood:'confident',title:'2관문 완료',body:'우라노스가 합류했어. 함대관리에서 새 함선을 확인하고 다음 관문도 진행하자.',action:'함대관리로 이동'},
-    gate3Won:{mood:'confident',title:'3관문 완료',body:'리틀보이를 받았어. 함대관리에서 확인한 다음 화성 4관문으로 가자.',action:'함대관리로 이동'},
+    gate3Won:{mood:'confident',title:'3관문 완료',body:'리틀보이를 받았어.',action:'다음'},
+    gate3Frigate:{mood:'focused',title:'프리깃 함선',body:'프리깃 함선은 연구 개발이 우선 되어야 쓸 수 있어.',action:'다음'},
+    gate3Bridge:{mood:'focused',title:'함교 이동',body:'일단, 함교로 이동하자.',action:'함교로 이동'},
     gate4Won:{mood:'confident',title:'4관문 완료',body:'스타 크루저를 한 대 더 받았어. 이제 함대관리에서 강화해 보자.',action:'함대관리로 이동'},
     enhance:{mood:'focused',title:'스타 크루저 강화',body:'격납고를 열고 스타 크루저를 선택한 뒤 강화를 완료해 줘. 같은 함선 한 대를 재료로 쓸 수 있어.'},
     final:{mood:'confident',title:'화성 기초 작전 완료',body:'수고했어, 여기 분위기가 살벌하네... 몸조심하고, 임무성공 축하 선물이 왔을거야, 메일 꼭 확인해봐. 나중에 보자고!',action:'고마워, Farah'}
@@ -70,7 +72,7 @@
   }
   window.tutorialAllowsScreen=id=>{
     if(!active())return true;
-    if(/^prep[1-5]$|^combat[1-5]$|^gate[1-4]Won$/.test(state.step))return id==='battle';
+    if(/^prep[1-5]$|^combat[1-5]$|^gate[1-4]Won$|^gate3(Frigate|Bridge)$/.test(state.step))return id==='battle';
     if(['chooseSlot','chooseShip','branch','enhance','fleetTransit2','fleetTransit3'].includes(state.step))return id==='collection';
     if(/^home[1-5]$/.test(state.step))return id==='home';
     if(/^sortie[1-5]$/.test(state.step))return id==='home'||id==='map'||id==='battle';
@@ -122,7 +124,9 @@
     else if(state.step==='gate1Won')openFleet('branch');
     else if(state.step==='branch')setStep('home2');
     else if(state.step==='gate2Won')openFleet('fleetTransit2');
-    else if(state.step==='gate3Won')openFleet('fleetTransit3');
+    else if(state.step==='gate3Won')setStep('gate3Frigate');
+    else if(state.step==='gate3Frigate')setStep('gate3Bridge');
+    else if(state.step==='gate3Bridge'){setStep('home4');window.show?.('home');}
     else if(state.step==='gate4Won')openFleet('enhance');
     else if(state.step==='final')finish();
   };
