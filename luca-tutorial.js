@@ -162,7 +162,7 @@
   };
 
   // 상점 버튼 찾기 (함교 상단의 [상점] 버튼)
-  const findShopButton=()=>[...document.querySelectorAll('button')].find(button=>button.textContent.trim()==='상점'&&button.offsetParent!==null)||null;
+  const findShopButton=()=>{const button=document.querySelector('button[aria-label="상점"]');return button&&button.offsetParent!==null?button:null;};
 
   // 1회 무료 탐색 완료 알림
   window.addEventListener('ship-exploration-completed',event=>{
