@@ -1,0 +1,24 @@
+/* 타이틀(대문) 화면 */
+#title-screen{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:18px;padding:calc(env(safe-area-inset-top,0px) + 56px) 20px calc(env(safe-area-inset-bottom,0px) + 36px);background:#030914 url('galaxy-lobby-background.png') center / cover no-repeat;color:#eff8ff;text-align:center;overflow:hidden;transition:opacity .45s ease}
+#title-screen::before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#02060fcc 0%,#02060f30 38%,#02060f30 56%,#02060fe0 100%);pointer-events:none}
+#title-screen[hidden]{display:none}
+#title-screen.leaving{opacity:0;pointer-events:none}
+#title-screen>*{position:relative;z-index:1}
+
+.title-logo h1{margin:0;font-family:var(--font-display);font-size:clamp(40px,12vw,58px);font-weight:400;letter-spacing:.06em;color:#fff;text-shadow:0 0 18px #54e5ff,0 0 42px #2a7fb8;text-wrap:balance}
+.title-logo p{margin:10px 0 0;font-family:var(--font-num);font-size:13px;font-weight:600;letter-spacing:.42em;color:#76efff}
+
+.title-hero{width:min(74vw,290px);height:auto;max-width:100%;filter:drop-shadow(0 0 22px #3fdcff66) drop-shadow(0 14px 22px #020818);animation:title-float 6s ease-in-out infinite}
+
+.title-menu{display:grid;gap:12px;width:min(300px,100%)}
+.title-menu button{height:56px;border-radius:14px;border:1px solid #6eeaff;background:linear-gradient(90deg,#0b2a4ae6,#1b4c7de6);color:#fff;font-family:var(--font-display);font-size:21px;letter-spacing:.08em;box-shadow:0 0 0 2px #4c7baf,0 10px 25px #020818;cursor:pointer}
+.title-menu button.secondary{height:46px;border-color:#315b86;background:#07162bd4;box-shadow:none;font-size:16px;color:#cfe6f7}
+.title-menu button:active{transform:translateY(1px)}
+.title-menu button:focus-visible{outline:2px solid #ffd668;outline-offset:3px}
+
+.title-info-panel{width:min(300px,100%);padding:16px 18px;border:1px solid #315b86;border-radius:14px;background:#07162bd9}
+.title-info-panel[hidden]{display:none}
+.title-info-panel strong{display:block;font-family:var(--font-display);font-size:24px;font-weight:400;letter-spacing:.06em;color:#ffd668}
+
+@keyframes title-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.title-hero{animation:none}}
