@@ -187,6 +187,13 @@
     else if(wait==='guarantee'&&event.target.closest('.ssr-guarantee-selected'))setTimeout(advance,0);
   },true);
 
+  // 연구실(summon 화면)이 열릴 때 탐색드론 안내를 시작합니다. 어떤 버튼으로 들어가도 화면 이벤트는 동일하게 발생합니다.
+  window.addEventListener('game-screen-changed',event=>{
+    if(event.detail?.screen!=='summon'||run||!panel)return;
+    if(luca.phase==='drone_pending')startDrone();
+    else if(luca.phase==='drone')resumeDrone();
+  });
+
   // 연구실을 열 때 탐색드론 안내를 시작합니다.
   const wrapOpenLab=()=>{
     const original=window.openResearchLab;
