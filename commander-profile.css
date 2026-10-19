@@ -98,5 +98,3 @@
 .ship-explore-shortage{margin:0 0 12px;color:#ff9da9;font-size:11px;font-weight:700}
 @media(max-width:380px){#persistent-hud .fixed-top.captain-hud{padding:9px 8px;gap:6px}.captain-profile-open{gap:7px}.captain-profile-open .captain-portrait{width:48px;height:65px}.captain-name{font-size:11px}.captain-credentials{font-size:8px;gap:4px}.captain-credentials b{font-size:9px}.captain-hud .captain-balances{width:122px;min-width:122px;max-width:122px}.captain-hud .captain-balances>span{min-width:0;padding:2px 4px}.captain-hud .captain-balances b{font-size:9px}}
 
-/* 함장 초상화의 '!' (수령 가능 알림): 배경·테두리 없이 굵은 붉은 '!' */
-.captain-mail-alert{width:auto;height:auto;display:block;border:0;border-radius:0;background:none;box-shadow:none;color:#ff2424;font-size:26px;font-weight:900;line-height:1;text-shadow:0 0 3px #000,0 0 8px #ff0000aa}
