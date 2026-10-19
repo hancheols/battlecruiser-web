@@ -11256,7 +11256,12 @@
   window.setBattleHold = hold => {
     if (!state || state.status !== 'combat') return;
     state.paused = !!hold;
-    if (!hold) state.lastFrame = performance.now();
+    if (!hold) {
+      state.lastFrame = performance.now();
+      // 일반 적을 모두 처리한 뒤 연출로 멈춘 경우, 재개 직후 다음 단계(보스·외계 함대 등장)를 바로 확인한다.
+      // 처치 이벤트가 없으면 이 확인이 실행되지 않아 전투가 멈춘 것처럼 보이기 때문이다.
+      checkBossThreshold();
+    }
   };
 
   function openForfeitConfirmation() {
