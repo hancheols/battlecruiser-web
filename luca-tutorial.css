@@ -9,3 +9,7 @@
 .luca-dialogue button[hidden]{display:none}
 .luca-dialogue button:hover{filter:brightness(1.2)}
 @media(max-width:600px){.luca-tutorial{left:6px;right:6px;bottom:max(8px,env(safe-area-inset-bottom))}.luca-tutorial>img{width:96px;max-height:170px}}
+
+/* 상점 버튼 강조: 크게 커졌다 줄어드는 빛 (루카 대사 중) */
+.luca-shop-pulse{animation:lucaShopPulse 1s ease-in-out infinite;outline:3px solid #ffd77a;outline-offset:4px;z-index:2}
+@keyframes lucaShopPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #ffd77acc}50%{transform:scale(1.14);box-shadow:0 0 28px 12px #ffd77aee}}

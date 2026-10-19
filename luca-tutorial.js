@@ -69,9 +69,11 @@
 
   const setPulse=el=>{
     if(el===pulseEl){if(panel&&el)panel.classList.toggle('luca-top',el.getBoundingClientRect().top>innerHeight*0.5);return;}
-    pulseEl?.classList.remove('farah-target-pulse');
+    pulseEl?.classList.remove('farah-target-pulse','luca-shop-pulse');
     pulseEl=el;
     el?.classList.add('farah-target-pulse');
+    // 상점 버튼은 더 크게 빛나도록 추가 효과를 준다.
+    if(el?.getAttribute('aria-label')==='상점')el.classList.add('luca-shop-pulse');
     if(panel)panel.classList.toggle('luca-top',!!el&&el.getBoundingClientRect().top>innerHeight*0.5);
   };
 
