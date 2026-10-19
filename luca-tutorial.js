@@ -60,6 +60,7 @@
   let pulseEl=null;
   let popSeen=false;      // 멤버십 팝업을 열었는지
   let searchDone=false;   // 1회 탐색이 끝났는지
+  let summonOpened=false; // 함선 탐색 탭을 열었는지
   const save=()=>write(LUCA_KEY,luca);
   const current=()=>run?.list[run.index];
   const visible=selector=>{const el=document.querySelector(selector);return el&&el.offsetParent!==null?el:null;};
@@ -91,7 +92,7 @@
   const finishRun=()=>{const done=run;run=null;setPulse(null);paint();done?.onDone?.();};
   const advance=()=>{
     if(!run)return;
-    popSeen=false;
+    popSeen=false;summonOpened=false;
     if(run.index<run.list.length-1){
       run.index+=1;
       if(run.list===LUCA_SCRIPT){luca.index=run.index;save();}
@@ -144,6 +145,8 @@
     }
     if(item.wait==='search'){
       if(searchDone){setPulse(null);advance();return;}
+      // 함선 탐색 탭을 한 번 열어 1회 탐색 버튼이 보이게 합니다.
+      if(!summonOpened){summonOpened=true;window.summonTab?.('ship');}
       setPulse(visible('#ship-pool .summon-action:not(.ten)'));
       return;
     }
