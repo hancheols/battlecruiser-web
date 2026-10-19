@@ -10833,7 +10833,9 @@
       runner.style.top = percent(point.y);
     });
     const detonate = index => schedule(() => {
-      if (!state || state.status !== 'combat') return;
+      // 마지막 폭발에서는 전투 상태와 관계없이 포작선을 반드시 지운다.
+      const last = index === skill.explosions - 1;
+      if (!state || state.status !== 'combat') { if (last) runner.remove(); return; }
       createExplosion(point, 'pojakseon');
       playPojakseonExplosionSound();
       livingEnemyTargets().forEach(target => {
@@ -10842,9 +10844,11 @@
       });
       runner.classList.add('detonating');
       announce(`포작선 폭발 ${index + 1}/${skill.explosions}`, 'friendly');
-      if (index === skill.explosions - 1) runner.remove();
+      if (last) runner.remove();
     }, skill.entry + index * skill.interval);
     for (let index = 0; index < skill.explosions; index += 1) detonate(index);
+    // 예비: 전투가 일시 정지되어 예약된 폭발이 실행되지 않아도 시간이 지나면 포작선을 지운다.
+    setTimeout(() => runner.remove(), skill.entry + skill.explosions * skill.interval + 1000);
     // 최종기술 '죽음의 무도': 첫 폭발부터 마지막 폭발까지 모든 적을 포작선(폭발 지점) 쪽으로 계속 끌어당긴다.
     if (skill.deathDance) {
       const start = skill.entry, end = skill.entry + (skill.explosions - 1) * skill.interval + 300;
