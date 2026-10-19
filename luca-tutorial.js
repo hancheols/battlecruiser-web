@@ -138,10 +138,8 @@
       return;
     }
     if(item.wait==='member'){
-      const pop=visible('.alien-shop-membership-pop');
-      if(pop)popSeen=true;
-      if(popSeen&&!pop){setPulse(null);advance();return;}
-      setPulse(pop?null:visible('.alien-shop-membership-card'));
+      // 멤버십 서비스 카드를 누르면 다음으로 넘어갑니다(클릭 처리는 아래 리스너).
+      setPulse(visible('.alien-shop-membership-card'));
       return;
     }
     if(item.wait==='search'){
@@ -169,10 +167,12 @@
     if(run&&current()?.wait==='search'&&Number(event.detail?.count)===1)searchDone=true;
   });
 
-  // 확정 획득 상자를 누르면 대화를 끝냅니다.
+  // 멤버십 서비스 카드를 누르면 다음 대사로, 확정 획득 상자를 누르면 대화를 끝냅니다.
   document.addEventListener('click',event=>{
-    if(!run||current()?.wait!=='guarantee')return;
-    if(event.target.closest('.ssr-guarantee-selected'))setTimeout(advance,0);
+    if(!run)return;
+    const wait=current()?.wait;
+    if(wait==='member'&&event.target.closest('.alien-shop-membership-card'))setTimeout(advance,0);
+    else if(wait==='guarantee'&&event.target.closest('.ssr-guarantee-selected'))setTimeout(advance,0);
   });
 
   // 연구실을 열 때 탐색드론 안내를 시작합니다.
