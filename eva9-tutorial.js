@@ -50,7 +50,8 @@
     weaponTab:()=>({title:'전술무기 연구',body:'이번에는 전술무기연구를 알려드리겠습니다. 연구실의 무기 연구 탭을 누르세요.'}),
     weapon10:()=>({title:'10회 연구',body:'연구인력 10명을 투입하여 전술무기를 10회 연구해 보세요.'}),
     weaponResult:()=>({title:'연구 결과',body:'획득한 연구자료를 확인한 뒤 확인 버튼을 누르세요.'}),
-    frigateOpen:()=>({title:'프리깃 사용 개방',body:'연구에는 인력과 자원이 필요하죠. 연구를 통해 확보한 연구자료와 연구코어로 우리 함대의 무기와 방어체계를 강화할 수 있습니다. 먼저, 중요한 전력인 프리깃을 강화하겠습니다. 프리깃의 개발 버튼을 누르세요.'}),
+    frigateOpen:()=>{const r=researchCounts();return {title:'프리깃 사용 개방',body:`연구에는 인력과 자원이 필요하죠. 연구를 통해 확보한 연구자료와 연구코어로 우리 함대의 무기와 방어체계를 강화할 수 있습니다. 현재 연구일지 ${r.journal}개, 범용연구코어 ${r.core}개를 가지고 있어요.`,action:'다음'};},
+    frigateOpenDev:()=>({title:'프리깃 사용 개방',body:'먼저 중요한 전력인 프리깃 함선 사용을 개방 하겠습니다. 프리깃 칸의 [개발] 버튼을 누르세요.'}),
     frigateNode:()=>({title:'개발 항목 선택',body:'계통도에서 「프리깃 사용 개방」을 선택하세요.'}),
     frigateDevelop:()=>({title:'프리깃 개발',body:'「프리깃 사용 개방 개발」 버튼을 눌러 편성 슬롯을 여세요.'}),
     frigateClose:()=>({title:'개발 완료',body:'개발 창의 × 버튼을 눌러 연구실로 돌아가세요.'}),
@@ -60,6 +61,8 @@
     final:()=>({title:'연구실 안내 완료',body:'연구실은 함대 전력을 강화하는 데 핵심적인 역할을 하고 있습니다. 또 뵙겠습니다, 함장님.',action:'안내 완료'})
   };
   const setStep=step=>{state.step=step;save();paint();};
+  // 연구일지와 범용연구코어 보유량 (연구실 저장값을 그대로 읽습니다)
+  const researchCounts=()=>{try{const r=JSON.parse(localStorage.getItem('starfleet-tactical-weapon-research-v1')||'{}')||{};return {journal:Math.max(0,Math.floor(Number(r.researchJournal)||0)),core:Math.max(0,Math.floor(Number(r.researchCore)||0))};}catch{return {journal:0,core:0};}};
   const deliverCompletionGift=()=>window.deliverCaptainMail?.({id:COMPLETION_MAIL,title:'EVA-9 · 연구실 교육 완료 선물',sender:'EVA-9 · 연구실 운영관',body:'전함 탐색과 전술무기 연구 교육을 완료하셨습니다. 다음 함대 개발에 필요한 보급품을 보내드립니다.',rewards:{gold:2000,thorium:100,scoutTron:10,researchStaff:10}});
   const finish=()=>{deliverCompletionGift();setStep('complete');window.notice?.('EVA-9 연구실 튜토리얼을 마쳤습니다. 선물이 메일함에 도착했습니다.');window.dispatchEvent(new Event('eva9-tutorial-completed'));};
   const paint=()=>{
@@ -90,6 +93,7 @@
       window.closeCaptainProfile?.();
       if(window.openResearchLab?.()!==false){window.summonTab?.('ship');setStep('explore10a');}
     }else if(state.step==='explore10a')setStep('explore10');
+    else if(state.step==='frigateOpen')setStep('frigateOpenDev');
     else if(state.step==='final')finish();
   };
   const allowClick=target=>{
@@ -105,7 +109,7 @@
     if(state.step==='weaponTab')return !!target.closest('.research-tab[data-research="weapon"]');
     if(state.step==='weapon10')return !!target.closest('[data-tactical-pull="10"]');
     if(state.step==='weaponResult')return !!target.closest('.tactical-research-finish');
-    if(state.step==='frigateOpen')return !!target.closest('[data-tactical-develop="frigate"]');
+    if(state.step==='frigateOpenDev')return !!target.closest('[data-tactical-develop="frigate"]');
     if(state.step==='frigateNode')return !!target.closest('[data-branch-node="firepower1"]');
     if(state.step==='frigateDevelop')return !!target.closest('.tactical-tech-overlay .cannon-tech-action');
     if(state.step==='frigateClose')return !!target.closest('.tactical-tech-overlay .tactical-tech-close');
@@ -136,7 +140,7 @@
     else if(state.step==='exploreResult'&&target.closest('.ship-explore-return'))setStep('weaponTab');
     else if(state.step==='weaponTab'&&target.closest('.research-tab[data-research="weapon"]'))setStep('weapon10');
     else if(state.step==='weaponResult'&&target.closest('.tactical-research-finish'))setStep('frigateOpen');
-    else if(state.step==='frigateOpen'&&target.closest('[data-tactical-develop="frigate"]'))setStep('frigateNode');
+    else if(state.step==='frigateOpenDev'&&target.closest('[data-tactical-develop="frigate"]'))setStep('frigateNode');
     else if(state.step==='frigateNode'&&target.closest('[data-branch-node="firepower1"]'))setStep('frigateDevelop');
     else if(state.step==='frigateClose'&&target.closest('.tactical-tech-overlay .tactical-tech-close'))setStep('fleetNav');
     else if(state.step==='frigateSlot'&&target.closest('#collection [data-fleet-slot="3"]'))setStep('littleBoy');
@@ -180,7 +184,7 @@
     setTimeout(()=>{
       if(!state.step){start();return;}
       if(!active())return;
-      if(['explore10a','explore10','weaponTab','weapon10','frigateOpen'].includes(state.step))window.openResearchLab?.();
+      if(['explore10a','explore10','weaponTab','weapon10','frigateOpen','frigateOpenDev'].includes(state.step))window.openResearchLab?.();
       if(['frigateSlot','littleBoy','final'].includes(state.step))window.openFleetManagement?.();
     },120);
   });
