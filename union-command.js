@@ -161,7 +161,6 @@
     return `${pad(Math.floor(total / 3600))}:${pad(Math.floor(total % 3600 / 60))}:${pad(total % 60)}`;
   };
   const reqText = region => `${region.minRarity}급 이상 함선 3대 · 무기 ${region.minWeapons}종 이상`;
-  const rewardText = region => `토륨 ${region.thorium} · 골드 ${region.gold.toLocaleString('ko-KR')} · 50% 확률 함선골조 1개`;
   const pips = (value, total) => `<span class="cmd-pips" aria-label="난이도 ${value}/${total}">${Array.from({ length: total }, (_, i) => `<i class="${i < value ? 'on' : ''}"></i>`).join('')}</span>`;
   const panel = (title, body) => `<section class="fac-panel cmd-panel"><h3><i></i>${title}</h3>${body}</section>`;
   const notice = () => {
@@ -216,7 +215,7 @@
   function regionView(state) {
     const region = regionById(ui.regionId) || REGIONS[0];
     const back = `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="dispatch">‹ 의뢰 목록</button></div>`;
-    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>최대 보상</span><b>${rewardText(region)}</b></li></ul>`);
+    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>확정 보상</span><b>토륨 ${region.thorium} · 골드 ${region.gold.toLocaleString('ko-KR')}</b></li><li><span>확률 보상</span><b>함선골조 1개 (50%)</b></li></ul>`);
 
     if (state.active && state.active.regionId === region.id) {
       const mission = state.active;
