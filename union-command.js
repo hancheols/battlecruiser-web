@@ -260,8 +260,8 @@
         const key = keyOf(v);
         const inUse = used.has(key);
         const taken = others.filter(k => k === key).length;
-        const blocked = taken >= v.copies;
-        const note = taken >= v.copies ? '다른 슬롯에 선택됨' : inUse ? '배틀·아레나 편성 중' : `보유 ${v.copies}`;
+        const blocked = inUse || taken >= v.copies;
+        const note = inUse ? '배틀·아레나 편성 중' : taken >= v.copies ? '다른 슬롯에 선택됨' : `보유 ${v.copies}`;
         return `<button type="button" class="cmd-card${inUse || blocked ? ' dim' : ''}" data-cmd="pick-choose" data-key="${esc(key)}" data-inuse="${inUse ? '1' : ''}" ${blocked ? 'disabled' : ''}><div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${note}</em></button>`;
       }).join('');
     return `<div class="cmd-sheet" role="dialog" aria-modal="true" aria-label="함선 선택"><header><b>함선 ${slot + 1} 선택</b><button type="button" class="cmd-close" data-cmd="pick-close">닫기</button></header>${cards ? `<div class="cmd-grid">${cards}</div>` : `<p class="cmd-intro">${region.minRarity}급 이상 보유 함선이 없습니다.</p>`}</div>`;
