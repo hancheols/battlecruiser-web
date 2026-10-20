@@ -9,7 +9,7 @@
   const DURATION = 8 * HOUR;          // 최대 임무 시간
   const BONUS_CHANCE = 0.5;           // 완료 시 함선골조 보너스 확률
   const RARITIES = ['R', 'SR', 'SSR', 'L'];
-  const WEAPONS = ['레이저포', '관통레이저', '함포', '미사일', '함재기'];
+  const WEAPONS = ['레이저포', '관통레이저', '함포', '미사일', '함재기', '전기'];
   const FRAMES = ['frameCannon', 'frameMissile', 'frameLaser', 'framePiercing', 'frameCarrier'];
   const SHIPS_PER_MISSION = 3;
   const FRAME_NAMES = { frameCannon: '함포 골조', frameMissile: '미사일 골조', frameLaser: '레이저포 골조', framePiercing: '관통레이저 골조', frameCarrier: '함재기 골조' };
@@ -79,7 +79,8 @@
     return { type, name, rarity, stars: Number(stars) || 0 };
   };
   const keyOf = v => `${v.type}|${v.name}|${v.rarity}|${v.stars}`;
-  const ownedVariants = () => (window.getOwnedShipVariants?.() || []);
+  // 프리깃은 별도 조건으로 분류하므로 파견 함선 선택에서 뺀다
+  const ownedVariants = () => (window.getOwnedShipVariants?.() || []).filter(v => v.type !== 'frigate');
 
   // 선택한 함선 3대가 조건을 만족하는지 체크리스트로 돌려준다.
   function checklist(region, slots) {
