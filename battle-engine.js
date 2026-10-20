@@ -346,7 +346,7 @@
   const DREAD_TURTLE_CHARGE = { travel: 650, shockHits: 777, shield: 500, shieldBoostRatio: .2, fearDuration: 1000, fearTouchRadius: 56, shieldUnfold: 1650, firstTurnDelay: 2000, firstAdvance: .075, firstAdvanceDuration: 3000, secondAdvance: .05, secondAdvanceDuration: 2000, arrivalEchoDuration: 520 };
   const MAGELLAN_CANNON = { hits: 100, interval: 500 };
   const MAGELLAN_MAIN = { hits: 500, enhancedHits: 700, duration: 3000, radius: .2, stun: 2000, fleetSpeedBonus: .5, fleetSpeedDuration: 3000 };
-  const ASSAULT_TURTLE_MISSILE = { hits: 400, interval: 330, travel: 420, fx: 'missile', splashRadius: 56 };
+  const ASSAULT_TURTLE_MISSILE = { hits: 400, interval: 330, travel: 420, fx: 'missile', splashRadius: 56, enhancedRadiusRatio: 1.3 };
   const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, duration: 2000, travel: 360 };
   const ASSAULT_TURTLE_CHARGE = { travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
@@ -8889,7 +8889,7 @@
       const impact = target.dead ? to : pointOf(target);
       const field = refs.field.getBoundingClientRect();
       const nearby = ally.assaultTurtleStars >= 3 ? hostileTargetsFor(ally).filter(candidate => candidate !== target && !candidate.dead &&
-        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= ASSAULT_TURTLE_MISSILE.splashRadius) : [];
+        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= ASSAULT_TURTLE_MISSILE.splashRadius * ASSAULT_TURTLE_MISSILE.enhancedRadiusRatio) : [];
       [target, ...nearby].forEach(candidate => {
         if (!candidate || candidate.dead) return;
         const before = candidate.hp;

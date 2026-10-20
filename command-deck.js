@@ -539,7 +539,7 @@ function initializeFleetFormation(){
     'battlecruiser:야마토':{aux:'미사일',ultimate:'최후의 저항'},
     'battlecruiser:히페리온':{aux:'최대출력'},
     'battlecruiser:거북선':{aux:'확산탄',ultimate:'쾌속'},
-    'battlecruiser:돌격 거북선':{aux:'일휘소탕',ultimate:'혈염산하'},
+    'battlecruiser:돌격 거북선':{aux:'일휘소탕 : 돌격거북선 미사일 공격이 범위 피해로 변경 및 폭발 반경 30% 증가. 범위내 모든 적에게 100% 데미지.',ultimate:'혈염산하 : 돌격 후 귀환할 때 폭발 데미지 추가.'},
     'destroyer:블레이드':{aux:'보조레이저'},
     'destroyer:스피어':{aux:'폭발레이저'},
     'destroyer:우라노스':{aux:'투샷'},
