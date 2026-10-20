@@ -565,14 +565,18 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
       const myRole = union?.members.find(m => m.playerId === me.playerId)?.role;
       // 화면 전환 때 남아 있는 스크롤 위치를 맨 위로 되돌려, 광장 화면이 위로 밀리지 않게 한다.
       const screenEl = document.getElementById("earth-union");
-      if (screenEl) screenEl.scrollTop = 0;
-      if (window.scrollY) window.scrollTo(0, 0);
+      const keep = ui.restoreScroll; ui.restoreScroll = null;
+      if (!keep) {
+        if (screenEl) screenEl.scrollTop = 0;
+        if (window.scrollY) window.scrollTo(0, 0);
+      }
       // 연합이 없으면 광장(건물 배경) 대신 연합 가입 / 연합 창설 화면을 바로 보여준다.
       if (!union && (ui.view === "hub" || ui.view === "hall")) host.innerHTML = noUnionHtml(await api.searchUnions(ui.query));
       else if (ui.view === "hub") host.innerHTML = hubHtml(union, myRole === "leader" || myRole === "officer");
       else if (ui.view === "hall") host.innerHTML = memberHtml(union, me);
       else host.innerHTML = facilityHtml(facility(ui.view) || FACILITIES[1]);
       bind(host, union, me);
+      if (keep) { if (screenEl) screenEl.scrollTop = keep.y; window.scrollTo(0, keep.wy); }
       fitScene(); requestAnimationFrame(fitScene);
     } catch (error) {
       host.innerHTML = `<h1>지구연합</h1><p>연합 정보를 불러오지 못했습니다.</p>`;
@@ -592,8 +596,9 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     on('[data-mode]', e => { ui.mode = e.currentTarget.dataset.mode; render(); });
     on('[data-query]', e => { ui.query = e.currentTarget.value; render().then(() => { const input = root()?.querySelector('[data-query]'); input?.focus(); input?.setSelectionRange(ui.query.length, ui.query.length); }); }, 'change');
     on('[data-join]', e => run(() => adapter().joinUnion(e.currentTarget.dataset.join), r => r === 'applied' ? '가입 신청을 보냈습니다.' : '연합에 가입했습니다.'));
-    on('[data-em-part]', e => { const cur = window.UnionEmblem.normalize(ui.draft.emblem); ui.draft.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
-    on('[data-em-random]', () => { ui.draft.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });
+    const rememberScroll = () => { ui.restoreScroll = { y: document.getElementById('earth-union')?.scrollTop || 0, wy: window.scrollY || 0 }; };
+    on('[data-em-part]', e => { rememberScroll(); const cur = window.UnionEmblem.normalize(ui.draft.emblem); ui.draft.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
+    on('[data-em-random]', () => { rememberScroll(); ui.draft.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });
     on('[data-emblem]', e => { ui.draft.emblem = e.currentTarget.dataset.emblem; syncDraft(host); render(); });
     on('[data-create]', e => { e.preventDefault(); syncDraft(host); run(() => adapter().createUnion(ui.draft), '연합을 창설했습니다.').then(() => { ui.draft = { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }; ui.tab = 'hall'; }); }, 'submit');
     on('[data-save-notice]', () => run(() => adapter().updateUnion({ notice: host.querySelector('[data-notice]').value }), '공지를 저장했습니다.'));
