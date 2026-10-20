@@ -564,7 +564,7 @@ function initializeFleetFormation(){
     'battlecruiser:퓨리':{aux:'미사일 강화 : 미사일과 다련장 포격 피해 50% 증가',ultimate:'다련장 심화 : 다련장 포격 피해 50% 추가 증가'},
     'battlecruiser:헬리오스':{aux:'강화 굴절레이저 강화 : 굴절레이저 1발 피해 200 → 400'},
     'battlecruiser:아포칼립스':{aux:'포격 강화 : 포격 횟수 4회 → 8회'},
-    'battlecruiser:스타 크루저':{ultimate:'3연광자포 : 주포를 3발 연속 발사'},
+    'battlecruiser:스타 크루저':{aux:'중광자포 : 광자포가 스플래시 데미지로 변경',ultimate:'3연광자포 : 주포를 3발 연속 발사'},
     'battlecruiser:브라운베스':{aux:'목표포착 : 저격 후 행동불능 시간 1초 → 2초',ultimate:'더블타겟 : 저격 시 가장 강한 적 2기를 동시에 저격'},
     'battlecruiser:아이오와':{aux:'강화 토마호크 : 토마호크 피해 500 → 700',ultimate:'지휘 : 아군 함대 공격속도 50% 증가 (3초)'},
     'battlecruiser:마젤란':{aux:'주포 강화 : 집중포화 피해 500 → 700',ultimate:'지휘 : 아군 함대 공격속도 50% 증가 (3초) · 집중포화 맞은 적 2초 기절'},
