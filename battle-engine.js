@@ -4871,27 +4871,41 @@
     return true;
   }
 
+  // 최후의 저항(5성, 전투당 1회): 치명적 피해를 입으면 쓰러지지 않고 전장에 10초간 남는다.
+  // 그 10초 동안은 공격 대상이 되지 않고 일반공격만 하며, 끝나면 전집중!을 발동한 뒤 퇴각한다.
+  const YAMATO_LAST_STAND = { duration: 10000 };
   function triggerYamatoLastStand(ally) {
     if (!ally || ally.yamatoLastStandUsed || ally.yamatoStars < 5) return false;
     ally.yamatoLastStandUsed = true;
-    ally.yamatoImmuneUntil = performance.now() + 5000;
+    ally.hp = 0;
+    ally.dead = true;
+    ally.yamatoLastStandActive = true;
     ally.el?.classList.add('yamato-last-stand');
     if (ally.energy !== null) {
       ally.energy = 0;
       updateBattlecruiserEnergy(ally);
     }
     announce(`${ally.ship.name} · 최후의 저항`, 'friendly');
-    const started = fireYamatoFullBarrage(ally, {
-      keepCharging: true,
-      onComplete: () => {
-        const remaining = Math.max(0, ally.yamatoImmuneUntil - performance.now());
-        schedule(() => {
-          ally.charging = false;
-          retreatAlly(ally);
-        }, remaining);
-      }
-    });
-    if (!started) retreatAlly(ally);
+    // 10초 동안 일반공격(함포)을 계속한다. 공격 대상이 되지 않도록 dead 상태로 두고, 발사만 직접 호출한다.
+    const interval = (YAMATO_CANNON.shots - 1) * YAMATO_CANNON.shotInterval + YAMATO_CANNON.reload;
+    for (let elapsed = 0; elapsed < YAMATO_LAST_STAND.duration; elapsed += interval) {
+      schedule(() => {
+        if (!state || state.status !== 'combat' || !ally.yamatoLastStandActive) return;
+        fireYamatoCannonCycle(ally);
+      }, elapsed);
+    }
+    // 10초가 끝나면 다시 전장의 함선으로 돌아와 전집중!을 쏘고 퇴각한다.
+    schedule(() => {
+      if (!state || state.status !== 'combat') return;
+      ally.yamatoLastStandActive = false;
+      ally.dead = false;
+      ally.el?.classList.remove('yamato-last-stand');
+      const started = fireYamatoFullBarrage(ally, {
+        keepCharging: true,
+        onComplete: () => retreatAlly(ally)
+      });
+      if (!started) retreatAlly(ally);
+    }, YAMATO_LAST_STAND.duration);
     return true;
   }
 
