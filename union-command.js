@@ -208,8 +208,10 @@
   function dispatchView(state) {
     const rows = REGIONS.map((region, index) => {
       const mine = state.active?.regionId === region.id;
-      const tag = mine ? (state.active.status === 'pending' ? '보상 대기' : '파견 중') : (state.active ? '잠김' : '');
-      return `<button type="button" class="cmd-cell cmd-region${mine ? ' live' : ''}" data-cmd="region" data-region="${region.id}"><div><b>${esc(region.name)}</b>${pips(index + 1, REGIONS.length)}</div>${tag ? `<span class="cmd-tag">${tag}</span>` : ''}</button>`;
+      const pending = mine && state.active.status === 'pending';
+      const badge = mine ? `<em class="cmd-inline">${pending ? '보상 대기' : '파견 중'}</em>` : '';
+      const right = mine && !pending ? `<span class="cmd-timer" data-cmd-remaining data-ends="${state.active.endsAt}">${fmt(state.active.endsAt - now())}</span>` : (state.active && !mine ? '<span class="cmd-tag">잠김</span>' : '');
+      return `<button type="button" class="cmd-cell cmd-region${mine ? ' live' : ''}" data-cmd="region" data-region="${region.id}"><div><div class="cmd-row-title"><b>${esc(region.name)}</b>${badge}</div>${pips(index + 1, REGIONS.length)}</div>${right}</button>`;
     }).join('');
     return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
   }

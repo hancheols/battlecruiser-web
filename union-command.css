@@ -122,3 +122,8 @@
 .cmd-yn button:last-child{background:linear-gradient(90deg,#3a2a10,#6b4a18);border-color:#ffd27a;color:#fff}
 .cmd-card.dim:not(:disabled){cursor:pointer}
 .cmd-card:disabled{cursor:not-allowed}
+
+/* 함대파견 목록: 파견 중 표시(이름 옆)와 남은 시간(오른쪽 끝) */
+.cmd-row-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.cmd-inline{font-style:normal;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--acc2);color:#ffe2a6;white-space:nowrap}
+.cmd-timer{flex:none;font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;color:#ffe2a6;white-space:nowrap;text-shadow:0 0 8px var(--glow)}
