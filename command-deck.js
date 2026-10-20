@@ -470,7 +470,6 @@ function initializeFleetFormation(){
     'destroyer:페가수스':[2000,'관통 레이저',606,'관통 레이저 2문 · 각 100 / 0.33초 · 4초 발사 후 3초 재장전 · 목표를 추적하며, 처치되면 가까운 새 목표로 자동 전환','멸절 · 종료 후 2초 행동불능'],
     'destroyer:판도라':[2000,'미사일 · 함포 · 레이저포 · 전기 · 관통레이저',533,'1초 순환 · 미사일 300 × 2 / 레이저포 500 / 함포 250 × 2','뇌격미사일 · 2초 충전 → 미사일 500 × 2 → 1초 뒤 지름 90px 전기 300 · 전격 1.5초'],
     'destroyer:KDDX':[2000,'레이저포',300,'레이저 450 · 1.5초 간격','연쇄번개 · 1초 충전 후 가까운 적 우선 · 1,500 범위 피해와 전이 범위 피해 · 피해 대상 3초 기절 및 초당 내구도 2% 감전'],
-    'destroyer:가루다':[1000,'미사일',250,'양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선','수호자 · 미사일 9발 동시 발사'],
     'frigate:방패선':[null,'지원',null,'일반공격 없음','천상의 보호막 · 5초'],
     'frigate:레판토':[null,'함포',null,'소환 후 5초간 함포 100 / 0.5초, 미사일 150 / 1초','전열 포격 · 소환형'],
     'frigate:포작선':[null,'자폭',null,'일반공격 없음','자폭 500 × 3회'],
@@ -518,7 +517,6 @@ function initializeFleetFormation(){
   const normalAttackDescription=(ship,stars,profile)=>ship?.type==='destroyer'&&ship.name==='바랴그'?`반경 48px 스플래시 미사일 200 × ${stars>=5?5:3}발 · ${stars>=3?'약 0.92':'1.2'}초 간격`:ship?.type==='destroyer'&&ship.name==='오메가'?`관통 레이저 3문 · 각 150 / 0.5초 · 재장전 ${stars>=3?'1':'2'}초`:ship?.type==='destroyer'&&ship.name==='KDDX'?`레이저 450 · ${stars>=3?'약 1.15':'1.5'}초 간격`:ship?.type==='destroyer'&&ship.name==='가루다'?`양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선`:profile?.[3]||'—';
   const shipSkillNames={
     'destroyer:KDDX':{aux:'속전속결',ultimate:'임전무퇴'},
-    'destroyer:가루다':{aux:'탄두강화',ultimate:'우파가루다'},
     'dreadnought:니미츠':{aux:'전면공세 지원',ultimate:'함재기 폭주'},
     'dreadnought:앙헬라':{aux:'천사의 날개 강화',ultimate:'징벌의 칼'},
     'dreadnought:콜로서스':{aux:'보호막 강화',ultimate:'응징의 방패'},
@@ -558,6 +556,48 @@ function initializeFleetFormation(){
     'destroyer:데이모스':{aux:'샷건강화',ultimate:'드래곤 브레스'},
     'destroyer:바랴그':{aux:'투지',ultimate:'용맹'},
     'destroyer:오메가':{aux:'신속장전',ultimate:'폭렬레이저'}
+  };
+  // 함선 상세 카드의 보조기술·최종기술 설명. 형식은 '이름 : 설명'이고, 값은 battle-engine.js 실제 수치에서 가져왔다.
+  // 여기 없는 기술은 '설명 준비 중'으로 표시된다.
+  const SKILL_INFO={
+    'battlecruiser:거북선':{aux:'확산탄 : 미사일 폭발 반경 내의 대상에 50% 추가피해',ultimate:'쾌속 : 미사일 발사 속도 10% 증가 · 포격 선회 시간 절반'},
+    'battlecruiser:퓨리':{aux:'미사일 강화 : 미사일과 다련장 포격 피해 50% 증가',ultimate:'다련장 심화 : 다련장 포격 피해 50% 추가 증가'},
+    'battlecruiser:헬리오스':{aux:'강화 굴절레이저 강화 : 굴절레이저 1발 피해 200 → 400'},
+    'battlecruiser:아포칼립스':{aux:'포격 강화 : 포격 횟수 4회 → 8회'},
+    'battlecruiser:스타 크루저':{ultimate:'3연광자포 : 주포를 3발 연속 발사'},
+    'battlecruiser:브라운베스':{aux:'목표포착 : 저격 후 행동불능 시간 1초 → 2초',ultimate:'더블타겟 : 저격 시 가장 강한 적 2기를 동시에 저격'},
+    'battlecruiser:아이오와':{aux:'강화 토마호크 : 토마호크 피해 500 → 700',ultimate:'지휘 : 아군 함대 공격속도 50% 증가 (3초)'},
+    'battlecruiser:마젤란':{aux:'주포 강화 : 집중포화 피해 500 → 700',ultimate:'지휘 : 아군 함대 공격속도 50% 증가 (3초) · 집중포화 맞은 적 2초 기절'},
+    'battlecruiser:아이언피스트':{aux:'철권TT : 주포 6연발, 발사 간격 0.5초',ultimate:'철방패 : 자신에게 최대 내구도 30% 보호막 (5초)'},
+    'battlecruiser:야마토':{aux:'미사일 : 좌우 미사일 발사 추가'},
+    'battlecruiser:히페리온':{aux:'최대출력 : 집중 사격 지속시간 1.5배'},
+    'dreadnought:니미츠':{aux:'전면공세 지원 : 발동 시 자신이 1초간 피해 면역',ultimate:'함재기 폭주 : 함재기 공격력 50% 증가'},
+    'dreadnought:콜로서스':{aux:'보호막 강화 : 아군 전체에 최대 내구도 52.5% 보호막',ultimate:'응징의 방패 : 깨지고 남은 보호막을 적에게 던져 피해 (최대 3회 타격)'},
+    'dreadnought:배스천':{aux:'자가수리 강화 : 전투기 수리량 5% → 10%',ultimate:'함재기 증원 : 전투기 2차 편대가 추가로 출격'},
+    'dreadnought:거북선':{aux:'방패강화 : 아군 전체에 보호막 (보호막량 20% 증가)',ultimate:'귀면강화 : 돌격 시 적에게 1초간 공포'},
+    'dreadnought:아이기스':{aux:'4드론 : 수리 드론을 4기 동시에 출격 (기본 1기)'},
+    'dreadnought:아틀라스':{aux:'플라즈마 강화 : 플라즈마 2발 → 4발, 피해 300 → 400'},
+    'dreadnought:해머':{aux:'5드론 : 드론 5기 출격, 드론 피해 300 → 400'},
+    'dreadnought:도저':{aux:'회피강화 : 회피 확률 30% → 50%',ultimate:'디코이 : 가까운 적 3기를 끌어들이고 회피 확률 20% 추가'},
+    'dreadnought:탱크':{aux:'암석화 : 석화 무적 시간 1초 → 2초'},
+    'dreadnought:네메시스':{aux:'추가 전기그물 : 전기그물 2개 동시 발사',ultimate:'복수 : 전기그물 3개 발사, 그물 유지 중에도 관통레이저 계속 발사'},
+    'destroyer:KDDX':{aux:'속전속결 : 레이저 발사 간격 23% 단축',ultimate:'임전무퇴 : 피해가 쌓이면 잠시 후퇴 후 복귀 (후퇴 대기 10초, 회수마다 4초 추가)'},
+    'destroyer:오메가':{aux:'신속장전 : 일반공격 장전시간 50% 감소',ultimate:'폭렬레이저 : 집중타격 종료 후 대상 주변 좁은 범위에 폭발 피해 1,000'},
+    'destroyer:페가수스':{aux:'히포크레네 : 멸절 후 2초 행동불능 동안 초당 최대 내구도 5% 회복',ultimate:'벨레로폰의 창 : 5초마다 함수 방향으로 은빛 창 관통 · 관통 피해 1,000 / 스침 피해 300'},
+    'destroyer:행성파괴자':{aux:'우주방어 : 초신성 사용 즉시 내구도 10% 보호막 · 피격 시 적에게 일반 레이저 피해로 반격',ultimate:'멸종 : 초신성 마지막 타격이 모든 적에게 적용 · 전체 화면 붉은 플래시 1초'},
+    'destroyer:데이모스':{aux:'샷건강화 : 샷건포 피해범위와 피해량 30% 증가',ultimate:'드래곤 브레스 : 샷건포 피해를 입은 적이 3초간 불타며, 0.5초마다 샷건포 피해의 5% 추가 피해'},
+    'destroyer:수 판옥선':{aux:'도탄포 : 일반·핵심 함포 명중 시 근처 적 1기에게 동일 피해',ultimate:'초신속 : 선회시간 50% 감소 · 좌측/우측 연속 포격 후 제자리'},
+    'destroyer:판도라':{aux:'절망 : 핵심기술 발동 시 남은 내구도 50% 소모 · 모든 피해 100% 증가',ultimate:'희망 : 절망 비활성화 · 충전 중 선수 관통레이저 1,000/초 · 발사 중 방향 고정'},
+    'destroyer:바랴그':{aux:'투지 : 공격속도 30% 증가 · 자폭드론 2기 추가',ultimate:'용맹 : 선측 미사일 좌우 각 1발 추가 · 치명 피해 후 10초 공격하고 퇴각'},
+    'destroyer:블레이드':{aux:'보조레이저 : 관통레이저 1줄기를 피해 50%로 추가 발사'},
+    'destroyer:스피어':{aux:'폭발레이저 : 레이저 명중 지점 주변에 폭발 피해'},
+    'destroyer:우라노스':{aux:'투샷 : 함포를 한 번에 2발 발사'},
+    'frigate:리틀보이':{aux:'전술핵 강화 : 핵폭발 피해 2배',ultimate:'Fat Man : 출격 2회 충전 · 1회 사용 뒤 3초 대기 · 2회 모두 쓰면 재사용 대기'},
+    'frigate:건설드론':{aux:'회복 : 수리 시 모든 상태이상 해제 · 3초 상태이상 면역',ultimate:'수리기능 향상 : 수리 회복량 2배'},
+    'frigate:포작선':{aux:'추가폭발 : 자폭 5회',ultimate:'죽음의 무도 : 폭발하는 동안 모든 적을 포작선 쪽으로 끌어당김'},
+    'frigate:방패선':{aux:'전장사수 : 방패선 지속시간 30% 증가',ultimate:'가시방패 : 보호막이 받은 피해를 공격한 적에게 되돌려줌'},
+    'frigate:레판토':{aux:'Ship of the Line : 포격시간 50% 증가',ultimate:'Victory : 공격속도·공격력 30% 증가'},
+    'frigate:과학 드론':{aux:'전술 확장 : 서로 다른 전술 2가지 동시 시전 · 효과 20% 증가',ultimate:'최적화 : 모든 전술 동시 시전 · 효과 20% 추가 증가'}
   };
   const coreSkillDescription=(ship,stars,profile)=>{
     if(ship?.type==='destroyer'&&ship?.name==='가루다')return '수호자';
@@ -695,7 +735,7 @@ function initializeFleetFormation(){
     // 기술 칸(핵심·보조·최종)을 누르면 그 기술의 설명을 작은 팝업으로 띄운다.
     const plainSkillText=html=>String(html??'').replace(/<[^>]+>/g,'').trim();
     const skillTitles=['핵심기술','보조기술','최종기술'];
-    const skillDetails=profile?[plainSkillText(coreSkillDescription(detailShip,skillStars,profile)),plainSkillText(skillStateMarkup(detailShip,skillStars,'aux',rarity)),plainSkillText(skillStateMarkup(detailShip,skillStars,'ultimate',rarity))]:['','',''];
+    const skillInfo=SKILL_INFO[`${codexType}:${name}`]||{};const skillDetailText=(slot,fallbackName)=>skillInfo[slot]||`${fallbackName} : 설명 준비 중입니다.`;const skillDetails=profile?[plainSkillText(coreSkillDescription(detailShip,skillStars,profile)),skillDetailText('aux',plainSkillText(skillStateMarkup(detailShip,skillStars,'aux',rarity))),skillDetailText('ultimate',plainSkillText(skillStateMarkup(detailShip,skillStars,'ultimate',rarity)))]:['','',''];
     const skillRequirements=[plainSkillText(skillRequirementMarkup(skillStars,'aux',rarity,detailShip)),plainSkillText(skillRequirementMarkup(skillStars,'ultimate',rarity,detailShip))];
     const statsBox=modal.querySelector('.ship-detail-stats');
     statsBox.innerHTML=actualLabels.map((label,i)=>`<div${i>=3?' class="skill-detail-row" role="button" tabindex="0" data-skill-index="'+(i-3)+'"':''}><b>${label}</b><span>${actualValues[i]}</span></div>`).join('');
