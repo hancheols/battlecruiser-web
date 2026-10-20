@@ -7,24 +7,23 @@
   const RESOURCE_KEY = 'starfleet-game-resources-v1';
   const HOUR = 3600000;
   const DURATION = 8 * HOUR;          // 최대 임무 시간
-  const BONUS_CHANCE = 0.5;           // 완료 시 함선골조 보너스 확률
   const RARITIES = ['R', 'SR', 'SSR', 'L'];
   const WEAPONS = ['레이저포', '관통레이저', '함포', '미사일', '함재기', '전기'];
   const FRAMES = ['frameCannon', 'frameMissile', 'frameLaser', 'framePiercing', 'frameCarrier'];
   const SHIPS_PER_MISSION = 3;
   const FRAME_NAMES = { frameCannon: '함포 골조', frameMissile: '미사일 골조', frameLaser: '레이저포 골조', framePiercing: '관통레이저 골조', frameCarrier: '함재기 골조' };
 
-  // 지역 설정. 화성 수치는 기획 확정값이다. 나머지 지역의 요구 조건과 보상은 난이도 순으로 잡은 임시값이라 조정이 필요하다.
+  // 지역 설정. minStars: 함선 성급 하한(0이면 없음), frameChance: 완료 시 함선골조 확률, 골드·토륨 0은 지급 없음.
+  // 오르트구름 지역5의 무기 종류는 기획에 없어서 3종으로 임시 설정했다.
   const REGIONS = [
-    { id: 'mars', name: '화성', minRarity: 'R', minWeapons: 2, thorium: 50, gold: 5000 },
-    { id: 'titan', name: '타이탄', minRarity: 'SR', minWeapons: 2, thorium: 80, gold: 8000 },
-    { id: 'oort1', name: '오르트구름 지역1', minRarity: 'SR', minWeapons: 3, thorium: 120, gold: 12000 },
-    { id: 'oort2', name: '오르트구름 지역2', minRarity: 'SSR', minWeapons: 2, thorium: 160, gold: 16000 },
-    { id: 'oort3', name: '오르트구름 지역3', minRarity: 'SSR', minWeapons: 3, thorium: 220, gold: 22000 },
-    { id: 'oort4', name: '오르트구름 지역4', minRarity: 'SSR', minWeapons: 3, thorium: 300, gold: 30000 },
-    { id: 'oort5', name: '오르트구름 지역5', minRarity: 'L', minWeapons: 3, thorium: 400, gold: 40000 }
-  ];
-  const regionById = id => REGIONS.find(region => region.id === id);
+    { id: 'mars', name: '화성', minRarity: 'R', minStars: 0, minWeapons: 2, thorium: 50, gold: 5000, frameChance: 0.5 },
+    { id: 'titan', name: '타이탄', minRarity: 'R', minStars: 2, minWeapons: 2, thorium: 100, gold: 10000, frameChance: 0 },
+    { id: 'oort1', name: '오르트구름 지역1', minRarity: 'SR', minStars: 0, minWeapons: 3, thorium: 200, gold: 0, frameChance: 0.6 },
+    { id: 'oort2', name: '오르트구름 지역2', minRarity: 'SR', minStars: 2, minWeapons: 2, thorium: 0, gold: 20000, frameChance: 0 },
+    { id: 'oort3', name: '오르트구름 지역3', minRarity: 'SR', minStars: 5, minWeapons: 3, thorium: 250, gold: 0, frameChance: 0 },
+    { id: 'oort4', name: '오르트구름 지역4', minRarity: 'SSR', minStars: 0, minWeapons: 3, thorium: 250, gold: 25000, frameChance: 0 },
+    { id: 'oort5', name: '오르트구름 지역5', minRarity: 'SSR', minStars: 2, minWeapons: 3, thorium: 300, gold: 30000, frameChance: 0.7 }
+  ];  const regionById = id => REGIONS.find(region => region.id === id);
 
   // ───────── 저장 ─────────
   const now = () => Date.now();
@@ -36,7 +35,7 @@
 
   const isOngoing = mission => Boolean(mission && mission.status === 'ongoing' && now() < mission.endsAt);
   const rankOf = rarity => Math.max(0, RARITIES.indexOf(rarity));
-  const rollFrame = () => (Math.random() < BONUS_CHANCE ? FRAMES[Math.floor(Math.random() * FRAMES.length)] : null);
+  const rollFrame = region => (Math.random() < region.frameChance ? FRAMES[Math.floor(Math.random() * FRAMES.length)] : null);
 
   // 시간이 다 된 임무는 '보상 대기'로 넘긴다. 보너스는 이때 한 번만 굴려 저장한다.
   function settle(state) {
@@ -44,7 +43,7 @@
     if (mission && mission.status === 'ongoing' && now() >= mission.endsAt) {
       const region = regionById(mission.regionId);
       mission.status = 'pending';
-      mission.payout = { thorium: region.thorium, gold: region.gold, frame: rollFrame(), recalled: false };
+      mission.payout = { thorium: region.thorium, gold: region.gold, frame: rollFrame(region), recalled: false };
       write(state);
     }
     return state;
@@ -90,10 +89,10 @@
     slots.filter(Boolean).forEach(key => { counts[key] = (counts[key] || 0) + 1; });
     const enough = Object.entries(counts).every(([key, n]) => n <= (owned.find(v => keyOf(v) === key)?.copies || 0));
     const weapons = new Set(picked.filter(Boolean).flatMap(weaponsOf));
-    const allRarity = picked.length === SHIPS_PER_MISSION && picked.every(v => v && rankOf(v.rarity) >= rankOf(region.minRarity));
+    const allRarity = picked.length === SHIPS_PER_MISSION && picked.every(v => v && rankOf(v.rarity) >= rankOf(region.minRarity) && (v.stars || 0) >= region.minStars);
     return [
       { ok: picked.length === SHIPS_PER_MISSION && picked.every(Boolean), text: `함선 ${SHIPS_PER_MISSION}대 선택 (${slots.filter(Boolean).length}/${SHIPS_PER_MISSION})` },
-      { ok: allRarity, text: `전원 ${region.minRarity}급 이상` },
+      { ok: allRarity, text: `전원 ${region.minRarity}급${region.minStars ? ` ${region.minStars}성` : ''} 이상` },
       { ok: weapons.size >= region.minWeapons, text: `무기 종류 ${region.minWeapons}가지 이상 (현재 ${weapons.size}가지)` },
       { ok: enough, text: '보유 수 안에서 선택' }
     ];
@@ -161,7 +160,9 @@
     const pad = n => String(n).padStart(2, '0');
     return `${pad(Math.floor(total / 3600))}:${pad(Math.floor(total % 3600 / 60))}:${pad(total % 60)}`;
   };
-  const reqText = region => `${region.minRarity}급 이상 함선 3대 · 무기 ${region.minWeapons}종 이상`;
+  const reqText = region => `${region.minRarity}급${region.minStars ? ` ${region.minStars}성` : ''} 이상 함선 3대 · 무기 ${region.minWeapons}종 이상`;
+  const fixedRewardText = region => [region.thorium ? `토륨 ${region.thorium}` : '', region.gold ? `골드 ${region.gold.toLocaleString('ko-KR')}` : ''].filter(Boolean).join(' · ') || '없음';
+  const chanceRewardText = region => (region.frameChance ? `함선골조 1개 (${Math.round(region.frameChance * 100)}%)` : '없음');
   const pips = (value, total) => `<span class="cmd-pips" aria-label="난이도 ${value}/${total}">${Array.from({ length: total }, (_, i) => `<i class="${i < value ? 'on' : ''}"></i>`).join('')}</span>`;
   const panel = (title, body) => `<section class="fac-panel cmd-panel"><h3><i></i>${title}</h3>${body}</section>`;
   const notice = () => {
@@ -216,7 +217,7 @@
   function regionView(state) {
     const region = regionById(ui.regionId) || REGIONS[0];
     const back = `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="dispatch">‹ 의뢰 목록</button></div>`;
-    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>확정 보상</span><b>토륨 ${region.thorium} · 골드 ${region.gold.toLocaleString('ko-KR')}</b></li><li><span>확률 보상</span><b>함선골조 1개 (50%)</b></li></ul>`);
+    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>확정 보상</span><b>${fixedRewardText(region)}</b></li><li><span>확률 보상</span><b>${chanceRewardText(region)}</b></li><li><span>확률 보상</span><b>함선골조 1개 (50%)</b></li></ul>`);
 
     if (state.active && state.active.regionId === region.id) {
       const mission = state.active;
@@ -255,7 +256,7 @@
     const used = inUseKeys();
     const others = ui.slots.filter((key, i) => i !== slot && key);
     const cards = ownedVariants()
-      .filter(v => rankOf(v.rarity) >= rankOf(region.minRarity))
+      .filter(v => rankOf(v.rarity) >= rankOf(region.minRarity) && (v.stars || 0) >= region.minStars)
       .map(v => {
         const key = keyOf(v);
         const inUse = used.has(key);
