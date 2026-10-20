@@ -539,7 +539,7 @@ function initializeFleetFormation(){
     'battlecruiser:야마토':{aux:'미사일',ultimate:'최후의 저항'},
     'battlecruiser:히페리온':{aux:'최대출력'},
     'battlecruiser:거북선':{aux:'확산탄',ultimate:'쾌속'},
-    'battlecruiser:돌격 거북선':{aux:'일휘소탕 : 돌격거북선 미사일 공격이 범위 피해로 변경 및 폭발 반경 30% 증가. 범위내 모든 적에게 100% 데미지.',ultimate:'혈염산하 : 돌격 후 귀환할 때 폭발 데미지 추가.'},
+    'battlecruiser:돌격 거북선':{aux:'일휘소탕',ultimate:'혈염산하'},
     'destroyer:블레이드':{aux:'보조레이저'},
     'destroyer:스피어':{aux:'폭발레이저'},
     'destroyer:우라노스':{aux:'투샷'},
@@ -560,6 +560,7 @@ function initializeFleetFormation(){
   // 함선 상세 카드의 보조기술·최종기술 설명. 형식은 '이름 : 설명'이고, 값은 battle-engine.js 실제 수치에서 가져왔다.
   // 여기 없는 기술은 '설명 준비 중'으로 표시된다.
   const SKILL_INFO={
+    'battlecruiser:돌격 거북선':{aux:'일휘소탕 : 돌격거북선 미사일 공격이 범위 피해로 변경 및 폭발 반경 30% 증가. 범위내 모든 적에게 100% 데미지.',ultimate:'혈염산하 : 돌격 후 귀환할 때 폭발 데미지 추가.'},
     'battlecruiser:거북선':{aux:'확산탄 : 미사일 폭발 반경 내의 대상에 50% 추가피해',ultimate:'쾌속 : 미사일 발사 속도 10% 증가 · 포격 선회 시간 절반'},
     'battlecruiser:퓨리':{aux:'미사일 강화 : 미사일과 다련장 포격 피해 50% 증가',ultimate:'다련장 심화 : 다련장 포격 피해 50% 추가 증가'},
     'battlecruiser:헬리오스':{aux:'강화 굴절레이저 강화 : 굴절레이저 1발 피해 200 → 400'},
@@ -580,7 +581,7 @@ function initializeFleetFormation(){
     'dreadnought:아틀라스':{aux:'플라즈마 강화 : 플라즈마 2발 → 4발, 피해 300 → 400'},
     'dreadnought:해머':{aux:'5드론 : 드론 5기 출격, 드론 피해 300 → 400'},
     'dreadnought:도저':{aux:'회피강화 : 회피 확률 30% → 50%',ultimate:'디코이 : 가까운 적 3기를 끌어들이고 회피 확률 20% 추가'},
-    'dreadnought:탱크':{aux:'암석화 : 석화 무적 시간 1초 → 2초'},
+    'dreadnought:탱크':{aux:'암석화 : 무적 시간 1초 → 2초 · 무적 후 3초간 받는 피해 50% → 60% 감소',ultimate:'전격강화 : 전격 공격을 맞힌 적을 0.5초 기절'},
     'dreadnought:네메시스':{aux:'추가 전기그물 : 전기그물 2개 동시 발사',ultimate:'복수 : 전기그물 3개 발사, 그물 유지 중에도 관통레이저 계속 발사'},
     'destroyer:KDDX':{aux:'속전속결 : 레이저 발사 간격 23% 단축',ultimate:'임전무퇴 : 피해가 쌓이면 잠시 후퇴 후 복귀 (후퇴 대기 10초, 회수마다 4초 추가)'},
     'destroyer:가루다':{aux:'탄두강화 : 가루다 미사일 피해 20% 증가',ultimate:'우파가루다 : 수호자 발동시 전투를 돕는 우파가루다를 소환.'},
