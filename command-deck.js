@@ -231,7 +231,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // SSR 함선 선택 교환권: 함선도감처럼 SSR 함선 목록을 띄우고, 고른 뒤 하단 [선택] → 확인 → 교환.
     // 함선골조 교환권: 골조 5종 중 하나를 고르면 보급권 1개를 소모하고 그 골조를 1개 획득한다.
     const FRAME_CHOICES=['frameCannon','frameMissile','frameLaser','framePiercing','frameCarrier'];
-    const openFrameTicketPicker=item=>{
+    const openFrameTicketPicker=(item,onDone)=>{
       const popup=document.createElement('div');popup.className='inventory-item-modal-overlay inventory-ticket-overlay';
       popup.innerHTML=`<section class="inventory-ticket-codex" role="dialog" aria-modal="true" aria-label="함선골조 교환권">
         <header class="inventory-ticket-head"><img src="${item.image}" alt=""/><div><small>FRAME SUPPLY · 보유 ${item.count.toLocaleString('ko-KR')}장</small><h3>${item.name}</h3></div><button type="button" class="inventory-ticket-close" aria-label="닫기">×</button></header>
@@ -256,6 +256,7 @@ window.addEventListener('DOMContentLoaded', () => {
         window.grantExplorationLoot?.(picked,1);
         window.notice?.(`${explorationLootCatalog[picked].name} 1개를 획득했습니다.`);
         close();
+        onDone?.();
       };
     };
     const openShipTicketPicker=item=>{
@@ -311,7 +312,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const slotCount=Math.max(16,Math.ceil(shown.length/4)*4);
       grid.innerHTML=Array.from({length:slotCount},(_,index)=>{const item=shown[index];if(!item)return '<div class="inventory-item empty" aria-label="빈 슬롯"></div>';const usable=['goldVault','thoriumBox','researchBag','ssrShipTicket','frameTicket'].includes(item.id),contents=usable?' · 눌러서 수량 선택':'',label=item.category==='frame'?`무기종류: ${item.weapon}`:item.name;return `<button type="button" class="inventory-item ${usable?'inventory-item-usable':''}" data-inventory-item="${item.id||''}" title="${item.detail||item.name}${contents}" ${usable?'aria-label="'+item.name+' 사용 수량 선택"':''}><span class="inventory-item-icon">${item.image?`<img src="${item.image}" alt=""/>`:item.icon}</span><b>${item.count.toLocaleString('ko-KR')}</b><small>${label}</small></button>`;}).join('');
       overlay.querySelectorAll('[data-inventory-tab]').forEach(tab=>{const active=tab.dataset.inventoryTab===category;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));});
-      grid.querySelectorAll('.inventory-item-usable').forEach(button=>button.onclick=()=>{const item=items.find(entry=>entry.id===button.dataset.inventoryItem);if(!item)return;if(item.id==='ssrShipTicket')openShipTicketPicker(item);else if(item.id==='frameTicket')openFrameTicketPicker(item);else openItemUseConfirm(item);});
+      grid.querySelectorAll('.inventory-item-usable').forEach(button=>button.onclick=()=>{const item=items.find(entry=>entry.id===button.dataset.inventoryItem);if(!item)return;if(item.id==='ssrShipTicket')openShipTicketPicker(item);else if(item.id==='frameTicket')openFrameTicketPicker(item,()=>{items=inventoryResources();renderInventory(currentCategory);refreshResourceBadges();});else openItemUseConfirm(item);});
     };
     overlay.querySelectorAll('[data-inventory-tab]').forEach(tab=>tab.onclick=()=>renderInventory(tab.dataset.inventoryTab));
     const onResourcesUpdated=()=>refreshResourceBadges();window.addEventListener('game-resources-updated',onResourcesUpdated);
