@@ -92,7 +92,7 @@
         const clean = String(name || '').trim();
         if (clean.length < 2 || clean.length > 12) fail('연합 이름은 2~12자로 입력해 주세요.');
         if (data.unions.some(u => u.name.toLowerCase() === clean.toLowerCase())) fail('이미 사용 중인 연합 이름입니다.');
-        const union = { id: `u-${Math.random().toString(36).slice(2, 10)}`, name: clean, emblem: EMBLEMS.includes(emblem) ? emblem : EMBLEMS[0], level: 1, exp: 0, notice: String(notice).slice(0, 120), joinMode: joinMode === 'approval' ? 'approval' : 'open', capacity: CAPACITY, createdAt: Date.now(), members: [{ playerId: playerId(), name: playerName(), role: 'leader', joinedAt: Date.now(), lastSeen: Date.now(), contribution: 0 }], applications: [] };
+        const union = { id: `u-${Math.random().toString(36).slice(2, 10)}`, name: clean, emblem: window.UnionEmblem ? window.UnionEmblem.normalize(emblem) : (EMBLEMS.includes(emblem) ? emblem : EMBLEMS[0]), level: 1, exp: 0, notice: String(notice).slice(0, 120), joinMode: joinMode === 'approval' ? 'approval' : 'open', capacity: CAPACITY, createdAt: Date.now(), members: [{ playerId: playerId(), name: playerName(), role: 'leader', joinedAt: Date.now(), lastSeen: Date.now(), contribution: 0 }], applications: [] };
         data.unions.push(union); save(data);
         return JSON.parse(JSON.stringify(union));
       },
@@ -178,6 +178,7 @@
   // 연합 휘장: 금속 테두리 방패 + 은빛 날개 + 상단 별. 배경 건물의 날개 달린 별 문장과 어울리게 만든 SVG.
   let crestSeq = 0;
   function crestSvg(glyph, { wings = true } = {}) {
+    if (window.UnionEmblem) return window.UnionEmblem.svg(glyph, { wings });
     const k = `uc${++crestSeq}`;
     const wing = 'M44 44 C33 33 18 31 3 35 C15 39 22 42 29 46 C17 46 9 50 3 57 C17 57 29 55 38 53 C29 57 22 62 18 68 C30 66 38 61 44 56 Z';
     return `<svg class="crest-svg" viewBox="${wings ? '0 0 120 100' : '26 0 68 100'}" aria-hidden="true"><defs>
@@ -534,9 +535,19 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     return `<div class="union-search"><input type="search" data-query value="${esc(ui.query)}" placeholder="연합 이름 검색" maxlength="12" aria-label="연합 이름 검색"/></div><ul class="union-cards">${items || '<li class="union-empty">검색 결과가 없습니다.</li>'}</ul>`;
   }
 
+  // 엠블럼 꾸미기: 외부 장식 · 방패 모양 · 내부 문양을 고르고, 방패·금속·문양 색을 따로 바꾼다.
+  function emblemDesigner(d) {
+    const U = window.UnionEmblem;
+    if (!U) return `<div class="union-field"><span>휘장 문양</span><div class="union-emblems">${EMBLEMS.map(e => `<button type="button" data-emblem="${e}" aria-pressed="${d.emblem === e}">${e}</button>`).join('')}</div></div>`;
+    const cur = U.normalize(d.emblem);
+    const opts = (part, list, wings = false) => list.map(item => `<button type="button" class="em-opt" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}">${U.svg({ ...cur, [part]: item.id }, { wings })}<small>${item.name}</small></button>`).join('');
+    const swatches = (part, list) => list.map(item => `<button type="button" class="em-swatch" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}" style="--c1:${item.stops[0]};--c2:${item.stops[1]};--c3:${item.stops[2] || item.stops[1]}"></button>`).join('');
+    return `<div class="em-designer"><div class="em-group"><span>외부 장식</span><div class="em-row em-wings">${opts('w', U.WINGS, true)}</div></div><div class="em-group"><span>방패 모양</span><div class="em-row">${opts('s', U.SHIELDS)}</div></div><div class="em-group"><span>내부 문양</span><div class="em-row">${opts('i', U.ICONS)}</div></div><div class="em-group"><span>방패 색</span><div class="em-swatches">${swatches('f', U.FIELD)}</div></div><div class="em-group"><span>장식·테두리 색</span><div class="em-swatches">${swatches('m', U.METALS)}</div></div><div class="em-group"><span>문양 색</span><div class="em-swatches">${swatches('c', U.ICON_COLORS)}</div></div><button type="button" class="em-random" data-em-random>무작위 조합</button></div>`;
+  }
+
   function createHtml() {
     const d = ui.draft;
-    return `<form class="union-form fac-panel" data-create><div class="create-preview">${crestSvg(d.emblem)}</div><label class="union-field"><span>연합 이름 (2~12자)</span><input data-name value="${esc(d.name)}" maxlength="12" autocomplete="off"/></label><div class="union-field"><span>휘장 문양</span><div class="union-emblems">${EMBLEMS.map(e => `<button type="button" data-emblem="${e}" aria-pressed="${d.emblem === e}">${e}</button>`).join('')}</div></div><label class="union-field"><span>가입 방식</span><select data-create-mode><option value="open"${d.joinMode === 'open' ? ' selected' : ''}>자유 가입</option><option value="approval"${d.joinMode === 'approval' ? ' selected' : ''}>승인 가입</option></select></label><label class="union-field"><span>지휘 브리핑 (선택)</span><textarea data-create-notice maxlength="120" rows="2">${esc(d.notice)}</textarea></label><button type="submit" class="fac-btn">연합 창설</button></form>`;
+    return `<form class="union-form fac-panel" data-create><div class="create-preview">${crestSvg(d.emblem)}</div><label class="union-field"><span>연합 이름 (2~12자)</span><input data-name value="${esc(d.name)}" maxlength="12" autocomplete="off"/></label>${emblemDesigner(d)}<label class="union-field"><span>가입 방식</span><select data-create-mode><option value="open"${d.joinMode === 'open' ? ' selected' : ''}>자유 가입</option><option value="approval"${d.joinMode === 'approval' ? ' selected' : ''}>승인 가입</option></select></label><label class="union-field"><span>지휘 브리핑 (선택)</span><textarea data-create-notice maxlength="120" rows="2">${esc(d.notice)}</textarea></label><button type="submit" class="fac-btn">연합 창설</button></form>`;
   }
 
   function noUnionHtml(list) {
@@ -581,6 +592,8 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     on('[data-mode]', e => { ui.mode = e.currentTarget.dataset.mode; render(); });
     on('[data-query]', e => { ui.query = e.currentTarget.value; render().then(() => { const input = root()?.querySelector('[data-query]'); input?.focus(); input?.setSelectionRange(ui.query.length, ui.query.length); }); }, 'change');
     on('[data-join]', e => run(() => adapter().joinUnion(e.currentTarget.dataset.join), r => r === 'applied' ? '가입 신청을 보냈습니다.' : '연합에 가입했습니다.'));
+    on('[data-em-part]', e => { const cur = window.UnionEmblem.normalize(ui.draft.emblem); ui.draft.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
+    on('[data-em-random]', () => { ui.draft.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });
     on('[data-emblem]', e => { ui.draft.emblem = e.currentTarget.dataset.emblem; syncDraft(host); render(); });
     on('[data-create]', e => { e.preventDefault(); syncDraft(host); run(() => adapter().createUnion(ui.draft), '연합을 창설했습니다.').then(() => { ui.draft = { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }; ui.tab = 'hall'; }); }, 'submit');
     on('[data-save-notice]', () => run(() => adapter().updateUnion({ notice: host.querySelector('[data-notice]').value }), '공지를 저장했습니다.'));
