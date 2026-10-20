@@ -282,6 +282,9 @@
   const DOZER_EVASION = { chance: .3, enhancedChance: .5, decoyBonus: .2, duration: 5000, decoyTargets: 3 };
   const ANGELA_CANNON = { hits: 350, shots: 2, shotInterval: 200, reload: 1500, travel: 90 };
   const ANGELA_WINGS = { immunity: 2000, shield: 500, angelaShield: 500, taunt: 5000, cannonInterval: 150, bladeDuration: 900 };
+  // 아군 앙헬라의 천사의 날개: 기본 면역 1초·보호막 500, 강화(3성) 면역 2초·보호막 1000. 날개 효과는 5초 동안 유지되며,
+  // 징벌의 칼(5성)은 그 동안 1초마다 뱃머리 레이저를 쏜다.
+  const ANGELA_WING_EFFECT = { immunity: 1000, shield: 500, enhancedImmunity: 2000, enhancedShield: 1000, duration: 5000, judgmentDamage: 1000, judgmentInterval: 1000, judgmentWidth: .035 };
   const CARRIER_INTERCEPTOR = { hits: 55, count: 6, interval: 330, travel: 260 };
   const CARRIER_OVERFLOW = { duration: 5000, shieldInterval: 500, shieldAmount: 100, extraLifetime: 7000 };
   const SPACE_PIRATE = { hp: 1000, goldenHp: 10000, normalChance: .1, goldenChance: .01, duration: 35000, thoriumMin: 10, thoriumMax: 100, goldenThoriumMin: 1, goldenThoriumMax: 200 };
@@ -1138,6 +1141,7 @@
       brownBessStars: isBrownBess ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isYamato,
       yamatoStars: isYamato ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
+      angelaStars: isAngela ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       yamatoLastStandUsed: false,
       yamatoImmuneUntil: 0,
       isStarCruiser,
@@ -1310,6 +1314,7 @@
       enemy.pandoraStars = stars;
       enemy.brownBessStars = stars;
       enemy.yamatoStars = stars;
+      enemy.angelaStars = stars;
       enemy.iowaStars = stars;
       enemy.heliosStars = stars;
       enemy.hyperionStars = stars;
@@ -5129,16 +5134,47 @@
     if (ally.isAngela) ally.el.classList.add('angel-wing-blessing');
   }
 
+  // 징벌의 칼(5성): 날개 효과 동안 뱃머리에서 레이저포를 1초마다 쏜다. 레이저는 적을 관통하며, 맞은 적에게 1000 피해.
+  function fireAngelaJudgmentLaser(ally) {
+    const origin = pointOf(ally);
+    const from = orientedAllyPoint(ally, 0, -.105);
+    const ahead = orientedAllyPoint(ally, 0, -1);
+    const dx = ahead.x - origin.x, dy = ahead.y - origin.y;
+    const to = { x: from.x + dx * 5, y: from.y + dy * 5 };
+    playPenetrateBeamSound();
+    const beam = document.createElement('i');
+    beam.className = 'fx-line angela-judgment-laser';
+    positionLine(beam, from, to);
+    refs.effects.append(beam);
+    schedule(() => beam.remove(), 900);
+    hostileTargetsFor(ally).forEach(target => {
+      if (!target.dead && distanceToBeam(pointOf(target), from, to) < ANGELA_WING_EFFECT.judgmentWidth) shooterDamage(target, ANGELA_WING_EFFECT.judgmentDamage, ally, 'laser');
+    });
+  }
+
+  function startAngelaJudgment(ally) {
+    for (let shot = 0; shot * ANGELA_WING_EFFECT.judgmentInterval < ANGELA_WING_EFFECT.duration; shot += 1) {
+      schedule(() => {
+        if (!state || state.status !== 'combat' || ally.dead) return;
+        fireAngelaJudgmentLaser(ally);
+      }, shot * ANGELA_WING_EFFECT.judgmentInterval);
+    }
+  }
+
   function fireAngelaWings(ally) {
     if (!ally || ally.dead) return false;
     playAngelaShieldSound();
     const now = performance.now();
+    const enhanced = ally.angelaStars >= 3;
+    const immunity = enhanced ? ANGELA_WING_EFFECT.enhancedImmunity : ANGELA_WING_EFFECT.immunity;
+    const shield = enhanced ? ANGELA_WING_EFFECT.enhancedShield : ANGELA_WING_EFFECT.shield;
     const allies = friendliesOf(ally);
     allies.forEach(candidate => {
       cleanseTankStatuses(candidate);
-      candidate.angelaImmuneUntil = now + ANGELA_WINGS.immunity;
-      applyAngelaShield(candidate, ANGELA_WINGS.shield);
+      candidate.angelaImmuneUntil = now + immunity;
+      applyAngelaShield(candidate, shield);
     });
+    if (ally.angelaStars >= 5) startAngelaJudgment(ally);
     const targets = hostileTargetsFor(ally);
     targets.forEach(target => {
       target.forcedTarget = ally;
