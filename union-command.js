@@ -152,7 +152,8 @@
   }
 
   // ───────── 화면 ─────────
-  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '' };
+  // ───────── 화면 ─────────
+  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: null, confirm: false };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fmt = ms => {
     const total = Math.max(0, Math.floor(ms / 1000));
@@ -169,6 +170,21 @@
     return text ? `<p class="cmd-notice" role="status">${esc(text)}</p>` : '';
   };
 
+  // 배틀 편성(함대관리)과 아레나 덱에 이미 들어간 함선 키 목록. 목록에서 어둡게 표시한다.
+  function inUseKeys() {
+    const keys = new Set();
+    (window.getFleetAssignments?.() || []).forEach(ship => {
+      if (ship) keys.add(`${ship.type}|${ship.name}|${ship.rarity}|${Number(ship.enhancementStars) || 0}`);
+    });
+    try {
+      const arena = JSON.parse(localStorage.getItem('starfleet-async-arena-v1') || 'null') || {};
+      [...(arena.attack || []), ...(arena.defense || [])].forEach(ship => {
+        if (ship) keys.add(`${ship.type}|${ship.name}|${ship.rarity}|${Number(ship.enhancementStars) || 0}`);
+      });
+    } catch {}
+    return keys;
+  }
+
   function statusBanner(state) {
     const mission = state.active;
     if (!mission) return '';
@@ -176,15 +192,15 @@
     if (mission.status === 'pending') {
       return `<section class="cmd-status ready"><div><small>귀환 완료</small><b>${esc(region.name)}</b></div><span>보상 대기 중</span></section>`;
     }
-    return `<section class="cmd-status"><div><small>파견 중 · 최대 8시간</small><b>${esc(region.name)}</b></div><span>남은 시간 <b class="cmd-clock" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</b></span></section>`;
+    return `<section class="cmd-status"><div><small>파견 중</small><b>${esc(region.name)}</b></div><span>남은 시간 <b class="cmd-clock" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</b></span></section>`;
   }
 
+  // 메뉴 칸: 제목과 '의뢰 n건'만 둔다. 배경 그림은 반투명으로 깔고, 테두리는 임무 컨셉에 맞춘다.
   function menuView(state) {
-    const dispatching = Boolean(state.active);
-    return panel('연합 임무 <small>UNION MISSIONS</small>', `<div class="cmd-menu">
-      <button type="button" class="cmd-cell${state.active ? ' live' : ''}" data-cmd="dispatch"><span class="cmd-ico">✦</span><div><b>함대파견</b><small>연방함대(USF) 의뢰 · 잔당 소탕</small></div><span class="cmd-tag">${dispatching ? '임무 진행' : '의뢰 7건'}</span></button>
-      <button type="button" class="cmd-cell soon" disabled><span class="cmd-ico">◎</span><div><b>현상수배</b><small>준비 중</small></div><span class="cmd-tag">COMING SOON</span></button>
-      <button type="button" class="cmd-cell soon" disabled><span class="cmd-ico">✧</span><div><b>COMING SOON</b><small>다음 임무를 준비 중입니다</small></div><span class="cmd-tag">준비 중</span></button>
+    return panel('연합 임무', `<div class="cmd-menu">
+      <button type="button" class="cmd-cell cmd-dispatch${state.active ? ' live' : ''}" style="--cell-img:url('battle-scene-background.png')" data-cmd="dispatch"><b>함대파견</b><small>의뢰 ${REGIONS.length}건</small></button>
+      <button type="button" class="cmd-cell cmd-wanted" style="--cell-img:url('mystery-battleship-outline.png')" disabled><b>현상수배</b></button>
+      <button type="button" class="cmd-cell cmd-soon" style="--cell-img:url('mystery-weapon-outline.png')" disabled><b>COMING SOON</b></button>
     </div>`);
   }
 
@@ -192,26 +208,26 @@
     const rows = REGIONS.map((region, index) => {
       const mine = state.active?.regionId === region.id;
       const tag = mine ? (state.active.status === 'pending' ? '보상 대기' : '파견 중') : (state.active ? '잠김' : '');
-      return `<button type="button" class="cmd-cell cmd-region${mine ? ' live' : ''}" data-cmd="region" data-region="${region.id}"><div><b>${esc(region.name)}</b><small>${reqText(region)}</small>${pips(index + 1, REGIONS.length)}</div>${tag ? `<span class="cmd-tag">${tag}</span>` : ''}</button>`;
+      return `<button type="button" class="cmd-cell cmd-region${mine ? ' live' : ''}" data-cmd="region" data-region="${region.id}"><div><b>${esc(region.name)}</b>${pips(index + 1, REGIONS.length)}</div>${tag ? `<span class="cmd-tag">${tag}</span>` : ''}</button>`;
     }).join('');
-    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('연방함대(USF) 의뢰 <small>잔당 소탕</small>', `<p class="cmd-intro">화성에서 시작해 외곽으로 갈수록 어려워집니다. 함대는 한 지역에만 파견할 수 있습니다.</p><div class="cmd-menu">${rows}</div>`)}`;
+    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
   }
 
   function regionView(state) {
     const region = regionById(ui.regionId) || REGIONS[0];
     const back = `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="dispatch">‹ 의뢰 목록</button></div>`;
-    const info = panel(`${esc(region.name)} <small>ZONE ${REGIONS.indexOf(region) + 1}</small>`, `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>최대 보상</span><b>${rewardText(region)}</b></li><li><span>임무 시간</span><b>최대 8시간</b></li></ul>`);
+    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>최대 보상</span><b>${rewardText(region)}</b></li></ul>`);
 
     if (state.active && state.active.regionId === region.id) {
       const mission = state.active;
       if (mission.status === 'pending') {
         const pay = mission.payout;
-        return back + info + panel('귀환 보고 <small>REPORT</small>', `<ul class="cmd-facts"><li><span>토륨</span><b>${pay.thorium}</b></li><li><span>골드</span><b>${pay.gold.toLocaleString('ko-KR')}</b></li><li><span>함선골조</span><b>${pay.frame ? '1개' : '없음'}</b></li></ul><button type="button" class="fac-btn cmd-action" data-cmd="claim">보상 받기</button>`);
+        return back + info + panel('귀환 보고', `<ul class="cmd-facts"><li><span>토륨</span><b>${pay.thorium}</b></li><li><span>골드</span><b>${pay.gold.toLocaleString('ko-KR')}</b></li><li><span>함선골조</span><b>${pay.frame ? '1개' : '없음'}</b></li></ul><button type="button" class="fac-btn cmd-action" data-cmd="claim">보상 받기</button>`);
       }
       const elapsed = Math.min(DURATION, now() - mission.startedAt);
       const ratio = elapsed / DURATION;
       const preview = `토륨 ${Math.floor(region.thorium * 0.5 * ratio)} · 골드 ${Math.floor(region.gold * 0.5 * ratio).toLocaleString('ko-KR')} (보너스 없음)`;
-      return back + info + panel('파견 중인 함대 <small>FLEET</small>', `<div class="cmd-clock-big" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</div><p class="cmd-intro">완료하면 전액 보상과 함선골조 보너스(50%)를 받습니다. 지금 회수하면 경과 시간만큼만 지급됩니다.</p><p class="cmd-preview">회수 시 지급 예상: ${preview}</p><button type="button" class="fac-btn cmd-action danger" data-cmd="recall">함대 회수</button>`);
+      return back + info + panel('파견 중인 함대', `<div class="cmd-clock-big" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</div><p class="cmd-preview">회수 시 지급 예상: ${preview}</p><button type="button" class="fac-btn cmd-action danger" data-cmd="recall">함대 회수</button>`);
     }
     if (state.active) {
       const other = regionById(state.active.regionId);
@@ -220,12 +236,10 @@
     }
 
     const owned = ownedVariants();
-    const slots = ui.slots.map((picked, i) => {
-      const options = owned.map(v => {
-        const key = keyOf(v);
-        return `<option value="${esc(key)}"${key === picked ? ' selected' : ''}>${esc(v.name)} · ${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')} (보유 ${v.copies})</option>`;
-      }).join('');
-      return `<label class="cmd-slot"><span>함선 ${i + 1}</span><select data-cmd-slot="${i}"><option value="">선택 안 함</option>${options}</select></label>`;
+    const slots = ui.slots.map((key, i) => {
+      const picked = owned.find(v => keyOf(v) === key);
+      const label = picked ? `<img src="${esc(picked.image || '')}" alt="" /><span>${esc(picked.name)} · ${picked.rarity}${picked.stars ? ` ★${picked.stars}` : ''}</span>` : '<span class="cmd-empty">선택</span>';
+      return `<div class="cmd-slot"><span class="cmd-slot-no">${i + 1}</span><button type="button" class="cmd-pick${picked ? ' filled' : ''}" data-cmd="pick" data-slot="${i}">${label}</button></div>`;
     }).join('');
     const checks = checklist(region, ui.slots);
     const ready = passes(checks);
@@ -233,7 +247,42 @@
     const form = owned.length
       ? `<div class="cmd-slots">${slots}</div>${checkList}<button type="button" class="fac-btn cmd-action" data-cmd="go" ${ready ? '' : 'disabled'}>함대 파견</button>`
       : `<p class="cmd-intro">파견할 함선이 없습니다. 함대관리에서 함선을 먼저 확보하세요.</p>`;
-    return back + info + panel('함대 편성 <small>SELECT 3 SHIPS</small>', form);
+    return back + info + panel('함대 편성', form);
+  }
+
+  // 선택 목록: 조건(등급)에 맞는 보유 함선을 그림으로 보여준다. 배틀·아레나에 있는 함선은 어둡게, 선택할 수 없다.
+  function pickerHtml(slot, region) {
+    const used = inUseKeys();
+    const others = ui.slots.filter((key, i) => i !== slot && key);
+    const cards = ownedVariants()
+      .filter(v => rankOf(v.rarity) >= rankOf(region.minRarity))
+      .map(v => {
+        const key = keyOf(v);
+        const inUse = used.has(key);
+        const taken = others.filter(k => k === key).length;
+        const blocked = inUse || taken >= v.copies;
+        const note = inUse ? '배틀·아레나 편성 중' : taken >= v.copies ? '다른 슬롯에 선택됨' : `보유 ${v.copies}`;
+        return `<button type="button" class="cmd-card${blocked ? ' dim' : ''}" data-cmd="pick-choose" data-key="${esc(key)}" ${blocked ? 'disabled' : ''}><div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${note}</em></button>`;
+      }).join('');
+    return `<div class="cmd-sheet" role="dialog" aria-modal="true" aria-label="함선 선택"><header><b>함선 ${slot + 1} 선택</b><button type="button" class="cmd-close" data-cmd="pick-close">닫기</button></header>${cards ? `<div class="cmd-grid">${cards}</div>` : `<p class="cmd-intro">${region.minRarity}급 이상 보유 함선이 없습니다.</p>`}</div>`;
+  }
+
+  function confirmHtml(region) {
+    return `<div class="cmd-sheet cmd-confirm" role="dialog" aria-modal="true" aria-label="파견 확인"><p class="cmd-confirm-q">${esc(region.name)}에 함대를 파견할까요?</p><p class="cmd-confirm-sub">최대 8시간. 중간에 회수하면 보상이 줄어듭니다.</p><div class="cmd-yn"><button type="button" class="fac-btn" data-cmd="go-no">아니오</button><button type="button" class="fac-btn" data-cmd="go-yes">예</button></div></div>`;
+  }
+
+  // 선택 목록과 확인 팝업은 화면 밖(body)에 띄운다. 상위 화면의 변형 효과에 가려지지 않도록.
+  function renderModal() {
+    let root = document.getElementById('cmd-modal-root');
+    if (!root) { root = document.createElement('div'); root.id = 'cmd-modal-root'; document.body.appendChild(root); }
+    const region = regionById(ui.regionId);
+    if (ui.picking !== null && region && ui.sub === 'region') {
+      root.innerHTML = `<div class="cmd-backdrop" data-cmd="pick-close">${pickerHtml(ui.picking, region)}</div>`;
+    } else if (ui.confirm && region) {
+      root.innerHTML = `<div class="cmd-backdrop">${confirmHtml(region)}</div>`;
+    } else {
+      root.innerHTML = '';
+    }
   }
 
   function screen(heroHtml) {
@@ -242,16 +291,26 @@
     return `${heroHtml}<div class="cmd-wrap">${notice()}${statusBanner(state)}${body}</div>`;
   }
 
-  const rerender = () => window.renderUnionScreen?.();
+  const rerender = () => {
+    renderModal();
+    window.renderUnionScreen?.();
+  };
 
   document.addEventListener('click', event => {
     const el = event.target.closest?.('[data-cmd]');
-    if (!el || el.disabled || !el.closest('#earth-union')) return;
+    if (!el || el.disabled) return;
+    if (!el.closest('#earth-union, #cmd-modal-root')) return;
     const act = el.dataset.cmd;
     if (act === 'menu') { ui.sub = 'menu'; ui.slots = [null, null, null]; }
     else if (act === 'dispatch') { ui.sub = 'dispatch'; }
     else if (act === 'region') { ui.sub = 'region'; ui.regionId = el.dataset.region; ui.slots = [null, null, null]; }
-    else if (act === 'go') {
+    else if (act === 'pick') { ui.picking = Number(el.dataset.slot); }
+    else if (act === 'pick-close') { if (event.target === el || el.classList.contains('cmd-close')) ui.picking = null; }
+    else if (act === 'pick-choose') { ui.slots[ui.picking] = el.dataset.key; ui.picking = null; }
+    else if (act === 'go') { ui.confirm = true; }
+    else if (act === 'go-no') { ui.confirm = false; }
+    else if (act === 'go-yes') {
+      ui.confirm = false;
       const result = dispatch(ui.regionId, ui.slots);
       ui.notice = result.message;
       if (result.ok) { ui.sub = 'menu'; ui.slots = [null, null, null]; }
@@ -263,13 +322,6 @@
       ui.notice = result.message;
       if (result.ok) { ui.sub = 'dispatch'; ui.slots = [null, null, null]; }
     }
-    rerender();
-  });
-
-  document.addEventListener('change', event => {
-    const select = event.target.closest?.('[data-cmd-slot]');
-    if (!select) return;
-    ui.slots[Number(select.dataset.cmdSlot)] = select.value || null;
     rerender();
   });
 
