@@ -153,7 +153,7 @@
 
   // ───────── 화면 ─────────
   // ───────── 화면 ─────────
-  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: null, confirm: false };
+  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: null, confirmPick: null };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fmt = ms => {
     const total = Math.max(0, Math.floor(ms / 1000));
@@ -260,15 +260,18 @@
         const key = keyOf(v);
         const inUse = used.has(key);
         const taken = others.filter(k => k === key).length;
-        const blocked = inUse || taken >= v.copies;
-        const note = inUse ? '배틀·아레나 편성 중' : taken >= v.copies ? '다른 슬롯에 선택됨' : `보유 ${v.copies}`;
-        return `<button type="button" class="cmd-card${blocked ? ' dim' : ''}" data-cmd="pick-choose" data-key="${esc(key)}" ${blocked ? 'disabled' : ''}><div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${note}</em></button>`;
+        const blocked = taken >= v.copies;
+        const note = taken >= v.copies ? '다른 슬롯에 선택됨' : inUse ? '배틀·아레나 편성 중' : `보유 ${v.copies}`;
+        return `<button type="button" class="cmd-card${inUse || blocked ? ' dim' : ''}" data-cmd="pick-choose" data-key="${esc(key)}" data-inuse="${inUse ? '1' : ''}" ${blocked ? 'disabled' : ''}><div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${note}</em></button>`;
       }).join('');
     return `<div class="cmd-sheet" role="dialog" aria-modal="true" aria-label="함선 선택"><header><b>함선 ${slot + 1} 선택</b><button type="button" class="cmd-close" data-cmd="pick-close">닫기</button></header>${cards ? `<div class="cmd-grid">${cards}</div>` : `<p class="cmd-intro">${region.minRarity}급 이상 보유 함선이 없습니다.</p>`}</div>`;
   }
 
-  function confirmHtml(region) {
-    return `<div class="cmd-sheet cmd-confirm" role="dialog" aria-modal="true" aria-label="파견 확인"><p class="cmd-confirm-q">${esc(region.name)}에 함대를 파견할까요?</p><p class="cmd-confirm-sub">최대 8시간. 중간에 회수하면 보상이 줄어듭니다.</p><div class="cmd-yn"><button type="button" class="fac-btn" data-cmd="go-no">아니오</button><button type="button" class="fac-btn" data-cmd="go-yes">예</button></div></div>`;
+  // 배틀·아레나 편성 중인 함선을 고를 때만 띄우는 y/n 확인
+  function inUseConfirmHtml(key) {
+    const owned = ownedVariants().find(v => keyOf(v) === key);
+    const name = owned ? owned.name : '선택한 함선';
+    return `<div class="cmd-sheet cmd-confirm" role="dialog" aria-modal="true" aria-label="편성 중 함선 확인"><p class="cmd-confirm-q">${esc(name)}은(는) 편성 중입니다</p><p class="cmd-confirm-sub">파견하면 배틀·아레나 편성에서 빠집니다. 이 함선을 파견에 넣을까요?</p><div class="cmd-yn"><button type="button" data-cmd="inuse-no">아니오</button><button type="button" data-cmd="inuse-yes">예</button></div></div>`;
   }
 
   // 선택 목록과 확인 팝업은 화면 밖(body)에 띄운다. 상위 화면의 변형 효과에 가려지지 않도록.
@@ -276,10 +279,10 @@
     let root = document.getElementById('cmd-modal-root');
     if (!root) { root = document.createElement('div'); root.id = 'cmd-modal-root'; document.body.appendChild(root); }
     const region = regionById(ui.regionId);
-    if (ui.picking !== null && region && ui.sub === 'region') {
+    if (ui.confirmPick && region) {
+      root.innerHTML = `<div class="cmd-backdrop">${inUseConfirmHtml(ui.confirmPick.key)}</div>`;
+    } else if (ui.picking !== null && region && ui.sub === 'region') {
       root.innerHTML = `<div class="cmd-backdrop" data-cmd="pick-close">${pickerHtml(ui.picking, region)}</div>`;
-    } else if (ui.confirm && region) {
-      root.innerHTML = `<div class="cmd-backdrop">${confirmHtml(region)}</div>`;
     } else {
       root.innerHTML = '';
     }
@@ -306,11 +309,18 @@
     else if (act === 'region') { ui.sub = 'region'; ui.regionId = el.dataset.region; ui.slots = [null, null, null]; }
     else if (act === 'pick') { ui.picking = Number(el.dataset.slot); }
     else if (act === 'pick-close') { if (event.target === el || el.classList.contains('cmd-close')) ui.picking = null; }
-    else if (act === 'pick-choose') { ui.slots[ui.picking] = el.dataset.key; ui.picking = null; }
-    else if (act === 'go') { ui.confirm = true; }
-    else if (act === 'go-no') { ui.confirm = false; }
-    else if (act === 'go-yes') {
-      ui.confirm = false;
+    else if (act === 'pick-choose') {
+      // 편성 중인 함선은 바로 넣지 않고 y/n으로 한 번 더 묻는다
+      if (el.dataset.inuse) { ui.confirmPick = { key: el.dataset.key, slot: ui.picking }; }
+      else { ui.slots[ui.picking] = el.dataset.key; ui.picking = null; }
+    }
+    else if (act === 'inuse-no') { ui.confirmPick = null; }
+    else if (act === 'inuse-yes') {
+      ui.slots[ui.confirmPick.slot] = ui.confirmPick.key;
+      ui.picking = null;
+      ui.confirmPick = null;
+    }
+    else if (act === 'go') {
       const result = dispatch(ui.regionId, ui.slots);
       ui.notice = result.message;
       if (result.ok) { ui.sub = 'menu'; ui.slots = [null, null, null]; }

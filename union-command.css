@@ -120,3 +120,5 @@
 .cmd-tag{flex:none;font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--acc2);color:#ffe2a6;white-space:nowrap}
 .cmd-yn button{min-height:46px;border:1px solid #6b5a3a;border-radius:12px;background:#0b1430;color:#f5f1e6;font:inherit;font-size:15px;cursor:pointer}
 .cmd-yn button:last-child{background:linear-gradient(90deg,#3a2a10,#6b4a18);border-color:#ffd27a;color:#fff}
+.cmd-card.dim:not(:disabled){cursor:pointer}
+.cmd-card:disabled{cursor:not-allowed}
