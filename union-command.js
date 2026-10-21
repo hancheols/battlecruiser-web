@@ -116,6 +116,7 @@
     });
     const startedAt = now();
     state.active = { regionId, startedAt, endsAt: startedAt + DURATION, ships, status: 'ongoing', payout: null };
+    state.last = { ...(state.last || {}), [regionId]: [...slots] };   // 지역별 지난 편성 기억
     write(state);
     window.refreshFleetAfterReservation?.();
     window.dispatchEvent(new Event('game-resources-updated'));
@@ -153,7 +154,7 @@
 
   // ───────── 화면 ─────────
   // ───────── 화면 ─────────
-  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: null, confirmPick: null };
+  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: false, sheetNote: '', sort: 'power-asc', onlyEligible: false, weapon: '' };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fmt = ms => {
     const total = Math.max(0, Math.floor(ms / 1000));
@@ -219,7 +220,7 @@
   function regionView(state) {
     const region = regionById(ui.regionId) || REGIONS[0];
     const back = `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="dispatch">‹ 의뢰 목록</button></div>`;
-    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>확정 보상</span><b>${fixedRewardText(region)}</b></li><li><span>확률 보상</span><b>${chanceRewardText(region)}</b></li><li><span>확률 보상</span><b>함선골조 1개 (50%)</b></li></ul>`);
+    const info = panel(esc(region.name), `<ul class="cmd-facts"><li><span>요구 조건</span><b>${reqText(region)}</b></li><li><span>확정 보상</span><b>${fixedRewardText(region)}</b></li><li><span>확률 보상</span><b>${chanceRewardText(region)}</b></li></ul>`);
 
     if (state.active && state.active.regionId === region.id) {
       const mission = state.active;
@@ -242,50 +243,143 @@
     const slots = ui.slots.map((key, i) => {
       const picked = owned.find(v => keyOf(v) === key);
       const label = picked ? `<img src="${esc(picked.image || '')}" alt="" /><span>${esc(picked.name)} · ${picked.rarity}${picked.stars ? ` ★${picked.stars}` : ''}</span>` : '<span class="cmd-empty">선택</span>';
-      return `<div class="cmd-slot"><span class="cmd-slot-no">${i + 1}</span><button type="button" class="cmd-pick${picked ? ' filled' : ''}" data-cmd="pick" data-slot="${i}">${label}</button></div>`;
+      return `<div class="cmd-slot"><span class="cmd-slot-no">${i + 1}</span><button type="button" class="cmd-pick${picked ? ' filled' : ''}" data-cmd="pick" data-slot="${i}">${label}</button>${picked ? `<button type="button" class="cmd-slot-x" data-cmd="slot-clear" data-slot="${i}" aria-label="${i + 1}번 칸 비우기">✕</button>` : ''}</div>`;
     }).join('');
     const checks = checklist(region, ui.slots);
     const ready = passes(checks);
     const checkList = `<ul class="cmd-check">${checks.map(c => `<li class="${c.ok ? 'ok' : 'ng'}">${c.ok ? '✔' : '✖'} ${esc(c.text)}</li>`).join('')}</ul>`;
+    const hasLast = Array.isArray(state.last?.[region.id]);
+    const tools = `<div class="cmd-tools"><button type="button" class="cmd-tool" data-cmd="pick">함선 고르기</button><button type="button" class="cmd-tool" data-cmd="auto">자동 편성</button>${hasLast ? '<button type="button" class="cmd-tool" data-cmd="repeat">지난 편성으로 파견</button>' : ''}<button type="button" class="cmd-tool ghost" data-cmd="clear">비우기</button></div>`;
     const form = owned.length
-      ? `<div class="cmd-slots">${slots}</div>${checkList}<button type="button" class="fac-btn cmd-action" data-cmd="go" ${ready ? '' : 'disabled'}>함대 파견</button>`
+      ? `${tools}<div class="cmd-slots">${slots}</div>${checkList}<button type="button" class="fac-btn cmd-action" data-cmd="go" ${ready ? '' : 'disabled'}>함대 파견</button>`
       : `<p class="cmd-intro">파견할 함선이 없습니다. 함대관리에서 함선을 먼저 확보하세요.</p>`;
     return back + info + panel('함대 편성', form);
   }
 
-  // 선택 목록: 조건(등급)에 맞는 보유 함선을 그림으로 보여준다. 배틀·아레나에 있는 함선은 어둡게, 선택할 수 없다.
-  function pickerHtml(slot, region) {
+  // 못 쓰는 이유를 문장으로 돌려준다(쓸 수 있으면 빈 문자열).
+  const ineligibleReason = (region, v, used) => {
+    if (rankOf(v.rarity) < rankOf(region.minRarity)) return `${region.minRarity}급 이상 필요`;
+    if ((v.stars || 0) < region.minStars) return `${region.minStars}성 이상 필요`;
+    if (used.has(keyOf(v))) return '배틀·아레나 편성 중';
+    return '';
+  };
+
+  // 함선의 세기를 하나의 숫자로 본다. 등급 > 성급 > 내구 · 화력 순으로 크게 반영한다.
+  function powerFn() {
+    const catalog = window.getFleetCatalog?.() || [];
+    return v => {
+      const profile = catalog.find(ship => ship.type === v.type && ship.name === v.name)?.profile;
+      return rankOf(v.rarity) * 100000 + (v.stars || 0) * 10000 + (Number(profile?.[0]) || 0) + (Number(profile?.[2]) || 0) * 3;
+    };
+  }
+
+  // 자동 편성: 조건을 만족하는 3대 중 가장 약한 조합(전투용으로 강한 함선을 아끼는 방식)을 고른다.
+  function autoFill(region) {
     const used = inUseKeys();
-    const others = ui.slots.filter((key, i) => i !== slot && key);
-    const cards = ownedVariants()
-      .filter(v => rankOf(v.rarity) >= rankOf(region.minRarity) && (v.stars || 0) >= region.minStars)
-      .map(v => {
-        const key = keyOf(v);
-        const inUse = used.has(key);
-        const taken = others.filter(k => k === key).length;
-        const blocked = inUse || taken >= v.copies;
-        const note = inUse ? '배틀·아레나 편성 중' : taken >= v.copies ? '다른 슬롯에 선택됨' : `보유 ${v.copies}`;
-        return `<button type="button" class="cmd-card${inUse || blocked ? ' dim' : ''}" data-cmd="pick-choose" data-key="${esc(key)}" data-inuse="${inUse ? '1' : ''}" ${blocked ? 'disabled' : ''}><div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${note}</em></button>`;
-      }).join('');
-    return `<div class="cmd-sheet" role="dialog" aria-modal="true" aria-label="함선 선택"><header><b>함선 ${slot + 1} 선택</b><button type="button" class="cmd-close" data-cmd="pick-close">닫기</button></header>${cards ? `<div class="cmd-grid">${cards}</div>` : `<p class="cmd-intro">${region.minRarity}급 이상 보유 함선이 없습니다.</p>`}</div>`;
+    const power = powerFn();
+    const pool = [];
+    ownedVariants().forEach(v => {
+      if (ineligibleReason(region, v, used)) return;
+      const entry = { key: keyOf(v), score: power(v), weapons: weaponsOf(v) };
+      for (let c = 0; c < Math.min(SHIPS_PER_MISSION, v.copies); c += 1) pool.push(entry);
+    });
+    pool.sort((a, b) => a.score - b.score);
+    if (pool.length < SHIPS_PER_MISSION) return { ok: false, message: `조건에 맞는 함선이 ${pool.length}대뿐입니다. (필요 ${SHIPS_PER_MISSION}대)` };
+    let best = null;
+    for (let i = 0; i < pool.length - 2; i += 1) {
+      for (let j = i + 1; j < pool.length - 1; j += 1) {
+        for (let k = j + 1; k < pool.length; k += 1) {
+          const total = pool[i].score + pool[j].score + pool[k].score;
+          if (best && total >= best.total) continue;
+          const kinds = new Set([...pool[i].weapons, ...pool[j].weapons, ...pool[k].weapons]);
+          if (kinds.size < region.minWeapons) continue;
+          best = { total, keys: [pool[i].key, pool[j].key, pool[k].key] };
+        }
+      }
+    }
+    if (!best) return { ok: false, message: `무기 종류 ${region.minWeapons}가지를 채우는 조합이 없습니다.` };
+    return { ok: true, keys: best.keys };
   }
 
-  // 배틀·아레나 편성 중인 함선을 고를 때만 띄우는 y/n 확인
-  function inUseConfirmHtml(key) {
-    const owned = ownedVariants().find(v => keyOf(v) === key);
-    const name = owned ? owned.name : '선택한 함선';
-    return `<div class="cmd-sheet cmd-confirm" role="dialog" aria-modal="true" aria-label="편성 중 함선 확인"><p class="cmd-confirm-q">${esc(name)}은(는) 편성 중입니다</p><p class="cmd-confirm-sub">파견하면 배틀·아레나 편성에서 빠집니다. 이 함선을 파견에 넣을까요?</p><div class="cmd-yn"><button type="button" data-cmd="inuse-no">아니오</button><button type="button" data-cmd="inuse-yes">예</button></div></div>`;
+  // 지난 편성: 지금도 쓸 수 있는 함선만 남기고 나머지는 비운다.
+  function repeatLast(region) {
+    const last = read().last?.[region.id];
+    if (!Array.isArray(last) || last.length !== SHIPS_PER_MISSION) return { ok: false, message: '이 지역의 지난 편성 기록이 없습니다.' };
+    const owned = ownedVariants();
+    const used = inUseKeys();
+    const keys = [];
+    const missing = [];
+    last.forEach(key => {
+      const v = owned.find(x => keyOf(x) === key);
+      const taken = keys.filter(k => k === key).length;
+      let reason = '';
+      if (!v) reason = '보유하지 않음';
+      else if (taken >= v.copies) reason = '보유 수 부족';
+      else reason = ineligibleReason(region, v, used);
+      if (reason) { keys.push(null); missing.push(`${parseKey(key).name}(${reason})`); } else keys.push(key);
+    });
+    return { ok: true, keys, missing };
   }
 
-  // 선택 목록과 확인 팝업은 화면 밖(body)에 띄운다. 상위 화면의 변형 효과에 가려지지 않도록.
+  const SORTS = [
+    ['power-asc', '약한 순'],
+    ['power-desc', '강한 순'],
+    ['rarity-desc', '등급 높은 순'],
+    ['stars-desc', '성급 높은 순'],
+    ['name', '이름순']
+  ];
+
+  // 함선 고르기 시트: 한 번 열어서 최대 3대까지 체크한다. 아래 줄에 선택 현황과 조건이 실시간으로 보인다.
+  function pickerHtml(region) {
+    const used = inUseKeys();
+    const power = powerFn();
+    const selectedKeys = ui.slots.filter(Boolean);
+    const selectedShips = selectedKeys.map(key => ownedVariants().find(v => keyOf(v) === key)).filter(Boolean);
+    const haveKinds = new Set(selectedShips.flatMap(weaponsOf));
+    const needMore = selectedKeys.length > 0 && haveKinds.size < region.minWeapons && selectedKeys.length < SHIPS_PER_MISSION;
+
+    let list = ownedVariants().map(v => ({ v, key: keyOf(v), reason: ineligibleReason(region, v, used), score: power(v) }));
+    if (ui.weapon) list = list.filter(item => weaponsOf(item.v).includes(ui.weapon));
+    if (ui.onlyEligible) list = list.filter(item => !item.reason);
+    const order = {
+      'power-asc': (a, b) => a.score - b.score,
+      'power-desc': (a, b) => b.score - a.score,
+      'rarity-desc': (a, b) => rankOf(b.v.rarity) - rankOf(a.v.rarity) || (b.v.stars || 0) - (a.v.stars || 0),
+      'stars-desc': (a, b) => (b.v.stars || 0) - (a.v.stars || 0) || rankOf(b.v.rarity) - rankOf(a.v.rarity),
+      'name': (a, b) => a.v.name.localeCompare(b.v.name, 'ko')
+    }[ui.sort] || ((a, b) => a.score - b.score);
+    list.sort((a, b) => (a.reason ? 1 : 0) - (b.reason ? 1 : 0) || order(a, b));
+
+    const cards = list.map(({ v, key, reason }) => {
+      const count = ui.slots.filter(k => k === key).length;
+      const positions = ui.slots.map((k, i) => (k === key ? i + 1 : 0)).filter(Boolean);
+      const gain = needMore && !reason ? weaponsOf(v).filter(w => !haveKinds.has(w)) : [];
+      const note = reason || `보유 ${v.copies}${count ? ` · 선택 ${count}` : ''}`;
+      return `<button type="button" class="cmd-card${reason ? ' dim' : ''}${count ? ' on' : ''}" data-cmd="card" data-key="${esc(key)}" ${reason ? 'disabled' : ''}>${count ? `<i class="cmd-order">${positions.join('·')}</i>` : ''}${gain.length ? `<i class="cmd-new">+${esc(gain.join('·'))}</i>` : ''}<div class="cmd-card-img">${v.image ? `<img src="${esc(v.image)}" alt="" />` : ''}</div><b>${esc(v.name)}</b><span>${v.rarity}${v.stars ? ` ★${v.stars}` : ''} · ${esc(v.weapon || '무기 미정')}</span><em>${esc(note)}</em></button>`;
+    }).join('');
+
+    const chips = ['', ...WEAPONS].map(w => `<button type="button" class="cmd-chip" data-cmd="filter" data-weapon="${esc(w)}" aria-pressed="${ui.weapon === w}">${w || '전체'}</button>`).join('');
+    const sortSelect = `<select data-cmd-sort aria-label="정렬">${SORTS.map(([id, label]) => `<option value="${id}"${ui.sort === id ? ' selected' : ''}>${label}</option>`).join('')}</select>`;
+    const mini = ui.slots.map((key, i) => {
+      const v = ownedVariants().find(x => keyOf(x) === key);
+      return `<button type="button" class="cmd-mini-slot${v ? ' filled' : ''}" data-cmd="slot-clear" data-slot="${i}" aria-label="${i + 1}번 칸${v ? ' 비우기' : ''}">${v ? `<img src="${esc(v.image || '')}" alt="" /><b>${esc(v.name)}</b>` : `<span>${i + 1}</span>`}</button>`;
+    }).join('');
+    const checks = checklist(region, ui.slots);
+    const ready = passes(checks);
+    const note = ui.sheetNote ? `<p class="cmd-sheet-note" role="status">${esc(ui.sheetNote)}</p>` : '';
+    return `<div class="cmd-sheet cmd-multi" role="dialog" aria-modal="true" aria-label="함대 편성"><header><b>함대 편성 · ${esc(region.name)}</b><button type="button" class="cmd-close" data-cmd="pick-close">닫기</button></header><div class="cmd-toolbar">${sortSelect}<label class="cmd-only"><input type="checkbox" data-cmd-only ${ui.onlyEligible ? 'checked' : ''}/> 조건 맞는 함선만</label></div><div class="cmd-chips">${chips}</div>${cards ? `<div class="cmd-grid">${cards}</div>` : '<p class="cmd-intro">조건에 맞는 함선이 없습니다.</p>'}<footer class="cmd-bar">${note}<div class="cmd-mini">${mini}</div><ul class="cmd-check cmd-check-mini">${checks.map(c => `<li class="${c.ok ? 'ok' : 'ng'}">${c.ok ? '✔' : '✖'} ${esc(c.text)}</li>`).join('')}</ul><div class="cmd-bar-actions"><button type="button" data-cmd="auto">자동 편성</button><button type="button" class="cmd-bar-go" data-cmd="go" ${ready ? '' : 'disabled'}>파견</button><button type="button" class="cmd-done" data-cmd="pick-close">완료</button></div></footer></div>`;
+  }
+
+  // 선택 시트는 화면 밖(body)에 띄운다. 상위 화면의 변형 효과에 가려지지 않도록.
   function renderModal() {
     let root = document.getElementById('cmd-modal-root');
     if (!root) { root = document.createElement('div'); root.id = 'cmd-modal-root'; document.body.appendChild(root); }
     const region = regionById(ui.regionId);
-    if (ui.confirmPick && region) {
-      root.innerHTML = `<div class="cmd-backdrop">${inUseConfirmHtml(ui.confirmPick.key)}</div>`;
-    } else if (ui.picking !== null && region && ui.sub === 'region') {
-      root.innerHTML = `<div class="cmd-backdrop" data-cmd="pick-close">${pickerHtml(ui.picking, region)}</div>`;
+    if (ui.picking && region && ui.sub === 'region') {
+      const prevTop = root.querySelector('.cmd-grid')?.scrollTop || 0;
+      root.innerHTML = `<div class="cmd-backdrop" data-cmd="pick-close">${pickerHtml(region)}</div>`;
+      const grid = root.querySelector('.cmd-grid');
+      if (grid) grid.scrollTop = prevTop;
     } else {
       root.innerHTML = '';
     }
@@ -307,26 +401,49 @@
     if (!el || el.disabled) return;
     if (!el.closest('#earth-union, #cmd-modal-root')) return;
     const act = el.dataset.cmd;
-    if (act === 'menu') { ui.sub = 'menu'; ui.slots = [null, null, null]; }
+    const region = regionById(ui.regionId);
+    const reset = () => { ui.sub = 'menu'; ui.slots = [null, null, null]; ui.picking = false; ui.sheetNote = ''; };
+    if (act === 'menu') { reset(); }
     else if (act === 'dispatch') { ui.sub = 'dispatch'; }
-    else if (act === 'region') { ui.sub = 'region'; ui.regionId = el.dataset.region; ui.slots = [null, null, null]; }
-    else if (act === 'pick') { ui.picking = Number(el.dataset.slot); }
-    else if (act === 'pick-close') { if (event.target === el || el.classList.contains('cmd-close')) ui.picking = null; }
-    else if (act === 'pick-choose') {
-      // 편성 중인 함선은 바로 넣지 않고 y/n으로 한 번 더 묻는다
-      if (el.dataset.inuse) { ui.confirmPick = { key: el.dataset.key, slot: ui.picking }; }
-      else { ui.slots[ui.picking] = el.dataset.key; ui.picking = null; }
+    else if (act === 'region') { ui.sub = 'region'; ui.regionId = el.dataset.region; ui.slots = [null, null, null]; ui.picking = false; }
+    else if (act === 'pick') { ui.picking = true; ui.sheetNote = ''; }
+    else if (act === 'pick-close') { if (event.target === el || el.classList.contains('cmd-close') || el.classList.contains('cmd-done')) { ui.picking = false; ui.sheetNote = ''; } }
+    else if (act === 'card') {
+      // 눌러서 담고, 이미 고른 함선을 다시 누르면 뺀다(보유 수가 남아 있고 빈 칸이 있으면 한 대 더 담는다).
+      const key = el.dataset.key;
+      const v = ownedVariants().find(x => keyOf(x) === key);
+      const count = ui.slots.filter(k => k === key).length;
+      const empty = ui.slots.indexOf(null);
+      if (v && count < v.copies && empty >= 0) { ui.slots[empty] = key; ui.sheetNote = ''; }
+      else if (count > 0) { ui.slots = ui.slots.map(k => (k === key ? null : k)); ui.sheetNote = ''; }
+      else { ui.sheetNote = '3대를 모두 골랐습니다. 아래 칸을 눌러 하나를 비운 뒤 고르세요.'; }
     }
-    else if (act === 'inuse-no') { ui.confirmPick = null; }
-    else if (act === 'inuse-yes') {
-      ui.slots[ui.confirmPick.slot] = ui.confirmPick.key;
-      ui.picking = null;
-      ui.confirmPick = null;
+    else if (act === 'slot-clear') { ui.slots[Number(el.dataset.slot)] = null; ui.sheetNote = ''; }
+    else if (act === 'clear') { ui.slots = [null, null, null]; ui.sheetNote = ''; }
+    else if (act === 'filter') { ui.weapon = ui.weapon === el.dataset.weapon ? '' : el.dataset.weapon; }
+    else if (act === 'auto' && region) {
+      const result = autoFill(region);
+      if (result.ok) { ui.slots = result.keys; ui.sheetNote = '약한 함선 우선으로 자동 편성했습니다.'; ui.notice = ui.sheetNote; }
+      else { ui.sheetNote = result.message; ui.notice = result.message; }
+    }
+    else if (act === 'repeat' && region) {
+      const result = repeatLast(region);
+      if (!result.ok) { ui.notice = result.message; }
+      else {
+        ui.slots = result.keys;
+        if (!result.missing.length && passes(checklist(region, ui.slots))) {
+          const sent = dispatch(ui.regionId, ui.slots);
+          ui.notice = sent.message;
+          if (sent.ok) reset();
+        } else {
+          ui.notice = result.missing.length ? `지난 편성에서 쓸 수 없는 함선: ${result.missing.join(', ')}. 빈 칸을 채워 주세요.` : '파견 조건을 확인해 주세요.';
+        }
+      }
     }
     else if (act === 'go') {
       const result = dispatch(ui.regionId, ui.slots);
       ui.notice = result.message;
-      if (result.ok) { ui.sub = 'menu'; ui.slots = [null, null, null]; }
+      if (result.ok) reset(); else ui.sheetNote = result.message;
     } else if (act === 'recall') {
       const result = recall();
       ui.notice = result.message;
@@ -336,6 +453,14 @@
       if (result.ok) { ui.sub = 'dispatch'; ui.slots = [null, null, null]; }
     }
     rerender();
+  });
+
+  // 정렬과 '조건 맞는 함선만'은 입력 값이 바뀔 때 처리한다.
+  document.addEventListener('change', event => {
+    const target = event.target;
+    if (!target?.closest?.('#cmd-modal-root')) return;
+    if (target.matches?.('[data-cmd-sort]')) { ui.sort = target.value; rerender(); }
+    else if (target.matches?.('[data-cmd-only]')) { ui.onlyEligible = target.checked; rerender(); }
   });
 
   // 파견 중인 시간을 1초마다 갱신하고, 끝나는 순간 화면을 '보상 대기'로 바꾼다.
