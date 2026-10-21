@@ -1405,7 +1405,7 @@
     '판도라': { interval: () => PANDORA_ATTACK.interval, fire: firePandoraNormalAttack },
     '가루다': { interval: () => GARUDA_MISSILE.interval, fire: fireGarudaMissilePair },
     '바랴그': { interval: u => VARYAG_MISSILE.interval / (u.varyagStars >= 3 ? 1.3 : 1), fire: fireVaryagMissiles },
-    'KDDX': { interval: u => KDDX_LASER.interval / (u.kddxStars >= 3 ? 1.3 : 1), fire: fireKddxLaser },
+    'KDDX': { interval: u => KDDX_LASER.interval * (u.kddxStars >= 3 ? .5 : 1), fire: fireKddxLaser },
     '수 판옥선': { interval: () => SUPANOKSEON_CANNON.interval, fire: fireSuPanokseonCannon },
     '아틀라스': { interval: () => ATLAS_ELECTRIC.interval, fire: fireAtlasElectric },
     '네메시스': { interval: () => NEMESIS_LASER.duration + NEMESIS_LASER.reload, fire: fireNemesisPiercingLaser },
@@ -2268,7 +2268,7 @@
         if (ally.isKddx) {
           ally.nextShot -= dt;
           if (ally.nextShot <= 0) {
-            ally.nextShot = KDDX_LASER.interval / (ally.kddxStars >= 3 ? 1.3 : 1);
+            ally.nextShot = KDDX_LASER.interval * (ally.kddxStars >= 3 ? .5 : 1);
             fireKddxLaser(ally);
           }
           continue;
