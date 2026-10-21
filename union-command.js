@@ -219,7 +219,7 @@
 
   // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
   // 아군 3대(왼쪽)가 오른쪽을 보고 달리며 오른쪽의 적을 공격한다. 전투용 탑뷰 그림을 시계 방향으로 90도 돌려 쓴다.
-  const FOE_IMAGES = { mars: 'enemy-raptor.png', titan: 'enemy-blue-claw.png', oort1: 'enemy-plasma-bug.png', oort2: 'enemy-toxic-beast.png', oort3: 'enemy-machine-beast.png', oort4: 'enemy-flame-beast.png', oort5: 'enemy-ancient-beast.png' };
+  const FOE_IMAGES = { mars: 'enemy-raptor.png', titan: 'enemy-blue-claw.png', oort1: 'enemy-blue-stinger.png', oort2: 'enemy-toxic-beast.png', oort3: 'enemy-machine-beast.png', oort4: 'enemy-flame-beast.png', oort5: 'enemy-ancient-beast.png' };
   const FOE_SLOTS = [[80, 22, 0], [91, 42, .9], [74, 62, 1.7], [87, 80, .4], [95, 56, 1.3]];
   const TINTS = { mars: '255,110,70', titan: '255,170,70', oort1: '90,170,255', oort2: '120,220,160', oort3: '170,140,255', oort4: '255,120,150', oort5: '255,220,120' };
   function battleScene(region, mission) {
