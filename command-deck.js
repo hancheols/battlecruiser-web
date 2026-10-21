@@ -5,7 +5,7 @@ const explorationLootCatalog={
   thoriumBox:{name:'토륨 상자',icon:'🔷',image:'icons/thorium-box.png',category:'resource',detail:'사용하면 확률에 따라 토륨을 획득합니다'},
   researchBag:{name:'연구자료 가방',icon:'▤',image:'icons/research-data-bag.png',category:'resource',detail:'사용하면 연구일지 1~5개와 10% 확률로 분야가 지정된 전용 연구코어 1개를 획득합니다. 연구일지는 수량이 많을수록 확률이 낮습니다'},
   scoutTron:{name:'탐색드론',icon:'◉',image:'icons/scout-drone.png?v=20260929-2',category:'resource',detail:'탐색 보조 장비'},
-  precisionScout:{name:'정밀탐색드론',icon:'◉',image:'icons/scout-drone.png?v=20260929-2',category:'resource',detail:'파라가 개량한 정밀 탐색 장비'},
+  precisionScout:{name:'정밀탐색드론',icon:'◉',image:'icons/precision-scout-drone.webp',category:'resource',detail:'파라가 개량한 정밀 탐색 장비'},
   researchStaff:{name:'연구인력',icon:'♙',image:'icons/research-personnel-20261002.png',category:'resource',detail:'연구 지원 인력'},
   solarDust:{name:'태양티끌',icon:'☼',image:'icons/solar-dust.png',category:'other',detail:'용도 미지정 태양계 물질'},
   frameCannon:{name:'함포 골조',weapon:'함포',icon:'⚓',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 함포'},
