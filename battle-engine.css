@@ -730,3 +730,10 @@
 .fx-angela-muzzle::after{content:"";position:absolute;left:0;top:-5px;width:84px;height:10px;background:linear-gradient(90deg,#fff,#ffe38a 45%,transparent);filter:drop-shadow(0 0 6px #ffd45a);transform-origin:0 50%;animation:angela-flash-beam .42s ease-out forwards}
 @keyframes angela-flash{0%{opacity:0;transform:scale(.3)}22%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.7)}}
 @keyframes angela-flash-beam{0%{opacity:0;transform:scaleX(.2)}22%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.25)}}
+
+/* 외계 스타크루저의 공포: 맞은 아군이 떨리며 공격하지 못하는 상태 */
+.ally-unit.kepler-feared{animation:kepler-fear-shake .12s linear infinite;filter:hue-rotate(-40deg) saturate(1.4)}
+@keyframes kepler-fear-shake{0
+/* 외계 스타크루저의 공포: 맞은 아군이 떨리며 공격하지 못하는 상태 */
+.ally-unit.kepler-feared{animation:kepler-fear-shake .12s linear infinite;filter:hue-rotate(-40deg) saturate(1.4)}
+@keyframes kepler-fear-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
