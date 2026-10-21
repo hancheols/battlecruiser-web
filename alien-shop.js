@@ -19,6 +19,8 @@
     { sku: 'scout-drone', itemId: 'scoutTron', name: '탐색드론', image: 'icons/scout-drone.png', detail: '함선 탐색에 필요한 정찰 장비', amount: 1, currency: 'thorium', price: 100, badge: '탐색 보급', groups: ['featured', 'supply'] },
     { sku: 'scout-drone-ten', itemId: 'scoutTron', name: '탐색드론 묶음', image: 'icons/scout-drone.png', detail: '탐색드론 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 900, badge: '10개 묶음', groups: ['supply'] },
     { sku: 'research-crew', itemId: 'researchStaff', name: '연구인력', image: 'icons/research-personnel-20261002.png', detail: '전술무기 연구에 투입할 인력', amount: 1, currency: 'thorium', price: 50, badge: '연구 필수', groups: ['featured', 'supply'] },
+    // 보급품 탭의 골드 교환은 오늘의 특가와 따로 두어 수량 제한 없이 계속 판매한다.
+    { sku: 'supply-gold-10000', itemId: 'gold', name: '골드', image: 'gold-resource-icon.svg', detail: '토륨 100개로 골드 10,000 교환', amount: 10000, currency: 'thorium', price: 100, badge: '교환', groups: ['supply'], rewardType: 'resource' },
     { sku: 'research-crew-ten', itemId: 'researchStaff', name: '연구인력 묶음', image: 'icons/research-personnel-20261002.png', detail: '연구인력 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 450, badge: '10개 묶음', groups: ['supply'] },
   ];
   const TOKEN_PACKS = [1, 5, 10, 20, 25, 50, 100, 200, 500, 1000];
@@ -468,7 +470,7 @@
       button.setAttribute('aria-selected', String(selected));
     });
     // 보급품 탭은 항상 같은 순서로 보여 준다: 탐색드론 1·10, 연구인력 1·10, 아레나 티켓, 골드 10,000
-    const SUPPLY_ORDER = ['scout-drone', 'scout-drone-ten', 'research-crew', 'research-crew-ten', 'arena-ticket', 'featured-gold-10000'];
+    const SUPPLY_ORDER = ['scout-drone', 'scout-drone-ten', 'research-crew', 'research-crew-ten', 'arena-ticket', 'supply-gold-10000'];
     const goods = activeTab === 'supply'
       ? SUPPLY_ORDER.map(sku => GOODS.find(good => good.sku === sku) || FEATURED_GOODS.find(good => good.sku === sku)).filter(Boolean)
       : GOODS.filter(good => good.groups.includes(activeTab));
