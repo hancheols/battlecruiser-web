@@ -470,6 +470,7 @@ function initializeFleetFormation(){
     'destroyer:페가수스':[2000,'관통 레이저',606,'관통 레이저 2문 · 각 100 / 0.33초 · 4초 발사 후 3초 재장전 · 목표를 추적하며, 처치되면 가까운 새 목표로 자동 전환','멸절 · 종료 후 2초 행동불능'],
     'destroyer:판도라':[2000,'미사일 · 함포 · 레이저포 · 전기 · 관통레이저',533,'1초 순환 · 미사일 300 × 2 / 레이저포 500 / 함포 250 × 2','뇌격미사일 · 2초 충전 → 미사일 500 × 2 → 1초 뒤 지름 90px 전기 300 · 전격 1.5초'],
     'destroyer:KDDX':[2000,'레이저포',300,'레이저 450 · 1.5초 간격','연쇄번개 · 1초 충전 후 가까운 적 우선 · 1,500 범위 피해와 전이 범위 피해 · 피해 대상 3초 기절 및 초당 내구도 2% 감전'],
+    'destroyer:가루다':[1000,'미사일',250,'양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선','수호자 · 미사일 9발 동시 발사'],
     'frigate:방패선':[null,'지원',null,'일반공격 없음','천상의 보호막 · 5초'],
     'frigate:레판토':[null,'함포',null,'소환 후 5초간 함포 100 / 0.5초, 미사일 150 / 1초','전열 포격 · 소환형'],
     'frigate:포작선':[null,'자폭',null,'일반공격 없음','자폭 500 × 3회'],
@@ -517,6 +518,7 @@ function initializeFleetFormation(){
   const normalAttackDescription=(ship,stars,profile)=>ship?.type==='destroyer'&&ship.name==='바랴그'?`반경 48px 스플래시 미사일 200 × ${stars>=5?5:3}발 · ${stars>=3?'약 0.92':'1.2'}초 간격`:ship?.type==='destroyer'&&ship.name==='오메가'?`관통 레이저 3문 · 각 150 / 0.5초 · 재장전 ${stars>=3?'1':'2'}초`:ship?.type==='destroyer'&&ship.name==='KDDX'?`레이저 450 · ${stars>=3?'약 1.15':'1.5'}초 간격`:ship?.type==='destroyer'&&ship.name==='가루다'?`양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선`:profile?.[3]||'—';
   const shipSkillNames={
     'destroyer:KDDX':{aux:'속전속결',ultimate:'임전무퇴'},
+    'destroyer:가루다':{aux:'탄두강화',ultimate:'우파가루다'},
     'dreadnought:니미츠':{aux:'전면공세 지원',ultimate:'함재기 폭주'},
     'dreadnought:앙헬라':{aux:'천사의 날개 강화',ultimate:'징벌의 칼'},
     'dreadnought:콜로서스':{aux:'보호막 강화',ultimate:'응징의 방패'},
