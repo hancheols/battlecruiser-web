@@ -7,7 +7,7 @@
 .em-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .em-opt{position:relative;display:grid;gap:2px;justify-items:center;min-width:0;padding:6px 3px 4px;border:1px solid #2c3f66;border-radius:8px;background:rgba(4,14,40,.82);color:#cfe6ff;cursor:pointer}
 .em-opt .crest-svg{width:100%;height:46px;filter:none}
-.em-opt small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#9fb8dc}
+.em-opt small{max-width:100%;font-size:10px;line-height:1.15;text-align:center;color:#9fb8dc}
 .em-opt:hover{border-color:#6fb4f0}
 .em-opt[aria-pressed="true"]{border-color:#aee6ff;background:#0f2250;box-shadow:0 0 10px rgba(31,162,255,.6)}
 .em-opt[aria-pressed="true"] small{color:#fff}

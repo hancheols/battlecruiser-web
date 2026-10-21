@@ -37,28 +37,85 @@
     { id: 'black', name: '먹색', stops: ['#59607a', '#1a1e30'] }
   ];
 
-  // ───────── 외부 장식 (왼쪽 날개 모양. 오른쪽은 좌우 반전) ─────────
+  // ───────── 외부 장식 ─────────
+  // 각 장식은 draw(P)로 방패 뒤에 그릴 SVG를 돌려준다. P는 금속 색 정보다(w: 금속 면, m: 금속 선, line: 외곽선, hi: 밝은 색).
+  // 좌우 대칭 장식은 왼쪽만 그리고 mirror()가 오른쪽을 만든다.
+  const mirror = (P, body, extra = '') => `<g fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round">${body}<g transform="translate(120 0) scale(-1 1)">${body}</g></g>${extra}`;
+  const strokes = (P, body, width = 3) => `<g fill="none" stroke="${P.m}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round">${body}<g transform="translate(120 0) scale(-1 1)">${body}</g></g>`;
+  const star5 = (cx, cy, r) => {
+    let d = '';
+    for (let i = 0; i < 10; i += 1) {
+      const radius = i % 2 ? r * .45 : r;
+      const ang = -Math.PI / 2 + i * Math.PI / 5;
+      d += `${i ? 'L' : 'M'}${(cx + radius * Math.cos(ang)).toFixed(1)} ${(cy + radius * Math.sin(ang)).toFixed(1)} `;
+    }
+    return d + 'Z';
+  };
   const leafWing = () => {
     let leaves = '';
     for (let i = 0; i < 9; i += 1) {
       const t = i / 8;
-      const x = 42 - 22 * Math.sin(Math.PI * t) + 2;
+      const x = 44 - 22 * Math.sin(Math.PI * t);
       const y = 14 + 72 * t;
       const angle = -70 + t * 140;
       leaves += `<path d="M0 0 C3 -6 11 -7 15 0 C11 7 3 6 0 0 Z" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(angle + 180).toFixed(0)})"/>`;
     }
     return leaves;
   };
+  const burst = () => {
+    let d = '';
+    for (let i = 0; i < 24; i += 1) {
+      const r = i % 2 ? .74 : 1;
+      const ang = -Math.PI / 2 + i * Math.PI / 12;
+      d += `${i ? 'L' : 'M'}${(60 + 54 * r * Math.cos(ang)).toFixed(1)} ${(52 + 48 * r * Math.sin(ang)).toFixed(1)} `;
+    }
+    return d + 'Z';
+  };
+  const cogRing = () => {
+    let d = '';
+    const teeth = 14;
+    for (let i = 0; i < teeth; i += 1) {
+      const base = i * 2 * Math.PI / teeth;
+      [[.86, -.17], [1, -.1], [1, .1], [.86, .17]].forEach(([r, off], j) => {
+        const ang = base + off - Math.PI / 2;
+        d += `${i || j ? 'L' : 'M'}${(60 + 52 * r * Math.cos(ang)).toFixed(1)} ${(52 + 46 * r * Math.sin(ang)).toFixed(1)} `;
+      });
+    }
+    return d + 'Z';
+  };
+  const starArc = () => {
+    let d = '';
+    for (let j = 0; j < 7; j += 1) {
+      const t = j / 6;
+      const ang = Math.PI * (1.08 + .84 * t);
+      const r = j === 3 ? 8.5 : j % 3 === 0 ? 6 : 7;
+      d += star5(60 + 56 * Math.cos(ang), 56 + 50 * Math.sin(ang), r) + ' ';
+    }
+    return d;
+  };
+  const featherLines = 'M45 46 C32 34 20 28 6 22 M45 57 C32 52 20 50 8 52 M45 66 C34 70 26 76 22 84';
+  const batBones = 'M45 28 L4 12 M45 31 L9 36 M45 36 L20 46 M45 42 L33 54';
   const WINGS = [
-    { id: 'feather', name: '은빛 깃', body: '<path d="M44 44 C33 33 18 31 3 35 C15 39 22 42 29 46 C17 46 9 50 3 57 C17 57 29 55 38 53 C29 57 22 62 18 68 C30 66 38 61 44 56 Z"/>' },
-    { id: 'eagle', name: '독수리', body: '<path d="M44 36 L30 24 L22 30 L10 22 L12 34 L2 36 L14 42 L6 52 L18 52 L12 64 L28 58 L44 62 Z"/>' },
-    { id: 'flame', name: '불꽃', body: '<path d="M44 70 C30 68 22 58 26 44 C28 52 34 54 36 50 C30 42 32 30 40 22 C38 32 44 38 46 46 Z"/><path d="M44 78 C32 80 22 74 14 62 C24 68 32 68 40 63 Z"/>' },
-    { id: 'blade', name: '칼날', body: '<path d="M44 30 L26 20 L6 14 L24 28 L2 34 L24 38 L8 50 L28 48 L16 62 L36 56 L44 66 Z"/>' },
-    { id: 'mech', name: '기계', body: '<path d="M44 28 H28 V36 H16 V44 H6 V54 H16 V62 H28 V70 H44 Z"/>' },
-    { id: 'horn', name: '뿔', body: '<path d="M44 66 C24 68 8 54 6 24 C18 38 32 42 44 40 Z"/><path d="M44 78 C30 82 18 76 12 64 C22 71 34 73 44 71 Z"/>' },
-    { id: 'laurel', name: '월계수', body: leafWing() },
-    { id: 'none', name: '없음', body: '' }
+    { id: 'angel', name: '천상의 날개', draw: P => mirror(P,
+      '<path d="M45 38 C34 22 18 14 2 16 C9 24 12 29 14 35 C8 32 4 33 0 36 C12 42 28 48 45 54 Z"/><path d="M45 52 C34 42 20 40 5 44 C11 48 15 51 16 56 C11 55 7 57 3 61 C16 63 32 61 45 62 Z"/><path d="M45 62 C35 62 22 66 13 75 C19 73 25 73 29 76 C25 78 21 82 19 88 C30 82 39 75 45 70 Z"/>',
+      `<g fill="none" stroke="${P.hi}" stroke-opacity=".55" stroke-width=".8" stroke-linecap="round"><path d="${featherLines}"/><g transform="translate(120 0) scale(-1 1)"><path d="${featherLines}"/></g></g>`) },
+    { id: 'bat', name: '심연의 날개', draw: P => mirror(P,
+      '<path d="M45 28 C34 18 20 12 4 12 C10 20 11 28 9 36 C15 34 20 38 20 46 C25 42 31 45 33 54 C37 51 41 53 45 62 Z"/>',
+      `<g fill="none" stroke="${P.line}" stroke-width="1.1" stroke-linecap="round"><path d="${batBones}"/><g transform="translate(120 0) scale(-1 1)"><path d="${batBones}"/></g></g>`) },
+    { id: 'halo', name: '태양 후광', draw: P => `<path d="${burst()}" fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round"/><ellipse cx="60" cy="52" rx="42" ry="38" fill="none" stroke="${P.hi}" stroke-opacity=".55" stroke-width="1"/>` },
+    { id: 'antler', name: '고대의 뿔', draw: P => strokes(P, '<path d="M44 50 C28 44 16 32 13 9"/><path d="M31 40 C22 41 13 38 6 31"/><path d="M24 34 C18 29 14 24 11 19"/><path d="M19 27 C13 26 7 22 3 16"/><path d="M13 9 L11 3"/>', 3.6) },
+    { id: 'swirl', name: '성운 소용돌이', draw: P => strokes(P, '<path d="M46 62 C30 64 14 54 12 38 C11 26 22 18 32 22 C40 26 40 36 33 38 C28 39 26 34 29 32"/><path d="M46 74 C34 82 20 80 12 68"/>', 2.8) + `<g fill="${P.hi}"><circle cx="29" cy="32" r="2.4"/><circle cx="91" cy="32" r="2.4"/><circle cx="12" cy="68" r="2.2"/><circle cx="108" cy="68" r="2.2"/></g>` },
+    { id: 'gear', name: '톱니 광환', draw: P => `<path d="${cogRing()}" fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round"/><ellipse cx="60" cy="52" rx="40" ry="35" fill="none" stroke="${P.hi}" stroke-opacity=".6" stroke-width="1.2"/>` },
+    { id: 'spears', name: '교차 전창', draw: P => `<g fill="none" stroke="${P.m}" stroke-width="3" stroke-linecap="round"><path d="M16 94 L100 16 M104 94 L20 16"/></g><g fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round"><path d="M0 -11 L4.5 2 L0 6 L-4.5 2 Z" transform="translate(102 14) rotate(47)"/><path d="M0 -11 L4.5 2 L0 6 L-4.5 2 Z" transform="translate(18 14) rotate(-47)"/><circle cx="15" cy="95" r="2.6"/><circle cx="105" cy="95" r="2.6"/></g>` },
+    { id: 'stars', name: '별무리 관', draw: P => `<path d="${starArc()}" fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round"/>` },
+    { id: 'phoenix', name: '불사조의 깃', draw: P => mirror(P,
+      '<path d="M45 58 C30 58 16 46 12 26 C20 34 26 36 34 36 C28 28 28 18 34 8 C40 22 46 32 46 44 Z"/><path d="M45 66 C32 70 18 66 8 54 C18 58 28 58 38 54 Z"/><path d="M45 72 C34 82 22 86 12 84 C20 80 26 76 30 70 Z"/>') },
+    { id: 'laurel', name: '승리의 월계관', draw: P => mirror(P, leafWing()) },
+    { id: 'ribbon', name: '왕실 두루마리', draw: P => `<path d="M14 76 C32 84 46 84 60 88 C74 84 88 84 106 76 L98 88 L106 100 C88 94 74 95 60 98 C46 95 32 94 14 100 L22 88 Z" fill="${P.w}" stroke="${P.line}" stroke-width=".8" stroke-linejoin="round"/><path d="M22 88 L14 76 M98 88 L106 76" fill="none" stroke="${P.line}" stroke-width=".8"/>` },
+    { id: 'none', name: '없음', draw: () => '' }
   ];
+  // 예전 이름으로 저장된 엠블럼을 새 장식으로 옮긴다.
+  const WING_ALIAS = { feather: 'angel', eagle: 'bat', flame: 'phoenix', blade: 'spears', mech: 'gear', horn: 'antler' };
 
   // ───────── 방패 ─────────
   const SHIELDS = [
@@ -100,18 +157,18 @@
   // ───────── 값 정리 ─────────
   // 옛 글리프 엠블럼('⊕' 등)을 같은 느낌의 새 엠블럼으로 바꾼다.
   const LEGACY = {
-    '⊕': { w: 'feather', s: 'classic', i: 'planet', f: 'blue', m: 'silver', c: 'white' },
-    '✦': { w: 'feather', s: 'classic', i: 'star', f: 'blue', m: 'silver', c: 'white' },
-    '⬢': { w: 'mech', s: 'hex', i: 'atom', f: 'teal', m: 'ice', c: 'cyan' },
-    '☄': { w: 'flame', s: 'kite', i: 'comet', f: 'violet', m: 'silver', c: 'white' },
-    '⚑': { w: 'blade', s: 'tower', i: 'flag', f: 'crimson', m: 'gold', c: 'gold' },
+    '⊕': { w: 'angel', s: 'classic', i: 'planet', f: 'blue', m: 'silver', c: 'white' },
+    '✦': { w: 'angel', s: 'classic', i: 'star', f: 'blue', m: 'silver', c: 'white' },
+    '⬢': { w: 'gear', s: 'hex', i: 'atom', f: 'teal', m: 'ice', c: 'cyan' },
+    '☄': { w: 'phoenix', s: 'kite', i: 'comet', f: 'violet', m: 'silver', c: 'white' },
+    '⚑': { w: 'spears', s: 'tower', i: 'flag', f: 'crimson', m: 'gold', c: 'gold' },
     '♜': { w: 'laurel', s: 'tower', i: 'castle', f: 'onyx', m: 'obsidian', c: 'white' }
   };
   const DEFAULT = LEGACY['⊕'];
 
   function normalize(value) {
     const source = typeof value === 'string' ? (LEGACY[value] || DEFAULT) : (value && typeof value === 'object' ? value : DEFAULT);
-    const pick = (key, list) => (ids(list).includes(source[key]) ? source[key] : DEFAULT[key]);
+    const pick = (key, list) => { const v = key === 'w' ? (WING_ALIAS[source.w] || source.w) : source[key]; return ids(list).includes(v) ? v : DEFAULT[key]; };
     return { w: pick('w', WINGS), s: pick('s', SHIELDS), i: pick('i', ICONS), f: pick('f', FIELD), m: pick('m', METALS), c: pick('c', ICON_COLORS) };
   }
 
@@ -128,8 +185,7 @@
     const field = find(FIELD, e.f).stops, metal = find(METALS, e.m).stops, iconColor = find(ICON_COLORS, e.c).stops;
     const wing = find(WINGS, e.w), shield = find(SHIELDS, e.s), icon = find(ICONS, e.i);
     const iconScale = e.s === 'diamond' ? 1.25 : e.s === 'round' ? 1.45 : 1.55;
-    const wingMarkup = !wings || wing.id === 'none' ? '' :
-      `<g fill="url(#${k}w)" stroke="${metal[3]}" stroke-width=".8" stroke-linejoin="round">${wing.body}<g transform="translate(120 0) scale(-1 1)">${wing.body}</g></g>`;
+    const wingMarkup = !wings || wing.id === 'none' ? '' : wing.draw({ w: `url(#${k}w)`, m: `url(#${k}m)`, line: metal[3], hi: metal[0] });
     const star = shield.top ? `<path d="M60 1 L62.4 6.6 L68 6.8 L63.6 10.3 L65.2 16 L60 12.8 L54.8 16 L56.4 10.3 L52 6.8 L57.6 6.6 Z" fill="url(#${k}m)"/>` : '';
     return `<svg class="crest-svg" viewBox="${wings ? '0 0 120 100' : '26 0 68 100'}" aria-hidden="true"><defs>
 <linearGradient id="${k}m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${metal[0]}"/><stop offset=".45" stop-color="${metal[1]}"/><stop offset=".55" stop-color="${metal[2]}"/><stop offset="1" stop-color="${metal[0]}"/></linearGradient>
