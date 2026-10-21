@@ -284,6 +284,8 @@
   const ANGELA_WINGS = { immunity: 2000, shield: 500, angelaShield: 500, taunt: 5000, cannonInterval: 150, bladeDuration: 900 };
   // 아군 앙헬라의 천사의 날개: 기본 면역 1초·보호막 500, 강화(3성) 면역 2초·보호막 1000. 날개 효과는 5초 동안 유지되며,
   // 징벌의 칼(5성)은 그 동안 1초마다 뱃머리 레이저를 쏜다.
+  // 징벌의 칼(5성): 날개 효과 동안 뱃머리에서 대검을 1초마다 쏜다. 대검은 앞으로 날며 닿은 모든 적을 관통해 피해를 준다.
+  const ANGELA_SWORD = { travel: 750, length: 120, hits: 1000, pierceWidth: 22 };
   const ANGELA_WING_EFFECT = { immunity: 1000, shield: 500, enhancedImmunity: 2000, enhancedShield: 1000, duration: 5000, judgmentDamage: 1000, judgmentInterval: 1000, judgmentWidth: .035 };
   const CARRIER_INTERCEPTOR = { hits: 55, count: 6, interval: 330, travel: 260 };
   const CARRIER_OVERFLOW = { duration: 5000, shieldInterval: 500, shieldAmount: 100, extraLifetime: 7000 };
@@ -533,6 +535,7 @@
       garudaWingmen: [],
       colossusShieldThrows: [],
       pegasusLances: [],
+      angelaSwords: [],
       interceptors: [],
       boss: null,
       midBosses: [],
@@ -1975,7 +1978,8 @@
       updateBoss(dt);
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
-      updatePegasusLances(dt);
+      updateAngelaSwords(dt);
+    updatePegasusLances(dt);
       if (state.arenaLive) checkArenaLiveEnd();
       if (state.arenaLive) updateArenaEnemyFrigate(dt);
       if (state.hudAccumulator >= 120) {
@@ -5148,21 +5152,70 @@
     if (ally.isAngela) ally.el.classList.add('angel-wing-blessing');
   }
 
-  // 징벌의 칼(5성): 날개 효과 동안 뱃머리에서 레이저포를 1초마다 쏜다. 레이저는 적을 관통하며, 맞은 적에게 1000 피해.
-  function fireAngelaJudgmentLaser(ally) {
-    const origin = pointOf(ally);
-    const from = orientedAllyPoint(ally, 0, -.105);
-    const ahead = orientedAllyPoint(ally, 0, -1);
-    const dx = ahead.x - origin.x, dy = ahead.y - origin.y;
-    const to = { x: from.x + dx * 5, y: from.y + dy * 5 };
+  // 대검이 발사될 때 앙헬라 뱃머리에서 터지는 섬광
+  function angelaSwordMuzzleFlash(ally, angle) {
+    const muzzle = orientedAllyPoint(ally, 0, -.105);
+    const flash = document.createElement('i');
+    flash.className = 'fx-angela-muzzle';
+    flash.style.left = percent(muzzle.x);
+    flash.style.top = percent(muzzle.y);
+    flash.style.setProperty('--angela-angle', `${angle}rad`);
+    refs.effects.append(flash);
+    schedule(() => flash.remove(), 460);
+  }
+
+  // 징벌의 칼(5성): 뱃머리에서 대검 한 자루를 날린다. 페가수스의 창과 같은 방식으로 날아가며 닿은 적을 관통한다.
+  function launchAngelaSword(ally) {
+    if (ally.dead || state.status !== 'combat') return;
+    const field = refs.field?.getBoundingClientRect();
+    if (!field?.width || !field?.height) return;
+    const angle = ally.facingAngle - Math.PI / 2;
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    const muzzle = orientedAllyPoint(ally, 0, -.105);
+    const start = { x: muzzle.x * field.width, y: muzzle.y * field.height };
+    const ahead = pegasusRayToEdge(start.x, start.y, dx, dy, field.width, field.height) + 80;
+    const sword = document.createElement('i');
+    sword.className = 'fx-angela-sword';
+    sword.innerHTML = '<b></b>';
+    sword.style.left = `${start.x}px`;
+    sword.style.top = `${start.y}px`;
+    sword.style.setProperty('--angela-angle', `${angle}rad`);
+    refs.effects.append(sword);
+    state.angelaSwords.push({ el: sword, owner: ally, start, dx, dy, distance: ahead, elapsed: 0, hit: new Set() });
+    angelaSwordMuzzleFlash(ally, angle);
     playPenetrateBeamSound();
-    const beam = document.createElement('i');
-    beam.className = 'fx-line angela-judgment-laser';
-    positionLine(beam, from, to);
-    refs.effects.append(beam);
-    schedule(() => beam.remove(), 900);
-    hostileTargetsFor(ally).forEach(target => {
-      if (!target.dead && distanceToBeam(pointOf(target), from, to) < ANGELA_WING_EFFECT.judgmentWidth) shooterDamage(target, ANGELA_WING_EFFECT.judgmentDamage, ally, 'laser');
+  }
+
+  function updateAngelaSwords(dt) {
+    if (!state?.angelaSwords?.length) return;
+    state.angelaSwords = state.angelaSwords.filter(sword => {
+      if (state.status !== 'combat') {
+        sword.el.remove();
+        return false;
+      }
+      sword.elapsed = Math.min(ANGELA_SWORD.travel, sword.elapsed + dt);
+      const tipDistance = sword.distance * sword.elapsed / ANGELA_SWORD.travel;
+      sword.el.style.left = `${sword.start.x + sword.dx * tipDistance}px`;
+      sword.el.style.top = `${sword.start.y + sword.dy * tipDistance}px`;
+      const field = refs.field.getBoundingClientRect();
+      for (const target of hostileTargetsFor(sword.owner)) {
+        if (sword.hit.has(target) || target.dead) continue;
+        const relativeX = target.x * field.width - sword.start.x;
+        const relativeY = target.y * field.height - sword.start.y;
+        const along = relativeX * sword.dx + relativeY * sword.dy;
+        const bounds = target.el?.getBoundingClientRect();
+        const radius = Math.min(48, Math.max(bounds?.width || 18, bounds?.height || 18) * .35);
+        if (along > tipDistance + radius || along < tipDistance - ANGELA_SWORD.length - radius) continue;
+        const offset = Math.abs(relativeX * sword.dy - relativeY * sword.dx);
+        if (offset > ANGELA_SWORD.pierceWidth + radius * .5) continue;
+        sword.hit.add(target);
+        shooterDamage(target, ANGELA_SWORD.hits, sword.owner);
+        createExplosion(pointOf(target), 'laser');
+        if (state.status !== 'combat') break;
+      }
+      if (sword.elapsed < ANGELA_SWORD.travel && state.status === 'combat') return true;
+      sword.el.remove();
+      return false;
     });
   }
 
@@ -5170,7 +5223,7 @@
     for (let shot = 0; shot * ANGELA_WING_EFFECT.judgmentInterval < ANGELA_WING_EFFECT.duration; shot += 1) {
       schedule(() => {
         if (!state || state.status !== 'combat' || ally.dead) return;
-        fireAngelaJudgmentLaser(ally);
+        launchAngelaSword(ally);
       }, shot * ANGELA_WING_EFFECT.judgmentInterval);
     }
   }
@@ -11203,6 +11256,8 @@
     state.colossusShieldThrows = [];
     state.pegasusLances?.forEach(lance => lance.el.remove());
     state.pegasusLances = [];
+    state.angelaSwords?.forEach(sword => sword.el.remove());
+    state.angelaSwords = [];
     state.paused = false;
     updateHud(true);
     cancelAnimationFrame(frameHandle);
