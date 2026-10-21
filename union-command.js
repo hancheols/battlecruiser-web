@@ -154,7 +154,84 @@
 
   // ───────── 화면 ─────────
   // ───────── 화면 ─────────
-  const ui = { sub: 'menu', regionId: null, slots: [null, null, null], notice: '', picking: false, sheetNote: '', sort: 'power-asc', onlyEligible: false, weapon: '' };
+  // ───────── 현상수배: 우주해적 검은수염 (실전 보스전, 제한시간 안에 격파) ─────────
+  const BOUNTY_KEY = 'starfleet-union-bounty-v1';
+  const FREE_ATTEMPTS = 5;
+  const BOUNTIES = [
+    { stage: 1, name: '검은수염 해적선', hp: 10000, limit: 90, reward: 50, damage: 30 },
+    { stage: 2, name: '검은수염 대장선', hp: 100000, limit: 90, reward: 250, damage: 60 },
+    { stage: 3, name: '검은수염 에드', hp: 1000000, limit: 90, reward: 500, damage: 110 },
+    { stage: 4, name: '전설의 검은수염', hp: 5000000, limit: 60, reward: 1000, damage: 200 }
+  ];
+  // 기기 시간 기준으로 하루가 바뀌면 도전 횟수와 클리어 기록을 비운다(단계 개방은 유지).
+  const dayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  function readBounty() {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(BOUNTY_KEY) || 'null') || {}; } catch {}
+    const fresh = saved.day === dayKey();
+    return {
+      unlocked: Math.min(BOUNTIES.length, Math.max(1, Number(saved.unlocked) || 1)),
+      day: dayKey(),
+      attempts: fresh ? Math.max(0, Number(saved.attempts) || 0) : 0,
+      cleared: fresh && Array.isArray(saved.cleared) ? saved.cleared.map(Number) : []
+    };
+  }
+  const writeBounty = state => { try { localStorage.setItem(BOUNTY_KEY, JSON.stringify(state)); } catch {} };
+  // 무료 5회가 지나면 도전마다 50토륨씩 늘어나고 500토륨에서 멈춘다.
+  const attemptCost = attempts => (attempts < FREE_ATTEMPTS ? 0 : Math.min(500, 50 * (attempts - FREE_ATTEMPTS + 1)));
+  const thoriumBalance = () => {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(RESOURCE_KEY) || 'null') || {}; } catch {}
+    const current = window.gameResources && typeof window.gameResources === 'object' ? window.gameResources : saved;
+    return Math.max(0, Number(current.thorium) || 0);
+  };
+
+  function bountyStart(stage) {
+    const spec = BOUNTIES.find(item => item.stage === Number(stage));
+    const state = readBounty();
+    if (!spec) return { ok: false, message: '현상수배를 찾을 수 없습니다.' };
+    if (spec.stage > state.unlocked) return { ok: false, message: '이전 단계를 먼저 클리어하세요.' };
+    if (state.cleared.includes(spec.stage)) return { ok: false, message: '오늘은 이미 클리어했습니다. 내일 다시 도전할 수 있습니다.' };
+    if (window.tutorialAllowsScreen && !window.tutorialAllowsScreen('battle')) return { ok: false, message: '튜토리얼을 먼저 진행해 주세요.' };
+    if (!(window.getFleetAssignments?.() || []).slice(0, 3).some(Boolean)) return { ok: false, message: '함대관리에서 주력 함선을 먼저 편성하세요.' };
+    const cost = attemptCost(state.attempts);
+    if (cost) {
+      const have = thoriumBalance();
+      if (have < cost) return { ok: false, message: `토륨이 부족합니다. (필요 ${cost}, 보유 ${have})` };
+      if (!grantResources({ thorium: -cost })) return { ok: false, message: '저장에 실패했습니다. 다시 시도해 주세요.' };
+    }
+    state.attempts += 1;
+    writeBounty(state);
+    const operation = { chapter: 1, region: 'bounty', regionName: '현상수배', regionEn: 'BOUNTY', gate: 1, bounty: { ...spec } };
+    window.battleOperation = operation;
+    window.show?.('battle');
+    requestAnimationFrame(() => window.prepareBattle?.(operation));
+    // 아레나처럼 전장이 준비되면 바로 전투가 시작된다.
+    setTimeout(() => { if (window.battleOperation === operation) document.getElementById('battle-start')?.click(); }, 700);
+    return { ok: true, message: '' };
+  }
+
+  // 전투가 끝나면 엔진이 부른다. 승리하면 오늘 클리어로 기록하고 다음 단계를 연다. 보상(토륨)은 엔진이 지급한다.
+  function bountyFinish(stage, victory) {
+    const spec = BOUNTIES.find(item => item.stage === Number(stage));
+    const state = readBounty();
+    if (!spec || !victory) return { reward: 0, next: false };
+    const first = !state.cleared.includes(spec.stage);
+    if (first) state.cleared.push(spec.stage);
+    state.unlocked = Math.max(state.unlocked, Math.min(BOUNTIES.length, spec.stage + 1));
+    writeBounty(state);
+    const nextSpec = BOUNTIES.find(item => item.stage === spec.stage + 1);
+    return { reward: first ? spec.reward : 0, next: Boolean(nextSpec && !state.cleared.includes(nextSpec.stage)) };
+  }
+
+  function bountyReturn() {
+    ui.sub = 'bounty';
+    ui.confirmStage = 0;
+    window.show?.('earth-union');
+    window.openUnionFacility?.('command');
+  }
+
+  const ui = { sub: 'menu', confirmStage: 0, regionId: null, slots: [null, null, null], notice: '', picking: false, sheetNote: '', sort: 'power-asc', onlyEligible: false, weapon: '' };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fmt = ms => {
     const total = Math.max(0, Math.floor(ms / 1000));
@@ -201,7 +278,7 @@
   function menuView(state) {
     return panel('연합 임무', `<div class="cmd-menu">
       <button type="button" class="cmd-cell cmd-dispatch${state.active ? ' live' : ''}" style="--cell-img:url('battle-scene-background.png')" data-cmd="dispatch"><b>함대파견</b><small>의뢰 ${REGIONS.length}건</small></button>
-      <button type="button" class="cmd-cell cmd-wanted" style="--cell-img:url('mystery-battleship-outline.png')" disabled><b>현상수배</b></button>
+      <button type="button" class="cmd-cell cmd-wanted live" style="--cell-img:url('mystery-battleship-outline.png')" data-cmd="bounty"><b>현상수배</b><small>우주해적 검은수염</small></button>
       <button type="button" class="cmd-cell cmd-soon" style="--cell-img:url('mystery-weapon-outline.png')" disabled><b>COMING SOON</b></button>
     </div>`);
   }
@@ -215,6 +292,23 @@
       return `<button type="button" class="cmd-cell cmd-region${mine ? ' live' : ''}" data-cmd="region" data-region="${region.id}"><div><div class="cmd-row-title"><b>${esc(region.name)}</b>${badge}</div>${pips(index + 1, REGIONS.length)}</div>${right}</button>`;
     }).join('');
     return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
+  }
+
+  function bountyView() {
+    const state = readBounty();
+    const cost = attemptCost(state.attempts);
+    const freeLeft = Math.max(0, FREE_ATTEMPTS - state.attempts);
+    const rows = BOUNTIES.map(item => {
+      const locked = item.stage > state.unlocked;
+      const done = state.cleared.includes(item.stage);
+      const confirm = ui.confirmStage === item.stage;
+      const tag = done ? '<span class="cmd-tag done">오늘 완료</span>'
+        : locked ? '<span class="cmd-tag">잠김</span>'
+        : `<span class="cmd-tag go">${confirm ? `토륨 ${cost} 사용 · 한 번 더 누르면 시작` : cost ? `도전 · 토륨 ${cost}` : '도전'}</span>`;
+      return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}</span>${tag}</div></button>`;
+    }).join('');
+    const attemptLine = freeLeft ? `오늘 도전 ${state.attempts}회 · 무료 ${freeLeft}회 남음` : `오늘 도전 ${state.attempts}회 · 다음 도전 토륨 ${cost}`;
+    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('현상수배', `<div class="cmd-wanted-hero"><img src="blackbeard.webp" alt="우주해적 검은수염" /><div><small>WANTED</small><b>우주해적 검은수염</b><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div><p class="cmd-rule">단계별로 하루 1번 클리어 · 이전 단계를 클리어하면 다음 단계 개방 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`)}`;
   }
 
   // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
@@ -405,7 +499,7 @@
 
   function screen(heroHtml) {
     const state = settle(read());
-    const body = ui.sub === 'region' ? regionView(state) : ui.sub === 'dispatch' ? dispatchView(state) : menuView(state);
+    const body = ui.sub === 'region' ? regionView(state) : ui.sub === 'dispatch' ? dispatchView(state) : ui.sub === 'bounty' ? bountyView() : menuView(state);
     return `${heroHtml}<div class="cmd-wrap">${notice()}${statusBanner(state)}${body}</div>`;
   }
 
@@ -421,7 +515,18 @@
     const act = el.dataset.cmd;
     const region = regionById(ui.regionId);
     const reset = () => { ui.sub = 'menu'; ui.slots = [null, null, null]; ui.picking = false; ui.sheetNote = ''; };
-    if (act === 'menu') { reset(); }
+    if (act === 'menu') { reset(); ui.confirmStage = 0; }
+    else if (act === 'bounty') { ui.sub = 'bounty'; ui.confirmStage = 0; }
+    else if (act === 'bounty-go') {
+      const stage = Number(el.dataset.stage);
+      if (attemptCost(readBounty().attempts) && ui.confirmStage !== stage) ui.confirmStage = stage;
+      else {
+        ui.confirmStage = 0;
+        const started = bountyStart(stage);
+        if (started.ok) return;
+        ui.notice = started.message;
+      }
+    }
     else if (act === 'dispatch') { ui.sub = 'dispatch'; }
     else if (act === 'region') { ui.sub = 'region'; ui.regionId = el.dataset.region; ui.slots = [null, null, null]; ui.picking = false; }
     else if (act === 'pick') { ui.picking = true; ui.sheetNote = ''; }
@@ -501,5 +606,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  window.UnionCommand = { screen, regions: REGIONS, read, dispatch, recall, claim };
+  window.UnionCommand = { screen, regions: REGIONS, read, dispatch, recall, claim, bounties: BOUNTIES, bountyStart, bountyFinish, bountyReturn };
 })();

@@ -437,7 +437,7 @@
     watchBossBarPhase(refs.battleBossBarSecondary);
     window.addEventListener('game-resources-updated', () => { if (state) syncBattleSpeed(); });
     refs.battleSkip.addEventListener('click', () => {
-      if (!state || state.status !== 'combat' || state.arenaMatch) return;
+      if (!state || state.status !== 'combat' || state.arenaMatch || state.bounty) return;
       if ((Number(state.operation?.gate) || 0) % 5 === 0) {
       announce('중요한 전투는 스킵할 수 없습니다', 'danger');
         return;
@@ -470,7 +470,7 @@
   }
 
   function prepareBattle(operation) {
-    if (!operation?.arenaMatch && window.beforeSortieHook?.(operation, () => prepareBattle(operation))) return;
+    if (!operation?.arenaMatch && !operation?.bounty && window.beforeSortieHook?.(operation, () => prepareBattle(operation))) return;
     if (operation?.arenaMatch) { prepareArenaBattle(operation.arenaMatch); return; }
     window.setBattleBossMusic?.(false);
     stopRuntime();
@@ -518,7 +518,7 @@
     const fleet = resolveFleet();
     const blueExtraCount = magentaBlueBonusCount(normalizedOperation);
     const marsFirstGate = normalizedOperation.chapter === 1 && normalizedOperation.region === 'mars' && normalizedOperation.gate === 1;
-    const enemyTotal = isKeplerSecretBaseOperation(normalizedOperation)
+    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation)
       ? 0
       : marsFirstGate
       ? Math.round(ENEMY_WAVE.baseCount * .4)
@@ -573,6 +573,15 @@
 
     refs.battleOperationName.textContent = `${normalizedOperation.regionName} · ${normalizedOperation.gate}번 관문`;
     refs.battleClock.textContent = '00:00';
+    if (operation.bounty) {
+      // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
+      state.bounty = { ...operation.bounty };
+      refs.battleOperationName.textContent = state.bounty.name;
+      if (refs.battleOperationLabel) refs.battleOperationLabel.textContent = 'BOUNTY · SPACE PIRATE';
+      refs.battleClock.previousElementSibling.textContent = 'TIME LIMIT';
+      refs.battleClock.textContent = `${String(Math.floor(state.bounty.limit / 60)).padStart(2, '0')}:${String(state.bounty.limit % 60).padStart(2, '0')}`;
+      if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = true;
+    }
     fleet.main.forEach(entry => createAlly(entry.ship, entry.slot, false));
     for (let index = 0; index < enemyTotal; index += 1) createNormalEnemy(index, enemyTotal);
     configureStartButton();
@@ -1779,16 +1788,20 @@
     state.lastFrame = performance.now();
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
     refs.battleStart.hidden = true;
-    refs.battleSkip.hidden = Boolean(state.arenaMatch);
+    refs.battleSkip.hidden = Boolean(state.arenaMatch || state.bounty);
     syncBattleSpeed();
     refs.battleForfeit.textContent = '전투포기';
     refs.battleForfeit.classList.add('combat-forfeit');
     refs.battleMap.disabled = true;
     refs.field.classList.add('combat-active');
     if (isOortColonyGate()) { refs.viewport?.classList.add('oort-camera-active'); state.oortCameraStartedAt = performance.now(); }
-    deployNormalEnemies();
-    if (!isKeplerOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
-    scheduleMidMonsterArrival();
+    if (state.bounty) {
+      spawnBlackbeard();
+    } else {
+      deployNormalEnemies();
+      if (!isKeplerOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
+      scheduleMidMonsterArrival();
+    }
     if (isKeplerSecretBaseOperation()) checkBossThreshold();
     updateFrigateButton();
     announce('전투 개시', 'danger');
@@ -1967,6 +1980,11 @@
     }
     {
       state.elapsed += dt / 1000;
+      if (state.bounty && state.elapsed >= state.bounty.limit) {
+        state.elapsed = state.bounty.limit;
+        finishBattle(false, '제한시간이 끝났습니다. 보스를 격파하지 못했습니다.');
+        return;
+      }
       state.hudAccumulator += dt;
       state.frigateCooldown = Math.max(0, state.frigateCooldown - dt / 1000);
       if (state.frigateAuto && state.frigate && state.frigateCooldown <= 0) launchFrigateSkill();
@@ -2808,6 +2826,10 @@
     }
     if (boss.variant === 'tas-right-arm' || boss.variant === 'tas-long-arm') {
       updateTasArmBoss(boss, dt);
+      return;
+    }
+    if (boss.variant === 'blackbeard') {
+      updateBlackbeardAttack(boss, dt);
       return;
     }
     if (boss.variant === 'four-wing-beast') {
@@ -9630,10 +9652,8 @@
     }
     const hpPackets = boostedPackets - absorbed;
     let dealt = 0;
-    for (let index = 0; index < hpPackets && target.hp > 0; index += 1) {
-      target.hp -= 1;
-      dealt += 1;
-    }
+    dealt = Math.max(0, Math.min(hpPackets, target.hp));
+    target.hp -= dealt;
     if (!dealt && !absorbed) return;
     flashTarget(target);
     showUnitDamage(target, dealt || `${formatNumber(absorbed)} SHIELD`);
@@ -10342,7 +10362,7 @@
     boss.toxicMouthGlow?.remove();
     boss.dead = true;
     const keplerAlien = boss.variant?.startsWith('kepler-alien-');
-    if (!keplerAlien) window.addMissionProgress?.('weekly', 'boss-5', 1);
+    if (!keplerAlien && boss.variant !== 'blackbeard') window.addMissionProgress?.('weekly', 'boss-5', 1);
     if (!keplerAlien && !String(boss.variant || '').startsWith('tas-')) setTimeout(bossKillSlowMotion, 0);
     focusBattleAudio(keplerAlien ? 'retreat' : 'boss');
     if (!keplerAlien) {
@@ -11245,7 +11265,7 @@
 
   function finishBattle(victory, reason = '') {
     if (!state || state.status === 'ended') return;
-    if (victory && !state.arenaMatch) {
+    if (victory && !state.arenaMatch && !state.bounty) {
       // 다함급 전술: 중전함·전투순양함·구축함·프리깃을 모두 출격시킨 전투를 완료하면 +1
       const types = new Set((state.allies || []).map(ally => ally.ship?.type).filter(Boolean));
       if (state.frigate) types.add('frigate');
@@ -11283,6 +11303,7 @@
     refs.battleResultTitle.textContent = victory ? '승리' : '패배';
     refs.battleResultActions.replaceChildren();
 
+    if (state.bounty) { renderBountyResult(victory, reason); return; }
     if (victory) {
       const stars = battleStars();
       const firstClear = window.isBattleGateFirstClear?.() ?? true;
@@ -11306,6 +11327,98 @@
       addResultButton('재도전', () => window.retryCurrentBattle?.());
       addResultButton('함교로 복귀', () => window.show?.('home'));
     }
+  }
+
+  // ── 현상수배 보스: 우주해적 검은수염 (일반 적 없이 보스 한 척, 제한시간 안에 격파) ──
+  const BLACKBEARD_FIRE = { cannonInterval: 1800, cannonShots: 2, broadsideInterval: 7000, broadsideShots: 6 };
+
+  function spawnBlackbeard() {
+    if (!state?.bounty || state.boss || state.status !== 'combat') return;
+    const bounty = state.bounty;
+    const boss = {
+      id: 'boss',
+      kind: 'boss',
+      variant: 'blackbeard',
+      name: bounty.name,
+      hp: bounty.hp,
+      maxHp: bounty.hp,
+      x: .5,
+      y: -.23,
+      entryStartY: -.23,
+      entryTargetY: .17,
+      entryDuration: 1150,
+      entryTime: 1150,
+      dead: false,
+      stun: 0,
+      speed: ENEMY_PROFILES.gasimon.speed * 2,
+      attackPower: bounty.damage,
+      nextAttack: 2200,
+      nextBroadside: 6000,
+      lifetime: 0,
+      berserk: false,
+      requiredForGate: false
+    };
+    const element = document.createElement('div');
+    element.className = 'boss-unit boss-blackbeard';
+    element.innerHTML = '<img class="boss-sprite" src="blackbeard.webp" alt="검은수염" />';
+    boss.el = element;
+    state.boss = boss;
+    refs.enemyLayer.append(element);
+    refs.battleBossHud.hidden = false;
+    updateHud(true);
+    updateBossHud();
+    requestAnimationFrame(() => element.classList.add('entered'));
+    window.setBattleBossMusic?.(true);
+    focusBattleAudio('boss');
+    announce(`${bounty.name} 출현`, 'boss');
+    showBossWarning(refs.battleAnnouncement?.textContent || '');
+  }
+
+  function updateBlackbeardAttack(boss, dt) {
+    boss.lifetime += dt;
+    if (boss.entryTime > 0) return;
+    boss.nextAttack -= dt;
+    boss.nextBroadside -= dt;
+    const targets = hostileAllyTargets();
+    if (!targets.length) return;
+    if (boss.nextAttack <= 0) {
+      boss.nextAttack = BLACKBEARD_FIRE.cannonInterval;
+      for (let shot = 0; shot < BLACKBEARD_FIRE.cannonShots; shot += 1) {
+        const target = targets[Math.floor(Math.random() * targets.length)];
+        if (target) enemyProjectile(boss, target, 'monster-spike', boss.attackPower, null, { x: boss.x + (shot % 2 ? .08 : -.08), y: boss.y + .07 });
+      }
+    }
+    if (boss.nextBroadside <= 0) {
+      boss.nextBroadside = BLACKBEARD_FIRE.broadsideInterval;
+      announce('검은수염 · 일제 포격', 'boss');
+      for (let shot = 0; shot < BLACKBEARD_FIRE.broadsideShots; shot += 1) {
+        const target = targets[Math.floor(Math.random() * targets.length)];
+        if (target) enemyProjectile(boss, target, 'monster-spike', Math.round(boss.attackPower * 1.5), null, { x: boss.x - .12 + shot * .048, y: boss.y + .07 });
+      }
+    }
+  }
+
+  function renderBountyResult(victory, reason) {
+    const bounty = state.bounty;
+    const outcome = window.UnionCommand?.bountyFinish?.(bounty.stage, victory, state.elapsed) || { reward: 0, next: false };
+    refs.battleResultKicker.textContent = victory ? 'BOUNTY COMPLETE' : 'BOUNTY FAILED';
+    refs.battleResultTitle.textContent = victory ? '현상수배 완료' : '임무 실패';
+    refs.battleResultStars.textContent = victory ? 'WANTED' : '☆☆☆';
+    if (victory) {
+      refs.battleResultCopy.textContent = `${bounty.name} 격파 · ${state.elapsed.toFixed(1)}초`;
+      if (outcome.reward > 0) {
+        grantRewards({ gold: 0, thorium: outcome.reward });
+        refs.battleRewards.innerHTML = `<span>토륨 <b>${formatNumber(outcome.reward)}</b></span>`;
+      } else {
+        refs.battleRewards.innerHTML = '<span>보상 <b>오늘 이미 수령</b></span>';
+      }
+      if (outcome.next) addResultButton('다음 단계', () => window.UnionCommand?.bountyStart?.(bounty.stage + 1));
+    } else {
+      refs.battleResultCopy.textContent = reason || '검은수염을 격파하지 못했습니다.';
+      refs.battleRewards.innerHTML = '<span>획득 보상 <b>없음</b></span>';
+      addResultButton('재도전', () => window.UnionCommand?.bountyStart?.(bounty.stage));
+    }
+    addResultButton('현상수배로 돌아가기', () => window.UnionCommand?.bountyReturn?.());
   }
 
   function battleStars() {
@@ -11444,9 +11557,9 @@
     const progressPercent = Math.round(progress * 100);
     if (refs.battleGateProgress) refs.battleGateProgress.style.width = `${progressPercent}%`;
     if (refs.battleGateProgressLabel) refs.battleGateProgressLabel.textContent = `${progressPercent}%`;
-    if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = Boolean(state.boss && !state.boss.dead);
+    if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = Boolean(state.bounty || (state.boss && !state.boss.dead));
     if (force || state.status === 'combat') {
-      const seconds = Math.floor(state.elapsed);
+      const seconds = state.bounty ? Math.max(0, Math.ceil(state.bounty.limit - state.elapsed)) : Math.floor(state.elapsed);
       refs.battleClock.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
     }
   }
@@ -11504,7 +11617,7 @@
     refs.battleBossRowSecondary.hidden = true;
     if (!target || target.dead) return;
     const display = displayBoss(target);
-    refs.battleBossName.textContent = target.variant === 'tas-right-arm' ? '오른팔' : target.variant === 'tas-long-arm' ? '긴팔' : target.variant === 'toxic-beast' ? '독성마수' : target.variant === 'machine-beast' ? '기계마수' : target.variant === 'four-wing-beast' ? '4익마수' : target.variant === 'flame-beast' ? '화염마수' : target.variant === 'kepler-alien-angela' ? '외계 앙헬라' : target.variant === 'kepler-alien-escort' ? '외계 호위함' : 'BOSS';
+    refs.battleBossName.textContent = target.variant === 'blackbeard' ? target.name : target.variant === 'tas-right-arm' ? '오른팔' : target.variant === 'tas-long-arm' ? '긴팔' : target.variant === 'toxic-beast' ? '독성마수' : target.variant === 'machine-beast' ? '기계마수' : target.variant === 'four-wing-beast' ? '4익마수' : target.variant === 'flame-beast' ? '화염마수' : target.variant === 'kepler-alien-angela' ? '외계 앙헬라' : target.variant === 'kepler-alien-escort' ? '외계 호위함' : 'BOSS';
     refs.battleBossBar.style.width = `${display.ratio}%`;
     refs.battleBossHp.textContent = display.hp;
   }

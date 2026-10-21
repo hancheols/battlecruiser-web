@@ -200,3 +200,22 @@
 @keyframes cmd-shoot{0%{opacity:0;left:var(--x)}8%{opacity:1}80%{opacity:1}100%{opacity:0;left:76%}}
 @keyframes cmd-fshoot{0%{opacity:0;left:var(--x)}10%{opacity:.95}85%{opacity:.95}100%{opacity:0;left:34%}}
 @media (prefers-reduced-motion:reduce){.cmd-bg,.cmd-stars,.cmd-foe,.cmd-boom,.cmd-ally,.cmd-flame,.cmd-shot,.cmd-fshot,.cmd-pulse{animation:none}.cmd-shot{opacity:.8;left:calc(var(--x) + 22%)}}
+
+/* ───── 현상수배: 우주해적 검은수염 ───── */
+.cmd-wanted-hero{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 12px;border:1px solid rgba(224,114,74,.6);border-radius:12px;background:linear-gradient(135deg,rgba(60,24,16,.85),rgba(12,8,14,.9))}
+.cmd-wanted-hero img{width:44%;max-width:170px;height:auto;filter:drop-shadow(0 0 8px rgba(80,160,255,.5))}
+.cmd-wanted-hero div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cmd-wanted-hero small{font-family:var(--font-display);letter-spacing:.2em;color:#ff9f7a;font-size:11px}
+.cmd-wanted-hero b{font-family:var(--font-display);font-size:18px;color:#ffe2a6}
+.cmd-wanted-hero span{font-family:var(--font-body);font-size:12px;color:#c9d6ee}
+.cmd-bounty-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left}
+.cmd-bounty-meta{display:block;margin-top:3px;font-family:var(--font-body);color:#aab8d4;font-size:12px}
+.cmd-bounty-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.cmd-bounty-reward{font-family:var(--font-num);color:#ffd27a;font-size:13px}
+.cmd-bounty-row .cmd-tag.go{border-color:#ff9f7a;color:#ffd9c7}
+.cmd-bounty-row .cmd-tag.done{border-color:#6bd68a;color:#bff0cc}
+.cmd-bounty-row.confirm{outline:2px solid #ff9f7a}
+.cmd-bounty-row.locked,.cmd-bounty-row.done{opacity:.6}
+.cmd-rule{margin:10px 2px 0;font-family:var(--font-body);font-size:11px;color:#8fa0c0;line-height:1.5}
+.cmd-cell>.cmd-bounty-side{flex:none}
+.cmd-rule{padding:0 6px}

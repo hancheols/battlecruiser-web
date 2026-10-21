@@ -671,6 +671,7 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
   // 연합 활동 보상 배율: 체험 연합은 50%, 정식 연합은 100%. 화성 10관문 뒤 에바-9 안내가 끝나면 체험 연합을 연다.
   window.unionRewardRate = () => { try { return Local.__rewardRate(); } catch { return 1; } };
   window.renderUnionScreen = () => render();
+  window.openUnionFacility = id => { ui.view = id; ui.tab = 'hall'; ui.menuFor = ''; render(); };
   window.unlockTrialUnion = () => Local.__unlockTrial();
   window.UnionLocal = Local; // 테스트와 서버 어댑터 작성 시 참고용
 })();

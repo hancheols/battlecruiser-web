@@ -733,7 +733,10 @@
 
 /* 외계 스타크루저의 공포: 맞은 아군이 떨리며 공격하지 못하는 상태 */
 .ally-unit.kepler-feared{animation:kepler-fear-shake .12s linear infinite;filter:hue-rotate(-40deg) saturate(1.4)}
-@keyframes kepler-fear-shake{0
-/* 외계 스타크루저의 공포: 맞은 아군이 떨리며 공격하지 못하는 상태 */
-.ally-unit.kepler-feared{animation:kepler-fear-shake .12s linear infinite;filter:hue-rotate(-40deg) saturate(1.4)}
 @keyframes kepler-fear-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+
+/* 현상수배 보스: 우주해적 검은수염 */
+.boss-unit.boss-blackbeard{width:250px;height:167px;margin:-84px 0 0 -125px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
+.boss-unit.boss-blackbeard::before,.boss-unit.boss-blackbeard::after{display:none}
+.boss-unit.boss-blackbeard .boss-sprite{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 8px rgba(80,160,255,.7)) drop-shadow(0 8px 14px #000);animation:blackbeard-bob 3.2s ease-in-out infinite}
+@keyframes blackbeard-bob{0%,100%{transform:translateY(-4px)}50%{transform:translateY(5px)}}
