@@ -115,6 +115,7 @@
     { id: 'none', name: '없음', draw: () => '' }
   ];
   // 예전 이름으로 저장된 엠블럼을 새 장식으로 옮긴다.
+  const ICON_ALIAS = { comet: 'star', flag: 'castle' };
   const WING_ALIAS = { feather: 'angel', eagle: 'bat', flame: 'phoenix', blade: 'spears', mech: 'gear', horn: 'antler' };
 
   // ───────── 방패 ─────────
@@ -131,23 +132,36 @@
   const ICONS = [
     { id: 'star', name: '별', draw: P => `<path d="M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z" fill="${P}"/>` },
     { id: 'planet', name: '행성', draw: P => `<circle cx="12" cy="12" r="5.2" fill="${P}"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-22 12 12)" fill="none" stroke="${P}" stroke-width="1.8"/>` },
-    { id: 'comet', name: '혜성', draw: P => `<circle cx="16.5" cy="7.5" r="4" fill="${P}"/><path d="M13.5 10.5 L3 21 M11 7 L2.5 10 M17 13.5 L14 22" fill="none" stroke="${P}" stroke-width="1.8" stroke-linecap="round"/>` },
+    { id: 'heart', name: '하트', draw: P => `<path d="M12 21 C5 15.5 2.5 11.5 2.5 8 C2.5 5 4.8 3 7.4 3 C9.3 3 11 4 12 5.8 C13 4 14.7 3 16.6 3 C19.2 3 21.5 5 21.5 8 C21.5 11.5 19 15.5 12 21 Z" fill="${P}"/>` },
     { id: 'crown', name: '왕관', draw: P => `<path d="M3 19 L3 8 L8 12.5 L12 5 L16 12.5 L21 8 L21 19 Z" fill="${P}"/><rect x="3" y="20.2" width="18" height="2" fill="${P}"/>` },
     { id: 'anchor', name: '닻', draw: P => `<g fill="none" stroke="${P}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2 V21 M7.5 11 H16.5 M4.5 15 C5.5 19.5 9 21 12 21 C15 21 18.5 19.5 19.5 15"/></g>` },
-    { id: 'swords', name: '쌍검', draw: P => `<g fill="none" stroke="${P}" stroke-width="2.2" stroke-linecap="round"><path d="M5 4 L19 18 M19 4 L5 18 M7.4 13.4 L4.6 16.2 M16.6 13.4 L19.4 16.2 M10.2 8 L7.6 10.6 M13.8 8 L16.4 10.6"/></g>` },
+    { id: 'swords', name: '쌍검', draw: P => {
+      const sword = `<path d="M12 -1.2 L14 2.8 L13.7 16 L10.3 16 L10 2.8 Z" fill="${P}"/><path d="M12 -1.2 L14 2.8 L13.7 16 L12 16 Z" fill="#000" fill-opacity=".24"/><path d="M12 2 V15.4" stroke="#fff" stroke-opacity=".75" stroke-width=".55" fill="none"/><path d="M6.4 16 H17.6 L16.8 18 H7.2 Z" fill="${P}"/><path d="M11.1 18 H12.9 V21.4 H11.1 Z" fill="${P}"/><circle cx="12" cy="22.4" r="1.6" fill="${P}"/>`;
+      return `<g transform="translate(12 12) scale(1.1) translate(-12 -12)"><g transform="rotate(-40 12 12)">${sword}</g><g transform="rotate(40 12 12)">${sword}</g></g>`;
+    } },
     { id: 'atom', name: '원자', draw: P => `<g fill="none" stroke="${P}" stroke-width="1.6"><ellipse cx="12" cy="12" rx="10" ry="3.8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(120 12 12)"/></g><circle cx="12" cy="12" r="2.2" fill="${P}"/>` },
     { id: 'eye', name: '눈', draw: P => `<path d="M1.5 12 C6 5.5 18 5.5 22.5 12 C18 18.5 6 18.5 1.5 12 Z" fill="none" stroke="${P}" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="${P}"/>` },
     { id: 'bolt', name: '번개', draw: P => `<path d="M13 2 L5 13 H11 L9 22 L19 9 H13 Z" fill="${P}"/>` },
     { id: 'rocket', name: '로켓', draw: P => `<path d="M12 2 C15.5 5.5 16.5 11 15 16 H9 C7.5 11 8.5 5.5 12 2 Z" fill="${P}"/><path d="M9 14 L5 19 L9 18 Z M15 14 L19 19 L15 18 Z M10.5 17 L12 22 L13.5 17 Z" fill="${P}"/>` },
-    { id: 'flag', name: '깃발', draw: P => `<path d="M5.5 3 V22" fill="none" stroke="${P}" stroke-width="2" stroke-linecap="round"/><path d="M6.5 4 H19 L15.5 8.5 L19 13 H6.5 Z" fill="${P}"/>` },
-    { id: 'castle', name: '성채', draw: P => `<path d="M3.5 21 V9.5 H6.5 V6.5 H9.5 V9.5 H14.5 V6.5 H17.5 V9.5 H20.5 V21 Z" fill="${P}"/><path d="M10 21 V15.5 C10 13.5 14 13.5 14 15.5 V21 Z" fill="#0a1230"/>` },
+    { id: 'castle', name: '성채', draw: P => `<path d="M3.5 21 V10.5 H4.8 V9 H6.2 V10.5 H7.4 V9 H8.8 V10.5 H9.5 V21 Z M14.5 21 V10.5 H15.2 V9 H16.6 V10.5 H17.8 V9 H19.2 V10.5 H20.5 V21 Z" fill="${P}"/><path d="M9 21 V8 H10.4 V6.6 H11.6 V8 H12.4 V6.6 H13.6 V8 H15 V21 Z" fill="${P}"/><path d="M12 6.6 V1.4" fill="none" stroke="${P}" stroke-width="1.2" stroke-linecap="round"/><path d="M12.4 1.6 L18.4 3.6 L12.4 5.8 Z" fill="${P}"/><path d="M10.6 21 V16 C10.6 13.8 13.4 13.8 13.4 16 V21 Z" fill="#0a1230"/>` },
     { id: 'sun', name: '태양', draw: P => {
+      let spiral = '';
+      for (let i = 0; i <= 64; i += 1) {
+        const t = i / 64;
+        const ang = t * Math.PI * 4.4 - Math.PI / 2;
+        const r = .7 + t * 6.2;
+        spiral += `${i ? 'L' : 'M'}${(12 + r * Math.cos(ang)).toFixed(2)} ${(12 + r * Math.sin(ang)).toFixed(2)} `;
+      }
       let rays = '';
       for (let i = 0; i < 8; i += 1) {
-        const a = i * Math.PI / 4;
-        rays += `M${(12 + 6.8 * Math.cos(a)).toFixed(1)} ${(12 + 6.8 * Math.sin(a)).toFixed(1)} L${(12 + 10.4 * Math.cos(a)).toFixed(1)} ${(12 + 10.4 * Math.sin(a)).toFixed(1)} `;
+        const a = i * Math.PI / 4 - Math.PI / 2;
+        const ca = Math.cos(a), sa = Math.sin(a);
+        const px = -sa, py = ca;
+        const base = 8.9, tip = 12, half = 2.1;
+        const bx = 12 + base * ca, by = 12 + base * sa;
+        rays += `M${(bx + px * half).toFixed(2)} ${(by + py * half).toFixed(2)} L${(12 + tip * ca + px * .4).toFixed(2)} ${(12 + tip * sa + py * .4).toFixed(2)} L${(bx - px * half).toFixed(2)} ${(by - py * half).toFixed(2)} Z `;
       }
-      return `<circle cx="12" cy="12" r="4.6" fill="${P}"/><path d="${rays}" fill="none" stroke="${P}" stroke-width="2" stroke-linecap="round"/>`;
+      return `<path d="${rays}" fill="${P}" stroke="${P}" stroke-width="1" stroke-linejoin="round"/><path d="${spiral}" fill="none" stroke="${P}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
     } }
   ];
 
@@ -160,15 +174,15 @@
     '⊕': { w: 'angel', s: 'classic', i: 'planet', f: 'blue', m: 'silver', c: 'white' },
     '✦': { w: 'angel', s: 'classic', i: 'star', f: 'blue', m: 'silver', c: 'white' },
     '⬢': { w: 'gear', s: 'hex', i: 'atom', f: 'teal', m: 'ice', c: 'cyan' },
-    '☄': { w: 'phoenix', s: 'kite', i: 'comet', f: 'violet', m: 'silver', c: 'white' },
-    '⚑': { w: 'spears', s: 'tower', i: 'flag', f: 'crimson', m: 'gold', c: 'gold' },
+    '☄': { w: 'phoenix', s: 'kite', i: 'bolt', f: 'violet', m: 'silver', c: 'white' },
+    '⚑': { w: 'spears', s: 'tower', i: 'castle', f: 'crimson', m: 'gold', c: 'gold' },
     '♜': { w: 'laurel', s: 'tower', i: 'castle', f: 'onyx', m: 'obsidian', c: 'white' }
   };
   const DEFAULT = LEGACY['⊕'];
 
   function normalize(value) {
     const source = typeof value === 'string' ? (LEGACY[value] || DEFAULT) : (value && typeof value === 'object' ? value : DEFAULT);
-    const pick = (key, list) => { const v = key === 'w' ? (WING_ALIAS[source.w] || source.w) : source[key]; return ids(list).includes(v) ? v : DEFAULT[key]; };
+    const pick = (key, list) => { const v = key === 'w' ? (WING_ALIAS[source.w] || source.w) : key === 'i' ? (ICON_ALIAS[source.i] || source.i) : source[key]; return ids(list).includes(v) ? v : DEFAULT[key]; };
     return { w: pick('w', WINGS), s: pick('s', SHIELDS), i: pick('i', ICONS), f: pick('f', FIELD), m: pick('m', METALS), c: pick('c', ICON_COLORS) };
   }
 
