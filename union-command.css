@@ -173,3 +173,27 @@
 .cmd-multi .cmd-card span{font-size:10.5px}
 .cmd-multi .cmd-card em{font-size:10px}
 .cmd-multi .cmd-card-img{aspect-ratio:1/1}
+
+/* ───── 파견 중인 함대: 교전 장면 ───── */
+.cmd-battle{position:relative;height:190px;margin-bottom:12px;border:1px solid rgba(255,210,122,.45);border-radius:14px;overflow:hidden;background:#030914;isolation:isolate;box-shadow:inset 0 0 28px rgba(0,0,0,.7),0 0 14px rgba(var(--tint),.25)}
+.cmd-bg{position:absolute;inset:-20% 0;z-index:-3;background:radial-gradient(120% 80% at 50% 0%,rgba(var(--tint),.35),transparent 60%),url('battle-space-nebula.png') center/cover;opacity:.7;animation:cmd-bg-drift 28s linear infinite}
+.cmd-stars{position:absolute;inset:0;z-index:-2;background-image:radial-gradient(1.5px 1.5px at 12% 20%,#fff,transparent),radial-gradient(1px 1px at 38% 70%,#cfe6ff,transparent),radial-gradient(1.5px 1.5px at 64% 35%,#fff,transparent),radial-gradient(1px 1px at 86% 80%,#ffe9b8,transparent),radial-gradient(1px 1px at 22% 90%,#fff,transparent);background-size:140px 140px;animation:cmd-stars-fall 3.2s linear infinite;opacity:.85}
+.cmd-stars.s2{background-size:90px 90px;opacity:.5;animation-duration:1.9s}
+.cmd-battle-tag{position:absolute;top:8px;left:10px;z-index:5;display:flex;align-items:center;gap:6px;padding:3px 10px;border:1px solid rgba(255,210,122,.55);border-radius:999px;background:rgba(5,10,26,.72);color:#ffe2a6;font-size:12px;letter-spacing:.04em}
+.cmd-pulse{width:7px;height:7px;border-radius:50%;background:#ff6a5a;box-shadow:0 0 8px #ff6a5a;animation:cmd-blink 1s ease-in-out infinite}
+.cmd-foe{position:absolute;left:var(--x);top:calc(var(--y) + 30px);z-index:2;width:36px;height:36px;margin-left:-18px;animation:cmd-foe-sway 3.4s ease-in-out infinite;animation-delay:var(--d)}
+.cmd-foe img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 5px rgba(var(--tint),.8))}
+.cmd-boom{position:absolute;left:50%;top:60%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#ffd27a 38%,rgba(255,120,60,.5) 62%,transparent 72%);opacity:0;animation:cmd-boom 2.4s ease-out infinite;animation-delay:var(--d)}
+.cmd-ally{position:absolute;left:var(--x);bottom:12px;z-index:3;width:58px;height:58px;margin-left:-29px;animation:cmd-ally-bob 2.2s ease-in-out infinite;animation-delay:var(--d)}
+.cmd-ally img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 6px #000) drop-shadow(0 0 6px rgba(120,190,255,.55))}
+.cmd-flame{position:absolute;left:50%;bottom:-6px;width:10px;height:16px;margin-left:-5px;border-radius:50% 50% 60% 60%;background:linear-gradient(180deg,#fff,#7fd6ff 50%,transparent);filter:blur(1px);animation:cmd-flame .18s linear infinite alternate}
+.cmd-shot{position:absolute;left:var(--x);bottom:62px;z-index:2;width:3px;height:14px;margin-left:-1.5px;border-radius:2px;background:linear-gradient(180deg,#fff,#ffd45a 50%,transparent);box-shadow:0 0 6px #ffd45a;opacity:0;animation:cmd-shoot 1.4s linear infinite;animation-delay:var(--d)}
+@keyframes cmd-bg-drift{0%{transform:translateY(-6%)}100%{transform:translateY(6%)}}
+@keyframes cmd-stars-fall{from{background-position:0 0}to{background-position:0 140px}}
+@keyframes cmd-blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes cmd-foe-sway{0%,100%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
+@keyframes cmd-boom{0%{opacity:0;transform:scale(.3)}12%{opacity:1;transform:scale(1)}40%{opacity:0;transform:scale(1.6)}100%{opacity:0}}
+@keyframes cmd-ally-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes cmd-flame{from{transform:scaleY(.8)}to{transform:scaleY(1.25)}}
+@keyframes cmd-shoot{0%{opacity:0;transform:translateY(0)}8%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateY(-118px)}}
+@media (prefers-reduced-motion:reduce){.cmd-bg,.cmd-stars,.cmd-foe,.cmd-boom,.cmd-ally,.cmd-flame,.cmd-shot,.cmd-pulse{animation:none}.cmd-shot{opacity:.8;transform:translateY(-40px)}}

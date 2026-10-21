@@ -217,6 +217,19 @@
     return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
   }
 
+  // 파견 지역에서 싸우는 듯한 작은 장면. 시간은 표시하지 않고(상단 띠에 있다), 파견한 함선 3대가 적을 공격한다.
+  const FOE_IMAGES = { mars: 'enemy-raptor.png', titan: 'enemy-blue-claw.png', oort1: 'enemy-plasma-bug.png', oort2: 'enemy-toxic-beast.png', oort3: 'enemy-machine-beast.png', oort4: 'enemy-flame-beast.png', oort5: 'enemy-ancient-beast.png' };
+  const FOE_SLOTS = [[10, 8, 0], [30, 30, .9], [52, 6, 1.7], [72, 28, .4], [88, 10, 1.3]];
+  const TINTS = { mars: '255,110,70', titan: '255,170,70', oort1: '90,170,255', oort2: '120,220,160', oort3: '170,140,255', oort4: '255,120,150', oort5: '255,220,120' };
+  function battleScene(region, mission) {
+    const foe = FOE_IMAGES[region.id] || 'enemy-raptor.png';
+    const foes = FOE_SLOTS.map(([x, y, d]) => `<span class="cmd-foe" style="--x:${x}%;--y:${y}px;--d:${d}s"><img src="${foe}" alt="" /><i class="cmd-boom" style="--d:${d + .5}s"></i></span>`).join('');
+    const lanes = [20, 50, 80];
+    const ships = (mission.ships || []).slice(0, 3).map((ship, i) => `<span class="cmd-ally" style="--x:${lanes[i]}%;--d:${i * .35}s"><img src="${esc(ship.image || '')}" alt="" /><i class="cmd-flame"></i></span>`).join('');
+    const shots = lanes.flatMap((x, i) => [0, 1].map(k => `<i class="cmd-shot" style="--x:${x}%;--d:${(i * .31 + k * .7).toFixed(2)}s"></i>`)).join('');
+    return `<div class="cmd-battle" style="--tint:${TINTS[region.id] || '255,170,70'}" role="img" aria-label="${esc(region.name)}에서 교전 중인 파견 함대"><div class="cmd-bg"></div><div class="cmd-stars"></div><div class="cmd-stars s2"></div><span class="cmd-battle-tag"><i class="cmd-pulse"></i>${esc(region.name)} · 교전 중</span>${foes}${shots}${ships}</div>`;
+  }
+
   function regionView(state) {
     const region = regionById(ui.regionId) || REGIONS[0];
     const back = `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="dispatch">‹ 의뢰 목록</button></div>`;
@@ -231,7 +244,7 @@
       const elapsed = Math.min(DURATION, now() - mission.startedAt);
       const ratio = elapsed / DURATION;
       const preview = `토륨 ${Math.floor(region.thorium * 0.5 * ratio)} · 골드 ${Math.floor(region.gold * 0.5 * ratio).toLocaleString('ko-KR')} (보너스 없음)`;
-      return back + info + panel('파견 중인 함대', `<div class="cmd-clock-big" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</div><p class="cmd-preview">회수 시 지급 예상: ${preview}</p><button type="button" class="fac-btn cmd-action danger" data-cmd="recall">함대 회수</button>`);
+      return back + info + panel('파견 중인 함대', `${battleScene(region, mission)}<p class="cmd-preview">회수 시 지급 예상: ${preview}</p><button type="button" class="fac-btn cmd-action danger" data-cmd="recall">함대 회수</button>`);
     }
     if (state.active) {
       const other = regionById(state.active.regionId);
