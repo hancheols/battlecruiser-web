@@ -326,9 +326,29 @@
     grants.forEach(reward => grantReward(reward));
     const gold = grants.reduce((sum, reward) => sum + (Number(reward.gold) || 0), 0);
     const thorium = grants.reduce((sum, reward) => sum + (Number(reward.thorium) || 0), 0);
-    window.notice?.(`${category.label} 보상 ${grants.length}건 획득 · 골드 ${format(gold)} / 토륨 ${thorium}`);
+    // 아이템 보상(탐색드론 등)은 종류별로 합친다.
+    const itemTotals = {};
+    grants.forEach(reward => (reward.items || []).forEach(item => { itemTotals[item.itemId] = (itemTotals[item.itemId] || 0) + (Number(item.amount) || 0); }));
+    const items = Object.entries(itemTotals).map(([itemId, amount]) => ({ itemId, amount }));
     renderMissionBoard();
+    showClaimSummary(category, grants.length, { gold, thorium, items });
     return grants.length;
+  };
+
+  // 모두 받기 결과: 받은 보상의 총량을 보여 주고, 확인을 누르면 닫힌다.
+  const showClaimSummary = (category, count, total) => {
+    const modal = document.getElementById('mission-modal');
+    if (!modal) return;
+    modal.querySelector('.mission-claim-summary')?.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'mission-claim-summary';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-label', '보상 수령 결과');
+    overlay.innerHTML = `<div class="mission-claim-card"><small>${category.label}</small><b>보상 ${count}건 수령 완료</b><div class="mission-claim-total">${rewardMarkup(total)}</div><button type="button" data-claim-summary-close>확인</button></div>`;
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay || event.target.closest('[data-claim-summary-close]')) overlay.remove();
+    });
+    modal.append(overlay);
   };
 
   const renderMissionBoard = () => {
