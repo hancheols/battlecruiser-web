@@ -191,7 +191,7 @@
     const state = readBounty();
     if (!spec) return { ok: false, message: '현상수배를 찾을 수 없습니다.' };
     if (spec.stage > state.unlocked) return { ok: false, message: '이전 단계를 먼저 클리어하세요.' };
-    if (state.cleared.includes(spec.stage)) return { ok: false, message: '오늘은 이미 클리어했습니다. 내일 다시 도전할 수 있습니다.' };
+    if (state.cleared.length) return { ok: false, message: '오늘은 이미 클리어했습니다. 내일 다시 도전할 수 있습니다.' };
     if (window.tutorialAllowsScreen && !window.tutorialAllowsScreen('battle')) return { ok: false, message: '튜토리얼을 먼저 진행해 주세요.' };
     if (!(window.getFleetAssignments?.() || []).slice(0, 3).some(Boolean)) return { ok: false, message: '함대관리에서 주력 함선을 먼저 편성하세요.' };
     const cost = attemptCost(state.attempts);
@@ -216,12 +216,12 @@
     const spec = BOUNTIES.find(item => item.stage === Number(stage));
     const state = readBounty();
     if (!spec || !victory) return { reward: 0, next: false };
-    const first = !state.cleared.includes(spec.stage);
+    // 하루에 모든 단계를 통틀어 한 번만 클리어할 수 있고, 보상도 그때 한 번만 받는다.
+    const first = state.cleared.length === 0;
     if (first) state.cleared.push(spec.stage);
     state.unlocked = Math.max(state.unlocked, Math.min(BOUNTIES.length, spec.stage + 1));
     writeBounty(state);
-    const nextSpec = BOUNTIES.find(item => item.stage === spec.stage + 1);
-    return { reward: first ? spec.reward : 0, next: Boolean(nextSpec && !state.cleared.includes(nextSpec.stage)) };
+    return { reward: first ? spec.reward : 0, next: false };
   }
 
   function bountyReturn() {
@@ -300,15 +300,16 @@
     const freeLeft = Math.max(0, FREE_ATTEMPTS - state.attempts);
     const rows = BOUNTIES.map(item => {
       const locked = item.stage > state.unlocked;
-      const done = state.cleared.includes(item.stage);
+      const done = state.cleared.length > 0;
+      const doneHere = state.cleared.includes(item.stage);
       const confirm = ui.confirmStage === item.stage;
-      const tag = done ? '<span class="cmd-tag done">오늘 완료</span>'
+      const tag = done ? `<span class="cmd-tag done">${doneHere ? '오늘 클리어' : '내일 도전'}</span>`
         : locked ? '<span class="cmd-tag">잠김</span>'
         : `<span class="cmd-tag go">${confirm ? `토륨 ${cost} 사용 · 한 번 더 누르면 시작` : cost ? `도전 · 토륨 ${cost}` : '도전'}</span>`;
       return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}</span>${tag}</div></button>`;
     }).join('');
     const attemptLine = freeLeft ? `오늘 도전 ${state.attempts}회 · 무료 ${freeLeft}회 남음` : `오늘 도전 ${state.attempts}회 · 다음 도전 토륨 ${cost}`;
-    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('현상수배', `<div class="cmd-wanted-hero"><img src="blackbeard.webp" alt="우주해적 검은수염" /><div><small>WANTED</small><b>우주해적 검은수염</b><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div><p class="cmd-rule">단계별로 하루 1번 클리어 · 이전 단계를 클리어하면 다음 단계 개방 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`)}`;
+    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('현상수배', `<div class="cmd-wanted-hero"><img src="blackbeard.webp" alt="우주해적 검은수염" /><div><small>WANTED</small><b>우주해적 검은수염</b><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div><p class="cmd-rule">하루에 한 번만 클리어(보상도 1회) · 이전 단계를 클리어하면 다음 날 다음 단계 도전 가능 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`)}`;
   }
 
   // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
