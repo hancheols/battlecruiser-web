@@ -846,7 +846,7 @@ function initializeFleetFormation(){
   const weaponTypesFor=ship=>ship?.type==='destroyer'&&ship.name==='판도라'?['미사일','함포','레이저포','전기','관통레이저']:String(ship?.profile?.[1]||'').split('·').map(value=>value.replace(/\s/g,'')).filter(Boolean);
   const sharesWeaponType=(left,right)=>weaponTypesFor(left).some(weapon=>weaponTypesFor(right).includes(weapon));
   const compatibleFrame=(target,candidate)=>candidate.isFrame&&candidate.rarity===target.rarity&&candidate.type===target.type&&sharesWeaponType(target,candidate);
-  const compatibleSameTierShip=(target,candidate,targetRarity,nextStars)=>targetRarity==='SR'&&nextStars>=2&&!candidate.isFrame&&candidate.name!==target.name&&candidate.type===target.type&&sharesWeaponType(target,candidate)&&shipVariants(candidate).some(item=>item.rarity===targetRarity);
+  const compatibleSameTierShip=(target,candidate,targetRarity,nextStars)=>['SR','SSR'].includes(targetRarity)&&nextStars>=2&&!candidate.isFrame&&candidate.name!==target.name&&candidate.type===target.type&&sharesWeaponType(target,candidate)&&shipVariants(candidate).some(item=>item.rarity===targetRarity);
   const materialOptions=(target,currentStars,nextStars,targetRarity=target.rarity)=>{
     const requiredStars=materialStarRequirement(nextStars,targetRarity,currentStars);
     const weapons=weaponTypesFor(target);
