@@ -45,3 +45,8 @@
 .union-banner .ub-name{font-size:19px;letter-spacing:.04em;background:linear-gradient(180deg,#ffffff,#e9f4ff 40%,#9fcdf5 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7)) drop-shadow(0 0 8px rgba(70,170,255,.6))}
 .union-banner .ub-exp{border-color:rgba(255,214,130,.45)}
 .union-banner .ub-exp i{background:linear-gradient(90deg,#1fa2ff,#aee6ff 70%,#fff)}
+
+/* 연합장 엠블럼 변경 패널 */
+.em-current{display:flex;align-items:center;gap:14px}
+.em-current-crest{flex:none;width:92px;height:76px;filter:drop-shadow(0 0 10px rgba(80,170,255,.45))}
+.em-current .fac-btn{flex:1;min-width:0}

@@ -13,6 +13,28 @@
   const esc = text => String(text ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fail = message => { throw new Error(message); };
 
+  // 연합 창설과 엠블럼 변경 비용(토륨). 서버가 생기면 같은 금액을 서버에서도 검사해야 한다.
+  const COSTS = { create: 100, emblem: 100 };
+  const THORIUM_KEY = 'starfleet-game-resources-v1';
+  const thoriumBalance = () => {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(THORIUM_KEY) || 'null') || {}; } catch { /* 무시 */ }
+    const current = window.gameResources && typeof window.gameResources === 'object' ? window.gameResources : saved;
+    return Math.max(0, Number(current.thorium) || 0);
+  };
+  function spendThorium(amount) {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(THORIUM_KEY) || 'null') || {}; } catch { /* 무시 */ }
+    const current = window.gameResources && typeof window.gameResources === 'object' ? window.gameResources : saved;
+    const have = Math.max(0, Number(current.thorium) || 0);
+    if (have < amount) fail(`토륨이 부족합니다. (필요 ${amount}, 보유 ${have})`);
+    const next = { ...current, thorium: have - amount };
+    try { localStorage.setItem(THORIUM_KEY, JSON.stringify(next)); } catch { fail('저장에 실패했습니다. 다시 시도해 주세요.'); }
+    window.gameResources = next;
+    window.updateGameResourceHud?.();
+    window.dispatchEvent(new Event('game-resources-updated'));
+  }
+
   // ───────── 로컬 어댑터 ─────────
   const Local = (() => {
     const playerId = () => {
@@ -93,6 +115,7 @@
         if (clean.length < 2 || clean.length > 12) fail('연합 이름은 2~12자로 입력해 주세요.');
         if (data.unions.some(u => u.name.toLowerCase() === clean.toLowerCase())) fail('이미 사용 중인 연합 이름입니다.');
         const union = { id: `u-${Math.random().toString(36).slice(2, 10)}`, name: clean, emblem: window.UnionEmblem ? window.UnionEmblem.normalize(emblem) : (EMBLEMS.includes(emblem) ? emblem : EMBLEMS[0]), level: 1, exp: 0, notice: String(notice).slice(0, 120), joinMode: joinMode === 'approval' ? 'approval' : 'open', capacity: CAPACITY, createdAt: Date.now(), members: [{ playerId: playerId(), name: playerName(), role: 'leader', joinedAt: Date.now(), lastSeen: Date.now(), contribution: 0 }], applications: [] };
+        spendThorium(COSTS.create);
         data.unions.push(union); save(data);
         return JSON.parse(JSON.stringify(union));
       },
@@ -120,6 +143,15 @@
         if ('notice' in patch) { requireRole(union, ['leader', 'officer'], '공지는 연합장과 부연합장만 수정할 수 있습니다.'); union.notice = String(patch.notice).slice(0, 120); }
         if ('joinMode' in patch) { requireRole(union, ['leader'], '가입 방식은 연합장만 바꿀 수 있습니다.'); union.joinMode = patch.joinMode === 'approval' ? 'approval' : 'open'; }
         save(data);
+      },
+      async updateEmblem(emblem) {
+        const data = load(); const union = requireMine(data);
+        requireRole(union, ['leader'], '엠블럼은 연합장만 바꿀 수 있습니다.');
+        const next = window.UnionEmblem ? window.UnionEmblem.normalize(emblem) : emblem;
+        if (window.UnionEmblem?.same(union.emblem, next)) fail('현재 엠블럼과 같습니다.');
+        spendThorium(COSTS.emblem);
+        union.emblem = next; save(data);
+        return JSON.parse(JSON.stringify(union));
       },
       async setRole(targetId, role) {
         const data = load(); const union = requireMine(data); requireRole(union, ['leader'], '직책 변경은 연합장만 할 수 있습니다.');
@@ -162,7 +194,7 @@
   const adapter = () => window.UnionAdapter || Local;
 
   // ───────── 화면 ─────────
-  const ui = { view: 'hub', tab: 'hall', mode: 'join', query: '', draft: { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }, menuFor: '' };
+  const ui = { view: 'hub', edit: null, tab: 'hall', mode: 'join', query: '', draft: { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }, menuFor: '' };
   const root = () => document.querySelector('#earth-union .union-panel');
   const notify = message => { if (window.notice) window.notice(message); };
   const ago = time => {
@@ -221,6 +253,16 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
     await render();
   }
 
+  // 연합장 전용: 엠블럼 변경(토륨 비용). 창설 때와 같은 꾸미기 화면을 쓴다.
+  function emblemPanel(union) {
+    if (!window.UnionEmblem) return '';
+    if (!ui.edit) {
+      return panel('엠블럼 <small>EMBLEM</small>', `<div class="em-current"><div class="em-current-crest">${crestSvg(union.emblem)}</div><button type="button" class="fac-btn" data-em-edit>엠블럼 변경 · 토륨 ${COSTS.emblem}</button></div><p class="union-hint">보유 토륨 ${thoriumBalance().toLocaleString('ko-KR')}</p>`);
+    }
+    const changed = !window.UnionEmblem.same(ui.edit.emblem, union.emblem);
+    return panel(`엠블럼 변경 <small>토륨 ${COSTS.emblem}</small>`, `<div class="create-preview">${crestSvg(ui.edit.emblem)}</div>${emblemDesigner(ui.edit, 'edit')}<p class="union-hint">변경 비용: 토륨 ${COSTS.emblem} (보유 ${thoriumBalance().toLocaleString('ko-KR')})</p><div class="union-actions"><button type="button" class="fac-btn" data-em-apply ${changed ? '' : 'disabled'}>변경하기 · 토륨 ${COSTS.emblem}</button><button type="button" class="fac-btn" data-em-cancel>취소</button></div>`);
+  }
+
   function hallHtml(union, me) {
     const myRole = union.members.find(m => m.playerId === me.playerId)?.role || 'member';
     const canManage = myRole === 'leader' || myRole === 'officer';
@@ -244,7 +286,7 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
     const leave = myRole === 'leader'
       ? (union.members.length === 1 ? `<button type="button" class="union-btn danger" data-disband>연합 해체</button>` : `<p class="union-hint">탈퇴하려면 먼저 다른 연합원에게 연합장을 위임하세요.</p>`)
       : `<button type="button" class="union-btn danger" data-leave>연합 탈퇴</button>`;
-    return `${panel('지휘 브리핑 <small>COMMAND BRIEFING</small>', `<div class="brief">${noticeBox}</div>${leaderTools}`, 'brief-panel')}${panel(`함대 명단 <small>ROSTER ${union.members.length}/${union.capacity}</small>`, `<ul class="union-members roster">${rows}</ul>`)}<div class="union-actions">${leave}</div>`;
+    return `${myRole === 'leader' ? emblemPanel(union) : ''}${panel('지휘 브리핑 <small>COMMAND BRIEFING</small>', `<div class="brief">${noticeBox}</div>${leaderTools}`, 'brief-panel')}${panel(`함대 명단 <small>ROSTER ${union.members.length}/${union.capacity}</small>`, `<ul class="union-members roster">${rows}</ul>`)}<div class="union-actions">${leave}</div>`;
   }
 
   function applicationsHtml(union, canManage) {
@@ -536,18 +578,18 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
   }
 
   // 엠블럼 꾸미기: 외부 장식 · 방패 모양 · 내부 문양을 고르고, 방패·금속·문양 색을 따로 바꾼다.
-  function emblemDesigner(d) {
+  function emblemDesigner(d, target = 'draft') {
     const U = window.UnionEmblem;
     if (!U) return `<div class="union-field"><span>휘장 문양</span><div class="union-emblems">${EMBLEMS.map(e => `<button type="button" data-emblem="${e}" aria-pressed="${d.emblem === e}">${e}</button>`).join('')}</div></div>`;
     const cur = U.normalize(d.emblem);
-    const opts = (part, list, wings = false) => list.map(item => `<button type="button" class="em-opt" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}">${U.svg({ ...cur, [part]: item.id }, { wings })}<small>${item.name}</small></button>`).join('');
-    const swatches = (part, list) => list.map(item => `<button type="button" class="em-swatch" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}" style="--c1:${item.stops[0]};--c2:${item.stops[1]};--c3:${item.stops[2] || item.stops[1]}"></button>`).join('');
-    return `<div class="em-designer"><div class="em-group"><span>외부 장식</span><div class="em-row em-wings">${opts('w', U.WINGS, true)}</div></div><div class="em-group"><span>방패 모양</span><div class="em-row">${opts('s', U.SHIELDS)}</div></div><div class="em-group"><span>내부 문양</span><div class="em-row">${opts('i', U.ICONS)}</div></div><div class="em-group"><span>방패 색</span><div class="em-swatches">${swatches('f', U.FIELD)}</div></div><div class="em-group"><span>장식·테두리 색</span><div class="em-swatches">${swatches('m', U.METALS)}</div></div><div class="em-group"><span>문양 색</span><div class="em-swatches">${swatches('c', U.ICON_COLORS)}</div></div><button type="button" class="em-random" data-em-random>무작위 조합</button></div>`;
+    const opts = (part, list, wings = false) => list.map(item => `<button type="button" class="em-opt" data-em-target="${target}" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}">${U.svg({ ...cur, [part]: item.id }, { wings })}<small>${item.name}</small></button>`).join('');
+    const swatches = (part, list) => list.map(item => `<button type="button" class="em-swatch" data-em-target="${target}" data-em-part="${part}" data-em-value="${item.id}" aria-pressed="${cur[part] === item.id}" aria-label="${item.name}" title="${item.name}" style="--c1:${item.stops[0]};--c2:${item.stops[1]};--c3:${item.stops[2] || item.stops[1]}"></button>`).join('');
+    return `<div class="em-designer"><div class="em-group"><span>외부 장식</span><div class="em-row em-wings">${opts('w', U.WINGS, true)}</div></div><div class="em-group"><span>방패 모양</span><div class="em-row">${opts('s', U.SHIELDS)}</div></div><div class="em-group"><span>내부 문양</span><div class="em-row">${opts('i', U.ICONS)}</div></div><div class="em-group"><span>방패 색</span><div class="em-swatches">${swatches('f', U.FIELD)}</div></div><div class="em-group"><span>장식·테두리 색</span><div class="em-swatches">${swatches('m', U.METALS)}</div></div><div class="em-group"><span>문양 색</span><div class="em-swatches">${swatches('c', U.ICON_COLORS)}</div></div><button type="button" class="em-random" data-em-target="${target}" data-em-random>무작위 조합</button></div>`;
   }
 
   function createHtml() {
     const d = ui.draft;
-    return `<form class="union-form fac-panel" data-create><div class="create-preview">${crestSvg(d.emblem)}</div><label class="union-field"><span>연합 이름 (2~12자)</span><input data-name value="${esc(d.name)}" maxlength="12" autocomplete="off"/></label>${emblemDesigner(d)}<label class="union-field"><span>가입 방식</span><select data-create-mode><option value="open"${d.joinMode === 'open' ? ' selected' : ''}>자유 가입</option><option value="approval"${d.joinMode === 'approval' ? ' selected' : ''}>승인 가입</option></select></label><label class="union-field"><span>지휘 브리핑 (선택)</span><textarea data-create-notice maxlength="120" rows="2">${esc(d.notice)}</textarea></label><button type="submit" class="fac-btn">연합 창설</button></form>`;
+    return `<form class="union-form fac-panel" data-create><div class="create-preview">${crestSvg(d.emblem)}</div><label class="union-field"><span>연합 이름 (2~12자)</span><input data-name value="${esc(d.name)}" maxlength="12" autocomplete="off"/></label>${emblemDesigner(d)}<label class="union-field"><span>가입 방식</span><select data-create-mode><option value="open"${d.joinMode === 'open' ? ' selected' : ''}>자유 가입</option><option value="approval"${d.joinMode === 'approval' ? ' selected' : ''}>승인 가입</option></select></label><label class="union-field"><span>지휘 브리핑 (선택)</span><textarea data-create-notice maxlength="120" rows="2">${esc(d.notice)}</textarea></label><p class="union-hint">창설 비용: 토륨 ${COSTS.create} (보유 ${thoriumBalance().toLocaleString('ko-KR')})</p><button type="submit" class="fac-btn">연합 창설 · 토륨 ${COSTS.create}</button></form>`;
   }
 
   function noUnionHtml(list) {
@@ -597,8 +639,16 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     on('[data-query]', e => { ui.query = e.currentTarget.value; render().then(() => { const input = root()?.querySelector('[data-query]'); input?.focus(); input?.setSelectionRange(ui.query.length, ui.query.length); }); }, 'change');
     on('[data-join]', e => run(() => adapter().joinUnion(e.currentTarget.dataset.join), r => r === 'applied' ? '가입 신청을 보냈습니다.' : '연합에 가입했습니다.'));
     const rememberScroll = () => { ui.restoreScroll = { y: document.getElementById('earth-union')?.scrollTop || 0, wy: window.scrollY || 0 }; };
-    on('[data-em-part]', e => { rememberScroll(); const cur = window.UnionEmblem.normalize(ui.draft.emblem); ui.draft.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
-    on('[data-em-random]', () => { rememberScroll(); ui.draft.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });
+    const emHolder = el => (el.dataset.emTarget === 'edit' ? ui.edit : ui.draft);
+    on('[data-em-part]', e => { rememberScroll(); const holder = emHolder(e.currentTarget); if (!holder) return; const cur = window.UnionEmblem.normalize(holder.emblem); holder.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
+    on('[data-em-random]', e => { rememberScroll(); const holder = emHolder(e.currentTarget); if (!holder) return; holder.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });
+    on('[data-em-edit]', () => { ui.edit = { emblem: window.UnionEmblem.normalize(union.emblem) }; render(); });
+    on('[data-em-cancel]', () => { ui.edit = null; render(); });
+    on('[data-em-apply]', async () => {
+      try { await adapter().updateEmblem(ui.edit.emblem); notify(`엠블럼을 변경했습니다. (토륨 ${COSTS.emblem} 사용)`); ui.edit = null; }
+      catch (error) { notify(error.message || '엠블럼을 변경하지 못했습니다.'); }
+      render();
+    });
     on('[data-emblem]', e => { ui.draft.emblem = e.currentTarget.dataset.emblem; syncDraft(host); render(); });
     on('[data-create]', e => { e.preventDefault(); syncDraft(host); run(() => adapter().createUnion(ui.draft), '연합을 창설했습니다.').then(() => { ui.draft = { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }; ui.tab = 'hall'; }); }, 'submit');
     on('[data-save-notice]', () => run(() => adapter().updateUnion({ notice: host.querySelector('[data-notice]').value }), '공지를 저장했습니다.'));
