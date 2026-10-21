@@ -743,3 +743,13 @@
 .boss-unit.boss-redbeard{width:84px;height:260px;margin:-130px 0 0 -42px;transition:opacity .35s,transform 1.15s}
 .boss-unit.boss-redbeard .boss-sprite{filter:drop-shadow(0 0 8px rgba(255,60,60,.65)) drop-shadow(0 8px 14px #000);animation:none}
 .boss-unit.boss-redbeard.redbeard-strike .boss-sprite{filter:brightness(1.6) drop-shadow(0 0 16px #ff3030)}
+/* 붉은수염 공격: 칼날 궤적, 피격 흔들림, 말풍선 */
+.fx-redbeard-slash{position:absolute;z-index:30;width:120px;height:10px;margin:-5px 0 0 -60px;border-radius:50%;background:linear-gradient(90deg,transparent,#ff2a2a 40%,#fff 52%,#ff2a2a 64%,transparent);box-shadow:0 0 12px #ff2a2a,0 0 26px #b00000;transform:rotate(-38deg) scaleX(.1);opacity:0;pointer-events:none;animation:redbeard-slash .46s ease-out forwards}
+@keyframes redbeard-slash{0%{opacity:0;transform:rotate(-38deg) scaleX(.1)}25%{opacity:1;transform:rotate(-38deg) scaleX(1)}100%{opacity:0;transform:rotate(-38deg) scaleX(1.25)}}
+.fx-redbeard-arc{position:absolute;z-index:29;width:300px;height:150px;margin:-75px 0 0 -150px;border-radius:50%;border:10px solid transparent;border-top-color:#ff2a2a;filter:drop-shadow(0 0 10px #ff0000) drop-shadow(0 0 22px #a00000);transform:rotate(-30deg) scale(.4);opacity:0;pointer-events:none;animation:redbeard-arc .5s ease-out forwards}
+@keyframes redbeard-arc{0%{opacity:0;transform:rotate(-70deg) scale(.4)}30%{opacity:1}100%{opacity:0;transform:rotate(25deg) scale(1.1)}}
+.ally-unit.redbeard-hit{animation:redbeard-shake .5s linear}
+@keyframes redbeard-shake{0%,100%{transform:translate(0,0)}12%{transform:translate(-5px,2px)}25%{transform:translate(5px,-2px)}38%{transform:translate(-4px,-2px)}50%{transform:translate(4px,2px)}62%{transform:translate(-3px,1px)}75%{transform:translate(3px,-1px)}88%{transform:translate(-1px,1px)}}
+.redbeard-speech{position:absolute;z-index:32;transform:translateX(-50%);max-width:190px;padding:7px 12px;border:2px solid #ff4a4a;border-radius:12px;background:rgba(24,4,6,.92);color:#ffe3dc;font:700 13px/1.3 var(--font-body);text-align:center;box-shadow:0 0 14px rgba(255,40,40,.55);pointer-events:none;animation:redbeard-speech 1.7s ease-out forwards}
+.redbeard-speech::after{content:"";position:absolute;left:50%;bottom:-9px;width:12px;height:12px;margin-left:-6px;background:rgba(24,4,6,.92);border:solid #ff4a4a;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes redbeard-speech{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0}}

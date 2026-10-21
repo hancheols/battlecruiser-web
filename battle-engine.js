@@ -11394,9 +11394,42 @@
   };
   const REDBEARD_MOVE = 2000, REDBEARD_CHARGE_Y = .56;
 
+  const REDBEARD_TAUNTS = ['감히 발바롯사를 건드리다니', '함선을 갈가리 찢어주마!', '도망치지 마라!'];
+  // 칼날을 휘두른 붉은 궤적, 맞은 함선의 흔들림, 말풍선
+  function redbeardStrikeFx(boss) {
+    const origin = pointOf(boss);
+    const arc = document.createElement('i');
+    arc.className = 'fx-redbeard-arc';
+    arc.style.left = percent(origin.x);
+    arc.style.top = percent(origin.y + .1);
+    refs.effects.append(arc);
+    schedule(() => arc.remove(), 520);
+    state.allies.filter(ally => !ally.dead).forEach(ally => {
+      const point = pointOf(ally);
+      const slash = document.createElement('i');
+      slash.className = 'fx-redbeard-slash';
+      slash.style.left = percent(point.x);
+      slash.style.top = percent(point.y);
+      refs.effects.append(slash);
+      schedule(() => slash.remove(), 480);
+      ally.el?.classList.remove('redbeard-hit');
+      void ally.el?.offsetWidth;
+      ally.el?.classList.add('redbeard-hit');
+      schedule(() => ally.el?.classList.remove('redbeard-hit'), 520);
+    });
+    const bubble = document.createElement('div');
+    bubble.className = 'redbeard-speech';
+    bubble.textContent = REDBEARD_TAUNTS[Math.floor(Math.random() * REDBEARD_TAUNTS.length)];
+    bubble.style.left = percent(Math.min(.78, Math.max(.22, origin.x)));
+    bubble.style.top = percent(Math.max(.08, origin.y - .2));
+    refs.effects.append(bubble);
+    schedule(() => bubble.remove(), 1700);
+  }
+
   function redbeardStrike(boss, spec) {
     state.allies.filter(ally => !ally.dead).forEach(ally => dealAllyDamage(ally, spec.damage, boss));
     shakeBattlefield();
+    redbeardStrikeFx(boss);
     boss.el?.classList.add('redbeard-strike');
     schedule(() => boss.el?.classList.remove('redbeard-strike'), 260);
   }
