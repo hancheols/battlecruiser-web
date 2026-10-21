@@ -735,13 +735,15 @@ function initializeFleetFormation(){
     const profile=ship?.profile;
     const promoted=ship?rarity!==ship.baseRarity:false,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted);
     const detailShip={name,type:codexType,baseRarity:ship?.baseRarity},skillStars=retainedSkillStars(detailShip,progress.stars,rarity);
-    const actualLabels=['무기 종류','내구도','DPS','핵심기술',`보조기술${skillRequirementMarkup(skillStars,'aux',rarity,detailShip)}`,`최종기술${skillRequirementMarkup(skillStars,'ultimate',rarity,detailShip)}`];
-    const actualValues=profile?[weaponLabels(profile,progress.stars),durability===null?'—':durability.toLocaleString('ko-KR'),dps===null?'—':skillAdjustedDps(detailShip,dps,skillStars).toLocaleString('ko-KR'),skillTitleOnly(coreSkillDescription(detailShip,skillStars,profile)),skillTitleOnly(skillStateMarkup(detailShip,skillStars,'aux',rarity)),skillTitleOnly(skillStateMarkup(detailShip,skillStars,'ultimate',rarity))]:['—','—','—','—','—','—'];
+    // 태생 R급은 돌파해도 최종기술이 없다('없음').
+    const ultimateRarity=ship?.baseRarity==='R'?'R':rarity;
+    const actualLabels=['무기 종류','내구도','DPS','핵심기술',`보조기술${skillRequirementMarkup(skillStars,'aux',rarity,detailShip)}`,`최종기술${skillRequirementMarkup(skillStars,'ultimate',ultimateRarity,detailShip)}`];
+    const actualValues=profile?[weaponLabels(profile,progress.stars),durability===null?'—':durability.toLocaleString('ko-KR'),dps===null?'—':skillAdjustedDps(detailShip,dps,skillStars).toLocaleString('ko-KR'),skillTitleOnly(coreSkillDescription(detailShip,skillStars,profile)),skillTitleOnly(skillStateMarkup(detailShip,skillStars,'aux',rarity)),skillTitleOnly(skillStateMarkup(detailShip,skillStars,'ultimate',ultimateRarity))]:['—','—','—','—','—','—'];
     // 기술 칸(핵심·보조·최종)을 누르면 그 기술의 설명을 작은 팝업으로 띄운다.
     const plainSkillText=html=>String(html??'').replace(/<[^>]+>/g,'').trim();
     const skillTitles=['핵심기술','보조기술','최종기술'];
-    const skillInfo=SKILL_INFO[`${codexType}:${name}`]||{};const skillDetailText=(slot,fallbackName)=>slot==='ultimate'&&rarity==='R'?'없음':(skillInfo[slot]||`${fallbackName} : 설명 준비 중입니다.`);const skillDetails=profile?[plainSkillText(coreSkillDescription(detailShip,skillStars,profile)),skillDetailText('aux',plainSkillText(skillStateMarkup(detailShip,skillStars,'aux',rarity))),skillDetailText('ultimate',plainSkillText(skillStateMarkup(detailShip,skillStars,'ultimate',rarity)))]:['','',''];
-    const skillRequirements=[plainSkillText(skillRequirementMarkup(skillStars,'aux',rarity,detailShip)),plainSkillText(skillRequirementMarkup(skillStars,'ultimate',rarity,detailShip))];
+    const skillInfo=SKILL_INFO[`${codexType}:${name}`]||{};const skillDetailText=(slot,fallbackName)=>slot==='ultimate'&&ultimateRarity==='R'?'없음':(skillInfo[slot]||`${fallbackName} : 설명 준비 중입니다.`);const skillDetails=profile?[plainSkillText(coreSkillDescription(detailShip,skillStars,profile)),skillDetailText('aux',plainSkillText(skillStateMarkup(detailShip,skillStars,'aux',rarity))),skillDetailText('ultimate',plainSkillText(skillStateMarkup(detailShip,skillStars,'ultimate',ultimateRarity)))]:['','',''];
+    const skillRequirements=[plainSkillText(skillRequirementMarkup(skillStars,'aux',rarity,detailShip)),plainSkillText(skillRequirementMarkup(skillStars,'ultimate',ultimateRarity,detailShip))];
     const statsBox=modal.querySelector('.ship-detail-stats');
     statsBox.innerHTML=actualLabels.map((label,i)=>`<div${i>=3?' class="skill-detail-row" role="button" tabindex="0" data-skill-index="'+(i-3)+'"':''}><b>${label}</b><span>${actualValues[i]}</span></div>`).join('');
     statsBox.onclick=event=>{
