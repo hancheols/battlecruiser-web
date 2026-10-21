@@ -9623,7 +9623,7 @@
       }
     }
     if (target.variant === 'machine-beast' && target.machineAirborne) return;
-    if (target.variant === 'blackbeard' && state.bounty?.stage >= BLACKBEARD_EVASION.fromStage) {
+    if (target.variant === 'blackbeard' && state.bounty?.pirate !== 'red' && state.bounty?.stage >= BLACKBEARD_EVASION.fromStage) {
       if (!target.evasion && target.hp <= target.maxHp * BLACKBEARD_EVASION.hpRatio) {
         target.evasion = true;
         announce('검은수염 · 회피 기동 가동', 'boss');
@@ -11353,7 +11353,7 @@
       x: .5,
       y: -.23,
       entryStartY: -.23,
-      entryTargetY: .17,
+      entryTargetY: bounty.pirate === 'red' ? .27 : .17,
       entryDuration: 1150,
       entryTime: 1150,
       dead: false,
@@ -11367,7 +11367,7 @@
       requiredForGate: false
     };
     const element = document.createElement('div');
-    element.className = 'boss-unit boss-blackbeard';
+    element.className = `boss-unit boss-blackbeard${bounty.pirate === 'red' ? ' boss-redbeard' : ''}`;
     element.innerHTML = `<img class="boss-sprite" src="${bounty.image || 'blackbeard.webp'}" alt="${bounty.name}" onerror="this.onerror=null;this.src='blackbeard.webp'" />`;
     boss.el = element;
     state.boss = boss;
@@ -11384,8 +11384,59 @@
 
   // 검은수염은 공격 능력이 없다. 3단계부터 내구 50% 이하에서 회피 기동(회피율 10%)을 가동한다.
   const BLACKBEARD_EVASION = { fromStage: 3, hpRatio: .5, chance: .1 };
+  // 붉은수염: 내구가 정해진 비율 아래로 떨어질 때마다 플레이어 함대 쪽으로 2초간 돌진해 모든 함선에 피해를 주고,
+  // 2초간 후진해 제자리로 돌아간다. 1단계는 한 번 다가온 뒤 물러나지 않고 2초마다 계속 공격한다.
+  const REDBEARD = {
+    1: { thresholds: [.5], damage: 100, stay: true },
+    2: { thresholds: [.7, .3], damage: 1000 },
+    3: { thresholds: [.8, .6, .4, .2], damage: 2000 },
+    4: { thresholds: [.9, .8, .7, .6, .5, .4, .3, .2, .1], damage: 3000 }
+  };
+  const REDBEARD_MOVE = 2000, REDBEARD_CHARGE_Y = .56;
+
+  function redbeardStrike(boss, spec) {
+    state.allies.filter(ally => !ally.dead).forEach(ally => dealAllyDamage(ally, spec.damage, boss));
+    shakeBattlefield();
+    boss.el?.classList.add('redbeard-strike');
+    schedule(() => boss.el?.classList.remove('redbeard-strike'), 260);
+  }
+
   function updateBlackbeardAttack(boss, dt) {
     boss.lifetime += dt;
+    if (state.bounty?.pirate !== 'red') return;
+    const spec = REDBEARD[state.bounty.stage];
+    if (!spec) return;
+    if (boss.entryTime > 0) { boss.el.style.top = percent(boss.y); return; }
+    boss.homeY ??= boss.entryTargetY;
+    boss.meleeIndex ??= 0;
+    boss.meleePending ??= 0;
+    const ratio = boss.hp / Math.max(1, boss.maxHp);
+    while (boss.meleeIndex < spec.thresholds.length && ratio <= spec.thresholds[boss.meleeIndex]) { boss.meleeIndex += 1; boss.meleePending += 1; }
+    if (!boss.melee && boss.meleePending > 0) {
+      boss.meleePending -= 1;
+      boss.melee = { phase: 'advance', t: 0 };
+      announce('붉은수염 · 돌격', 'boss');
+    }
+    const melee = boss.melee;
+    if (melee) {
+      melee.t += dt;
+      const ease = value => 1 - Math.pow(1 - Math.min(1, value), 2);
+      if (melee.phase === 'advance') {
+        boss.y = boss.homeY + (REDBEARD_CHARGE_Y - boss.homeY) * ease(melee.t / REDBEARD_MOVE);
+        if (melee.t >= REDBEARD_MOVE) {
+          redbeardStrike(boss, spec);
+          melee.phase = spec.stay ? 'hold' : 'retreat';
+          melee.t = 0;
+        }
+      } else if (melee.phase === 'hold') {
+        boss.y = REDBEARD_CHARGE_Y;
+        if (melee.t >= 2000) { melee.t -= 2000; redbeardStrike(boss, spec); }
+      } else {
+        boss.y = REDBEARD_CHARGE_Y + (boss.homeY - REDBEARD_CHARGE_Y) * ease(melee.t / REDBEARD_MOVE);
+        if (melee.t >= REDBEARD_MOVE) { boss.y = boss.homeY; boss.melee = null; }
+      }
+    }
+    boss.el.style.top = percent(boss.y);
   }
 
   function renderBountyResult(victory, reason) {
@@ -11397,8 +11448,8 @@
     if (victory) {
       refs.battleResultCopy.textContent = `${bounty.name} 격파 · ${state.elapsed.toFixed(1)}초`;
       if (outcome.reward > 0) {
-        grantRewards({ gold: 0, thorium: outcome.reward });
-        refs.battleRewards.innerHTML = `<span>토륨 <b>${formatNumber(outcome.reward)}</b></span>`;
+        grantRewards({ gold: outcome.gold || 0, thorium: outcome.reward });
+        refs.battleRewards.innerHTML = `<span>토륨 <b>${formatNumber(outcome.reward)}</b></span>${outcome.gold ? `<span>골드 <b>${formatNumber(outcome.gold)}</b></span>` : ''}`;
       } else {
         refs.battleRewards.innerHTML = '<span>보상 <b>오늘 이미 수령</b></span>';
       }

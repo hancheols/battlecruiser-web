@@ -740,3 +740,6 @@
 .boss-unit.boss-blackbeard::before,.boss-unit.boss-blackbeard::after{display:none}
 .boss-unit.boss-blackbeard .boss-sprite{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 8px rgba(80,160,255,.7)) drop-shadow(0 8px 14px #000);animation:blackbeard-bob 3.2s ease-in-out infinite}
 @keyframes blackbeard-bob{0%,100%{transform:translateY(-4px)}50%{transform:translateY(5px)}}
+.boss-unit.boss-redbeard{width:84px;height:260px;margin:-130px 0 0 -42px;transition:opacity .35s,transform 1.15s}
+.boss-unit.boss-redbeard .boss-sprite{filter:drop-shadow(0 0 8px rgba(255,60,60,.65)) drop-shadow(0 8px 14px #000);animation:none}
+.boss-unit.boss-redbeard.redbeard-strike .boss-sprite{filter:brightness(1.6) drop-shadow(0 0 16px #ff3030)}

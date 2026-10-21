@@ -157,15 +157,10 @@
   // ───────── 현상수배: 우주해적 (실전 보스전, 제한시간 안에 격파) ─────────
   // 검은수염은 월·수·금, 붉은수염은 화·목·토, 일요일에는 둘 다 나타난다. 도전 기록은 해적마다 따로 센다.
   const FREE_ATTEMPTS = 5;
-  const stageSpecs = names => [
-    { stage: 1, name: names[0], hp: 10000, limit: 90, reward: 50 },
-    { stage: 2, name: names[1], hp: 100000, limit: 90, reward: 250 },
-    { stage: 3, name: names[2], hp: 1000000, limit: 90, reward: 500 },
-    { stage: 4, name: names[3], hp: 5000000, limit: 60, reward: 1000 }
-  ];
+  const stageSpecs = (names, hps, rewards, golds = [0, 0, 0, 0]) => names.map((name, index) => ({ stage: index + 1, name, hp: hps[index], limit: index === 3 ? 60 : 90, reward: rewards[index], gold: golds[index] }));
   const PIRATES = [
-    { id: 'black', title: '우주해적 검은수염', image: 'blackbeard.webp', key: 'starfleet-union-bounty-v1', days: [1, 3, 5, 0], dayText: '월·수·금·일', stages: stageSpecs(['검은수염 해적선', '검은수염 대장선', '검은수염 에드', '전설의 검은수염']) },
-    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['붉은수염 해적선', '붉은수염 대장선', '붉은수염 제독', '전설의 붉은수염']) }
+    { id: 'black', title: '우주해적 검은수염', image: 'blackbeard.webp', key: 'starfleet-union-bounty-v1', days: [1, 3, 5, 0], dayText: '월·수·금·일', stages: stageSpecs(['검은수염 해적선', '검은수염 대장선', '검은수염 에드', '전설의 검은수염'], [10000, 100000, 1000000, 5000000], [50, 250, 500, 1000]) },
+    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard-top.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['발바롯사 함선', '발바롯사 하이레딘', '하이레딘 파샤', '발바롯사 파즐 하이레딘'], [10000, 100000, 500000, 1000000], [50, 250, 500, 1000], [5000, 25000, 30000, 50000]) }
   ];
   const pirateById = id => PIRATES.find(pirate => pirate.id === id);
   const piratesToday = () => PIRATES.filter(pirate => pirate.days.includes(new Date().getDay()));
@@ -230,7 +225,7 @@
     if (first) state.cleared.push(spec.stage);
     state.unlocked = Math.max(state.unlocked, Math.min(pirate.stages.length, spec.stage + 1));
     writeBounty(pirate, state);
-    return { reward: first ? spec.reward : 0, next: false };
+    return { reward: first ? spec.reward : 0, gold: first ? spec.gold || 0 : 0, next: false };
   }
 
   function bountyReturn() {
@@ -316,7 +311,7 @@
       const tag = done ? `<span class="cmd-tag done">${doneHere ? '오늘 클리어' : '내일 도전'}</span>`
         : locked ? '<span class="cmd-tag">잠김</span>'
         : `<span class="cmd-tag go">${confirm ? `토륨 ${cost} 사용 · 한 번 더 누르면 시작` : cost ? `도전 · 토륨 ${cost}` : '도전'}</span>`;
-      return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-pirate="${pirate.id}" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}</span>${tag}</div></button>`;
+      return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-pirate="${pirate.id}" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}${item.gold ? ` · 골드 ${item.gold.toLocaleString('ko-KR')}` : ''}</span>${tag}</div></button>`;
     }).join('');
     const attemptLine = freeLeft ? `오늘 도전 ${state.attempts}회 · 무료 ${freeLeft}회 남음` : `오늘 도전 ${state.attempts}회 · 다음 도전 토륨 ${cost}`;
     return panel(esc(pirate.title), `<div class="cmd-wanted-hero ${pirate.id}"><img src="${pirate.image}" alt="${esc(pirate.title)}" onerror="this.onerror=null;this.src='blackbeard.webp'" /><div><small>WANTED</small><b>${esc(pirate.title)}</b><span>출현 ${pirate.dayText}</span><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div>`);

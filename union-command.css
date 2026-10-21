@@ -219,3 +219,4 @@
 .cmd-rule{margin:10px 2px 0;font-family:var(--font-body);font-size:11px;color:#8fa0c0;line-height:1.5}
 .cmd-cell>.cmd-bounty-side{flex:none}
 .cmd-rule{padding:0 6px}
+.cmd-wanted-hero.red img{width:26%;max-width:84px}
