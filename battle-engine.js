@@ -316,7 +316,8 @@
   const PLANET_DESTROYER_SUPERNOVA = { move: 3000, charge: 2000, fire: 5000, tick: 1000, hits: 2000, stun: 3000, return: 2000, beamWidth: 84 };
   const PANDORA_ATTACK = { interval: 1000, missileHits: 300, laserHits: 500, cannonHits: 250, missileTravel: 420 };
   const PANDORA_MAIN = { charge: 2000, travel: 650, missileHits: 500, burstDelay: 1000, burstRadius: 45, burstDuration: 1500, burstHits: 300, hopeHitsPerSecond: 1000 };
-  const VARYAG_MISSILE = { hits: 200, shots: 3, interval: 1200, travel: 420, splashRadius: 48 };
+  // 미사일은 0.4초마다 한 발씩 세 발사구를 돌아가며 쏜다. 용맹(5성)이면 피해가 40% 늘어난다.
+  const VARYAG_MISSILE = { hits: 200, interval: 400, travel: 420, splashRadius: 48, valorDamage: 1.4 };
   const GARUDA_MISSILE = { hits: 250, count: 2, interval: 2000, wingmanInterval: 1800, travel: 420, guardianCount: 9, wingmanHpRatio: .3, wingmanDamageRatio: .3 };
   const VARYAG_DRONE = { perSide: 3, hits: 500, travel: 2000, launchInterval: 120, radius: .034 };
   const VARYAG_LAST_STAND = 10000;
@@ -5435,10 +5436,6 @@
     return orientedAllyPoint(ally, ports[index % ports.length], -.032);
   }
 
-  function varyagSideMuzzle(ally, side) {
-    return orientedAllyPoint(ally, side * .078, -.01);
-  }
-
   function launchVaryagMissile(ally, from, target) {
     if (!target || target.dead) return;
     const to = pointOf(target);
@@ -5460,7 +5457,7 @@
       // 폭발 범위 대상: 아군은 적(몬스터), 아레나 상대 함선은 아군을 고른다.
       const splashTargets = ally.isArenaShip ? state.allies.filter(candidate => !candidate.dead) : hostileTargetsFor(ally);
       splashTargets.filter(candidate => Math.hypot((candidate.x - to.x) * field.width, (candidate.y - to.y) * field.height) <= VARYAG_MISSILE.splashRadius)
-        .forEach(candidate => shooterDamage(candidate, VARYAG_MISSILE.hits, ally, 'missile'));
+        .forEach(candidate => shooterDamage(candidate, Math.round(VARYAG_MISSILE.hits * (ally.varyagStars >= 5 ? VARYAG_MISSILE.valorDamage : 1)), ally, 'missile'));
     }, VARYAG_MISSILE.travel);
   }
 
@@ -5468,16 +5465,10 @@
     const target = shooterTargetsFor(ally)[0];
     if (!target) return false;
     faceAllyTowardTarget(ally, target);
-    for (let index = 0; index < VARYAG_MISSILE.shots; index += 1) {
-      schedule(() => launchVaryagMissile(ally, varyagDeckMuzzle(ally, index), target), index * 45);
-    }
-    if (ally.varyagStars >= 5) {
-      [-1, 1].forEach((side, index) => schedule(() => {
-        if (!ally.dead && state.status === 'combat') launchVaryagMissile(ally, varyagSideMuzzle(ally, side), target);
-      }, index * 45));
-    }
+    ally.varyagPort = ((ally.varyagPort || 0) + 1) % 3;
+    launchVaryagMissile(ally, varyagDeckMuzzle(ally, ally.varyagPort), target);
     ally.el?.classList.add('varyag-missile-firing');
-    schedule(() => ally.el?.classList.remove('varyag-missile-firing'), 240);
+    schedule(() => ally.el?.classList.remove('varyag-missile-firing'), 160);
     return true;
   }
 
@@ -5600,45 +5591,60 @@
   function launchVaryagSuicideDrone(ally, from, target) {
     if (!target || target.dead) return;
     playVaryagDroneSound();
-    const destination = pointOf(target);
     const drone = document.createElement('i');
     const laser = document.createElement('i');
     drone.className = 'fx-varyag-suicide-drone';
     laser.className = 'fx-line varyag-tracking-laser';
+    let origin = { x: from.x, y: from.y };
+    let goal = pointOf(target);
+    let current = origin;
+    let legStart = performance.now();
+    let legDuration = VARYAG_DRONE.travel;
+    let finished = false;
     drone.style.left = percent(from.x);
     drone.style.top = percent(from.y);
-    drone.style.setProperty('--drone-angle', `${Math.atan2(destination.y - from.y, destination.x - from.x) + Math.PI / 2}rad`);
+    drone.style.setProperty('--drone-angle', `${Math.atan2(goal.y - from.y, goal.x - from.x) + Math.PI / 2}rad`);
     refs.effects.append(laser, drone);
-    const startedAt = performance.now();
+    const detonate = () => {
+      finished = true;
+      drone.remove();
+      laser.remove();
+      if (ally.dead || state.status !== 'combat') return;
+      createExplosion(current, 'missile');
+      hostileTargetsFor(ally).filter(candidate => !candidate.dead && Math.hypot(candidate.x - current.x, candidate.y - current.y) <= VARYAG_DRONE.radius)
+        .forEach(candidate => shooterDamage(candidate, VARYAG_DRONE.hits, ally));
+    };
     const trackTarget = () => {
-      const now = performance.now();
+      if (finished) return;
       if (!drone.isConnected || state.status !== 'combat') {
+        finished = true;
         drone.remove();
         laser.remove();
         return;
       }
-      const progress = Math.min(1, (now - startedAt) / VARYAG_DRONE.travel);
-      const currentTarget = target.dead ? destination : pointOf(target);
-      const current = {
-        x: from.x + (currentTarget.x - from.x) * progress,
-        y: from.y + (currentTarget.y - from.y) * progress
-      };
+      const now = performance.now();
+      if (target.dead) {
+        // 이동 중 대상이 사라지면 곧바로 살아 있는 다른 대상 중 무작위로 바꿔 계속 날아간다(남은 대상이 없으면 마지막 위치로).
+        const alive = hostileTargetsFor(ally).filter(candidate => !candidate.dead);
+        if (alive.length) {
+          const remaining = Math.max(700, legDuration - (now - legStart) * battleSpeed);
+          target = alive[Math.floor(Math.random() * alive.length)];
+          origin = { x: current.x, y: current.y };
+          legStart = now;
+          legDuration = remaining;
+        }
+      }
+      if (!target.dead) goal = pointOf(target);
+      const progress = Math.min(1, (now - legStart) * battleSpeed / legDuration);
+      current = { x: origin.x + (goal.x - origin.x) * progress, y: origin.y + (goal.y - origin.y) * progress };
       drone.style.left = percent(current.x);
       drone.style.top = percent(current.y);
-      drone.style.setProperty('--drone-angle', `${Math.atan2(currentTarget.y - current.y, currentTarget.x - current.x) + Math.PI / 2}rad`);
-      positionLine(laser, current, currentTarget);
-      if (progress < 1) requestAnimationFrame(trackTarget);
+      drone.style.setProperty('--drone-angle', `${Math.atan2(goal.y - current.y, goal.x - current.x) + Math.PI / 2}rad`);
+      positionLine(laser, current, goal);
+      if (progress >= 1) detonate();
+      else requestAnimationFrame(trackTarget);
     };
     requestAnimationFrame(trackTarget);
-    schedule(() => {
-      drone.remove();
-      laser.remove();
-      if (ally.dead || state.status !== 'combat') return;
-      const impact = pointOf(target.dead ? { ...target, ...destination } : target);
-      createExplosion(impact, 'missile');
-      hostileTargetsFor(ally).filter(candidate => !candidate.dead && Math.hypot(candidate.x - impact.x, candidate.y - impact.y) <= VARYAG_DRONE.radius)
-        .forEach(candidate => shooterDamage(candidate, VARYAG_DRONE.hits, ally));
-    }, VARYAG_DRONE.travel);
   }
 
   function fireVaryagSuicideDrones(ally) {

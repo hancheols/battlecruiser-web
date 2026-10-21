@@ -459,7 +459,7 @@ function initializeFleetFormation(){
     'battlecruiser:헬리오스':[1000,'레이저포',125,'굴절레이저 100 · 0.8초 간격 / 연쇄 2회','강화 굴절레이저 200 × 5발'],
     'battlecruiser:아이언피스트':[2700,'함포 · 미사일',606,'함포 200 · 0.33초 간격','철권 · 함포 500 × 3발 + 미사일 250 × 10발'],
     'battlecruiser:히페리온':[9000,'레이저포',909,'레이저 300 · 0.33초 간격','함선 도약 · 최대출력'],
-    'destroyer:바랴그':[5300,'미사일',500,'스플래시 미사일 200 × 3발 · 1.2초 간격','자폭드론 6기 · 기당 범위 피해 500'],
+    'destroyer:바랴그':[5300,'미사일',500,'스플래시 미사일 200 · 0.4초마다 1발 순환 발사','자폭드론 6기 · 기당 범위 피해 500'],
     'destroyer:행성파괴자':[6000,'레이저포 · 함재기 · 관통레이저',761,'레이저 350 × 5발 + 함재기 3기','초신성 · 광선 범위 2,000 피해 × 5회'],
     'destroyer:수 판옥선':[6000,'함포',1000,'함포 300 · 0.3초 간격','선측 포격 10발 · 비격진천뢰 5발'],
     'destroyer:스피어':[800,'레이저포',100,'레이저 100 · 1초 간격','레이저 100 × 10발 난사'],
@@ -527,7 +527,7 @@ function initializeFleetFormation(){
   };
   const enhancedStat=(value,stars,rarity='R',breakthrough=false)=>value===null||value===undefined?null:Math.floor(value*(1+stars*(enhancementConfig.statRateByRarity[rarity]||.2)+(breakthrough?breakthroughBonus(breakthrough,rarity):0)));
   const weaponLabels=(profile,stars)=>[profile?.[1]||'—',...((profile?.[5]||[]).filter(entry=>stars>=entry.stars).map(entry=>entry.label))].join(' · ');
-  const normalAttackDescription=(ship,stars,profile)=>ship?.type==='destroyer'&&ship.name==='바랴그'?`반경 48px 스플래시 미사일 200 × ${stars>=5?5:3}발 · ${stars>=3?'약 0.92':'1.2'}초 간격`:ship?.type==='destroyer'&&ship.name==='오메가'?`관통 레이저 3문 · 각 150 / 0.5초 · 재장전 ${stars>=3?'1':'2'}초`:ship?.type==='destroyer'&&ship.name==='KDDX'?`레이저 450 · ${stars>=3?'약 1.15':'1.5'}초 간격`:ship?.type==='destroyer'&&ship.name==='가루다'?`양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선`:profile?.[3]||'—';
+  const normalAttackDescription=(ship,stars,profile)=>ship?.type==='destroyer'&&ship.name==='바랴그'?`반경 48px 스플래시 미사일 ${stars>=5?280:200} · ${stars>=3?'약 0.31':'0.4'}초마다 1발 순환 발사`:ship?.type==='destroyer'&&ship.name==='오메가'?`관통 레이저 3문 · 각 150 / 0.5초 · 재장전 ${stars>=3?'1':'2'}초`:ship?.type==='destroyer'&&ship.name==='KDDX'?`레이저 450 · ${stars>=3?'약 1.15':'1.5'}초 간격`:ship?.type==='destroyer'&&ship.name==='가루다'?`양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선`:profile?.[3]||'—';
   const shipSkillNames={
     'destroyer:KDDX':{aux:'속전속결',ultimate:'임전무퇴'},
     'destroyer:가루다':{aux:'탄두강화',ultimate:'우파가루다'},
@@ -605,7 +605,7 @@ function initializeFleetFormation(){
     'destroyer:데이모스':{aux:'샷건강화 : 샷건포 피해범위와 피해량 30% 증가',ultimate:'드래곤 브레스 : 샷건포 피해를 입은 적이 3초간 불타며, 0.5초마다 샷건포 피해의 5% 추가 피해'},
     'destroyer:수 판옥선':{aux:'도탄포 : 일반·핵심 함포 명중 시 근처 적 1기에게 동일 피해',ultimate:'초신속 : 선회시간 50% 감소 · 좌측/우측 연속 포격 후 제자리'},
     'destroyer:판도라':{aux:'절망 : 핵심기술 발동 시 남은 내구도 50% 소모 · 모든 피해 100% 증가',ultimate:'희망 : 절망 비활성화 · 충전 중 선수 관통레이저 1,000/초 · 발사 중 방향 고정'},
-    'destroyer:바랴그':{aux:'투지 : 공격속도 30% 증가 · 자폭드론 2기 추가',ultimate:'용맹 : 선측 미사일 좌우 각 1발 추가 · 치명 피해 후 10초 공격하고 퇴각'},
+    'destroyer:바랴그':{aux:'투지 : 공격속도 30% 증가 · 자폭드론 2기 추가',ultimate:'용맹 : 미사일 피해 40% 증가 · 치명 피해 후 10초 공격하고 퇴각'},
     'destroyer:블레이드':{aux:'보조레이저 : 관통레이저 1줄기를 피해 50%로 추가 발사'},
     'destroyer:스피어':{aux:'폭발레이저 : 레이저 명중 지점 주변에 폭발 피해'},
     'destroyer:우라노스':{aux:'투샷 : 함포를 한 번에 2발 발사'},
@@ -665,7 +665,7 @@ function initializeFleetFormation(){
     if(dps===null)return null;
     if(ship?.type==='destroyer'&&ship.name==='KDDX'&&stars>=3)return Math.floor(dps*2);
     if(ship?.type==='destroyer'&&ship.name==='오메가'&&stars>=3)return Math.floor(dps*1.25);
-    if(ship?.type==='destroyer'&&ship.name==='바랴그')return Math.floor(dps*(stars>=3?1.3:1)*(stars>=5?5/3:1));
+    if(ship?.type==='destroyer'&&ship.name==='바랴그')return Math.floor(dps*(stars>=3?1.3:1)*(stars>=5?1.4:1));
     return ship?.type==='battlecruiser'&&ship.name==='거북선'&&stars>=5?Math.floor(dps*1.1):dps;
   };
   const skillStateMarkup=(ship,stars,slot,rarity)=>{
@@ -712,7 +712,7 @@ function initializeFleetFormation(){
     }
     if(ship?.type==='destroyer'&&ship.name==='바랴그'){
       if(slot==='aux'&&stars>=3)return '<span class="skill-state unlocked">투지 · 공격속도 +30% · 자폭드론 2기 추가</span>';
-      if(slot==='ultimate'&&stars>=5)return '<span class="skill-state unlocked">용맹 · 선측 미사일 좌우 각 1발 추가 · 치명 피해 후 10초 공격하고 퇴각</span>';
+      if(slot==='ultimate'&&stars>=5)return '<span class="skill-state unlocked">용맹 · 미사일 피해 40% 증가 · 치명 피해 후 10초 공격하고 퇴각</span>';
     }
     const required=slot==='aux'?3:5,name=names[slot]|| (slot==='aux'?'보조기술':'최종기술');
     return `<span class="skill-state ${stars>=required?'unlocked':'locked'}">${name}</span>`;
