@@ -2473,15 +2473,23 @@
     // 외계 스타크루저는 공포에 걸리면 공격과 이동을 하지 못한다.
     if (ship.variant === 'kepler-alien-starcruiser' && Number(ship.dreadTurtleFearUntil || 0) > performance.now()) return;
     if (ship.variant === 'kepler-alien-carrier') {
+      // 내구도 70%, 40%가 되면 호위함을 한 척씩 호출한다.
+      const hpRatio = ship.hp / Math.max(1, ship.maxHp);
+      [.7, .4].forEach((threshold, index) => {
+        if (hpRatio <= threshold && !ship.escortCalled?.[index]) {
+          (ship.escortCalled ||= [])[index] = true;
+          spawnKeplerCarrierEscort(index);
+        }
+      });
       ship.nextShieldbreaker -= dt;
       if (ship.nextShieldbreaker <= 0) {
         ship.nextShieldbreaker += 5000;
         fireKeplerCarrierShieldbreaker(ship);
       }
       ship.nextFighterLaunch -= dt;
-      if (ship.nextFighterLaunch <= 0 && ship.fightersLaunched < 10) {
-        ship.nextFighterLaunch += 10000;
-        launchKeplerCarrierFighter(ship);
+      if (ship.nextFighterLaunch <= 0) {
+        ship.nextFighterLaunch += 9000;
+        launchKeplerCarrierFighterWave(ship);
       }
       return;
     }
@@ -2538,11 +2546,24 @@
     }
   }
 
-  function launchKeplerCarrierFighter(carrier) {
-    if (!state || carrier?.dead || carrier.fightersLaunched >= 10) return;
+  // 우주항모가 9초마다 함재기 10기를 한꺼번에 내보낸다. 함재기는 빠르게 가로 한 줄 대형을 갖추고 바로 공격을 시작한다.
+  function launchKeplerCarrierFighterWave(carrier) {
+    if (!state || carrier?.dead || state.status !== 'combat') return;
+    carrier.fighterWaves = (carrier.fighterWaves || 0) + 1;
+    const wave = carrier.fighterWaves;
+    announce(`외계 우주항모 · 함재기 편대 출격 (${wave}차)`, 'boss');
+    playFighterLaunchSound();
+    for (let slot = 0; slot < 10; slot += 1) {
+      schedule(() => launchKeplerCarrierFighter(carrier, slot, wave), slot * 45);
+    }
+  }
+
+  function launchKeplerCarrierFighter(carrier, slot, wave) {
+    if (!state || carrier?.dead || state.status !== 'combat') return;
     const index = carrier.fightersLaunched++;
     state.keplerCarrierFightersLaunched = carrier.fightersLaunched;
-    const targetX = .1 + index * (.8 / 9);
+    // 홀수 차 편대는 반 칸 비켜 서서 앞선 편대와 겹치지 않게 한다.
+    const targetX = .1 + (slot + (wave % 2 ? 0 : .5)) * (.8 / 9);
     const launchX = Math.min(.9, carrier.x + .105);
     const launchY = carrier.y + .115;
     const fighter = {
@@ -2550,8 +2571,8 @@
       kind: 'boss',
       variant: 'kepler-alien-fighter',
       name: `외계 함재기 ${index + 1}`,
-      hp: 2000,
-      maxHp: 2000,
+      hp: 3000,
+      maxHp: 3000,
       attackPower: 100,
       x: launchX,
       y: launchY,
@@ -2559,9 +2580,9 @@
       entryTargetX: targetX,
       entryStartY: launchY,
       entryTargetY: .36,
-      entryDuration: 1800,
-      entryTime: 1800,
-      nextAttack: 2000,
+      entryDuration: 650,
+      entryTime: 650,
+      nextAttack: 300,
       enemyShield: 0,
       enemyImmuneUntil: 0,
       dead: false,
@@ -2577,8 +2598,49 @@
     state.midBosses.push(fighter);
     refs.enemyLayer.append(element);
     requestAnimationFrame(() => element.classList.add('entered'));
-    playFighterLaunchSound();
-    announce(`외계 우주항모 · 함재기 출격 ${index + 1}/10`, 'boss');
+    updateBossHud();
+  }
+
+  // 우주항모가 호출하는 호위함(블레이드 편성). 처음 한 척은 왼쪽, 두 번째는 오른쪽에서 합류한다.
+  function spawnKeplerCarrierEscort(callIndex) {
+    if (!state || state.status !== 'combat') return;
+    const sourceShip = { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
+    const x = callIndex % 2 ? .76 : .24;
+    const escort = {
+      id: `kepler-alien-escort-call-${callIndex}`,
+      kind: 'boss',
+      variant: 'kepler-alien-escort',
+      name: '외계 호위함',
+      ship: sourceShip,
+      damageSource: sourceShip,
+      hp: 25000,
+      maxHp: 25000,
+      attackPower: Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
+      x,
+      y: -.26,
+      entryStartY: -.26,
+      entryTargetY: .195,
+      entryDuration: 1500,
+      entryTime: 1500,
+      nextAttack: Infinity,
+      nextBladeLaser: 3000,
+      nextBladeVolley: 6000,
+      enemyShield: 0,
+      enemyImmuneUntil: 0,
+      dead: false,
+      stun: 0,
+      requiredForGate: true
+    };
+    const element = document.createElement('div');
+    element.className = 'boss-unit kepler-alien-vessel kepler-alien-escort';
+    element.style.left = percent(x);
+    element.style.top = percent(escort.y);
+    element.innerHTML = '<img class="boss-sprite" src="kepler-alien-escort.png" alt="외계 호위함" /><span>ALIEN ESCORT</span>';
+    escort.el = element;
+    state.midBosses.push(escort);
+    refs.enemyLayer.append(element);
+    requestAnimationFrame(() => element.classList.add('entered'));
+    announce('외계 우주항모 · 호위함 호출', 'boss');
     updateBossHud();
   }
 
@@ -10160,7 +10222,7 @@
         entryDuration: 1500,
         entryTime: 1500 + index * 180,
         nextAttack: angela ? 2100 : starcruiser ? 680 : Infinity,
-        nextFighterLaunch: carrier ? 10000 : Infinity,
+        nextFighterLaunch: carrier ? 3000 : Infinity,
         nextShieldbreaker: carrier ? 5000 : Infinity,
         fightersLaunched: 0,
         nextShieldSkill: angela ? 9000 : Infinity,
