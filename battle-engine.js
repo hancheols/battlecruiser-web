@@ -11368,7 +11368,7 @@
     };
     const element = document.createElement('div');
     element.className = 'boss-unit boss-blackbeard';
-    element.innerHTML = '<img class="boss-sprite" src="blackbeard.webp" alt="검은수염" />';
+    element.innerHTML = `<img class="boss-sprite" src="${bounty.image || 'blackbeard.webp'}" alt="${bounty.name}" onerror="this.onerror=null;this.src='blackbeard.webp'" />`;
     boss.el = element;
     state.boss = boss;
     refs.enemyLayer.append(element);
@@ -11390,7 +11390,7 @@
 
   function renderBountyResult(victory, reason) {
     const bounty = state.bounty;
-    const outcome = window.UnionCommand?.bountyFinish?.(bounty.stage, victory, state.elapsed) || { reward: 0, next: false };
+    const outcome = window.UnionCommand?.bountyFinish?.(bounty.pirate, bounty.stage, victory) || { reward: 0, next: false };
     refs.battleResultKicker.textContent = victory ? 'BOUNTY COMPLETE' : 'BOUNTY FAILED';
     refs.battleResultTitle.textContent = victory ? '현상수배 완료' : '임무 실패';
     refs.battleResultStars.textContent = victory ? 'WANTED' : '☆☆☆';
@@ -11402,11 +11402,10 @@
       } else {
         refs.battleRewards.innerHTML = '<span>보상 <b>오늘 이미 수령</b></span>';
       }
-      if (outcome.next) addResultButton('다음 단계', () => window.UnionCommand?.bountyStart?.(bounty.stage + 1));
     } else {
       refs.battleResultCopy.textContent = reason || '검은수염을 격파하지 못했습니다.';
       refs.battleRewards.innerHTML = '<span>획득 보상 <b>없음</b></span>';
-      addResultButton('재도전', () => window.UnionCommand?.bountyStart?.(bounty.stage));
+      addResultButton('재도전', () => window.UnionCommand?.bountyStart?.(bounty.pirate, bounty.stage));
     }
     addResultButton('현상수배로 돌아가기', () => window.UnionCommand?.bountyReturn?.());
   }

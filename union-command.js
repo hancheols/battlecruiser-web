@@ -154,29 +154,35 @@
 
   // ───────── 화면 ─────────
   // ───────── 화면 ─────────
-  // ───────── 현상수배: 우주해적 검은수염 (실전 보스전, 제한시간 안에 격파) ─────────
-  const BOUNTY_KEY = 'starfleet-union-bounty-v1';
+  // ───────── 현상수배: 우주해적 (실전 보스전, 제한시간 안에 격파) ─────────
+  // 검은수염은 월·수·금, 붉은수염은 화·목·토, 일요일에는 둘 다 나타난다. 도전 기록은 해적마다 따로 센다.
   const FREE_ATTEMPTS = 5;
-  const BOUNTIES = [
-    { stage: 1, name: '검은수염 해적선', hp: 10000, limit: 90, reward: 50, damage: 30 },
-    { stage: 2, name: '검은수염 대장선', hp: 100000, limit: 90, reward: 250, damage: 60 },
-    { stage: 3, name: '검은수염 에드', hp: 1000000, limit: 90, reward: 500, damage: 110 },
-    { stage: 4, name: '전설의 검은수염', hp: 5000000, limit: 60, reward: 1000, damage: 200 }
+  const stageSpecs = names => [
+    { stage: 1, name: names[0], hp: 10000, limit: 90, reward: 50 },
+    { stage: 2, name: names[1], hp: 100000, limit: 90, reward: 250 },
+    { stage: 3, name: names[2], hp: 1000000, limit: 90, reward: 500 },
+    { stage: 4, name: names[3], hp: 5000000, limit: 60, reward: 1000 }
   ];
+  const PIRATES = [
+    { id: 'black', title: '우주해적 검은수염', image: 'blackbeard.webp', key: 'starfleet-union-bounty-v1', days: [1, 3, 5, 0], dayText: '월·수·금·일', stages: stageSpecs(['검은수염 해적선', '검은수염 대장선', '검은수염 에드', '전설의 검은수염']) },
+    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['붉은수염 해적선', '붉은수염 대장선', '붉은수염 제독', '전설의 붉은수염']) }
+  ];
+  const pirateById = id => PIRATES.find(pirate => pirate.id === id);
+  const piratesToday = () => PIRATES.filter(pirate => pirate.days.includes(new Date().getDay()));
   // 기기 시간 기준으로 하루가 바뀌면 도전 횟수와 클리어 기록을 비운다(단계 개방은 유지).
   const dayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-  function readBounty() {
+  function readBounty(pirate) {
     let saved = {};
-    try { saved = JSON.parse(localStorage.getItem(BOUNTY_KEY) || 'null') || {}; } catch {}
+    try { saved = JSON.parse(localStorage.getItem(pirate.key) || 'null') || {}; } catch {}
     const fresh = saved.day === dayKey();
     return {
-      unlocked: Math.min(BOUNTIES.length, Math.max(1, Number(saved.unlocked) || 1)),
+      unlocked: Math.min(pirate.stages.length, Math.max(1, Number(saved.unlocked) || 1)),
       day: dayKey(),
       attempts: fresh ? Math.max(0, Number(saved.attempts) || 0) : 0,
       cleared: fresh && Array.isArray(saved.cleared) ? saved.cleared.map(Number) : []
     };
   }
-  const writeBounty = state => { try { localStorage.setItem(BOUNTY_KEY, JSON.stringify(state)); } catch {} };
+  const writeBounty = (pirate, state) => { try { localStorage.setItem(pirate.key, JSON.stringify(state)); } catch {} };
   // 무료 5회가 지나면 도전마다 50토륨씩 늘어나고 500토륨에서 멈춘다.
   const attemptCost = attempts => (attempts < FREE_ATTEMPTS ? 0 : Math.min(500, 50 * (attempts - FREE_ATTEMPTS + 1)));
   const thoriumBalance = () => {
@@ -186,10 +192,12 @@
     return Math.max(0, Number(current.thorium) || 0);
   };
 
-  function bountyStart(stage) {
-    const spec = BOUNTIES.find(item => item.stage === Number(stage));
-    const state = readBounty();
+  function bountyStart(pirateId, stage) {
+    const pirate = pirateById(pirateId);
+    const spec = pirate?.stages.find(item => item.stage === Number(stage));
     if (!spec) return { ok: false, message: '현상수배를 찾을 수 없습니다.' };
+    if (!piratesToday().includes(pirate)) return { ok: false, message: `${pirate.title}은(는) ${pirate.dayText}에 나타납니다.` };
+    const state = readBounty(pirate);
     if (spec.stage > state.unlocked) return { ok: false, message: '이전 단계를 먼저 클리어하세요.' };
     if (state.cleared.length) return { ok: false, message: '오늘은 이미 클리어했습니다. 내일 다시 도전할 수 있습니다.' };
     if (window.tutorialAllowsScreen && !window.tutorialAllowsScreen('battle')) return { ok: false, message: '튜토리얼을 먼저 진행해 주세요.' };
@@ -201,8 +209,8 @@
       if (!grantResources({ thorium: -cost })) return { ok: false, message: '저장에 실패했습니다. 다시 시도해 주세요.' };
     }
     state.attempts += 1;
-    writeBounty(state);
-    const operation = { chapter: 1, region: 'bounty', regionName: '현상수배', regionEn: 'BOUNTY', gate: 1, bounty: { ...spec } };
+    writeBounty(pirate, state);
+    const operation = { chapter: 1, region: 'bounty', regionName: '현상수배', regionEn: 'BOUNTY', gate: 1, bounty: { ...spec, pirate: pirate.id, image: pirate.image } };
     window.battleOperation = operation;
     window.show?.('battle');
     requestAnimationFrame(() => window.prepareBattle?.(operation));
@@ -211,27 +219,28 @@
     return { ok: true, message: '' };
   }
 
-  // 전투가 끝나면 엔진이 부른다. 승리하면 오늘 클리어로 기록하고 다음 단계를 연다. 보상(토륨)은 엔진이 지급한다.
-  function bountyFinish(stage, victory) {
-    const spec = BOUNTIES.find(item => item.stage === Number(stage));
-    const state = readBounty();
+  // 전투가 끝나면 엔진이 부른다. 승리하면 오늘 클리어로 기록하고 다음 날 다음 단계를 연다. 보상(토륨)은 엔진이 지급한다.
+  function bountyFinish(pirateId, stage, victory) {
+    const pirate = pirateById(pirateId);
+    const spec = pirate?.stages.find(item => item.stage === Number(stage));
     if (!spec || !victory) return { reward: 0, next: false };
+    const state = readBounty(pirate);
     // 하루에 모든 단계를 통틀어 한 번만 클리어할 수 있고, 보상도 그때 한 번만 받는다.
     const first = state.cleared.length === 0;
     if (first) state.cleared.push(spec.stage);
-    state.unlocked = Math.max(state.unlocked, Math.min(BOUNTIES.length, spec.stage + 1));
-    writeBounty(state);
+    state.unlocked = Math.max(state.unlocked, Math.min(pirate.stages.length, spec.stage + 1));
+    writeBounty(pirate, state);
     return { reward: first ? spec.reward : 0, next: false };
   }
 
   function bountyReturn() {
     ui.sub = 'bounty';
-    ui.confirmStage = 0;
+    ui.confirmStage = '';
     window.show?.('earth-union');
     window.openUnionFacility?.('command');
   }
 
-  const ui = { sub: 'menu', confirmStage: 0, regionId: null, slots: [null, null, null], notice: '', picking: false, sheetNote: '', sort: 'power-asc', onlyEligible: false, weapon: '' };
+  const ui = { sub: 'menu', confirmStage: '', regionId: null, slots: [null, null, null], notice: '', picking: false, sheetNote: '', sort: 'power-asc', onlyEligible: false, weapon: '' };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fmt = ms => {
     const total = Math.max(0, Math.floor(ms / 1000));
@@ -278,7 +287,7 @@
   function menuView(state) {
     return panel('연합 임무', `<div class="cmd-menu">
       <button type="button" class="cmd-cell cmd-dispatch${state.active ? ' live' : ''}" style="--cell-img:url('battle-scene-background.png')" data-cmd="dispatch"><b>함대파견</b><small>의뢰 ${REGIONS.length}건</small></button>
-      <button type="button" class="cmd-cell cmd-wanted live" style="--cell-img:url('mystery-battleship-outline.png')" data-cmd="bounty"><b>현상수배</b><small>우주해적 검은수염</small></button>
+      <button type="button" class="cmd-cell cmd-wanted live" style="--cell-img:url('mystery-battleship-outline.png')" data-cmd="bounty"><b>현상수배</b><small>${piratesToday().map(pirate => pirate.title).join(' · ')}</small></button>
       <button type="button" class="cmd-cell cmd-soon" style="--cell-img:url('mystery-weapon-outline.png')" disabled><b>COMING SOON</b></button>
     </div>`);
   }
@@ -294,22 +303,28 @@
     return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
   }
 
-  function bountyView() {
-    const state = readBounty();
+  function pirateBlock(pirate) {
+    const state = readBounty(pirate);
     const cost = attemptCost(state.attempts);
     const freeLeft = Math.max(0, FREE_ATTEMPTS - state.attempts);
-    const rows = BOUNTIES.map(item => {
+    const done = state.cleared.length > 0;
+    const rows = pirate.stages.map(item => {
       const locked = item.stage > state.unlocked;
-      const done = state.cleared.length > 0;
       const doneHere = state.cleared.includes(item.stage);
-      const confirm = ui.confirmStage === item.stage;
+      const id = `${pirate.id}:${item.stage}`;
+      const confirm = ui.confirmStage === id;
       const tag = done ? `<span class="cmd-tag done">${doneHere ? '오늘 클리어' : '내일 도전'}</span>`
         : locked ? '<span class="cmd-tag">잠김</span>'
         : `<span class="cmd-tag go">${confirm ? `토륨 ${cost} 사용 · 한 번 더 누르면 시작` : cost ? `도전 · 토륨 ${cost}` : '도전'}</span>`;
-      return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}</span>${tag}</div></button>`;
+      return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-pirate="${pirate.id}" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}</span>${tag}</div></button>`;
     }).join('');
     const attemptLine = freeLeft ? `오늘 도전 ${state.attempts}회 · 무료 ${freeLeft}회 남음` : `오늘 도전 ${state.attempts}회 · 다음 도전 토륨 ${cost}`;
-    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('현상수배', `<div class="cmd-wanted-hero"><img src="blackbeard.webp" alt="우주해적 검은수염" /><div><small>WANTED</small><b>우주해적 검은수염</b><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div><p class="cmd-rule">하루에 한 번만 클리어(보상도 1회) · 이전 단계를 클리어하면 다음 날 다음 단계 도전 가능 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`)}`;
+    return panel(esc(pirate.title), `<div class="cmd-wanted-hero ${pirate.id}"><img src="${pirate.image}" alt="${esc(pirate.title)}" onerror="this.onerror=null;this.src='blackbeard.webp'" /><div><small>WANTED</small><b>${esc(pirate.title)}</b><span>출현 ${pirate.dayText}</span><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div>`);
+  }
+
+  function bountyView() {
+    const blocks = piratesToday().map(pirateBlock).join('');
+    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${blocks}<p class="cmd-rule">검은수염은 월·수·금, 붉은수염은 화·목·토에 나타나고 일요일에는 둘 다 나타납니다 · 하루에 한 번만 클리어(보상도 1회) · 이전 단계를 클리어하면 다음 날 다음 단계 도전 가능 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`;
   }
 
   // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
@@ -516,14 +531,16 @@
     const act = el.dataset.cmd;
     const region = regionById(ui.regionId);
     const reset = () => { ui.sub = 'menu'; ui.slots = [null, null, null]; ui.picking = false; ui.sheetNote = ''; };
-    if (act === 'menu') { reset(); ui.confirmStage = 0; }
-    else if (act === 'bounty') { ui.sub = 'bounty'; ui.confirmStage = 0; }
+    if (act === 'menu') { reset(); ui.confirmStage = ''; }
+    else if (act === 'bounty') { ui.sub = 'bounty'; ui.confirmStage = ''; }
     else if (act === 'bounty-go') {
+      const pirate = pirateById(el.dataset.pirate);
       const stage = Number(el.dataset.stage);
-      if (attemptCost(readBounty().attempts) && ui.confirmStage !== stage) ui.confirmStage = stage;
+      const id = `${el.dataset.pirate}:${stage}`;
+      if (pirate && attemptCost(readBounty(pirate).attempts) && ui.confirmStage !== id) ui.confirmStage = id;
       else {
-        ui.confirmStage = 0;
-        const started = bountyStart(stage);
+        ui.confirmStage = '';
+        const started = bountyStart(el.dataset.pirate, stage);
         if (started.ok) return;
         ui.notice = started.message;
       }
@@ -607,5 +624,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  window.UnionCommand = { screen, regions: REGIONS, read, dispatch, recall, claim, bounties: BOUNTIES, bountyStart, bountyFinish, bountyReturn };
+  window.UnionCommand = { screen, regions: REGIONS, read, dispatch, recall, claim, pirates: PIRATES, bountyStart, bountyFinish, bountyReturn };
 })();
