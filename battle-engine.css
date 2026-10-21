@@ -721,3 +721,7 @@
 /* 케플러 비밀기지 작전지역 전투 배경: 우주 흐름 대신 비밀기지 배경 그림을 깐다 */
 .battle-viewport.kepler-secret-base-gate .battle-space-flow,.battle-viewport.kepler-secret-base-gate .battle-nebula{display:none}
 .battle-viewport.kepler-secret-base-gate::before{display:block;content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#02071166 0%,#02071100 40%,#020711b3 100%),url('kepler-secret-base-background.png') center var(--kepler-secret-base-y, 0%)/auto 200% no-repeat;opacity:1;animation:none}
+
+/* 앙헬라 징벌의 칼(5성): 날개 효과 동안 뱃머리에서 1초마다 나가는 관통 레이저포 */
+@keyframes angela-judgment-laser{0%{opacity:0;transform:var(--angle) scaleX(.1)}12%{opacity:1;transform:var(--angle) scaleX(1)}70%{opacity:1;transform:var(--angle) scaleX(1)}100%{opacity:0;transform:var(--angle) scaleX(1)}}
+.fx-line.angela-judgment-laser{z-index:22;height:9px;margin-top:-4px;background:linear-gradient(90deg,#fff,#fff3c4 22%,#ffc94a 58%,#ff9a3d 80%,transparent);box-shadow:0 0 8px #fff,0 0 20px #ffd166,0 0 36px #ff9a3d;animation:angela-judgment-laser .9s ease-out forwards}

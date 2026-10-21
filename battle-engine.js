@@ -7734,7 +7734,7 @@
       lance.el.style.left = `${lance.start.x + lance.dx * tipDistance}px`;
       lance.el.style.top = `${lance.start.y + lance.dy * tipDistance}px`;
       const field = refs.field.getBoundingClientRect();
-      for (const target of hostileTargetsFor(ally)) {
+      for (const target of hostileTargetsFor(lance.owner)) {
         if (lance.hit.has(target)) continue;
         const relativeX = target.x * field.width - lance.start.x;
         const relativeY = target.y * field.height - lance.start.y;
