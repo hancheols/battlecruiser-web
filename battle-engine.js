@@ -18,7 +18,7 @@
   const setBattleClockSpeed = speed => { battleNow(); battleSpeed = speed; };
 
   const RARITY_COLORS = { L: '#ff526d', SSR: '#ffd45b', SR: '#c883ff', R: '#69d8ff' };
-  const ENHANCEMENT_RATE = { R: .2, SR: .2, SSR: .3, L: .4 };
+  const ENHANCEMENT_RATE = { R: .2, SR: .2, SSR: .4, L: .4 };
   // 밸런스: 아군 내구 2배, PvE에서 적 공격 2배 (교전 시간 거의 동일하게 유지되는 조합)
   const ALLY_HP_BALANCE = 2;
   const ENEMY_ATTACK_BALANCE = 2;
@@ -33,7 +33,20 @@
     if (!ship || !ship.type) return 1;
     const stars = Math.max(0, Math.floor(Number(ship.enhancementStars ?? ship.stars) || 0));
     const rarity = ship.rarity || 'R';
-    return 1 + stars * (ENHANCEMENT_RATE[rarity] || .2) + (ship.baseRarity && rarity !== ship.baseRarity ? .5 : 0);
+    return 1 + stars * (ENHANCEMENT_RATE[rarity] || .2) + (ship.baseRarity && rarity !== ship.baseRarity ? breakthroughBonus(ship.baseRarity, rarity) : 0);
+  }
+  // 돌파 가산분(도감·아레나와 같은 규칙): SR 5성(+100%) → SSR 0성 +140%, 원래 R → SR은 +50%.
+  function breakthroughBonus(baseRarity, rarity) {
+    const order = ['R', 'SR', 'SSR', 'L'];
+    if (!baseRarity || baseRarity === 'R') return .5;
+    const from = order.indexOf(baseRarity), to = order.indexOf(rarity);
+    if (from < 0 || to <= from) return 0;
+    let multiplier = 1 + 5 * (ENHANCEMENT_RATE[baseRarity] || .2);
+    for (let index = from + 1; index <= to; index += 1) {
+      multiplier += ENHANCEMENT_RATE[order[index]] || .2;
+      if (index < to) multiplier += 5 * (ENHANCEMENT_RATE[order[index]] || .2);
+    }
+    return multiplier - 1;
   }
   const battleAudioPools=[];
   const battleAudioPriorityUntil=[0,0,0,0];

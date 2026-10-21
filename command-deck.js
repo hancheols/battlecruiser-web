@@ -491,7 +491,7 @@ function initializeFleetFormation(){
   try{enhancementState=JSON.parse(localStorage.getItem(enhancementStorageKey)||'{}')||{};}catch{enhancementState={};}
   const shipKey=ship=>`${ship.type}:${ship.frameId||ship.name}:${ship.isFrame?ship.rarity:''}`;
   if(enhancementState['destroyer:플레아데스:']){const legacy=enhancementState['destroyer:플레아데스:'],garuda=enhancementState['destroyer:가루다:'];if(!garuda)enhancementState['destroyer:가루다:']=legacy;else if(Array.isArray(legacy.variants)&&Array.isArray(garuda.variants))garuda.variants.push(...legacy.variants);delete enhancementState['destroyer:플레아데스:'];try{localStorage.setItem(enhancementStorageKey,JSON.stringify(enhancementState));}catch{}}
-  const enhancementConfig={maxStars:5,copyCost:1,statRateByRarity:{R:.2,SR:.2,SSR:.3,L:.4}};
+  const enhancementConfig={maxStars:5,copyCost:1,statRateByRarity:{R:.2,SR:.2,SSR:.4,L:.4}};
   const maxStarsFor=(ship,rarityOverride)=>{const rarity=rarityOverride||ship?.rarity;if(rarity==='R')return 3;if(ship?.baseRarity==='R'&&rarity==='SR')return 1;return enhancementConfig.maxStars;};
   const normalizedVariants=ship=>{const entry=enhancementState[shipKey(ship)]||{},baseRarity=ship?.rarity||'R',grouped=new Map(),add=(item,fallbackRarity)=>{const rarity=item.rarity||fallbackRarity,stars=Math.min(maxStarsFor(ship,rarity),Math.max(0,Math.floor(Number(item.stars)||0))),copies=Math.max(0,Math.floor(Number(item.copies)||0));if(!copies)return;const key=`${ship?.type||''}|${ship?.name||''}|${rarity}|${stars}`,current=grouped.get(key);grouped.set(key,{stars,copies:(current?.copies||0)+copies,rarity});};if(Array.isArray(entry.variants))entry.variants.forEach(item=>add(item,baseRarity));else add({stars:entry.stars,copies:entry.copies},baseRarity);return [...grouped.values()];};
   // 연합 임무에 파견된 함선은 보유 수에서 빼서, 함대관리·전투·아레나가 쓰지 못하게 한다(union-command.js가 집계).
@@ -513,7 +513,19 @@ function initializeFleetFormation(){
   }
   const saveShipProgress=()=>{try{localStorage.setItem(enhancementStorageKey,JSON.stringify(enhancementState));}catch{}window.dispatchEvent(new Event('fleet-ownership-updated'));};
   const starMarkup=(ship,detail=false,starsOverride,rarityOverride)=>{const count=shipProgress(ship,starsOverride,rarityOverride).stars;return count?`<span class="ship-enhancement-stars${detail?' detail-stars':''}" aria-label="강화 ${count}성">${'★'.repeat(Math.min(count,10))}${count>10?`<em>+${count-10}</em>`:''}</span>`:'';};
-  const enhancedStat=(value,stars,rarity='R',breakthrough=false)=>value===null||value===undefined?null:Math.floor(value*(1+stars*(enhancementConfig.statRateByRarity[rarity]||.2)+(breakthrough?.5:0)));
+  // 돌파한 함선의 능력치 가산분: 돌파 직전 최대 강화(5성) 배율에 새 등급의 1성분(별당 증가율)을 더한 값에서 1을 뺀다.
+  // 예) SR 5성(+100%) → SSR 0성은 +140%, 이후 SSR은 별마다 +40%. 원래 R인 함선이 SR로 오르는 경우만 기존 +50%를 유지한다.
+  const breakthroughBonus=(baseRarity,rarity)=>{
+    const order=['R','SR','SSR','L'],rates=enhancementConfig.statRateByRarity;
+    if(!baseRarity||baseRarity===true)return .5;
+    if(baseRarity==='R')return .5;
+    const from=order.indexOf(baseRarity),to=order.indexOf(rarity);
+    if(from<0||to<=from)return 0;
+    let multiplier=1+5*(rates[baseRarity]||.2);
+    for(let index=from+1;index<=to;index+=1){multiplier+=rates[order[index]]||.2;if(index<to)multiplier+=5*(rates[order[index]]||.2);}
+    return multiplier-1;
+  };
+  const enhancedStat=(value,stars,rarity='R',breakthrough=false)=>value===null||value===undefined?null:Math.floor(value*(1+stars*(enhancementConfig.statRateByRarity[rarity]||.2)+(breakthrough?breakthroughBonus(breakthrough,rarity):0)));
   const weaponLabels=(profile,stars)=>[profile?.[1]||'—',...((profile?.[5]||[]).filter(entry=>stars>=entry.stars).map(entry=>entry.label))].join(' · ');
   const normalAttackDescription=(ship,stars,profile)=>ship?.type==='destroyer'&&ship.name==='바랴그'?`반경 48px 스플래시 미사일 200 × ${stars>=5?5:3}발 · ${stars>=3?'약 0.92':'1.2'}초 간격`:ship?.type==='destroyer'&&ship.name==='오메가'?`관통 레이저 3문 · 각 150 / 0.5초 · 재장전 ${stars>=3?'1':'2'}초`:ship?.type==='destroyer'&&ship.name==='KDDX'?`레이저 450 · ${stars>=3?'약 1.15':'1.5'}초 간격`:ship?.type==='destroyer'&&ship.name==='가루다'?`양쪽 날개 끝에서 미사일 2발 · 각 250 피해 · 2초 간격 · 가까운 적 우선`:profile?.[3]||'—';
   const shipSkillNames={
@@ -733,7 +745,7 @@ function initializeFleetFormation(){
     modal.querySelector('.ship-detail-image').innerHTML=image?`<img src="${image.src}" alt="${name}"/>${ship?starMarkup(ship,true,variantStars,rarity):''}`:'<span>✦</span>';modal.querySelector('h2').innerHTML=`<span class="ship-detail-name">${name}</span><small>${typeDisplayLabels[codexType]||'함선'}</small>`;modal.querySelector('.ship-detail-class').textContent='';
     // 상세 카드에는 현재 강화 단계가 반영된 최종 전투 수치만 표시한다.
     const profile=ship?.profile;
-    const promoted=ship?rarity!==ship.baseRarity:false,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted);
+    const promoted=ship?rarity!==ship.baseRarity:false,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted&&ship.baseRarity),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted&&ship.baseRarity);
     const detailShip={name,type:codexType,baseRarity:ship?.baseRarity},skillStars=retainedSkillStars(detailShip,progress.stars,rarity);
     // 태생 R급은 돌파해도 최종기술이 없다('없음').
     const ultimateRarity=ship?.baseRarity==='R'?'R':rarity;
@@ -817,7 +829,7 @@ function initializeFleetFormation(){
   window.getArenaShipBaseStats=ship=>{
     const stars=Number(ship.enhancementStars??ship.stars)||0,rarity=ship.rarity||'R';
     const promoted=rarity!==ship.baseRarity,skillStars=retainedSkillStars(ship,stars,rarity);
-    return {hp:2*enhancedStat(ship.profile?.[0],stars,rarity,promoted),dps:arenaDpsUptime(ship)*skillAdjustedDps(ship,enhancedStat(ship.profile?.[2],stars,rarity,promoted)||0,skillStars),skillStars,factor:enhancedStat(1000,stars,rarity,promoted)/1000};
+    return {hp:2*enhancedStat(ship.profile?.[0],stars,rarity,promoted&&ship.baseRarity),dps:arenaDpsUptime(ship)*skillAdjustedDps(ship,enhancedStat(ship.profile?.[2],stars,rarity,promoted&&ship.baseRarity)||0,skillStars),skillStars,factor:enhancedStat(1000,stars,rarity,promoted&&ship.baseRarity)/1000};
   };
   const adjustVariantCopies=(ship,stars,delta,rarityOverride)=>{const variants=shipVariants(ship),index=variants.findIndex(item=>item.stars===stars&&(!rarityOverride||item.rarity===rarityOverride));if(index<0&&delta<0)return false;if(index<0)variants.push({stars,copies:delta,rarity:rarityOverride||ship.rarity});else variants[index].copies+=delta;const cleaned=variants.filter(item=>item.copies>0),base=ship.rarity;enhancementState[shipKey(ship)]={variants:cleaned.map(item=>({...item,stars:Math.min(maxStarsFor(ship,item.rarity||base),item.stars),rarity:item.rarity||base}))};return true;};
   const materialRequirement=(nextStars,rarity)=>rarity==='R'?1:(nextStars===3||nextStars===5?2:1);
@@ -878,7 +890,7 @@ function initializeFleetFormation(){
     const breakthrough=mode==='breakthrough',progress=shipProgress(ship,variantStars,currentRarity),currentStars=progress.stars,maxStars=maxStarsFor(ship,currentRarity),isMax=currentStars>=maxStars,nextStars=breakthrough?currentStars:Math.min(maxStars,currentStars+1),promotedRarity=breakthrough?nextRarity(currentRarity):currentRarity,required=breakthrough?1:materialRequirement(nextStars,currentRarity),options=breakthrough?breakthroughOptions(ship,currentStars,currentRarity):(isMax?[]:materialOptions(ship,currentStars,nextStars,currentRarity));let selected=[];
     let dialog=modal.querySelector('.ship-enhancement-dialog');if(!dialog){dialog=document.createElement('section');dialog.className='ship-enhancement-dialog';modal.querySelector('.ship-detail-card').append(dialog);}
     const rate=Math.round((enhancementConfig.statRateByRarity[currentRarity]||.2)*100),image=ship.image;
-    const statRows=(stars,after=false)=>{const displayRarity=after?promotedRarity:currentRarity,promoted=displayRarity!==ship.baseRarity,bonus=after?(breakthrough||currentRarity!==ship.baseRarity):currentRarity!==ship.baseRarity,durability=enhancedStat(ship.profile?.[0],stars,displayRarity,bonus),dps=enhancedStat(ship.profile?.[2],stars,displayRarity,bonus),skillStars=retainedSkillStars(ship,stars,displayRarity),featured=ship.type==='frigate'||ship.type==='destroyer'&&(['판도라','바랴그','가루다'].includes(ship.name)),skill=featured?coreSkillDescription(ship,skillStars,ship.profile):ship.profile?.[4]||'없음',aux=featured?skillStateMarkup(ship,skillStars,'aux',displayRarity):stars>=3||promoted?'개방':'3성 달성 시 개방',ultimate=featured?skillStateMarkup(ship,skillStars,'ultimate',displayRarity):displayRarity==='R'?'없음':stars>=5||promoted?'개방':'5성 달성 시 개방';return `<div><b>무기 종류</b><span class="${after?'enhancement-next':''}">${weaponLabels(ship.profile,skillStars)}</span></div><div><b>내구도</b><span class="${after?'enhancement-next':''}">${durability===null?'—':durability.toLocaleString('ko-KR')}</span></div><div><b>DPS</b><span class="${after?'enhancement-next':''}">${dps===null?'—':skillAdjustedDps(ship,dps,skillStars).toLocaleString('ko-KR')}</span></div><div><b>핵심기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(skill)}</span></div><div><b>보조기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(aux)}</span></div><div><b>최종기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(ultimate)}</span></div>`;};
+    const statRows=(stars,after=false)=>{const displayRarity=after?promotedRarity:currentRarity,promoted=displayRarity!==ship.baseRarity,bonus=after?(breakthrough||currentRarity!==ship.baseRarity):currentRarity!==ship.baseRarity,durability=enhancedStat(ship.profile?.[0],stars,displayRarity,bonus&&ship.baseRarity),dps=enhancedStat(ship.profile?.[2],stars,displayRarity,bonus&&ship.baseRarity),skillStars=retainedSkillStars(ship,stars,displayRarity),featured=ship.type==='frigate'||ship.type==='destroyer'&&(['판도라','바랴그','가루다'].includes(ship.name)),skill=featured?coreSkillDescription(ship,skillStars,ship.profile):ship.profile?.[4]||'없음',aux=featured?skillStateMarkup(ship,skillStars,'aux',displayRarity):stars>=3||promoted?'개방':'3성 달성 시 개방',ultimate=featured?skillStateMarkup(ship,skillStars,'ultimate',displayRarity):displayRarity==='R'?'없음':stars>=5||promoted?'개방':'5성 달성 시 개방';return `<div><b>무기 종류</b><span class="${after?'enhancement-next':''}">${weaponLabels(ship.profile,skillStars)}</span></div><div><b>내구도</b><span class="${after?'enhancement-next':''}">${durability===null?'—':durability.toLocaleString('ko-KR')}</span></div><div><b>DPS</b><span class="${after?'enhancement-next':''}">${dps===null?'—':skillAdjustedDps(ship,dps,skillStars).toLocaleString('ko-KR')}</span></div><div><b>핵심기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(skill)}</span></div><div><b>보조기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(aux)}</span></div><div><b>최종기술</b><span class="${after?'enhancement-next':''}">${skillTitleOnly(ultimate)}</span></div>`;};
     const optionLabel=item=>item.ship.isFrame?item.ship.frameLabel:item.ship.name;
     const optionWithStars=item=>item.ship.isFrame?`${item.rarity}급 · ${optionLabel(item)}`:`${item.rarity}급 · ${optionLabel(item)} · ${item.stars}성`;
     const render=()=>{
@@ -893,8 +905,8 @@ function initializeFleetFormation(){
         // SSR·L급 별승급과 SSR→L 돌파는 전용 연출을 함선 정보 화면 위에 띄웁니다.
         const ascends=breakthrough?(currentRarity==='SSR'&&promotedRarity==='L')||(currentRarity==='SR'&&promotedRarity==='SSR'):['SR','SSR','L'].includes(currentRarity);
         if(ascends&&window.playShipAscension){
-          const bonus=currentRarity!==ship.baseRarity,durabilityAt=stars=>enhancedStat(ship.profile?.[0],stars,currentRarity,bonus);
-          const dpsAt=stars=>{const value=enhancedStat(ship.profile?.[2],stars,currentRarity,bonus);return value===null?null:skillAdjustedDps(ship,value,retainedSkillStars(ship,stars,currentRarity));};
+          const bonus=currentRarity!==ship.baseRarity,durabilityAt=stars=>enhancedStat(ship.profile?.[0],stars,currentRarity,bonus&&ship.baseRarity);
+          const dpsAt=stars=>{const value=enhancedStat(ship.profile?.[2],stars,currentRarity,bonus&&ship.baseRarity);return value===null?null:skillAdjustedDps(ship,value,retainedSkillStars(ship,stars,currentRarity));};
           window.playShipAscension({mode:breakthrough?'breakthrough':'star',name:ship.name,image,rarity:currentRarity,toRarity:promotedRarity,fromStars:currentStars,toStars:nextStars,maxStars,rate,stats:breakthrough?[]:[{label:'내구도',from:durabilityAt(currentStars),to:durabilityAt(nextStars)},{label:'DPS',from:dpsAt(currentStars),to:dpsAt(nextStars)}]});
         }
       };
@@ -1360,7 +1372,7 @@ function initializeFleetFormation(){
     const detailMarkup=(draw,starsOverride)=>{
       if(draw.kind==='item')return `<div class="acquisition-item-icon-wrap">${draw.item.image?`<img class="acquisition-item-icon" src="${draw.item.image}" alt="${draw.item.name}"/>`:`<span class="acquisition-item-icon-fallback" aria-hidden="true">${draw.item.icon}</span>`}</div><h2 class="acquisition-item-name">${draw.item.name}</h2>`;
       const ship=draw.ship,rarity=ship.rarity||'R',codexType=ship.type||'dreadnought',type=typeLabels[codexType]||'DreadNought',progress=shipProgress(ship,starsOverride),profile=ship.profile;
-      const promoted=rarity!==ship.baseRarity,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted),skillStars=retainedSkillStars(ship,progress.stars,rarity),labels=['무기 종류','내구도','DPS','핵심기술',`보조기술${skillRequirementMarkup(skillStars,'aux',rarity,ship)}`,`최종기술${skillRequirementMarkup(skillStars,'ultimate',rarity,ship)}`];
+      const promoted=rarity!==ship.baseRarity,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted&&ship.baseRarity),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted&&ship.baseRarity),skillStars=retainedSkillStars(ship,progress.stars,rarity),labels=['무기 종류','내구도','DPS','핵심기술',`보조기술${skillRequirementMarkup(skillStars,'aux',rarity,ship)}`,`최종기술${skillRequirementMarkup(skillStars,'ultimate',rarity,ship)}`];
       const values=profile?[weaponLabels(profile,progress.stars),durability===null?'—':durability.toLocaleString('ko-KR'),dps===null?'—':skillAdjustedDps(ship,dps,skillStars).toLocaleString('ko-KR'),skillTitleOnly(coreSkillDescription(ship,skillStars,profile)),skillTitleOnly(skillStateMarkup(ship,skillStars,'aux',rarity)),skillTitleOnly(skillStateMarkup(ship,skillStars,'ultimate',rarity))]:['—','—','—','—','—','—'];
       // 상세화면 카드와 같은 내부 구조를 공유한다. 획득 화면에서는 강화 별과 조작 버튼만 숨긴다.
       return `<span class="ship-detail-rarity rarity-badge rarity-${rarity}" data-rarity="${rarity}">${rarity}</span>${draw.guaranteed?'<span class="ship-guaranteed-tag">50회 확정 획득</span>':''}<div class="ship-detail-image"><img src="${ship.image}" alt="${ship.name}"/></div><h2><span class="ship-detail-name">${ship.name}</span><small>${typeDisplayLabels[codexType]||'함선'}</small></h2><p class="ship-detail-class"></p><div class="ship-detail-stats">${labels.map((label,i)=>`<div><b>${label}</b><span>${values[i]}</span></div>`).join('')}</div>`;
