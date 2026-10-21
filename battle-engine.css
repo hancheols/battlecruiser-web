@@ -725,8 +725,6 @@
 /* 앙헬라 징벌의 칼(5성): 뱃머리에서 날아가는 대검과 발사 섬광. 페가수스의 창과 같은 방식이고 색과 모양이 다르다(황금빛 대검). */
 .fx-angela-sword{position:absolute;z-index:36;width:0;height:0;transform:rotate(var(--angela-angle));pointer-events:none;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px #ffe38a) drop-shadow(0 0 20px #ff9f3d)}
 .fx-angela-sword::before{content:"";position:absolute;left:-118px;top:-9px;width:120px;height:18px;clip-path:polygon(0 18%,76% 0,100% 50%,76% 100%,0 82%);background:linear-gradient(180deg,#b9761e 0%,#fff1b8 30%,#fffdf0 46%,#ffd45a 62%,#a86418 100%)}
-.fx-angela-sword::after{content:"";position:absolute;left:-129px;top:-17px;width:11px;height:34px;clip-path:polygon(0 38%,60% 0,100% 12%,100% 88%,60% 100%,0 62%);background:linear-gradient(180deg,#ffe7a0 0%,#fff 46%,#d89a2c 100%)}
-.fx-angela-sword b{position:absolute;left:-150px;top:-3px;width:22px;height:6px;border-radius:3px;background:linear-gradient(180deg,#f4d98a,#8a5a14);box-shadow:-6px 0 0 1px #ffd45a}
 .fx-angela-muzzle{position:absolute;z-index:37;width:0;height:0;transform:rotate(var(--angela-angle));pointer-events:none}
 .fx-angela-muzzle::before{content:"";position:absolute;left:-20px;top:-20px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,#fff1b0 42%,rgba(255,196,80,.55) 62%,transparent 74%);animation:angela-flash .42s ease-out forwards}
 .fx-angela-muzzle::after{content:"";position:absolute;left:0;top:-5px;width:84px;height:10px;background:linear-gradient(90deg,#fff,#ffe38a 45%,transparent);filter:drop-shadow(0 0 6px #ffd45a);transform-origin:0 50%;animation:angela-flash-beam .42s ease-out forwards}

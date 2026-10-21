@@ -285,7 +285,7 @@
   // 아군 앙헬라의 천사의 날개: 기본 면역 1초·보호막 500, 강화(3성) 면역 2초·보호막 1000. 날개 효과는 5초 동안 유지되며,
   // 징벌의 칼(5성)은 그 동안 1초마다 뱃머리 레이저를 쏜다.
   // 징벌의 칼(5성): 날개 효과 동안 뱃머리에서 대검을 1초마다 쏜다. 대검은 앞으로 날며 닿은 모든 적을 관통해 피해를 준다.
-  const ANGELA_SWORD = { travel: 750, length: 120, hits: 1000, pierceWidth: 22 };
+  const ANGELA_SWORD = { travel: 500, length: 120, hits: 1000, pierceWidth: 22 };
   const ANGELA_WING_EFFECT = { immunity: 1000, shield: 500, enhancedImmunity: 2000, enhancedShield: 1000, duration: 5000, judgmentDamage: 1000, judgmentInterval: 1000, judgmentWidth: .035 };
   const CARRIER_INTERCEPTOR = { hits: 55, count: 6, interval: 330, travel: 260 };
   const CARRIER_OVERFLOW = { duration: 5000, shieldInterval: 500, shieldAmount: 100, extraLifetime: 7000 };
@@ -5176,7 +5176,6 @@
     const ahead = pegasusRayToEdge(start.x, start.y, dx, dy, field.width, field.height) + 80;
     const sword = document.createElement('i');
     sword.className = 'fx-angela-sword';
-    sword.innerHTML = '<b></b>';
     sword.style.left = `${start.x}px`;
     sword.style.top = `${start.y}px`;
     sword.style.setProperty('--angela-angle', `${angle}rad`);
