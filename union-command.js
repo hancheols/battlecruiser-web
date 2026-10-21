@@ -217,17 +217,22 @@
     return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${panel('함대파견', `<p class="cmd-intro">연방함대 의뢰 : 잔당 소탕</p><div class="cmd-menu">${rows}</div>`)}`;
   }
 
-  // 파견 지역에서 싸우는 듯한 작은 장면. 시간은 표시하지 않고(상단 띠에 있다), 파견한 함선 3대가 적을 공격한다.
+  // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
+  // 아군 3대(왼쪽)가 오른쪽을 보고 달리며 오른쪽의 적을 공격한다. 전투용 탑뷰 그림을 시계 방향으로 90도 돌려 쓴다.
   const FOE_IMAGES = { mars: 'enemy-raptor.png', titan: 'enemy-blue-claw.png', oort1: 'enemy-plasma-bug.png', oort2: 'enemy-toxic-beast.png', oort3: 'enemy-machine-beast.png', oort4: 'enemy-flame-beast.png', oort5: 'enemy-ancient-beast.png' };
-  const FOE_SLOTS = [[10, 8, 0], [30, 30, .9], [52, 6, 1.7], [72, 28, .4], [88, 10, 1.3]];
+  const FOE_SLOTS = [[80, 22, 0], [91, 42, .9], [74, 62, 1.7], [87, 80, .4], [95, 56, 1.3]];
   const TINTS = { mars: '255,110,70', titan: '255,170,70', oort1: '90,170,255', oort2: '120,220,160', oort3: '170,140,255', oort4: '255,120,150', oort5: '255,220,120' };
   function battleScene(region, mission) {
     const foe = FOE_IMAGES[region.id] || 'enemy-raptor.png';
-    const foes = FOE_SLOTS.map(([x, y, d]) => `<span class="cmd-foe" style="--x:${x}%;--y:${y}px;--d:${d}s"><img src="${foe}" alt="" /><i class="cmd-boom" style="--d:${d + .5}s"></i></span>`).join('');
-    const lanes = [20, 50, 80];
-    const ships = (mission.ships || []).slice(0, 3).map((ship, i) => `<span class="cmd-ally" style="--x:${lanes[i]}%;--d:${i * .35}s"><img src="${esc(ship.image || '')}" alt="" /><i class="cmd-flame"></i></span>`).join('');
-    const shots = lanes.flatMap((x, i) => [0, 1].map(k => `<i class="cmd-shot" style="--x:${x}%;--d:${(i * .31 + k * .7).toFixed(2)}s"></i>`)).join('');
-    return `<div class="cmd-battle" style="--tint:${TINTS[region.id] || '255,170,70'}" role="img" aria-label="${esc(region.name)}에서 교전 중인 파견 함대"><div class="cmd-bg"></div><div class="cmd-stars"></div><div class="cmd-stars s2"></div><span class="cmd-battle-tag"><i class="cmd-pulse"></i>${esc(region.name)} · 교전 중</span>${foes}${shots}${ships}</div>`;
+    const foes = FOE_SLOTS.map(([x, y, d]) => `<span class="cmd-foe" style="--x:${x}%;--y:${y}%;--d:${d}s"><img src="${foe}" alt="" /><i class="cmd-boom" style="--d:${d + .5}s"></i></span>`).join('');
+    const foeShots = FOE_SLOTS.slice(0, 4).map(([x, y, d], i) => `<i class="cmd-fshot" style="--x:${x - 6}%;--y:${y}%;--d:${(d + i * .45).toFixed(2)}s"></i>`).join('');
+    const lanes = [[14, 34], [19, 57], [14, 80]];
+    const ships = (mission.ships || []).slice(0, 3).map((ship, i) => {
+      const top = window.getShipTopviewImage?.(ship);
+      return `<span class="cmd-ally" style="--x:${lanes[i][0]}%;--y:${lanes[i][1]}%;--d:${i * .35}s"><img class="${top ? 'rot' : ''}" src="${esc(top || ship.image || '')}" alt="" /><i class="cmd-flame"></i></span>`;
+    }).join('');
+    const shots = lanes.flatMap(([x, y], i) => [0, 1].map(k => `<i class="cmd-shot" style="--x:${x + 6}%;--y:${y}%;--d:${(i * .31 + k * .7).toFixed(2)}s"></i>`)).join('');
+    return `<div class="cmd-battle" style="--tint:${TINTS[region.id] || '255,170,70'}" role="img" aria-label="${esc(region.name)}에서 교전 중인 파견 함대"><div class="cmd-bg"></div><div class="cmd-stars"></div><div class="cmd-stars s2"></div><span class="cmd-battle-tag"><i class="cmd-pulse"></i>${esc(region.name)} · 교전 중</span>${foes}${foeShots}${shots}${ships}</div>`;
   }
 
   function regionView(state) {

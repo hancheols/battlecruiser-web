@@ -11369,6 +11369,13 @@
   }
 
   // 시나리오 연출 중 전투를 멈추거나 재개한다(재개 시 시간 점프를 막기 위해 프레임 시계를 맞춘다).
+  // 연합 파견 장면 등에서 전투용 탑뷰 그림 주소가 필요할 때 쓴다(탑뷰 그림이 없는 함선은 null).
+  window.getShipTopviewImage = ship => {
+    try {
+      const match = String(topViewMarkup(ship) || '').match(/<img[^>]+src="([^"]+)"/);
+      return match ? match[1] : null;
+    } catch { return null; }
+  };
   window.setBattleHold = hold => {
     if (!state || state.status !== 'combat') return;
     state.paused = !!hold;
