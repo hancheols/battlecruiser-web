@@ -2122,7 +2122,6 @@
       const attackSpeedRatio = 1 - Math.min(10, ally.machineFreezeStacks || 0) * .05;
       ally.stun = Math.max(0, Number(ally.stun) || 0);
       if (ally.stun > 0) { ally.stun = Math.max(0, ally.stun - dt); continue; }
-      if (Number(ally.keplerFearUntil) > performance.now()) { ally.charging = false; continue; }
       if (!ally.charging && ally.nextShot > 0) ally.nextShot += dt * (1 - attackSpeedRatio);
       const energyRechargeLocked = Number(ally.energyRechargeDisabledUntil) > performance.now();
       if (state.fleetAttackSpeedBoostUntil > performance.now() && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * IOWA_TOMAHAWK.fleetSpeedBonus;
@@ -2488,8 +2487,6 @@
       ? BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(ship.damageSource)
       : BLADE_LASER.hits * combatStatFactor(ship.damageSource);
     const shots = ship.variant === 'kepler-alien-angela' ? 2 : 1;
-    ship.keplerShotCount = (ship.keplerShotCount || 0) + 1;
-    const shotCounter = ship.keplerShotCount;
     for (let shot = 0; shot < shots; shot += 1) {
       schedule(() => {
         if (!state || state.status !== 'combat' || ship.dead || target.dead) return;
@@ -2503,7 +2500,6 @@
         schedule(() => {
           if (state?.status !== 'combat' || ship.dead || target.dead) return;
           dealAllyDamage(target, damage, ship);
-          if (ship.variant === 'kepler-alien-starcruiser' && shotCounter % KEPLER_STATUS.fearEvery === 0) applyKeplerAllyStatus(target, 'fear', KEPLER_STATUS.fearDuration);
           createExplosion(to, 'enemy');
         }, 220);
       }, shot * 240);
@@ -2722,22 +2718,6 @@
     return true;
   }
 
-  // 외계 함선이 아군에게 거는 상태이상: 기절은 공격·이동을 멈추고, 공포는 공격을 못 하게 한다.
-  const KEPLER_STATUS = { fearDuration: 1500, stunDuration: 2000, fearEvery: 3 };
-  function applyKeplerAllyStatus(target, kind, duration) {
-    if (!target || target.dead) return;
-    const now = performance.now();
-    if (kind === 'stun') {
-      target.stun = Math.max(Number(target.stun) || 0, duration);
-      showUnitDamage(target, '기절');
-    } else {
-      target.keplerFearUntil = Math.max(Number(target.keplerFearUntil) || 0, now + duration);
-      target.el?.classList.add('kepler-feared');
-      schedule(() => { if (performance.now() >= Number(target.keplerFearUntil || 0)) target.el?.classList.remove('kepler-feared'); }, duration + 40);
-      showUnitDamage(target, '공포');
-    }
-  }
-
   function fireKeplerStarCruiserBattery(ship) {
     const targets = hostileAllyTargets();
     const target = targets.sort((a, b) => Math.hypot(a.x - ship.x, a.y - ship.y) - Math.hypot(b.x - ship.x, b.y - ship.y))[0];
@@ -2759,7 +2739,6 @@
         const impactPoint = pointOf(target);
         const field = refs.field?.getBoundingClientRect();
         if (!target.dead) dealAllyDamage(target, BATTLECRUISER_MAIN_BATTERY.hits * factor, ship);
-        applyKeplerAllyStatus(target, 'stun', KEPLER_STATUS.stunDuration);
         if (field) [...(state.allies || []), ...(state.garudaWingmen || [])]
           .filter(ally => ally !== target && !ally.dead && Math.hypot((ally.x - impactPoint.x) * field.width, (ally.y - impactPoint.y) * field.height) <= BATTLECRUISER_MAIN_BATTERY.photonSplashRadius)
           .forEach(ally => dealAllyDamage(ally, BATTLECRUISER_MAIN_BATTERY.hits * factor, ship));
