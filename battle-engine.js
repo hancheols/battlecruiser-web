@@ -11727,7 +11727,8 @@
       return { ratio, hp: `${formatNumber(Math.max(0, boss.hp))} / ${formatNumber(boss.maxHp)}` };
     };
     if (isKeplerOperation() && ['kepler-orbit', 'kepler-atmosphere', 'kepler-base'].includes(String(state?.operation?.region || '').toLowerCase()) && state.keplerAlienFleetSpawned) {
-      const livingFleet = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
+      // 함재기는 체력바에 표시하지 않는다(우주항모와 호위함만 표시).
+      const livingFleet = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && ship.variant !== 'kepler-alien-fighter' && !ship.dead);
       if (!livingFleet.length) {
         refs.battleBossRowSecondary.hidden = true;
         refs.battleBossName.textContent = '외계 함대';

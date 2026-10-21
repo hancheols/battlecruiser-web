@@ -720,7 +720,7 @@
 
 /* 케플러 비밀기지 작전지역 전투 배경: 우주 흐름 대신 비밀기지 배경 그림을 깐다 */
 .battle-viewport.kepler-secret-base-gate .battle-space-flow,.battle-viewport.kepler-secret-base-gate .battle-nebula{display:none}
-.battle-viewport.kepler-secret-base-gate::before{display:block;content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#02071166 0%,#02071100 40%,#020711b3 100%),url('kepler-secret-base-background.png') center var(--kepler-secret-base-y, 0%)/auto 200% no-repeat;opacity:1;animation:none}
+.battle-viewport.kepler-secret-base-gate::before{display:block;content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#02071166 0%,#02071100 40%,#020711b3 100%),url('kepler-secret-base-background.png') center var(--kepler-secret-base-y, 0%)/auto 260% no-repeat;opacity:1;animation:none}
 
 /* 앙헬라 징벌의 칼(5성): 뱃머리에서 날아가는 대검과 발사 섬광. 페가수스의 창과 같은 방식이고 색과 모양이 다르다(황금빛 대검). */
 .fx-angela-sword{position:absolute;z-index:36;width:0;height:0;transform:rotate(var(--angela-angle));pointer-events:none;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px #ffe38a) drop-shadow(0 0 20px #ff9f3d)}
@@ -758,3 +758,4 @@
 .boss-unit.kepler-alien-vessel.kepler-alien-carrier,.boss-unit.kepler-alien-vessel.kepler-alien-carrier.entered{top:calc(27% - clamp(295px,51.25vw,390px))!important;transition:opacity .8s}
 .boss-unit.kepler-alien-vessel.kepler-alien-carrier>span{display:none}
 .boss-unit.kepler-alien-vessel.kepler-alien-fighter .boss-sprite{transform:rotate(180deg)}
+.boss-unit.kepler-alien-vessel>span{display:none!important}
