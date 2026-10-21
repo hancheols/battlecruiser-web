@@ -753,3 +753,8 @@
 .redbeard-speech{position:absolute;z-index:32;transform:translateX(-50%);max-width:190px;padding:7px 12px;border:2px solid #ff4a4a;border-radius:12px;background:rgba(24,4,6,.92);color:#ffe3dc;font:700 13px/1.3 var(--font-body);text-align:center;box-shadow:0 0 14px rgba(255,40,40,.55);pointer-events:none;animation:redbeard-speech 1.7s ease-out forwards}
 .redbeard-speech::after{content:"";position:absolute;left:50%;bottom:-9px;width:12px;height:12px;margin-left:-6px;background:rgba(24,4,6,.92);border:solid #ff4a4a;border-width:0 2px 2px 0;transform:rotate(45deg)}
 @keyframes redbeard-speech{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0}}
+/* 외계 우주항모: 5배 크기로 함재기 대형 위쪽에 걸쳐 아래쪽 일부만 보이고, 함재기는 뱃머리가 아군 쪽을 향한다 */
+.boss-unit.kepler-alien-vessel.kepler-alien-carrier{width:clamp(320px,55vw,420px);height:clamp(590px,102.5vw,780px)}
+.boss-unit.kepler-alien-vessel.kepler-alien-carrier,.boss-unit.kepler-alien-vessel.kepler-alien-carrier.entered{top:calc(27% - clamp(295px,51.25vw,390px))!important;transition:opacity .8s}
+.boss-unit.kepler-alien-vessel.kepler-alien-carrier>span{display:none}
+.boss-unit.kepler-alien-vessel.kepler-alien-fighter .boss-sprite{transform:rotate(180deg)}

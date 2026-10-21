@@ -2546,24 +2546,24 @@
     }
   }
 
-  // 우주항모가 9초마다 함재기 10기를 한꺼번에 내보낸다. 함재기는 빠르게 가로 한 줄 대형을 갖추고 바로 공격을 시작한다.
+  // 우주항모는 전투가 시작되면 함재기 10기를 내보내고, 이후 9초마다 모자란 만큼 보충해 10기를 채운다.
+  // 함재기는 빠르게 가로 한 줄 대형(자리 0~9)을 갖추고 바로 공격을 시작한다.
   function launchKeplerCarrierFighterWave(carrier) {
     if (!state || carrier?.dead || state.status !== 'combat') return;
+    const taken = new Set((state.midBosses || []).filter(ship => ship.variant === 'kepler-alien-fighter' && !ship.dead).map(ship => ship.slot));
+    const free = Array.from({ length: 10 }, (_, slot) => slot).filter(slot => !taken.has(slot));
+    if (!free.length) return;
     carrier.fighterWaves = (carrier.fighterWaves || 0) + 1;
-    const wave = carrier.fighterWaves;
-    announce(`외계 우주항모 · 함재기 편대 출격 (${wave}차)`, 'boss');
+    announce(carrier.fighterWaves === 1 ? '외계 우주항모 · 함재기 편대 출격' : `외계 우주항모 · 함재기 ${free.length}기 보충`, 'boss');
     playFighterLaunchSound();
-    for (let slot = 0; slot < 10; slot += 1) {
-      schedule(() => launchKeplerCarrierFighter(carrier, slot, wave), slot * 45);
-    }
+    free.forEach((slot, order) => schedule(() => launchKeplerCarrierFighter(carrier, slot), order * 45));
   }
 
-  function launchKeplerCarrierFighter(carrier, slot, wave) {
+  function launchKeplerCarrierFighter(carrier, slot) {
     if (!state || carrier?.dead || state.status !== 'combat') return;
     const index = carrier.fightersLaunched++;
     state.keplerCarrierFightersLaunched = carrier.fightersLaunched;
-    // 홀수 차 편대는 반 칸 비켜 서서 앞선 편대와 겹치지 않게 한다.
-    const targetX = .1 + (slot + (wave % 2 ? 0 : .5)) * (.8 / 9);
+    const targetX = .1 + slot * (.8 / 9);
     const launchX = Math.min(.9, carrier.x + .105);
     const launchY = carrier.y + .115;
     const fighter = {
@@ -2571,9 +2571,10 @@
       kind: 'boss',
       variant: 'kepler-alien-fighter',
       name: `외계 함재기 ${index + 1}`,
-      hp: 3000,
-      maxHp: 3000,
+      hp: 1000,
+      maxHp: 1000,
       attackPower: 100,
+      slot,
       x: launchX,
       y: launchY,
       entryStartX: launchX,
@@ -10218,11 +10219,11 @@
         x: carrier ? .5 : [.5, .24, .76][index],
         y: -.26,
         entryStartY: -.26,
-        entryTargetY: .17 + (angela ? 0 : .025),
+        entryTargetY: carrier ? .2 : .17 + (angela ? 0 : .025),
         entryDuration: 1500,
         entryTime: 1500 + index * 180,
         nextAttack: angela ? 2100 : starcruiser ? 680 : Infinity,
-        nextFighterLaunch: carrier ? 3000 : Infinity,
+        nextFighterLaunch: carrier ? 0 : Infinity,
         nextShieldbreaker: carrier ? 5000 : Infinity,
         fightersLaunched: 0,
         nextShieldSkill: angela ? 9000 : Infinity,
