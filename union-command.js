@@ -160,7 +160,7 @@
   const stageSpecs = (names, hps, rewards, golds = [0, 0, 0, 0]) => names.map((name, index) => ({ stage: index + 1, name, hp: hps[index], limit: index === 3 ? 60 : 90, reward: rewards[index], gold: golds[index] }));
   const PIRATES = [
     { id: 'black', title: '우주해적 검은수염', image: 'blackbeard.webp', key: 'starfleet-union-bounty-v1', days: [1, 3, 5, 0], dayText: '월·수·금·일', stages: stageSpecs(['검은수염 해적선', '검은수염 대장선', '검은수염 에드', '전설의 검은수염'], [10000, 100000, 1000000, 5000000], [50, 250, 500, 1000]) },
-    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard-top.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['발바롯사 함선', '발바롯사 하이레딘', '하이레딘 파샤', '발바롯사 파즐 하이레딘'], [10000, 100000, 500000, 1000000], [50, 250, 500, 1000], [5000, 25000, 30000, 50000]) }
+    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard-top.webp', heroImage: 'redbeard-side.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['발바롯사 함선', '발바롯사 하이레딘', '하이레딘 파샤', '발바롯사 파즐 하이레딘'], [10000, 100000, 500000, 1000000], [50, 250, 500, 1000], [5000, 25000, 30000, 50000]) }
   ];
   const pirateById = id => PIRATES.find(pirate => pirate.id === id);
   const piratesToday = () => PIRATES.filter(pirate => pirate.days.includes(new Date().getDay()));
@@ -314,12 +314,12 @@
       return `<button type="button" class="cmd-cell cmd-bounty-row${locked ? ' locked' : ''}${done ? ' done' : ''}${confirm ? ' confirm' : ''}" data-cmd="bounty-go" data-pirate="${pirate.id}" data-stage="${item.stage}"${locked || done ? ' disabled' : ''}><div><div class="cmd-row-title"><b>${item.stage}단계 · ${esc(item.name)}</b></div><small class="cmd-bounty-meta">내구도 ${item.hp.toLocaleString('ko-KR')} · 제한시간 ${item.limit}초</small></div><div class="cmd-bounty-side"><span class="cmd-bounty-reward">토륨 ${item.reward}${item.gold ? ` · 골드 ${item.gold.toLocaleString('ko-KR')}` : ''}</span>${tag}</div></button>`;
     }).join('');
     const attemptLine = freeLeft ? `오늘 도전 ${state.attempts}회 · 무료 ${freeLeft}회 남음` : `오늘 도전 ${state.attempts}회 · 다음 도전 토륨 ${cost}`;
-    return panel(esc(pirate.title), `<div class="cmd-wanted-hero ${pirate.id}"><img src="${pirate.image}" alt="${esc(pirate.title)}" onerror="this.onerror=null;this.src='blackbeard.webp'" /><div><small>WANTED</small><b>${esc(pirate.title)}</b><span>출현 ${pirate.dayText}</span><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div>`);
+    return panel(esc(pirate.title), `<div class="cmd-wanted-hero ${pirate.id}"><img src="${pirate.heroImage || pirate.image}" alt="${esc(pirate.title)}" onerror="this.onerror=null;this.src='${pirate.image}'" /><div><small>WANTED</small><b>${esc(pirate.title)}</b><span>출현 ${pirate.dayText}</span><span>${attemptLine}</span></div></div><div class="cmd-menu">${rows}</div>`);
   }
 
   function bountyView() {
     const blocks = piratesToday().map(pirateBlock).join('');
-    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${blocks}<p class="cmd-rule">검은수염은 월·수·금, 붉은수염은 화·목·토에 나타나고 일요일에는 둘 다 나타납니다 · 하루에 한 번만 클리어(보상도 1회) · 이전 단계를 클리어하면 다음 날 다음 단계 도전 가능 · 무료 ${FREE_ATTEMPTS}회 이후 토륨 50부터 50씩 늘어나 최대 500</p>`;
+    return `<div class="cmd-back-row"><button type="button" class="fac-back cmd-back" data-cmd="menu">‹ 임무 메뉴</button></div>${blocks}`;
   }
 
   // 파견 지역에서 싸우는 듯한 작은 장면. 가로로 넓은 칸이라 횡스크롤 형태로 그린다:
