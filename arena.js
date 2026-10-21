@@ -287,8 +287,6 @@
     draft=null;playing=false;overlay?.remove();overlay=null;window.battleArenaMatch=match;
     window.notice?.('아레나 입장완료');window.show?.('battle');
     requestAnimationFrame(()=>window.prepareBattle?.({arenaMatch:match}));
-    // 출전을 누르면 전투가 바로 개시되도록, 전장이 준비된 뒤 전투 개시 버튼을 누른다.
-    setTimeout(()=>{if(window.battleArenaMatch===match)document.getElementById('battle-start')?.click();},700);
   }
   window.cancelArenaBattle=async match=>{
     await lock(()=>{const s=state();if(s.pending?.id!==match?.id)return;s.pending=null;if(match.ticketUsed)s.tickets++;else s.freeUsed=Math.max(0,s.freeUsed-1);commit(s);});

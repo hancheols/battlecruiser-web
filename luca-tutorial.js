@@ -116,7 +116,7 @@
   const grantDrone=()=>{const loot=read(LOOT_KEY,{});loot.scoutTron=(Number(loot.scoutTron)||0)+1;write(LOOT_KEY,loot);};
   const startDrone=()=>{
     luca.phase='drone';luca.index=0;save();
-    write(DRONE_FLAG,'1');   // 1회 무료 탐색 잠금 해제
+    try{localStorage.setItem(DRONE_FLAG,'1');}catch{}   // 1회 무료 탐색 잠금 해제 (따옴표 없이 '1' 그대로 저장해야 함선 탐색이 읽는다)
     grantDrone();
     run={list:DRONE_SCRIPT,index:0,onDone:()=>{luca.phase='done';save();}};
     paint();

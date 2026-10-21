@@ -209,8 +209,6 @@
     window.battleOperation = operation;
     window.show?.('battle');
     requestAnimationFrame(() => window.prepareBattle?.(operation));
-    // 아레나처럼 전장이 준비되면 바로 전투가 시작된다.
-    setTimeout(() => { if (window.battleOperation === operation) document.getElementById('battle-start')?.click(); }, 700);
     return { ok: true, message: '' };
   }
 

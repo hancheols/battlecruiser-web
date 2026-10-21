@@ -1124,7 +1124,7 @@ function initializeFleetFormation(){
   const freeSearchKey='starfleet-free-scout-day-v1';
   const todayFreeKey=()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
   // 1회 무료 탐색은 루카에게 탐색드론을 받은 뒤부터 쓸 수 있습니다.
-  const freeSearchAvailable=count=>count===1&&!precisionSearch.type&&localStorage.getItem('starfleet-luca-drone-v1')==='1'&&localStorage.getItem(freeSearchKey)!==todayFreeKey();
+  const freeSearchAvailable=count=>count===1&&!precisionSearch.type&&['1','"1"'].includes(localStorage.getItem('starfleet-luca-drone-v1'))&&localStorage.getItem(freeSearchKey)!==todayFreeKey();
   const markFreeSearchUsed=()=>{try{localStorage.setItem(freeSearchKey,todayFreeKey());}catch{}};
   const searchCostFor=count=>freeSearchAvailable(count)?0:shipSearchCost(count);
   const explorationUnavailableShips=new Set(['우주항모','히페리온']);
