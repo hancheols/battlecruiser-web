@@ -2432,7 +2432,15 @@
   }
 
   function updateKeplerAlienAttack(ship, dt) {
-    if (!ship || ship.dead || ship.entryTime > 0 || ship.stun > 0) return;
+    if (!ship || ship.dead || ship.entryTime > 0) return;
+    // 기절은 시간이 지나야 풀린다(이전에는 카운트가 줄지 않아 한 번 걸리면 영영 멈췄다).
+    if (ship.stun > 0) {
+      ship.stun = Math.max(0, ship.stun - dt);
+      if (ship.stun <= 0) ship.el?.classList.remove('stunned');
+      return;
+    }
+    // 외계 스타크루저는 공포에 걸리면 공격과 이동을 하지 못한다.
+    if (ship.variant === 'kepler-alien-starcruiser' && Number(ship.dreadTurtleFearUntil || 0) > performance.now()) return;
     if (ship.variant === 'kepler-alien-carrier') {
       ship.nextShieldbreaker -= dt;
       if (ship.nextShieldbreaker <= 0) {
