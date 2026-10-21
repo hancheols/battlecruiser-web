@@ -9623,6 +9623,16 @@
       }
     }
     if (target.variant === 'machine-beast' && target.machineAirborne) return;
+    if (target.variant === 'blackbeard' && state.bounty?.stage >= BLACKBEARD_EVASION.fromStage) {
+      if (!target.evasion && target.hp <= target.maxHp * BLACKBEARD_EVASION.hpRatio) {
+        target.evasion = true;
+        announce('검은수염 · 회피 기동 가동', 'boss');
+      }
+      if (target.evasion && Math.random() < BLACKBEARD_EVASION.chance) {
+        showUnitDamage(target, 'MISS');
+        return;
+      }
+    }
     if (target.variant?.startsWith('kepler-alien-') && performance.now() < Number(target.enemyImmuneUntil || 0)) {
       showUnitDamage(target, 'BLOCK');
       return;
@@ -11330,9 +11340,7 @@
   }
 
   // ── 현상수배 보스: 우주해적 검은수염 (일반 적 없이 보스 한 척, 제한시간 안에 격파) ──
-  const BLACKBEARD_FIRE = { cannonInterval: 1800, cannonShots: 2, broadsideInterval: 7000, broadsideShots: 6 };
-
-  function spawnBlackbeard() {
+    function spawnBlackbeard() {
     if (!state?.bounty || state.boss || state.status !== 'combat') return;
     const bounty = state.bounty;
     const boss = {
@@ -11374,28 +11382,10 @@
     showBossWarning(refs.battleAnnouncement?.textContent || '');
   }
 
+  // 검은수염은 공격 능력이 없다. 3단계부터 내구 50% 이하에서 회피 기동(회피율 10%)을 가동한다.
+  const BLACKBEARD_EVASION = { fromStage: 3, hpRatio: .5, chance: .1 };
   function updateBlackbeardAttack(boss, dt) {
     boss.lifetime += dt;
-    if (boss.entryTime > 0) return;
-    boss.nextAttack -= dt;
-    boss.nextBroadside -= dt;
-    const targets = hostileAllyTargets();
-    if (!targets.length) return;
-    if (boss.nextAttack <= 0) {
-      boss.nextAttack = BLACKBEARD_FIRE.cannonInterval;
-      for (let shot = 0; shot < BLACKBEARD_FIRE.cannonShots; shot += 1) {
-        const target = targets[Math.floor(Math.random() * targets.length)];
-        if (target) enemyProjectile(boss, target, 'monster-spike', boss.attackPower, null, { x: boss.x + (shot % 2 ? .08 : -.08), y: boss.y + .07 });
-      }
-    }
-    if (boss.nextBroadside <= 0) {
-      boss.nextBroadside = BLACKBEARD_FIRE.broadsideInterval;
-      announce('검은수염 · 일제 포격', 'boss');
-      for (let shot = 0; shot < BLACKBEARD_FIRE.broadsideShots; shot += 1) {
-        const target = targets[Math.floor(Math.random() * targets.length)];
-        if (target) enemyProjectile(boss, target, 'monster-spike', Math.round(boss.attackPower * 1.5), null, { x: boss.x - .12 + shot * .048, y: boss.y + .07 });
-      }
-    }
   }
 
   function renderBountyResult(victory, reason) {
