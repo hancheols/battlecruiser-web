@@ -527,6 +527,12 @@
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
+    refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation));
+    if (isTapaoColonyOperation(normalizedOperation) && refs.viewport) {
+      const tile = Math.round(TAPAO_COLONY_TILE_ROWS * (refs.viewport.clientWidth || 375) / TAPAO_COLONY_TILE_WIDTH);
+      refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
+      refs.viewport.style.setProperty('--tapao-scroll-duration', `${(tile / TAPAO_SCROLL_SPEED).toFixed(2)}s`);
+    }
     refs.viewport?.classList.toggle('kepler-secret-base-gate', isKeplerSecretBaseOperation(normalizedOperation));
     // 비밀기지 배경: 관문이 올라갈수록 그림을 조금씩 아래로 내려 보여 준다(1관문 위쪽 ~ 10관문 아래쪽).
     if (isKeplerSecretBaseOperation(normalizedOperation)) refs.viewport?.style.setProperty('--kepler-secret-base-y', `${((Number(normalizedOperation?.gate) || 1) - 1) * 10}%`);
@@ -588,6 +594,7 @@
 
     refs.battleOperationName.textContent = `${normalizedOperation.regionName} · ${normalizedOperation.gate}번 관문`;
     refs.battleClock.textContent = '00:00';
+    if (isTapaoColonyOperation(normalizedOperation)) state.tapaoColony = { nextSpawn: 2200, spawned: 0 };
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
       state.bounty = { ...operation.bounty };
@@ -994,6 +1001,14 @@
     if (region === 'tapao-near') return gate === 5 ? [flagship] : gate === 10 ? [cruisers, flagship] : [cruisers];
     if (region === 'tapao-orbit') return gate === 5 ? [cruisers, cruisers] : gate === 10 ? [flagship, flagship] : [cruisers];
     return [cruisers];
+  }
+
+  // 타파오 콜로니: 사막 지형이 끝없이 아래로 흐르는 전투 맵. 모래 속에 숨은 대공 포탑이 간간이 솟아올라 아군을 쏜다(지상전).
+  // 외계 함대(공중전)와 함께 나오며, 승리 조건은 외계 함대 격파다(포탑은 승패에 영향이 없다).
+  const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
+  const TAPAO_COLONY_TILE_ROWS = 1822, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert.webp 크기
+  function isTapaoColonyOperation(operation = state?.operation) {
+    return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
 
   function isKeplerSecretBaseOperation(operation = state?.operation) {
@@ -2029,6 +2044,7 @@
       updatePirates(dt);
       updateAlliedFleet(dt);
       updateBoss(dt);
+      if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
       updateAngelaSwords(dt);
@@ -3016,7 +3032,7 @@
   function updateBoss(dt) {
     const boss = state.boss;
     state.midBosses?.forEach(monster => {
-      if (monster.dead) return;
+      if (monster.dead || monster.variant === 'tapao-turret') return;
       if (monster.entryTime > 0) {
         monster.entryTime = Math.max(0, monster.entryTime - dt);
         const progress = 1 - monster.entryTime / monster.entryDuration;
@@ -10644,9 +10660,94 @@
     showBossWarning(refs.battleAnnouncement?.textContent || "");
   }
 
+  // ───────── 타파오 콜로니: 숨은 대공 포탑 ─────────
+  function spawnTapaoTurret() {
+    const gate = Number(state.operation?.gate) || 1;
+    const hp = Math.round((5000 + gate * 900) * TAPAO_ALIEN_SCALE);
+    const existing = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead).map(unit => unit.x);
+    let x = .12 + Math.random() * .76;
+    for (let attempt = 0; attempt < 6 && existing.some(other => Math.abs(other - x) < .16); attempt += 1) x = .12 + Math.random() * .76;
+    const turret = {
+      id: `tapao-turret-${++state.tapaoColony.spawned}`,
+      kind: 'boss',
+      variant: 'tapao-turret',
+      name: '대공 포탑',
+      hp,
+      maxHp: hp,
+      x,
+      y: -.07,
+      concealed: true,
+      revealed: false,
+      dead: false,
+      stun: 0,
+      nextShot: 700,
+      requiredForGate: false
+    };
+    const element = document.createElement('div');
+    element.className = 'tapao-turret';
+    element.style.left = percent(x);
+    element.style.top = percent(turret.y);
+    element.innerHTML = '<i class="tt-mound"></i><i class="tt-hatch"></i><i class="tt-gun"></i><span class="tt-hp"><i></i></span>';
+    turret.el = element;
+    refs.enemyLayer.append(element);
+    state.midBosses.push(turret);
+  }
+
+  function updateTapaoColonyTurrets(dt) {
+    const colony = state.tapaoColony;
+    if (!colony) return;
+    const field = refs.field?.getBoundingClientRect();
+    const fieldHeight = Math.max(1, field?.height || 700);
+    const fieldWidth = Math.max(1, field?.width || 375);
+    const gate = Number(state.operation?.gate) || 1;
+    const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
+    colony.nextSpawn -= dt;
+    if (colony.nextSpawn <= 0 && turrets.length < 6) {
+      spawnTapaoTurret();
+      // 관문이 올라갈수록 더 자주 솟아오른다.
+      colony.nextSpawn = Math.max(2800, 7000 - gate * 380) * (.75 + Math.random() * .5);
+    }
+    const damage = Math.round((70 + gate * 9) * TAPAO_ALIEN_SCALE);
+    turrets.forEach(turret => {
+      turret.y += (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
+      turret.el.style.top = percent(turret.y);
+      if (turret.y > 1.1) { turret.dead = true; turret.el.remove(); return; }
+      if (!turret.revealed && turret.y >= .24) {
+        turret.revealed = true;
+        turret.concealed = false;
+        turret.el.classList.add('revealed');
+      }
+      if (!turret.revealed) return;
+      turret.el.querySelector('.tt-hp i').style.width = `${Math.max(0, turret.hp / turret.maxHp * 100)}%`;
+      turret.nextShot -= dt;
+      if (turret.nextShot > 0) return;
+      const targets = state.allies.filter(ally => !ally.dead);
+      if (!targets.length) return;
+      turret.nextShot = 2000;
+      const target = targets[Math.floor(Math.random() * targets.length)];
+      const aimX = (target.x - turret.x) * fieldWidth, aimY = (target.y - turret.y) * fieldHeight;
+      turret.el.querySelector('.tt-gun').style.setProperty('--aim', `${(Math.atan2(aimX, -aimY) * 180 / Math.PI).toFixed(1)}deg`);
+      turret.el.classList.add('firing');
+      schedule(() => turret.el?.classList.remove('firing'), 160);
+      // 소리가 요란해지지 않도록 보스가 아닌 발사원으로 넘긴다.
+      enemyProjectile({ kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y }, target, 'monster-spike', damage, null, { x: turret.x, y: turret.y - .012 });
+    });
+  }
+
+  function destroyTapaoTurret(turret) {
+    turret.dead = true;
+    turret.concealed = true;
+    createExplosion(pointOf(turret), 'enemy');
+    turret.el?.classList.add('destroyed');
+    schedule(() => turret.el?.remove(), 700);
+    state.midBosses = state.midBosses.filter(unit => unit !== turret);
+    updateHud();
+  }
+
   function destroyBoss(target = state.boss) {
     const boss = target;
     if (!boss || boss.dead) return;
+    if (boss.variant === 'tapao-turret') { destroyTapaoTurret(boss); return; }
     if (boss.variant === 'tas-long-arm') setTasSniperTarget(null);
     boss.toxicMouthGlow?.remove();
     boss.dead = true;
@@ -12162,7 +12263,7 @@
   function livingEnemyTargets() {
     const normal = state.enemies.filter(enemy => !enemy.dead && enemy.deployed && (enemy.monsterType === 'plasma-bug' || enemy.y >= ENEMY_VISIBLE_TOP_Y));
     if (state.boss && !state.boss.dead && !state.boss.machineAirborne) normal.push(state.boss);
-    state.midBosses?.forEach(monster => { if (!monster.dead) normal.push(monster); });
+    state.midBosses?.forEach(monster => { if (!monster.dead && !monster.concealed) normal.push(monster); });
     state.pirates?.forEach(pirate => { if (!pirate.dead && !pirate.escaped) normal.push(pirate); });
     return normal;
   }

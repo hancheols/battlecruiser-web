@@ -775,3 +775,21 @@
 @keyframes ending-netted-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
 /* 타파오 통 행성 전투: 행성 색(장밋빛 베이지)이 은은하게 감도는 화면 */
 .battle-viewport.tapao-battle::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 60% at 82% 12%,#f0bfa655,transparent 62%),linear-gradient(180deg,#3a1d2a22,transparent 40%,#2a141c44);mix-blend-mode:screen}
+/* 타파오 콜로니: 아래로 끝없이 흐르는 사막 배경 + 숨은 대공 포탑 */
+.battle-viewport.tapao-colony-map .battle-space-flow,.battle-viewport.tapao-colony-map .battle-nebula{display:none}
+.battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert.webp') 0 0/100% auto repeat-y;filter:brightness(1.22) contrast(1.04) saturate(1.08);animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
+.battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
+@keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
+.tapao-turret{position:absolute;z-index:5;width:66px;height:66px;margin:-33px 0 0 -33px;pointer-events:none}
+.tapao-turret .tt-mound{position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 40% 36%,#b27a3c 0,#7e4b22 56%,#5e3519 70%,transparent 73%);opacity:.4;transition:opacity .4s,box-shadow .4s}
+.tapao-turret .tt-hatch{position:absolute;left:14px;right:14px;top:22px;height:22px;border-radius:50%;background:radial-gradient(ellipse,#1b110a 0,#3a2312 70%,transparent 72%);transform:scaleY(0);transition:transform .35s ease .1s}
+.tapao-turret .tt-gun{position:absolute;left:50%;top:50%;width:9px;height:34px;margin:-30px 0 0 -4.5px;border-radius:3px 3px 1px 1px;background:linear-gradient(90deg,#2b3340,#8793a6 50%,#2b3340);box-shadow:0 0 5px #000a;transform-origin:50% 88%;transform:rotate(var(--aim,180deg)) scaleY(0);transition:transform .35s ease .15s}
+.tapao-turret .tt-hp{position:absolute;left:10px;right:10px;bottom:-4px;height:4px;border-radius:2px;background:#0009;opacity:0;transition:opacity .3s}
+.tapao-turret .tt-hp i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#ff6a4a,#ffb15a)}
+.tapao-turret.revealed .tt-mound{opacity:1;box-shadow:0 0 0 3px #5a3418aa,0 0 14px #ff8a3a66}
+.tapao-turret.revealed .tt-hatch{transform:scaleY(1)}
+.tapao-turret.revealed .tt-gun{transform:rotate(var(--aim,180deg)) scaleY(1)}
+.tapao-turret.revealed .tt-hp{opacity:1}
+.tapao-turret.firing .tt-gun{filter:drop-shadow(0 0 8px #ffcf6a) brightness(1.5)}
+.tapao-turret.hit{filter:brightness(1.7)}
+.tapao-turret.destroyed{opacity:0;transform:scale(1.35);filter:brightness(2);transition:opacity .6s,transform .6s,filter .6s}
