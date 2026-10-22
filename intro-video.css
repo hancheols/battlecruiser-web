@@ -1,0 +1,20 @@
+/* 인트로 영상 */
+#intro-video{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:calc(18px + env(safe-area-inset-top,0px)) 0 calc(18px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 70% at 50% 28%,#0a1830 0%,#03060f 58%,#010208 100%);color:#fff;opacity:1;transition:opacity .6s ease}
+#intro-video.leaving{opacity:0;pointer-events:none}
+#intro-video::before{content:"";position:absolute;inset:0;background:radial-gradient(1.5px 1.5px at 18% 22%,#fff9,transparent),radial-gradient(1px 1px at 72% 12%,#fff8,transparent),radial-gradient(1.5px 1.5px at 86% 64%,#cfe6ff99,transparent),radial-gradient(1px 1px at 30% 82%,#fff8,transparent),radial-gradient(1px 1px at 58% 46%,#fff6,transparent);pointer-events:none}
+.intro-stage{position:relative;display:flex;flex-direction:column;gap:22px;width:min(100%,520px)}
+.intro-window{position:relative;width:100%;aspect-ratio:375/340;overflow:hidden;border-block:1px solid #5fb8ff66;background:#000;box-shadow:0 0 28px #2a7bd855}
+/* 영상 아래쪽 약 17%(영상 속 자막 띠)는 잘라 내고, 좌우는 천천히 훑는다 */
+.intro-window video{position:absolute;top:0;left:50%;height:120.8%;width:auto;max-width:none;transform:translateX(-50%);animation:intro-pan 15s ease-in-out forwards}
+.intro-vignette{position:absolute;inset:0;background:linear-gradient(180deg,#02060f55 0%,transparent 18%,transparent 78%,#02060fcc 100%);pointer-events:none}
+.intro-caption{min-height:104px;padding:0 22px;text-align:center}
+.intro-caption p{margin:0;white-space:pre-line;font-family:var(--font-body);font-size:clamp(17px,4.9vw,22px);line-height:1.6;letter-spacing:.01em;color:#eaf4ff;text-shadow:0 0 12px #3aa6ff88,0 2px 6px #000;opacity:0;transform:translateY(8px)}
+.intro-caption p.show{opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
+.intro-caption p.title{margin-top:10px;font-family:var(--font-display);font-size:clamp(24px,7vw,32px);letter-spacing:.08em;color:#ffd668;text-shadow:0 0 18px #ff9d2e99,0 2px 8px #000}
+.intro-skip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:3;height:38px;padding:0 16px;border:1px solid #8fc9ff88;border-radius:999px;background:#06101fcc;color:#dff0ff;font-family:var(--font-body);font-size:14px;letter-spacing:.04em;cursor:pointer}
+.intro-skip:active{transform:translateY(1px)}
+.intro-skip:focus-visible{outline:2px solid #ffd668;outline-offset:2px}
+.intro-sound{position:absolute;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:3;transform:translateX(-50%);padding:8px 16px;border:1px solid #ffd66888;border-radius:999px;background:#120d02cc;color:#ffe9a8;font-family:var(--font-body);font-size:13px;cursor:pointer}
+.intro-sound[hidden]{display:none}
+@keyframes intro-pan{from{transform:translateX(-46%)}to{transform:translateX(-54%)}}
+@media (prefers-reduced-motion:reduce){.intro-window video{animation:none}.intro-caption p.show{transition:none}}

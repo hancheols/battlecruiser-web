@@ -60,7 +60,7 @@
     const battleScreen=document.querySelector('.screen.active')?.id==='battle';
     const selectedMusic=battleScreen?(bossBattleMusic?battleBossMusic:battleMusic):music;
     [music,battleMusic,battleBossMusic].forEach(track=>{if(track!==selectedMusic)track.pause();});
-    if(!unlocked||document.hidden||!state.music.enabled||state.music.volume===0){selectedMusic.pause();return;}
+    if(!unlocked||window.__introActive||document.hidden||!state.music.enabled||state.music.volume===0){selectedMusic.pause();return;}
     selectedMusic.play().catch(()=>{});
   };
   window.setBattleBossMusic=enabled=>{bossBattleMusic=Boolean(enabled);syncMusic();};
@@ -70,4 +70,5 @@
   document.addEventListener('visibilitychange',syncMusic);
   window.addEventListener('game-preferences-changed',syncMusic);
   window.addEventListener('game-screen-changed',syncMusic);
+  window.addEventListener('intro-finished',syncMusic);
 })();
