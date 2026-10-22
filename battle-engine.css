@@ -764,3 +764,5 @@
 .boss-unit.kepler-alien-vessel>span{display:none!important}
 /* 우주항모가 호출한 호위함·외계 앙헬라는 보스 선체와 함재기보다 위 레이어에 둔다 */
 .boss-unit.kepler-alien-vessel.kepler-called{z-index:12}
+.boss-unit.kepler-alien-carrier.carrier-overdrive .boss-sprite{filter:drop-shadow(0 0 16px #ff3a3a) drop-shadow(0 0 34px #ff1f1f) brightness(1.18) saturate(1.3);animation:carrier-overdrive-pulse .6s ease-in-out infinite alternate}
+@keyframes carrier-overdrive-pulse{from{filter:drop-shadow(0 0 10px #ff3a3a) brightness(1.08) saturate(1.2)}to{filter:drop-shadow(0 0 28px #ff1f1f) drop-shadow(0 0 48px #ff6a2a) brightness(1.3) saturate(1.5)}}

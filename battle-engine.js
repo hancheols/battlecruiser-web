@@ -2481,6 +2481,13 @@
           spawnKeplerCarrierEscort(index);
         }
       });
+      // 내구도 20% 이하: 오버드라이브 — 함재기를 4초마다 내보내고 실드 제거 광선을 모든 아군 함선에 쏜다.
+      if (!ship.overdrive && hpRatio <= .2) {
+        ship.overdrive = true;
+        ship.nextFighterLaunch = Math.min(ship.nextFighterLaunch, 1000);
+        ship.el?.classList.add('carrier-overdrive');
+        announce('외계 우주항모 · 오버드라이브', 'boss');
+      }
       ship.nextShieldbreaker -= dt;
       if (ship.nextShieldbreaker <= 0) {
         ship.nextShieldbreaker += 5000;
@@ -2488,7 +2495,7 @@
       }
       ship.nextFighterLaunch -= dt;
       if (ship.nextFighterLaunch <= 0) {
-        ship.nextFighterLaunch += 9000;
+        ship.nextFighterLaunch += ship.overdrive ? 4000 : 9000;
         launchKeplerCarrierFighterWave(ship);
       }
       return;
@@ -2502,7 +2509,8 @@
       return;
     }
     if (ship.variant === 'kepler-alien-angela') {
-      checkKeplerAngelaShieldThresholds(ship);
+      if (ship.calledByCarrier) updateCalledAngelaShield(ship);
+      else checkKeplerAngelaShieldThresholds(ship);
     } else if (ship.variant === 'kepler-alien-escort') {
       ship.nextBladeLaser -= dt;
       if (ship.nextBladeLaser <= 0 && fireKeplerBladeLaser(ship)) ship.nextBladeLaser = BLADE_LASER.duration + BLADE_LASER.reload;
@@ -2703,7 +2711,8 @@
       enemyImmuneUntil: 0,
       dead: false,
       stun: 0,
-      requiredForGate: true
+      requiredForGate: true,
+      calledByCarrier: true
     };
     const element = document.createElement('div');
     element.className = 'boss-unit kepler-alien-vessel kepler-alien-angela kepler-called';
@@ -2714,7 +2723,26 @@
     refs.enemyLayer.append(element);
     requestAnimationFrame(() => element.classList.add('entered'));
     announce('외계 우주항모 · 외계 앙헬라 호출', 'boss');
+    // 등장과 동시에 보호막을 가동하고, 이때의 우주항모 내구도를 기준으로 10% 단계를 센다.
+    angela.calledShieldStep = carrierLostStep();
+    castKeplerAngelaShield(angela);
     updateBossHud();
+  }
+
+  // 우주항모가 잃은 내구도를 10% 단위 단계(0~10)로 센다.
+  function carrierLostStep() {
+    const carrier = [state?.boss, ...(state?.midBosses || [])].find(ship => ship?.variant === 'kepler-alien-carrier' && !ship.dead);
+    if (!carrier) return 0;
+    return Math.min(10, Math.floor((1 - carrier.hp / Math.max(1, carrier.maxHp)) * 10 + 1e-9));
+  }
+
+  // 호출된 외계 앙헬라는 우주항모 내구도가 10% 줄 때마다 보호막을 다시 가동한다.
+  function updateCalledAngelaShield(angela) {
+    const step = carrierLostStep();
+    while ((angela.calledShieldStep || 0) < step) {
+      angela.calledShieldStep = (angela.calledShieldStep || 0) + 1;
+      castKeplerAngelaShield(angela);
+    }
   }
 
   // 우주항모가 호출하는 호위함(블레이드 편성). 처음 한 척은 왼쪽, 두 번째는 오른쪽에서 합류한다.
@@ -2782,8 +2810,15 @@
 
   function fireKeplerCarrierShieldbreaker(carrier) {
     const targets = [...(state?.allies || []), ...(state?.garudaWingmen || [])].filter(ally => !ally.dead);
-    const target = targets[Math.floor(Math.random() * targets.length)];
-    if (!target) return false;
+    if (!targets.length) return false;
+    // 오버드라이브 중에는 모든 아군 함선에, 평소에는 무작위 한 척에게 쏜다.
+    const chosen = carrier.overdrive ? targets : [targets[Math.floor(Math.random() * targets.length)]];
+    announce(carrier.overdrive ? '외계 우주항모 · 실드 제거 광선 일제 사격' : '외계 우주항모 · 실드 제거 광선', 'boss');
+    chosen.forEach(target => fireKeplerShieldbreakerAt(carrier, target));
+    return true;
+  }
+
+  function fireKeplerShieldbreakerAt(carrier, target) {
     const from = { x: Math.min(.96, carrier.x + .09), y: carrier.y + .12 };
     const to = pointOf(target);
     const beam = document.createElement('i');
@@ -2791,7 +2826,6 @@
     positionLine(beam, from, to);
     refs.effects.append(beam);
     schedule(() => beam.remove(), 520);
-    announce('외계 우주항모 · 실드 제거 광선', 'boss');
     schedule(() => {
       if (state?.status !== 'combat' || carrier.dead || target.dead) return;
       if (Number(target.shield) > 0) {
@@ -2811,7 +2845,6 @@
       }
       createExplosion(pointOf(target), 'photon');
     }, 300);
-    return true;
   }
 
   function keplerAlienFleet() {
