@@ -1018,7 +1018,7 @@
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
   const TAPAO_COLONY_TILE_ROWS = 1822, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert.webp 크기
   // 외계 식민지 건축물 스프라이트(2배 해상도 아틀라스). 값은 [x, y, 너비, 높이] 픽셀이며 화면에는 절반 크기로 표시한다.
-  const TAPAO_ATLAS = { src: 'tapao-colony-structures.webp', w: 2048, h: 340 };
+  const TAPAO_ATLAS = { src: 'tapao-colony-structures-v4.webp', w: 2048, h: 340 };
   const TAPAO_STRUCTS = {"dome":[0,0,260,260],"pad":[264,0,336,336],"hexArray":[604,0,336,312],"tunnel":[944,0,380,140],"turretBase":[1328,0,224,224],"turretBaseOpen":[1556,0,224,224],"turretHead":[1784,0,240,300]};
   // 칸 안에서 그림의 중심이 놓인 위치(비율). 기본은 (.47, .44)이고 포탑 부품은 따로 지정한다.
   const TAPAO_STRUCT_ANCHORS = { turretBase: { x: .47, y: .41 }, turretBaseOpen: { x: .47, y: .41 }, turretHead: { x: .47, y: .529 } };
@@ -10731,6 +10731,7 @@
     const y = startY ?? -(rh / 2 * .6) / fieldHeight - .02;
     let x = .1 + Math.random() * .8;
     for (let attempt = 0; attempt < 8 && !tapaoSpotFree(x, y, halfW, halfH); attempt += 1) x = .1 + Math.random() * .8;
+    if (!tapaoSpotFree(x, y, halfW, halfH)) return;
     addTapaoGround(name, x, y);
     if (name === 'hexArray' && Math.random() < .45) {
       const side = x > .5 ? -1 : 1;
