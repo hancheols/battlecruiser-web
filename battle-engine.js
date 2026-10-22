@@ -1032,9 +1032,10 @@
   // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
   const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
   const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 500 };
-  // 외계 공중 함대: 15초마다 스타크루저 1척 + 함재기 10기, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
+  // 외계 공중 함대: 15초마다 함재기 10기 + (앞의 2웨이브는) 스타크루저 1척, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
-  const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%)
+  const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7, TAPAO_TURRET_ELECTRIC_TAKEN = .6;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%, 전기 -40%)
+  const TAPAO_COLONY_CRUISER_WAVES = 2;                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
@@ -9937,11 +9938,11 @@
     const weaknessMultiplier = source?.isSuPanokseon && Number(target.weakExposedUntil) > performance.now() ? 2 : 1;
     const plasmaBugMissileMultiplier = target.monsterType === 'plasma-bug' && attackType === 'missile' ? 2 : 1;
     // 타파오 콜로니 포탑(돔 포탑·수호탑)은 미사일에 20% 더 받고, 함포(레이저 포)는 30% 덜 받는다.
-    const tapaoTurretMultiplier = target.variant === 'tapao-turret' ? (attackType === 'missile' ? TAPAO_TURRET_MISSILE_TAKEN : attackType === 'cannon' ? TAPAO_TURRET_CANNON_TAKEN : 1) : 1;
+    const tapaoTurretMultiplier = target.variant === 'tapao-turret' ? (attackType === 'missile' ? TAPAO_TURRET_MISSILE_TAKEN : attackType === 'cannon' ? TAPAO_TURRET_CANNON_TAKEN : attackType === 'electric' || attackType === 'thunder' ? TAPAO_TURRET_ELECTRIC_TAKEN : 1) : 1;
     const pandoraDespairMultiplier = source?.isPandora && source.pandoraDespairActive && source.pandoraStars < 5 ? 2 : 1;
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
-    const basePackets = fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * tapaoTurretMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1);
+    const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier;
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     const scaledPackets = basePackets * statFactor * (1+researchDamage) + (source?.starDamageRemainder || 0);
@@ -10891,11 +10892,12 @@
     updateHud();
   }
 
-  // 외계 공중 함대 한 웨이브: 스타크루저 1척 + 함재기 10기
+  // 외계 공중 함대 한 웨이브: 함재기 10기 + (앞의 2웨이브는) 스타크루저 1척
   function spawnTapaoColonyWave(wave) {
     if (!state || state.status !== 'combat') return;
     state.keplerAlienFleetSpawned = false;
-    spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [[.5], [.28], [.72]][wave] || [.5], wave });
+    if (wave < TAPAO_COLONY_CRUISER_WAVES) spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [[.5], [.72]][wave] || [.5], wave });
+    else announce(`외계 함대 제${wave + 1}웨이브 · 함재기 10기 접근`, 'boss');
     state.tapaoColonyWaves = wave + 1;
     playFighterLaunchSound();
     for (let slot = 0; slot < 10; slot += 1) schedule(() => launchKeplerPreludeFighter(slot, wave), slot * 40);
