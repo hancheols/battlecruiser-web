@@ -777,7 +777,7 @@
 .battle-viewport.tapao-battle::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 60% at 82% 12%,#f0bfa655,transparent 62%),linear-gradient(180deg,#3a1d2a22,transparent 40%,#2a141c44);mix-blend-mode:screen}
 /* 타파오 콜로니: 아래로 끝없이 흐르는 사막 배경 + 숨은 대공 포탑 */
 .battle-viewport.tapao-colony-map .battle-space-flow,.battle-viewport.tapao-colony-map .battle-nebula{display:none}
-.battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert-v6.webp') 0 0/100% auto repeat-y;animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
+.battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert-v7.webp') 0 0/100% auto repeat-y;animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
 .tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}

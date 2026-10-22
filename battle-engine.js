@@ -1016,7 +1016,7 @@
   // 타파오 콜로니: 사막 지형이 끝없이 아래로 흐르는 전투 맵. 모래 속에 숨은 대공 포탑이 간간이 솟아올라 아군을 쏜다(지상전).
   // 외계 함대(공중전)와 함께 나오며, 승리 조건은 외계 함대 격파다(포탑은 승패에 영향이 없다).
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
-  const TAPAO_COLONY_TILE_ROWS = 1822, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert.webp 크기
+  const TAPAO_COLONY_TILE_ROWS = 1011, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert-v7.webp 크기
   // 타파오 콜로니 구성: 가운데에 육각 구조물 군집(V자)이 일정 간격으로 흘러가고, 군집 사이 빈 곳에 좌우 돔 포탑과 가운데 수호탑이 선다.
   // 크기와 간격은 화면 px 기준이다. 육각 그림은 맞붙였을 때 1시·11시 방향 이웃과 모서리가 딱 맞는 간격(stepX, stepY)으로 쌓는다.
   const TAPAO_HEX = { w: 84, h: 92, stepX: 40.85, stepY: 66.8 };
