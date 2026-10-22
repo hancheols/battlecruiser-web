@@ -14,6 +14,12 @@
   const MUSIC_LEVEL = .8;
   const VISIBLE_RATIO = 596 / 720; // 영상 아래쪽 자막 띠를 잘라 낸 뒤 보이는 높이 비율
   const LOOP_FADE = 1.6;         // 곡 끝에서 처음으로 돌아갈 때 겹쳐 흐르는 시간(초)
+  // 영상 원본에는 장면이 바뀔 때 옆 장면 그림이 가장자리에 잠깐 비치는 구간이 있다(0.1초 간격, 1280px 기준 폭).
+  // 그 부분은 가리고 현재 장면 그림만 보이게 한다. 가려진 자리에는 뒤의 흐린 배경이 비친다.
+  const LEFT_SLIVER = [0,0,0,0,0,0,0,0,0,0,0,0,0,24,22,20,18,16,12,10,6,4,10,6,4,54,54,52,50,48,44,42,40,36,32,28,24,20,90,88,86,86,84,82,80,80,78,76,74,72,68,66,64,60,58,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,30,28,26,22,20,18,14,10,6,4,0,66,64,64,62,60,58,54,52,52,48,46,44,40,36,34,90,88,86,86,84,82,80,78,76,72,70,68,64,60,58];
+  const CUT_MARGIN = 8;
+  // 11.3~14.55초 구간에는 오른쪽 가장자리에 비스듬히 비치는 옆 장면이 있다.
+  const rightSliver = time => (time >= 11.3 && time < 13.0 ? 92 : time >= 13.0 && time < 14.55 ? 64 : 0);
   // [시작 초, 자막]. 마지막 줄은 제목 카드로 크게 보여 준다.
   const LINES = [
     [0, '우리가 살고 있는 아름다운 지구,'],
@@ -141,9 +147,20 @@
     backdropContext.drawImage(video, (sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2, cropWidth, cropHeight, 0, 0, backdrop.width, backdrop.height);
   }
 
+  function cropEdges() {
+    const time = video.currentTime || 0;
+    const position = time * 10;
+    const index = Math.floor(position);
+    const left = Math.max(LEFT_SLIVER[index] || 0, LEFT_SLIVER[index + 1] || 0);
+    const leftCut = left ? left + CUT_MARGIN : 0;
+    const rightCut = rightSliver(time);
+    video.style.clipPath = leftCut || rightCut ? `inset(0 ${(rightCut / 1280 * 100).toFixed(2)}% 0 ${(leftCut / 1280 * 100).toFixed(2)}%)` : 'none';
+  }
+
   function syncCaption() {
     if (finished) return;
     paintBackdrop();
+    cropEdges();
     const time = video.currentTime || 0;
     let index = -1;
     LINES.forEach(([start], position) => { if (time >= start) index = position; });
