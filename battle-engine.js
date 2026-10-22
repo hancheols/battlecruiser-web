@@ -1031,6 +1031,7 @@
   const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 500 };
   // 외계 공중 함대: 15초마다 스타크루저 1척 + 함재기 10기, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
+  const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%)
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
@@ -6354,6 +6355,8 @@
 
   function bladeBeamEnd(from, target) {
     const targetPoint = pointOf(target);
+    // 타파오 콜로니 포탑이 대상이면 관통레이저가 포탑에서 멈춘다(뒤쪽 적에게 이어지지 않는다).
+    if (target?.variant === 'tapao-turret') return targetPoint;
     const dx = targetPoint.x - from.x;
     const dy = targetPoint.y - from.y;
     if (Math.abs(dx) < .0001 && Math.abs(dy) < .0001) return targetPoint;
@@ -9930,10 +9933,12 @@
     source ||= activeDamageSource;
     const weaknessMultiplier = source?.isSuPanokseon && Number(target.weakExposedUntil) > performance.now() ? 2 : 1;
     const plasmaBugMissileMultiplier = target.monsterType === 'plasma-bug' && attackType === 'missile' ? 2 : 1;
+    // 타파오 콜로니 포탑(돔 포탑·수호탑)은 미사일에 20% 더 받고, 함포(레이저 포)는 30% 덜 받는다.
+    const tapaoTurretMultiplier = target.variant === 'tapao-turret' ? (attackType === 'missile' ? TAPAO_TURRET_MISSILE_TAKEN : attackType === 'cannon' ? TAPAO_TURRET_CANNON_TAKEN : 1) : 1;
     const pandoraDespairMultiplier = source?.isPandora && source.pandoraDespairActive && source.pandoraStars < 5 ? 2 : 1;
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
-    const basePackets = fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1);
+    const basePackets = fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * tapaoTurretMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1);
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     const scaledPackets = basePackets * statFactor * (1+researchDamage) + (source?.starDamageRemainder || 0);
@@ -10733,9 +10738,9 @@
   }
 
   // 돔 포탑: 맵 좌우 가장자리에 서서, 돔 중앙의 레이저포가 아군을 향해 돌아가며 쏜다.
-  function spawnTapaoDome(side, y) {
+  function spawnTapaoDome(side, y, edgePx = 40) {
     const { fieldWidth } = tapaoField();
-    const x = side < 0 ? 40 / fieldWidth : 1 - 40 / fieldWidth;
+    const x = side < 0 ? edgePx / fieldWidth : 1 - edgePx / fieldWidth;
     const turret = {
       id: `tapao-dome-${++state.tapaoColony.spawned}`,
       kind: 'boss',
@@ -10804,10 +10809,13 @@
     state.midBosses.push(tower);
   }
 
-  // 군집 사이 빈 곳: 좌우 돔 포탑 한 쌍과 가운데 수호탑 하나.
+  // 군집 사이 빈 곳: 좌우 돔 포탑 각 3기(바깥줄 위·아래, 안쪽줄 가운데)와 가운데 수호탑 하나.
   function spawnTapaoGap(y) {
-    spawnTapaoDome(-1, y);
-    spawnTapaoDome(1, y);
+    const { fieldHeight } = tapaoField();
+    [[40, -85], [112, 0], [40, 85]].forEach(([edgePx, offsetPx]) => {
+      spawnTapaoDome(-1, y + offsetPx / fieldHeight, edgePx);
+      spawnTapaoDome(1, y + offsetPx / fieldHeight, edgePx);
+    });
     spawnTapaoSpire(y);
   }
 
