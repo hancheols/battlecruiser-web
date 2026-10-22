@@ -777,26 +777,22 @@
 .battle-viewport.tapao-battle::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 60% at 82% 12%,#f0bfa655,transparent 62%),linear-gradient(180deg,#3a1d2a22,transparent 40%,#2a141c44);mix-blend-mode:screen}
 /* 타파오 콜로니: 아래로 끝없이 흐르는 사막 배경 + 숨은 대공 포탑 */
 .battle-viewport.tapao-colony-map .battle-space-flow,.battle-viewport.tapao-colony-map .battle-nebula{display:none}
-.battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert-v4.webp') 0 0/100% auto repeat-y;animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
+.battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert-v6.webp') 0 0/100% auto repeat-y;animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
 .tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
-.tapao-struct{position:absolute;background-repeat:no-repeat;filter:drop-shadow(0 0 1px #0004)}
+.tapao-hex-v{position:absolute;width:0;height:0;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
+.tapao-hex-v>i{position:absolute;background:url('tapao-colony-hex-v6.webp') center/100% 100% no-repeat}
 .tapao-turret{position:absolute;z-index:5;pointer-events:none}
-.tapao-turret>.tt-closed,.tapao-turret>.tt-open{position:absolute;left:0;top:0;background-repeat:no-repeat}
-.tapao-turret>.tt-open{opacity:0;transition:opacity .35s ease}
-.tapao-turret>.tt-closed{transition:opacity .35s ease}
-.tapao-turret.revealed>.tt-open{opacity:1}
-.tapao-turret.revealed>.tt-closed{opacity:0}
-.tapao-turret>.tt-head{position:absolute;background-repeat:no-repeat;opacity:0;transform:rotate(var(--aim,180deg)) scale(.35);transition:opacity .3s ease .12s,transform .45s cubic-bezier(.2,1.2,.3,1) .1s}
-.tapao-turret.revealed>.tt-head{opacity:1;transform:rotate(var(--aim,180deg)) scale(1)}
-.tapao-turret .tt-hp{position:absolute;left:22%;right:22%;bottom:7%;height:4px;border-radius:2px;background:#0009;opacity:0;transition:opacity .3s}
+.tapao-turret .tt-hp{position:absolute;left:14%;right:14%;bottom:-7px;height:4px;border-radius:2px;background:#0009;opacity:0;transition:opacity .3s}
 .tapao-turret .tt-hp i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#ff6a4a,#ffb15a)}
 .tapao-turret.revealed .tt-hp{opacity:1}
-.tapao-turret.firing>.tt-head{filter:drop-shadow(0 0 8px #ffcf6a) brightness(1.35)}
 .tapao-turret.hit{filter:brightness(1.7)}
+.tapao-turret.dome>.tt-dome{position:absolute;inset:0;background:url('tapao-colony-dome-v6.webp') center/100% 100% no-repeat;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
+.tapao-turret.dome>.tt-core{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:radial-gradient(circle,#fff 0,#9fdcff 32%,rgba(47,125,255,0) 70%);opacity:0;transform:scale(.5);transition:opacity .12s,transform .12s}
+.tapao-turret.dome.firing>.tt-core{opacity:1;transform:scale(1.5)}
 .tapao-turret.spire>.tt-spire{position:absolute;inset:0;background:url('tapao-colony-spire-v5.webp') center/100% 100% no-repeat;transition:filter .12s}
 .tapao-turret.spire>.tt-ground{position:absolute;left:-18%;right:-24%;bottom:-3%;height:15%;border-radius:50%;background:radial-gradient(ellipse at 45% 50%,rgba(70,42,14,.55),rgba(70,42,14,0) 72%)}
 .tapao-turret.spire.firing>.tt-spire{filter:drop-shadow(0 0 10px #6cc6ff) brightness(1.3)}
-.tapao-turret.spire .tt-hp{left:12%;right:12%;bottom:-6px}
+.fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}
 .tapao-turret.destroyed{opacity:0;transform:scale(1.35);filter:brightness(2);transition:opacity .6s,transform .6s,filter .6s}
