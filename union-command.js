@@ -13,15 +13,15 @@
   const SHIPS_PER_MISSION = 3;
   const FRAME_NAMES = { frameCannon: '함포 골조', frameMissile: '미사일 골조', frameLaser: '레이저포 골조', framePiercing: '관통레이저 골조', frameCarrier: '함재기 골조' };
 
-  // 지역 설정. minStars: 함선 성급 하한(0이면 없음), frameChance: 완료 시 함선골조 획득 확률(기본 50%, 오르트1은 60%, 오르트5는 70%), 골드·토륨 0은 지급 없음.
+  // 지역 설정. minStars: 함선 성급 하한(0이면 없음), frameChance: 완료 시 함선골조 획득 확률(기본 50%, 오르트1~4는 60%, 오르트5는 70%), 골드·토륨 0은 지급 없음.
   // 오르트구름 지역5의 무기 종류는 기획에 없어서 3종으로 임시 설정했다.
   const REGIONS = [
     { id: 'mars', name: '화성', minRarity: 'R', minStars: 0, minWeapons: 2, thorium: 50, gold: 5000, frameChance: 0.5 },
     { id: 'titan', name: '타이탄', minRarity: 'R', minStars: 2, minWeapons: 2, thorium: 100, gold: 10000, frameChance: 0.5 },
     { id: 'oort1', name: '오르트구름 지역1', minRarity: 'SR', minStars: 0, minWeapons: 3, thorium: 200, gold: 0, frameChance: 0.6 },
-    { id: 'oort2', name: '오르트구름 지역2', minRarity: 'SR', minStars: 2, minWeapons: 2, thorium: 0, gold: 20000, frameChance: 0.5 },
-    { id: 'oort3', name: '오르트구름 지역3', minRarity: 'SR', minStars: 5, minWeapons: 3, thorium: 250, gold: 0, frameChance: 0.5 },
-    { id: 'oort4', name: '오르트구름 지역4', minRarity: 'SSR', minStars: 0, minWeapons: 3, thorium: 250, gold: 25000, frameChance: 0.5 },
+    { id: 'oort2', name: '오르트구름 지역2', minRarity: 'SR', minStars: 2, minWeapons: 2, thorium: 0, gold: 20000, frameChance: 0.6 },
+    { id: 'oort3', name: '오르트구름 지역3', minRarity: 'SR', minStars: 5, minWeapons: 3, thorium: 250, gold: 0, frameChance: 0.6 },
+    { id: 'oort4', name: '오르트구름 지역4', minRarity: 'SSR', minStars: 0, minWeapons: 3, thorium: 250, gold: 25000, frameChance: 0.6 },
     { id: 'oort5', name: '오르트구름 지역5', minRarity: 'SSR', minStars: 2, minWeapons: 3, thorium: 300, gold: 30000, frameChance: 0.7 }
   ];  const regionById = id => REGIONS.find(region => region.id === id);
 

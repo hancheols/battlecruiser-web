@@ -603,10 +603,10 @@
       refs.groundLayer = ground;
       // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 군집 둘과 그 사이 돔·수호탑을 미리 깔아 둔다.
       const cyclePrefill = TAPAO_CYCLE_PX / tapaoField().fieldHeight;
-      spawnTapaoHexV(.83);
-      spawnTapaoHexV(.83 - cyclePrefill);
-      spawnTapaoGap(.83 - cyclePrefill / 2);
-      state.tapaoColony.lastV = .83 - cyclePrefill;
+      spawnTapaoHexV(.96);
+      spawnTapaoHexV(.96 - cyclePrefill);
+      spawnTapaoGap(.96 - cyclePrefill / 2);
+      state.tapaoColony.lastV = .96 - cyclePrefill;
     }
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
@@ -1025,7 +1025,10 @@
   const TAPAO_HEX = { w: 84, h: 92, stepX: 40.85, stepY: 66.8 };
   TAPAO_HEX.apex = TAPAO_HEX.stepY * 3.5;                // 군집 중심에서 맨 아래(첫 V 꼭짓점) 칸 중심까지
   TAPAO_HEX.vHeight = TAPAO_HEX.stepY * 7 + TAPAO_HEX.h; // 군집 전체 높이(V 세 겹)
-  const TAPAO_CYCLE_PX = 860;                            // 육각 군집이 되풀이되는 간격(군집 + 빈 곳)
+  const TAPAO_CYCLE_PX = 1100;                           // 육각 군집이 되풀이되는 간격(군집 + 빈 곳). 빈 곳 가운데에 수호탑이 서고, 위·아래로 갈라 돔 포탑이 선다.
+  // 돔 포탑 배치: [빈 곳 중심에서 위(-)·아래(+)로 떨어진 px, 방향(-1 왼쪽/1 오른쪽), 가장자리에서의 px]. 수호탑 줄(±108px) 밖에 지그재그로 흩어 한꺼번에 몰리지 않게 한다.
+  const TAPAO_DOME_SLOTS = [[-235, 1, 40], [-185, -1, 40], [-140, 1, 112], [140, -1, 112], [185, 1, 40], [235, -1, 40]];
+  const TAPAO_GAP_SPAWN_Y = .34;                         // 빈 곳 전체가 화면 위 바깥에 있을 때(중심이 이 값만큼 위) 한꺼번에 놓는다
   // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
   const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
   const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 500 };
@@ -10767,9 +10770,8 @@
     element.style.marginTop = `${-TAPAO_DOME.h / 2}px`;
     element.style.left = percent(x);
     element.style.top = percent(y);
-    element.innerHTML = '<i class="tt-dome"></i><span class="tt-gun"><i class="tt-barrel"></i></span><span class="tt-hp"><i></i></span>';
+    element.innerHTML = '<i class="tt-dome"></i><i class="tt-core"></i><span class="tt-hp"><i></i></span>';
     turret.el = element;
-    turret.gun = element.querySelector('.tt-gun');
     refs.enemyLayer.append(element);
     state.midBosses.push(turret);
   }
@@ -10809,13 +10811,10 @@
     state.midBosses.push(tower);
   }
 
-  // 군집 사이 빈 곳: 좌우 돔 포탑 각 3기(바깥줄 위·아래, 안쪽줄 가운데)와 가운데 수호탑 하나.
+  // 군집 사이 빈 곳: 가운데에 수호탑 하나, 그 위·아래로 갈라 돔 포탑 6기를 지그재그로 놓는다.
   function spawnTapaoGap(y) {
     const { fieldHeight } = tapaoField();
-    [[40, -85], [112, 0], [40, 85]].forEach(([edgePx, offsetPx]) => {
-      spawnTapaoDome(-1, y + offsetPx / fieldHeight, edgePx);
-      spawnTapaoDome(1, y + offsetPx / fieldHeight, edgePx);
-    });
+    TAPAO_DOME_SLOTS.forEach(([offsetPx, side, edgePx]) => spawnTapaoDome(side, y + offsetPx / fieldHeight, edgePx));
     spawnTapaoSpire(y);
   }
 
@@ -10827,7 +10826,7 @@
     const cycle = TAPAO_CYCLE_PX / fieldHeight;
     // 가장 최근 군집(lastV)이 내려오면, 위쪽 빈 곳에 돔·탑을 세우고 그다음 군집을 이어 놓는다.
     colony.lastV += scroll;
-    if (!colony.gapDone && colony.lastV >= cycle / 2 - .14) {
+    if (!colony.gapDone && colony.lastV >= cycle / 2 - TAPAO_GAP_SPAWN_Y) {
       colony.gapDone = true;
       spawnTapaoGap(colony.lastV - cycle / 2);
     }
@@ -10871,14 +10870,10 @@
         const crownY = turret.y - TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY * .62 / fieldHeight;
         enemyProjectile(source, target, 'monster-spike', TAPAO_SPIRE.damage, null, { x: turret.x, y: crownY }, 'tapao-laser');
       } else {
-        // 돔 포탑: 돔 중앙의 레이저포가 목표를 향해 돌아선 뒤 2초마다 한 발.
+        // 돔 포탑: 포신 없이 돔 중앙에서 레이저가 나가 2초마다 한 발.
         turret.nextShot = TAPAO_DOME.interval;
         const target = targets[Math.floor(Math.random() * targets.length)];
-        const dx = (target.x - turret.x) * fieldWidth, dy = (target.y - turret.y) * fieldHeight;
-        const angle = Math.atan2(dx, -dy);
-        turret.gun?.style.setProperty('--aim', `${(angle * 180 / Math.PI).toFixed(1)}deg`);
-        const muzzle = { x: turret.x + Math.sin(angle) * 27 / fieldWidth, y: turret.y - Math.cos(angle) * 27 / fieldHeight };
-        enemyProjectile(source, target, 'monster-spike', TAPAO_DOME.damage, null, muzzle, 'tapao-laser');
+        enemyProjectile(source, target, 'monster-spike', TAPAO_DOME.damage, null, { x: turret.x, y: turret.y }, 'tapao-laser');
       }
     });
   }
