@@ -802,4 +802,5 @@
 .tapao-turret.wrecked::after{content:"";position:absolute;left:26%;top:30%;width:44%;height:36%;border-radius:50%;background:radial-gradient(circle,rgba(74,70,66,.6),rgba(74,70,66,0) 70%);animation:tapao-smoke 3.4s ease-out infinite}
 .tapao-turret.spire.wrecked::after{top:46%}
 @keyframes tapao-smoke{0%{opacity:.85;transform:translateY(0) scale(.5)}100%{opacity:0;transform:translateY(-30px) scale(1.7)}}
-.fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}
+@keyframes tapao-laser-fly{from{transform:translate(0,0) rotate(var(--ang,0rad))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--ang,0rad))}}
+.fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;animation-name:tapao-laser-fly;animation-timing-function:linear;transform:rotate(var(--ang,0rad));background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}

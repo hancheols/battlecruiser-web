@@ -9663,6 +9663,12 @@
     projectile.className = `fx-enemy${kind === 'corrosion' || kind === 'monster-acid' ? ' corrosion' : ''}${kind === 'suicide' ? ' suicide' : ''}${kind === 'monster-spike' ? ' monster-spike' : ''}${kind === 'monster-acid' ? ' monster-acid' : ''}${kind === 'oort-slime' ? ' oort-slime' : ''}${kind === 'flameball' ? ' flameball' : ''}${kind === 'ancient-bone-spike' ? ' ancient-bone-spike' : ''}${kind === 'plasma-bug' ? ' plasma-bug' : ''}${extraClass ? ` ${extraClass}` : ''}`;
     const baseTravel = extraClass === 'tapao-laser' ? 260 : kind === 'flameball' ? 705 : kind === 'plasma-bug' ? 520 : 470;
     positionProjectile(projectile, sourcePoint, targetPoint);
+    if (extraClass === 'tapao-laser') {
+      // 포탑 레이저: 화면 비율이 아니라 실제 화면 픽셀 기준 각도로 눕혀서 비행 내내 목표를 똑바로 향하게 한다.
+      const fieldRect = refs.field.getBoundingClientRect();
+      projectile.style.setProperty('--ang', `${Math.atan2((targetPoint.y - sourcePoint.y) * fieldRect.height, (targetPoint.x - sourcePoint.x) * fieldRect.width)}rad`);
+      projectile.style.transform = '';
+    }
     projectile.style.animationDuration = `${baseTravel}ms`;
     refs.effects.append(projectile);
     schedule(() => {
