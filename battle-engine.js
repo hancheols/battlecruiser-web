@@ -10803,7 +10803,7 @@
     element.style.marginTop = `${-TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY}px`;
     element.style.left = percent(.5);
     element.style.top = percent(y);
-    element.innerHTML = '<i class="tt-ground"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
+    element.innerHTML = '<i class="tt-ground"></i><i class="tt-shadow"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
     tower.el = element;
     refs.enemyLayer.append(element);
     state.midBosses.push(tower);
