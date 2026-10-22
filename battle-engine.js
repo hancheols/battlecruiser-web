@@ -2550,7 +2550,7 @@
   // 함재기는 빠르게 가로 한 줄 대형(자리 0~9)을 갖추고 바로 공격을 시작한다.
   function launchKeplerCarrierFighterWave(carrier) {
     if (!state || carrier?.dead || state.status !== 'combat') return;
-    const taken = new Set((state.midBosses || []).filter(ship => ship.variant === 'kepler-alien-fighter' && !ship.dead).map(ship => ship.slot));
+    const taken = new Set((state.midBosses || []).filter(ship => ship.variant === 'kepler-alien-fighter' && !ship.pre && !ship.dead).map(ship => ship.slot));
     const free = Array.from({ length: 10 }, (_, slot) => slot).filter(slot => !taken.has(slot));
     if (!free.length) return;
     carrier.fighterWaves = (carrier.fighterWaves || 0) + 1;
@@ -2607,9 +2607,120 @@
     updateBossHud();
   }
 
+  // ───────── 10관문 도입부: 함재기 선발대 → 우주항모 등장 ─────────
+  // 시작과 동시에 함재기 10기, 3초 뒤 10기, 다시 3초 뒤 10기가 위에서 내려와 아군 함대 쪽으로 이동하며 공격한다.
+  // 3편대째로부터 5초 뒤(전투 시작 11초)에 우주항모가 나타나고, 등장과 동시에 우주항모의 함재기 10기가 배치된다.
+  function startKeplerCarrierPrelude() {
+    if (!state || state.keplerPreludeStarted) return;
+    state.keplerPreludeStarted = true;
+    [0, 3000, 6000].forEach((delay, wave) => schedule(() => {
+      if (!state || state.status !== 'combat') return;
+      announce(`외계 함재기 편대 접근 (${wave + 1}/3)`, 'boss');
+      playFighterLaunchSound();
+      for (let slot = 0; slot < 10; slot += 1) schedule(() => launchKeplerPreludeFighter(slot, wave), slot * 40);
+    }, delay));
+    schedule(() => {
+      if (!state || state.status !== 'combat') return;
+      state.keplerCarrierArrived = true;
+      spawnKeplerAlienFleet();
+      const carrier = state.boss;
+      if (carrier?.variant === 'kepler-alien-carrier') {
+        carrier.nextFighterLaunch = 9000;
+        launchKeplerCarrierFighterWave(carrier);
+      }
+    }, 11000);
+  }
+
+  function launchKeplerPreludeFighter(slot, wave) {
+    if (!state || state.status !== 'combat') return;
+    const x = .1 + slot * (.8 / 9) + (wave % 2 ? .03 : 0);
+    const rowY = [.52, .45, .38][wave] ?? .4;
+    const index = state.keplerPreludeFighters = (state.keplerPreludeFighters || 0) + 1;
+    const fighter = {
+      id: `kepler-alien-prelude-${index}`,
+      kind: 'boss',
+      variant: 'kepler-alien-fighter',
+      name: `외계 함재기 ${index}`,
+      hp: 2000,
+      maxHp: 2000,
+      attackPower: 100,
+      pre: true,
+      x,
+      y: -.06,
+      entryStartX: x,
+      entryTargetX: x,
+      entryStartY: -.06,
+      entryTargetY: rowY,
+      entryDuration: 2200,
+      entryTime: 2200,
+      nextAttack: 0,
+      enemyShield: 0,
+      enemyImmuneUntil: 0,
+      dead: false,
+      stun: 0,
+      requiredForGate: true
+    };
+    const element = document.createElement('div');
+    element.className = 'boss-unit kepler-alien-vessel kepler-alien-fighter';
+    element.style.left = percent(x);
+    element.style.top = percent(fighter.y);
+    element.innerHTML = '<img class="boss-sprite" src="kepler-alien-fighter.png" alt="외계 함재기" />';
+    fighter.el = element;
+    state.midBosses.push(fighter);
+    refs.enemyLayer.append(element);
+    requestAnimationFrame(() => element.classList.add('entered'));
+  }
+
+  // 우주항모가 두 번째(내구 40%)로 호출하는 외계 앙헬라
+  function spawnKeplerCarrierAngela() {
+    if (!state || state.status !== 'combat') return;
+    const sourceShip = { type: 'battlecruiser', rarity: 'L', enhancementStars: 5 };
+    const hp = Math.floor(7900 * combatStatFactor(sourceShip) * 3);
+    const angela = {
+      id: 'kepler-alien-angela',
+      kind: 'boss',
+      variant: 'kepler-alien-angela',
+      name: '외계 앙헬라',
+      ship: sourceShip,
+      damageSource: sourceShip,
+      hp,
+      maxHp: hp,
+      attackPower: 1050,
+      x: .3,
+      y: -.26,
+      entryStartY: -.26,
+      entryTargetY: .17,
+      entryDuration: 1500,
+      entryTime: 1500,
+      nextAttack: 2100,
+      nextShieldSkill: 9000,
+      nextBladeLaser: Infinity,
+      nextBladeVolley: Infinity,
+      nextPhotonBattery: Infinity,
+      nextLaserSide: 0,
+      starCruiserMuzzleIndex: 0,
+      enemyShield: 0,
+      enemyImmuneUntil: 0,
+      dead: false,
+      stun: 0,
+      requiredForGate: true
+    };
+    const element = document.createElement('div');
+    element.className = 'boss-unit kepler-alien-vessel kepler-alien-angela';
+    element.style.left = percent(angela.x);
+    element.innerHTML = '<img class="boss-sprite" src="kepler-alien-angela.png" alt="외계 앙헬라" /><span>ANGELA</span>';
+    angela.el = element;
+    state.midBosses.push(angela);
+    refs.enemyLayer.append(element);
+    requestAnimationFrame(() => element.classList.add('entered'));
+    announce('외계 우주항모 · 외계 앙헬라 호출', 'boss');
+    updateBossHud();
+  }
+
   // 우주항모가 호출하는 호위함(블레이드 편성). 처음 한 척은 왼쪽, 두 번째는 오른쪽에서 합류한다.
   function spawnKeplerCarrierEscort(callIndex) {
     if (!state || state.status !== 'combat') return;
+    if (callIndex === 1) { spawnKeplerCarrierAngela(); return; }
     const sourceShip = { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
     const x = callIndex % 2 ? .76 : .24;
     const escort = {
@@ -10047,6 +10158,8 @@
   function checkBossThreshold() {
     if (!state || state.status !== 'combat') return;
     if (isKeplerSecretBaseOperation()) {
+      // 10관문: 함재기 선발대 3편대가 먼저 오고, 5초 뒤 우주항모가 나타난다(그 전에는 승리 판정도 하지 않는다).
+      if (Number(state.operation?.gate) === 10 && !state.keplerCarrierArrived) { startKeplerCarrierPrelude(); return; }
       if (!state.keplerAlienFleetSpawned) spawnKeplerAlienFleet();
       const fleet = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
       if (state.keplerAlienFleetSpawned && fleet.length === 0) finishBattle(true);
@@ -11741,7 +11854,7 @@
         refs.battleBossHp.textContent = '격파';
         return;
       }
-      const primary = livingFleet.find(ship => ship.variant === 'kepler-alien-angela') || livingFleet[0];
+      const primary = livingFleet.find(ship => ship.variant === 'kepler-alien-carrier') || livingFleet.find(ship => ship.variant === 'kepler-alien-angela') || livingFleet[0];
       const primaryDisplay = displayBoss(primary);
       refs.battleBossName.textContent = primary.name;
       refs.battleBossBar.style.width = `${primaryDisplay.ratio}%`;
