@@ -2583,7 +2583,6 @@
     const free = Array.from({ length: 10 }, (_, slot) => slot).filter(slot => !taken.has(slot));
     if (!free.length) return;
     carrier.fighterWaves = (carrier.fighterWaves || 0) + 1;
-    announce(carrier.fighterWaves === 1 ? '외계 우주항모 · 함재기 편대 출격' : `외계 우주항모 · 함재기 ${free.length}기 보충`, 'boss');
     // 선체 왼쪽에서 0.18초 간격으로 한 기씩 나와 왼쪽 자리부터 한 줄로 선다.
     free.sort((a, b) => a - b).forEach((slot, order) => schedule(() => {
       if (!state || carrier.dead || state.status !== 'combat') return;
@@ -2644,7 +2643,6 @@
     state.keplerPreludeStarted = true;
     [0, 3000, 6000].forEach((delay, wave) => schedule(() => {
       if (!state || state.status !== 'combat') return;
-      announce(`외계 함재기 편대 접근 (${wave + 1}/3)`, 'boss');
       playFighterLaunchSound();
       for (let slot = 0; slot < 10; slot += 1) schedule(() => launchKeplerPreludeFighter(slot, wave), slot * 40);
     }, delay));
@@ -10710,7 +10708,8 @@
       boss.el?.classList.add('alien-retreating');
       schedule(() => boss.el?.remove(), 780);
       const remaining = [state.boss, ...state.midBosses].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead).length;
-      announce(remaining ? `${boss.name} 퇴각 · 외계 함선 ${remaining}척 잔존` : '외계 앙헬라 함대 퇴각 완료', 'friendly');
+      // 함재기의 퇴각은 알림으로 띄우지 않는다(함대가 모두 정리됐을 때의 완료 알림만 남긴다).
+      if (!(boss.variant === 'kepler-alien-fighter' && remaining)) announce(remaining ? `${boss.name} 퇴각 · 외계 함선 ${remaining}척 잔존` : '외계 앙헬라 함대 퇴각 완료', 'friendly');
       refs.battleBossHud.hidden = remaining === 0;
       updateHud(true);
       updateBossHud();
