@@ -596,7 +596,7 @@
     refs.battleClock.textContent = '00:00';
     refs.field?.querySelector('.tapao-ground')?.remove();
     if (isTapaoColonyOperation(normalizedOperation)) {
-      state.tapaoColony = { nextSpawn: 2200, nextDecor: 300, nextLink: 9000, spawned: 0, ground: [] };
+      state.tapaoColony = { nextSpawn: 2200, nextDecor: 300, nextLink: 9000, nextSpire: 12000, spawned: 0, ground: [] };
       const ground = document.createElement('div');
       ground.className = 'tapao-ground';
       refs.field.insertBefore(ground, refs.enemyLayer);
@@ -1018,13 +1018,15 @@
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
   const TAPAO_COLONY_TILE_ROWS = 1822, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert.webp 크기
   // 외계 식민지 건축물 스프라이트(2배 해상도 아틀라스). 값은 [x, y, 너비, 높이] 픽셀이며 화면에는 절반 크기로 표시한다.
-  const TAPAO_ATLAS = { src: 'tapao-colony-structures-v4.webp', w: 2048, h: 340 };
-  const TAPAO_STRUCTS = {"dome":[0,0,260,260],"pad":[264,0,336,336],"hexArray":[604,0,336,312],"tunnel":[944,0,380,140],"turretBase":[1328,0,224,224],"turretBaseOpen":[1556,0,224,224],"turretHead":[1784,0,240,300]};
+  const TAPAO_ATLAS = { src: 'tapao-colony-structures-v5.webp', w: 2048, h: 776 };
+  // 탑 모양 공격시설(외계 수호탑): 그림 한 장을 그대로 쓴다. 크기는 화면 픽셀(절반 표시), 중심은 몸통 허리쯤.
+  const TAPAO_SPIRE = { src: 'tapao-colony-spire-v5.webp', w: 88, h: 197, anchorY: .55 };
+  const TAPAO_STRUCTS = {"dome":[0,0,260,260],"pad":[264,0,336,336],"hexArray":[604,0,336,312],"tunnel":[944,0,380,140],"turretBase":[1328,0,224,224],"turretBaseOpen":[1556,0,224,224],"turretHead":[1784,0,240,300],"hexMega":[0,340,400,432]};
   // 칸 안에서 그림의 중심이 놓인 위치(비율). 기본은 (.47, .44)이고 포탑 부품은 따로 지정한다.
   const TAPAO_STRUCT_ANCHORS = { turretBase: { x: .47, y: .41 }, turretBaseOpen: { x: .47, y: .41 }, turretHead: { x: .47, y: .529 } };
   const tapaoAnchor = name => TAPAO_STRUCT_ANCHORS[name] || { x: .47, y: .44 };
   // 장식 시설: 육각 어레이를 가장 많이 깔고, 돔(윗줄 맨 왼쪽)과 패드 돔(맨 오른쪽)은 간헐적으로 놓는다. 돔 사이에는 가끔 터널 통로를 잇는다.
-  const TAPAO_DECOR_WEIGHTS = [['hexArray', 76], ['dome', 12], ['pad', 12]];
+  const TAPAO_DECOR_WEIGHTS = [['hexMega', 34], ['hexArray', 42], ['dome', 12], ['pad', 12]];
   function tapaoStructStyle(element, name) {
     const [rx, ry, rw, rh] = TAPAO_STRUCTS[name];
     const w = rw / 2, h = rh / 2;
@@ -10813,6 +10815,43 @@
     state.midBosses.push(turret);
   }
 
+  // 외계 수호탑: 숨지 않고 서 있는 공격시설. 크고 단단하며 푸른 광선을 두 줄기 쏜다.
+  function spawnTapaoSpire() {
+    const gate = Number(state.operation?.gate) || 1;
+    const hp = Math.round((5000 + gate * 900) * 2.4 * TAPAO_ALIEN_SCALE);
+    const x = .22 + Math.random() * .56;
+    const tower = {
+      id: `tapao-spire-${++state.tapaoColony.spawned}`,
+      kind: 'boss',
+      variant: 'tapao-turret',
+      spire: true,
+      name: '외계 수호탑',
+      hp,
+      maxHp: hp,
+      x,
+      y: -.16,
+      concealed: true,
+      revealed: false,
+      revealY: .02,
+      dead: false,
+      stun: 0,
+      nextShot: 1200,
+      requiredForGate: false
+    };
+    const element = document.createElement('div');
+    element.className = 'tapao-turret spire';
+    element.style.width = `${TAPAO_SPIRE.w}px`;
+    element.style.height = `${TAPAO_SPIRE.h}px`;
+    element.style.marginLeft = `${-TAPAO_SPIRE.w / 2}px`;
+    element.style.marginTop = `${-TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY}px`;
+    element.style.left = percent(x);
+    element.style.top = percent(tower.y);
+    element.innerHTML = '<i class="tt-ground"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
+    tower.el = element;
+    refs.enemyLayer.append(element);
+    state.midBosses.push(tower);
+  }
+
   function updateTapaoColonyTurrets(dt) {
     const colony = state.tapaoColony;
     if (!colony) return;
@@ -10833,8 +10872,13 @@
       return true;
     });
     const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
+    colony.nextSpire = (colony.nextSpire ?? 12000) - dt;
+    if (colony.nextSpire <= 0) {
+      if (!turrets.some(unit => unit.spire)) { spawnTapaoSpire(); colony.nextSpire = 26000 + Math.random() * 10000; }
+      else colony.nextSpire = 4000;
+    }
     colony.nextSpawn -= dt;
-    if (colony.nextSpawn <= 0 && turrets.length < 6) {
+    if (colony.nextSpawn <= 0 && turrets.filter(unit => !unit.spire).length < 6) {
       spawnTapaoTurret();
       // 관문이 올라갈수록 더 자주 솟아오른다.
       colony.nextSpawn = Math.max(2800, 7000 - gate * 380) * (.75 + Math.random() * .5);
@@ -10844,7 +10888,7 @@
       turret.y += scroll;
       turret.el.style.top = percent(turret.y);
       if (turret.y > 1.12) { turret.dead = true; turret.el.remove(); return; }
-      if (!turret.revealed && turret.y >= .24) {
+      if (!turret.revealed && turret.y >= (turret.revealY ?? .24)) {
         turret.revealed = true;
         turret.concealed = false;
         turret.el.classList.add('revealed');
@@ -10855,14 +10899,19 @@
       if (turret.nextShot > 0) return;
       const targets = state.allies.filter(ally => !ally.dead);
       if (!targets.length) return;
-      turret.nextShot = 2000;
+      turret.nextShot = turret.spire ? 2600 : 2000;
       const target = targets[Math.floor(Math.random() * targets.length)];
       const aimX = (target.x - turret.x) * fieldWidth, aimY = (target.y - turret.y) * fieldHeight;
-      turret.head.style.setProperty('--aim', `${(Math.atan2(aimX, -aimY) * 180 / Math.PI).toFixed(1)}deg`);
+      turret.head?.style.setProperty('--aim', `${(Math.atan2(aimX, -aimY) * 180 / Math.PI).toFixed(1)}deg`);
       turret.el.classList.add('firing');
       schedule(() => turret.el?.classList.remove('firing'), 160);
       // 소리가 요란해지지 않도록 보스가 아닌 발사원으로 넘긴다.
-      enemyProjectile({ kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y }, target, 'monster-spike', damage, null, { x: turret.x, y: turret.y - .012 });
+      if (turret.spire) {
+        const crownY = turret.y - TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY * .62 / fieldHeight;
+        const volley = Math.round(damage * 1.5);
+        enemyProjectile({ kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y }, target, 'monster-spike', volley, null, { x: turret.x - .02, y: crownY });
+        schedule(() => { if (!turret.dead && !target.dead) enemyProjectile({ kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y }, target, 'monster-spike', volley, null, { x: turret.x + .02, y: crownY }); }, 260);
+      } else enemyProjectile({ kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y }, target, 'monster-spike', damage, null, { x: turret.x, y: turret.y - .012 });
     });
   }
 
