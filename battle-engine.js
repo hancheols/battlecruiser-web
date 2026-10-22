@@ -596,14 +596,17 @@
     refs.battleClock.textContent = '00:00';
     refs.field?.querySelector('.tapao-ground')?.remove();
     if (isTapaoColonyOperation(normalizedOperation)) {
-      state.tapaoColony = { cycleIndex: 0, lastV: .52, gapDone: true, spawned: 0, ground: [] };
+      state.tapaoColony = { cycleIndex: 0, lastV: 0, gapDone: true, spawned: 0, ground: [] };
       const ground = document.createElement('div');
       ground.className = 'tapao-ground';
       refs.field.insertBefore(ground, refs.enemyLayer);
       refs.groundLayer = ground;
-      // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 육각 군집 하나와 그 위쪽 돔 포탑 한 쌍을 미리 깔아 둔다.
-      spawnTapaoHexV(state.tapaoColony.lastV);
-      spawnTapaoGap(state.tapaoColony.lastV - TAPAO_CYCLE_PX / tapaoField().fieldHeight / 2);
+      // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 군집 둘과 그 사이 돔·수호탑을 미리 깔아 둔다.
+      const cyclePrefill = TAPAO_CYCLE_PX / tapaoField().fieldHeight;
+      spawnTapaoHexV(.83);
+      spawnTapaoHexV(.83 - cyclePrefill);
+      spawnTapaoGap(.83 - cyclePrefill / 2);
+      state.tapaoColony.lastV = .83 - cyclePrefill;
     }
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
@@ -1017,15 +1020,17 @@
   // 외계 함대(공중전)와 함께 나오며, 승리 조건은 외계 함대 격파다(포탑은 승패에 영향이 없다).
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
   const TAPAO_COLONY_TILE_ROWS = 1011, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert-v7.webp 크기
-  // 타파오 콜로니 구성: 가운데에 육각 구조물 군집(V자)이 일정 간격으로 흘러가고, 군집 사이 빈 곳에 좌우 돔 포탑과 가운데 수호탑이 선다.
+  // 타파오 콜로니 구성: 가운데에 육각 구조물 군집(V자 세 겹)이 일정 간격으로 흘러가고, 군집 사이 빈 곳에 좌우 돔 포탑과 가운데 수호탑이 선다.
   // 크기와 간격은 화면 px 기준이다. 육각 그림은 맞붙였을 때 1시·11시 방향 이웃과 모서리가 딱 맞는 간격(stepX, stepY)으로 쌓는다.
   const TAPAO_HEX = { w: 84, h: 92, stepX: 40.85, stepY: 66.8 };
-  TAPAO_HEX.apex = TAPAO_HEX.stepY * 1.5;               // V 중심에서 맨 아래(꼭짓점) 칸 중심까지
-  TAPAO_HEX.vHeight = TAPAO_HEX.stepY * 3 + TAPAO_HEX.h; // V 전체 높이
-  const TAPAO_DOME = { w: 84, h: 85.5 };
-  const TAPAO_CYCLE_PX = 600;                            // 육각 군집이 되풀이되는 간격
-  // 탑 모양 공격시설(외계 수호탑): 그림 한 장을 그대로 쓴다. 중심은 몸통 허리쯤.
-  const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55 };
+  TAPAO_HEX.apex = TAPAO_HEX.stepY * 3.5;                // 군집 중심에서 맨 아래(첫 V 꼭짓점) 칸 중심까지
+  TAPAO_HEX.vHeight = TAPAO_HEX.stepY * 7 + TAPAO_HEX.h; // 군집 전체 높이(V 세 겹)
+  const TAPAO_CYCLE_PX = 860;                            // 육각 군집이 되풀이되는 간격(군집 + 빈 곳)
+  // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
+  const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
+  const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 500 };
+  // 외계 공중 함대: 15초마다 스타크루저 1척 + 함재기 10기, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
+  const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
@@ -9649,7 +9654,7 @@
     const targetPoint = pointOf(target);
     const projectile = document.createElement('i');
     projectile.className = `fx-enemy${kind === 'corrosion' || kind === 'monster-acid' ? ' corrosion' : ''}${kind === 'suicide' ? ' suicide' : ''}${kind === 'monster-spike' ? ' monster-spike' : ''}${kind === 'monster-acid' ? ' monster-acid' : ''}${kind === 'oort-slime' ? ' oort-slime' : ''}${kind === 'flameball' ? ' flameball' : ''}${kind === 'ancient-bone-spike' ? ' ancient-bone-spike' : ''}${kind === 'plasma-bug' ? ' plasma-bug' : ''}${extraClass ? ` ${extraClass}` : ''}`;
-    const baseTravel = kind === 'flameball' ? 705 : kind === 'plasma-bug' ? 520 : 470;
+    const baseTravel = extraClass === 'tapao-laser' ? 260 : kind === 'flameball' ? 705 : kind === 'plasma-bug' ? 520 : 470;
     positionProjectile(projectile, sourcePoint, targetPoint);
     projectile.style.animationDuration = `${baseTravel}ms`;
     refs.effects.append(projectile);
@@ -10244,6 +10249,20 @@
 
   function checkBossThreshold() {
     if (!state || state.status !== 'combat') return;
+    if (isTapaoColonyOperation()) {
+      if (!state.tapaoColonyWaveStarted) {
+        state.tapaoColonyWaveStarted = true;
+        state.tapaoColonyWaves = 0;
+        TAPAO_COLONY_WAVE_DELAYS.forEach((delay, wave) => schedule(() => spawnTapaoColonyWave(wave), delay));
+        return;
+      }
+      // 3번째 웨이브가 나온 뒤 공중 함선(스타크루저·함재기)이 모두 사라지면 클리어한다. 포탑은 승패에 영향이 없다.
+      if (state.tapaoColonyWaves >= TAPAO_COLONY_WAVE_DELAYS.length) {
+        const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
+        if (!alive.length) finishBattle(true);
+      }
+      return;
+    }
     if (isTapaoOperation()) {
       const plan = tapaoWavePlan();
       const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
@@ -10408,7 +10427,7 @@
     return isMagentaTasOperation() || (region === 'titan' && gate >= 16 && gate !== 20) || (['oort', 'oort-cloud', 'oortcloud'].includes(region) && ![10, 15, 20].includes(gate));
   }
 
-  function spawnKeplerAlienFleet(lineupOverride = null) {
+  function spawnKeplerAlienFleet(lineupOverride = null, options = {}) {
     if (!state || state.status !== 'combat' || state.keplerAlienFleetSpawned) return;
     state.keplerAlienFleetSpawned = true;
     const region = String(state.operation?.region || '').toLowerCase();
@@ -10438,7 +10457,7 @@
           : { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
       const hp = Math.round(alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
       const ship = {
-        id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${index}`,
+        id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${options.wave !== undefined ? `w${options.wave}-` : ''}${index}`,
         kind: 'boss',
         variant: angela ? 'kepler-alien-angela' : carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort',
         name: angela ? '외계 앙헬라' : carrier ? '외계 우주항모' : starcruiser ? '외계 스타크루저' : '외계 호위함',
@@ -10448,7 +10467,7 @@
         hp,
         maxHp: hp,
         attackPower: carrier ? 0 : angela ? 1050 : starcruiser ? Math.round(BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(sourceShip)) : Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
-        x: carrier ? .67 : [.5, .24, .76][index],
+        x: carrier ? .67 : (options.xs || [.5, .24, .76])[index],
         y: -.26,
         entryStartY: -.26,
         entryTargetY: carrier ? .26 : .17 + (angela ? 0 : .025),
@@ -10488,13 +10507,17 @@
       refs.enemyLayer.append(element);
       requestAnimationFrame(() => element.classList.add('entered'));
     }
-    state.boss = fleet[0];
-    state.midBosses.push(...fleet.slice(1));
+    if (options.append && state.boss && !state.boss.dead) state.midBosses.push(...fleet);
+    else {
+      state.boss = fleet[0];
+      state.midBosses.push(...fleet.slice(1));
+    }
     refs.battleBossHud.hidden = false;
     updateBossHud(state.boss);
     updateHud(true);
     focusBattleAudio('boss');
     const regionLabel = secretBase ? '비밀기지' : atmosphere ? '대기권' : '행성권';
+    if (options.wave !== undefined) { announce(`외계 함대 제${options.wave + 1}웨이브 · 스타크루저 1척 + 함재기 10기 접근`, 'boss'); return; }
     announce(isTapaoOperation() ? `타파오 통 ${gate}관문 · ${carrierLineupLabel(lineup)} 접근` : `케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
   }
 
@@ -10685,7 +10708,8 @@
     return { fieldWidth: Math.max(1, field.width || 375), fieldHeight: Math.max(1, field.height || 700) };
   }
 
-  // 육각 구조물 7칸: 맨 아래 칸에서 1시 방향으로 3칸, 11시 방향으로 3칸 이어 붙인 V자 군집. centerY는 군집 중심(화면 높이 비율).
+  // 육각 구조물 21칸: 'V'자(맨 아래 칸 + 1시 방향 3칸 + 11시 방향 3칸)를 세 겹 붙인 군집. 각 V는 아래 V의 틈에 모서리를 맞대고 들어앉는다.
+  // centerY는 군집 중심(화면 높이 비율). 군집 전체를 하나의 요소로 옮겨 그림자 효과 비용을 줄인다.
   function spawnTapaoHexV(centerY) {
     const colony = state.tapaoColony;
     if (!colony || !refs.groundLayer) return;
@@ -10693,33 +10717,33 @@
     const { w, h, stepX, stepY, apex, vHeight } = TAPAO_HEX;
     const group = document.createElement('div');
     group.className = 'tapao-hex-v';
-    group.style.left = percent(.5);
-    group.style.top = percent(centerY);
-    const cells = [[0, apex]];
-    for (let step = 1; step <= 3; step += 1) cells.push([stepX * step, apex - stepY * step], [-stepX * step, apex - stepY * step]);
-    cells.forEach(([dx, dy]) => {
-      const cell = document.createElement('i');
-      cell.style.cssText = `left:${(dx - w / 2).toFixed(1)}px;top:${(dy - h / 2).toFixed(1)}px;width:${w}px;height:${h}px`;
-      group.append(cell);
-    });
+    group.style.transform = `translateY(${(centerY * fieldHeight).toFixed(1)}px)`;
+    for (let layer = 0; layer < 3; layer += 1) {
+      const baseY = apex - stepY * 2 * layer;
+      const cells = [[0, baseY]];
+      for (let step = 1; step <= 3; step += 1) cells.push([stepX * step, baseY - stepY * step], [-stepX * step, baseY - stepY * step]);
+      cells.forEach(([dx, dy]) => {
+        const cell = document.createElement('i');
+        cell.style.cssText = `left:${(dx - w / 2).toFixed(1)}px;top:${(dy - h / 2).toFixed(1)}px;width:${w}px;height:${h}px`;
+        group.append(cell);
+      });
+    }
     refs.groundLayer.append(group);
     colony.ground.push({ element: group, y: centerY, halfH: vHeight / 2 / fieldHeight });
   }
 
-  // 돔 포탑: 맵 좌우 가장자리에 서서 돔 중앙에서 푸른 레이저를 쏜다.
+  // 돔 포탑: 맵 좌우 가장자리에 서서, 돔 중앙의 레이저포가 아군을 향해 돌아가며 쏜다.
   function spawnTapaoDome(side, y) {
     const { fieldWidth } = tapaoField();
-    const gate = Number(state.operation?.gate) || 1;
-    const hp = Math.round((4000 + gate * 700) * TAPAO_ALIEN_SCALE);
-    const x = side < 0 ? 54 / fieldWidth : 1 - 54 / fieldWidth;
+    const x = side < 0 ? 40 / fieldWidth : 1 - 40 / fieldWidth;
     const turret = {
       id: `tapao-dome-${++state.tapaoColony.spawned}`,
       kind: 'boss',
       variant: 'tapao-turret',
       dome: true,
       name: '돔 포탑',
-      hp,
-      maxHp: hp,
+      hp: TAPAO_DOME.hp,
+      maxHp: TAPAO_DOME.hp,
       x,
       y,
       concealed: true,
@@ -10727,7 +10751,7 @@
       revealY: .02,
       dead: false,
       stun: 0,
-      nextShot: 900 + Math.random() * 1500,
+      nextShot: 700 + Math.random() * 1300,
       requiredForGate: false
     };
     const element = document.createElement('div');
@@ -10738,24 +10762,23 @@
     element.style.marginTop = `${-TAPAO_DOME.h / 2}px`;
     element.style.left = percent(x);
     element.style.top = percent(y);
-    element.innerHTML = '<i class="tt-dome"></i><i class="tt-core"></i><span class="tt-hp"><i></i></span>';
+    element.innerHTML = '<i class="tt-dome"></i><span class="tt-gun"><i class="tt-barrel"></i></span><span class="tt-hp"><i></i></span>';
     turret.el = element;
+    turret.gun = element.querySelector('.tt-gun');
     refs.enemyLayer.append(element);
     state.midBosses.push(turret);
   }
 
-  // 외계 수호탑: 군집 사이 가운데 빈 곳에 서는 큰 공격시설. 푸른 광선을 두 줄기 쏜다.
+  // 외계 수호탑: 군집 사이 가운데 빈 곳에 서는 큰 공격시설.
   function spawnTapaoSpire(y) {
-    const gate = Number(state.operation?.gate) || 1;
-    const hp = Math.round((5000 + gate * 900) * 2.4 * TAPAO_ALIEN_SCALE);
     const tower = {
       id: `tapao-spire-${++state.tapaoColony.spawned}`,
       kind: 'boss',
       variant: 'tapao-turret',
       spire: true,
       name: '외계 수호탑',
-      hp,
-      maxHp: hp,
+      hp: TAPAO_SPIRE.hp,
+      maxHp: TAPAO_SPIRE.hp,
       x: .5,
       y,
       concealed: true,
@@ -10763,7 +10786,8 @@
       revealY: .02,
       dead: false,
       stun: 0,
-      nextShot: 1500,
+      nextShot: 1200,
+      shotCursor: 0,
       requiredForGate: false
     };
     const element = document.createElement('div');
@@ -10780,19 +10804,17 @@
     state.midBosses.push(tower);
   }
 
-  // 군집 사이 빈 곳: 좌우 돔 포탑 한 쌍, 홀수 번째 빈 곳에는 가운데 수호탑도 선다.
+  // 군집 사이 빈 곳: 좌우 돔 포탑 한 쌍과 가운데 수호탑 하나.
   function spawnTapaoGap(y) {
-    const colony = state.tapaoColony;
-    const alive = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
-    if (alive.length < 6) { spawnTapaoDome(-1, y); spawnTapaoDome(1, y); }
-    if (colony.cycleIndex % 2 === 1 && !alive.some(unit => unit.spire)) spawnTapaoSpire(y);
+    spawnTapaoDome(-1, y);
+    spawnTapaoDome(1, y);
+    spawnTapaoSpire(y);
   }
 
   function updateTapaoColonyTurrets(dt) {
     const colony = state.tapaoColony;
     if (!colony) return;
     const { fieldWidth, fieldHeight } = tapaoField();
-    const gate = Number(state.operation?.gate) || 1;
     const scroll = (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
     const cycle = TAPAO_CYCLE_PX / fieldHeight;
     // 가장 최근 군집(lastV)이 내려오면, 위쪽 빈 곳에 돔·탑을 세우고 그다음 군집을 이어 놓는다.
@@ -10809,12 +10831,12 @@
     }
     colony.ground = colony.ground.filter(item => {
       item.y += scroll;
-      item.element.style.top = percent(item.y);
+      if (item.useTop) item.element.style.top = percent(item.y);
+      else item.element.style.transform = `translateY(${(item.y * fieldHeight).toFixed(1)}px)`;
       if (item.y - item.halfH > 1.15) { item.element.remove(); return false; }
       return true;
     });
     const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
-    const damage = Math.round((60 + gate * 8) * TAPAO_ALIEN_SCALE);
     turrets.forEach(turret => {
       turret.y += scroll;
       turret.el.style.top = percent(turret.y);
@@ -10830,33 +10852,50 @@
       if (turret.nextShot > 0) return;
       const targets = state.allies.filter(ally => !ally.dead);
       if (!targets.length) return;
-      turret.nextShot = turret.spire ? 2600 : 2400;
-      const target = targets[Math.floor(Math.random() * targets.length)];
-      turret.el.classList.add('firing');
-      schedule(() => turret.el?.classList.remove('firing'), 200);
       const source = { kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y };
-      const fire = (origin, amount) => enemyProjectile(source, target, 'monster-spike', amount, null, origin, 'tapao-laser');
+      turret.el.classList.add('firing');
+      schedule(() => turret.el?.classList.remove('firing'), 130);
       if (turret.spire) {
+        // 수호탑: 0.5초마다 살아 있는 아군을 차례로 돌아가며 조준한다.
+        turret.nextShot = TAPAO_SPIRE.interval;
+        turret.shotCursor += 1;
+        const target = targets[turret.shotCursor % targets.length];
         const crownY = turret.y - TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY * .62 / fieldHeight;
-        const volley = Math.round(damage * 1.5);
-        fire({ x: turret.x - .02, y: crownY }, volley);
-        schedule(() => { if (!turret.dead && !target.dead) fire({ x: turret.x + .02, y: crownY }, volley); }, 260);
+        enemyProjectile(source, target, 'monster-spike', TAPAO_SPIRE.damage, null, { x: turret.x, y: crownY }, 'tapao-laser');
       } else {
-        // 돔 중앙에서 레이저 2연발
-        fire({ x: turret.x, y: turret.y }, damage);
-        schedule(() => { if (!turret.dead && !target.dead) fire({ x: turret.x, y: turret.y }, damage); }, 220);
+        // 돔 포탑: 돔 중앙의 레이저포가 목표를 향해 돌아선 뒤 2초마다 한 발.
+        turret.nextShot = TAPAO_DOME.interval;
+        const target = targets[Math.floor(Math.random() * targets.length)];
+        const dx = (target.x - turret.x) * fieldWidth, dy = (target.y - turret.y) * fieldHeight;
+        const angle = Math.atan2(dx, -dy);
+        turret.gun?.style.setProperty('--aim', `${(angle * 180 / Math.PI).toFixed(1)}deg`);
+        const muzzle = { x: turret.x + Math.sin(angle) * 27 / fieldWidth, y: turret.y - Math.cos(angle) * 27 / fieldHeight };
+        enemyProjectile(source, target, 'monster-spike', TAPAO_DOME.damage, null, muzzle, 'tapao-laser');
       }
     });
   }
 
+  // 부서진 포탑: 폭발과 함께 부서진 모습으로 바뀌어 남고, 지형처럼 흘러 내려간다.
   function destroyTapaoTurret(turret) {
     turret.dead = true;
     turret.concealed = true;
-    createExplosion(pointOf(turret), 'enemy');
-    turret.el?.classList.add('destroyed');
-    schedule(() => turret.el?.remove(), 700);
+    const point = pointOf(turret);
+    createExplosion(point, 'enemy');
+    if (turret.spire) schedule(() => createExplosion({ x: point.x, y: point.y - .06 }, 'enemy'), 180);
+    turret.el?.classList.add('wrecked');
     state.midBosses = state.midBosses.filter(unit => unit !== turret);
+    if (state.tapaoColony && turret.el) state.tapaoColony.ground.push({ element: turret.el, y: turret.y, halfH: .16, useTop: true });
     updateHud();
+  }
+
+  // 외계 공중 함대 한 웨이브: 스타크루저 1척 + 함재기 10기
+  function spawnTapaoColonyWave(wave) {
+    if (!state || state.status !== 'combat') return;
+    state.keplerAlienFleetSpawned = false;
+    spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [[.5], [.28], [.72]][wave] || [.5], wave });
+    state.tapaoColonyWaves = wave + 1;
+    playFighterLaunchSound();
+    for (let slot = 0; slot < 10; slot += 1) schedule(() => launchKeplerPreludeFighter(slot, wave), slot * 40);
   }
 
   function destroyBoss(target = state.boss) {

@@ -781,18 +781,28 @@
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
 .tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
-.tapao-hex-v{position:absolute;width:0;height:0;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
+.tapao-hex-v{position:absolute;left:50%;top:0;width:0;height:0;will-change:transform;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
 .tapao-hex-v>i{position:absolute;background:url('tapao-colony-hex-v6.webp') center/100% 100% no-repeat}
 .tapao-turret{position:absolute;z-index:5;pointer-events:none}
-.tapao-turret .tt-hp{position:absolute;left:14%;right:14%;bottom:-7px;height:4px;border-radius:2px;background:#0009;opacity:0;transition:opacity .3s}
+.tapao-turret .tt-hp{position:absolute;left:12%;right:12%;bottom:-7px;height:4px;border-radius:2px;background:#0009;opacity:0;transition:opacity .3s}
 .tapao-turret .tt-hp i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#ff6a4a,#ffb15a)}
 .tapao-turret.revealed .tt-hp{opacity:1}
 .tapao-turret.hit{filter:brightness(1.7)}
-.tapao-turret.dome>.tt-dome{position:absolute;inset:0;background:url('tapao-colony-dome-v6.webp') center/100% 100% no-repeat;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
-.tapao-turret.dome>.tt-core{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:radial-gradient(circle,#fff 0,#9fdcff 32%,rgba(47,125,255,0) 70%);opacity:0;transform:scale(.5);transition:opacity .12s,transform .12s}
-.tapao-turret.dome.firing>.tt-core{opacity:1;transform:scale(1.5)}
+.tapao-turret.dome>.tt-dome{position:absolute;inset:0;background:url('tapao-colony-dome-v6.webp') center/100% 100% no-repeat;filter:drop-shadow(4px 5px 4px rgba(14,8,4,.6))}
+.tapao-turret.dome>.tt-gun{position:absolute;left:50%;top:50%;width:0;height:0;transform:rotate(var(--aim,180deg));transition:transform .14s ease-out}
+.tapao-turret.dome>.tt-gun::before{content:"";position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:50%;border:1.5px solid #d6b160;background:radial-gradient(circle at 35% 30%,#fff,#dfe3ec 38%,#8f96aa 74%,#3a4254);box-shadow:0 0 5px rgba(90,180,255,.85)}
+.tapao-turret.dome .tt-barrel{position:absolute;left:-3px;top:-27px;width:6px;height:27px;border-radius:2px 2px 0 0;background:linear-gradient(90deg,#1c2230,#e3e8f2 40%,#7b849a 62%,#181d2a);box-shadow:0 0 0 1px rgba(0,0,0,.4);transition:transform .07s}
+.tapao-turret.dome .tt-barrel::before{content:"";position:absolute;left:-1.5px;top:10px;width:9px;height:2.5px;border-radius:1px;background:#d9b668}
+.tapao-turret.dome .tt-barrel::after{content:"";position:absolute;left:-1.5px;top:-5px;width:9px;height:7px;border-radius:50% 50% 25% 25%;background:radial-gradient(circle at 50% 60%,#fff,#9fe0ff 45%,#2f7dff);box-shadow:0 0 6px #6cc6ff;transition:transform .07s,box-shadow .07s}
+.tapao-turret.dome.firing .tt-barrel{transform:translateY(3px)}
+.tapao-turret.dome.firing .tt-barrel::after{transform:scale(1.6);box-shadow:0 0 12px #fff,0 0 24px #4ab8ff}
 .tapao-turret.spire>.tt-spire{position:absolute;inset:0;background:url('tapao-colony-spire-v5.webp') center/100% 100% no-repeat;transition:filter .12s}
 .tapao-turret.spire>.tt-ground{position:absolute;left:-18%;right:-24%;bottom:-3%;height:15%;border-radius:50%;background:radial-gradient(ellipse at 45% 50%,rgba(70,42,14,.55),rgba(70,42,14,0) 72%)}
-.tapao-turret.spire.firing>.tt-spire{filter:drop-shadow(0 0 10px #6cc6ff) brightness(1.3)}
+.tapao-turret.spire.firing>.tt-spire{filter:drop-shadow(0 0 8px #6cc6ff) brightness(1.25)}
+.tapao-turret.dome.wrecked>.tt-dome{background-image:url('tapao-colony-dome-wreck-v8.webp')}
+.tapao-turret.spire.wrecked>.tt-spire{background-image:url('tapao-colony-spire-wreck-v8.webp');filter:drop-shadow(4px 5px 4px rgba(14,8,4,.6))}
+.tapao-turret.wrecked>.tt-gun,.tapao-turret.wrecked .tt-hp,.tapao-turret.wrecked>.tt-ground{display:none}
+.tapao-turret.wrecked::after{content:"";position:absolute;left:26%;top:30%;width:44%;height:36%;border-radius:50%;background:radial-gradient(circle,rgba(74,70,66,.6),rgba(74,70,66,0) 70%);animation:tapao-smoke 3.4s ease-out infinite}
+.tapao-turret.spire.wrecked::after{top:46%}
+@keyframes tapao-smoke{0%{opacity:.85;transform:translateY(0) scale(.5)}100%{opacity:0;transform:translateY(-30px) scale(1.7)}}
 .fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}
-.tapao-turret.destroyed{opacity:0;transform:scale(1.35);filter:brightness(2);transition:opacity .6s,transform .6s,filter .6s}
