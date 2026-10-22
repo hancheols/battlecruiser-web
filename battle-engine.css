@@ -755,7 +755,8 @@
 @keyframes redbeard-speech{0%{opacity:0;margin-top:8px}10%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0}}
 /* 외계 우주항모: 5배 크기로 함재기 대형 위쪽에 걸쳐 아래쪽 일부만 보이고, 함재기는 뱃머리가 아군 쪽을 향한다 */
 .boss-unit.kepler-alien-vessel.kepler-alien-carrier{width:clamp(320px,55vw,420px);height:clamp(590px,102.5vw,780px)}
-.boss-unit.kepler-alien-vessel.kepler-alien-carrier,.boss-unit.kepler-alien-vessel.kepler-alien-carrier.entered{top:calc(27% - clamp(295px,51.25vw,390px))!important;transition:opacity .8s}
+/* 우주항모는 원래 자리(윗쪽)에서 5시 방향(오른쪽 아래, 정면 아래에서 30도)으로 자기 키의 30%만큼 옮겨, 뱃머리(아래)와 우현(화면 왼쪽 면)이 보이게 한다 */
+.boss-unit.kepler-alien-vessel.kepler-alien-carrier,.boss-unit.kepler-alien-vessel.kepler-alien-carrier.entered{--carrier-h:clamp(590px,102.5vw,780px);top:calc(27% - var(--carrier-h) / 2 + var(--carrier-h) * .26)!important;left:calc(50% + var(--carrier-h) * .15)!important;transition:opacity .8s}
 .boss-unit.kepler-alien-vessel.kepler-alien-carrier>span{display:none}
 .boss-unit.kepler-alien-vessel.kepler-alien-fighter .boss-sprite{transform:rotate(180deg)}
 .boss-unit.kepler-alien-vessel>span{display:none!important}
