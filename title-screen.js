@@ -15,6 +15,7 @@
   };
 
   const startGame = () => {
+    window.dispatchEvent(new Event('title-start'));
     screen.classList.add('leaving');
     setTimeout(() => { screen.hidden = true; }, 450);
   };
