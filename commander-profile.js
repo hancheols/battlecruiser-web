@@ -26,6 +26,15 @@
   const rewardLabel=key=>({gold:'골드',thorium:'토륨',lionToken:'사자증표',scoutTron:'탐색드론',researchStaff:'연구인력',ssrShipTicket:'SSR 함선 선택 교환권',frameTicket:'함선골조 교환권',precisionScout:'정밀탐색드론',frameCannon:'함포 골조',frameMissile:'미사일 골조',frameLaser:'레이저포 골조',framePiercing:'관통레이저 골조',frameCarrier:'함재기 골조',thoriumBox:'토륨 상자',goldVault:'금고',journal:'연구일지',core:'범용연구코어'}[key]||key);
   const rewardIcons={gold:'gold-resource-icon.svg',thorium:'thorium-crystal-icon.png',lionToken:'icons/lion-token.png',scoutTron:'icons/scout-drone.png',researchStaff:'icons/research-personnel-20261002.png',ssrShipTicket:'icons/ssr-ship-ticket.svg?v=3',frameTicket:'icons/frame-ticket.svg?v=2',precisionScout:'icons/precision-scout-drone.webp',frameCannon:'icons/ship-frame.png',frameMissile:'icons/ship-frame.png',frameLaser:'icons/ship-frame.png',framePiercing:'icons/ship-frame.png',frameCarrier:'icons/ship-frame.png',thoriumBox:'icons/thorium-box.png',goldVault:'icons/vault.png',journal:'icons/research-journal.png',core:'icons/research-core.png'};
   const rewardMarkup=mail=>{const rewards=mailRewards(mail);return Object.keys(rewards).length?`<section class="captain-mail-reward-panel${mail.claimedAt?' is-claimed':''}" aria-label="첨부 보상"><div class="captain-mail-section-heading"><span>첨부 보급품</span><small>${mail.claimedAt?'수령 완료':'수령 가능'}</small></div><div class="captain-mail-rewards">${Object.entries(rewards).map(([key,amount])=>`<div class="captain-mail-reward"><span class="captain-mail-reward-icon"><img src="${rewardIcons[key]}" alt="" /></span><span class="captain-mail-reward-copy"><b>${rewardLabel(key)}</b><strong>× ${format(amount)}</strong></span></div>`).join('')}</div></section>`:'';};
+  // 시나리오가 플레이하는 주인공(제이크/도나)을 바꿀 때 쓴다. 성(lastName)은 그대로 두고 초상화와 호칭만 바뀐다.
+  window.setCommanderCharacter=character=>{
+    if(!characters[character]||profile.character===character)return false;
+    const next={...profile,character};
+    try{localStorage.setItem(PROFILE_KEY,JSON.stringify(next));}catch{return false;}
+    profile=next;render();
+    window.dispatchEvent(new CustomEvent('commander-character-changed',{detail:{character}}));
+    return true;
+  };
   // 메일 보상과 같은 "물자창고로 이송" 연출을 별점 보상 등 다른 화면에서도 쓸 수 있게 공개합니다.
   // items: [{src:아이콘 경로, amount:표시 문구, rect:출발 위치(getBoundingClientRect)}]
   window.animateRewardsToWarehouse=items=>animateClaimedRewards(items);

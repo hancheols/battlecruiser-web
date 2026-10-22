@@ -71,3 +71,10 @@
 .mars-scenario-choices[hidden]{display:none}
 .mars-scenario-choice{padding:9px 14px;border:1px solid #ffdc81;border-radius:5px 12px 5px 12px;background:linear-gradient(120deg,#7d5823,#38280f);color:#fff5cf;font:inherit;cursor:pointer;text-align:left}
 .mars-scenario-choice:hover,.mars-scenario-choice:focus-visible{filter:brightness(1.2);outline:2px solid #fff0b0;outline-offset:2px}
+
+/* 케플러 비밀기지 10관문 후 장면: 해설 자막, 암전 */
+.mars-scenario[data-speaker="narration"] .mars-scenario-portrait,.mars-scenario[data-speaker="narration"] .mars-scenario-name,.mars-scenario[data-speaker="narration"] .mars-scenario-kicker{display:none}
+.mars-scenario[data-speaker="narration"] .mars-scenario-dialogue{margin:0 auto 40px;text-align:center;background:linear-gradient(180deg,#02060fcc,#02060fe6);border-color:#8ab6de66}
+.mars-scenario[data-speaker="narration"] .mars-scenario-text{min-height:0;color:#ffe9b0;font-size:clamp(15px,4vw,18px);letter-spacing:.03em;text-shadow:0 0 10px #000}
+.kb10-fade{position:fixed;inset:0;z-index:2147483400;background:#000;opacity:0;pointer-events:none;transition:opacity 1s ease}
+.kb10-fade.on{opacity:1;pointer-events:auto}

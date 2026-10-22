@@ -766,3 +766,10 @@
 .boss-unit.kepler-alien-vessel.kepler-called{z-index:12}
 .boss-unit.kepler-alien-carrier.carrier-overdrive .boss-sprite{filter:drop-shadow(0 0 16px #ff3a3a) drop-shadow(0 0 34px #ff1f1f) brightness(1.18) saturate(1.3);animation:carrier-overdrive-pulse .6s ease-in-out infinite alternate}
 @keyframes carrier-overdrive-pulse{from{filter:drop-shadow(0 0 10px #ff3a3a) brightness(1.08) saturate(1.2)}to{filter:drop-shadow(0 0 28px #ff1f1f) drop-shadow(0 0 48px #ff6a2a) brightness(1.3) saturate(1.5)}}
+/* 비밀기지 10관문 클리어 장면: 서서히 재등장하는 적, 전기그물 */
+.boss-unit.kepler-ending-ghost{transition:opacity 2.8s ease!important;pointer-events:none}
+.fx-ending-net{position:absolute;z-index:31;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;pointer-events:none;border:2px solid #9ff0ff;background:repeating-linear-gradient(0deg,transparent 0 11px,#8ceaff99 11px 13px),repeating-linear-gradient(90deg,transparent 0 11px,#8ceaff99 11px 13px);box-shadow:0 0 18px #52e4ff,inset 0 0 22px #52e4ff88;filter:drop-shadow(0 0 8px #bff6ff);animation:ending-net-cast .5s ease-out forwards,ending-net-pulse .35s ease-in-out .5s infinite alternate}
+@keyframes ending-net-cast{from{transform:scale(.1);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes ending-net-pulse{from{opacity:.75}to{opacity:1}}
+.ally-unit.ending-netted{filter:grayscale(.6) brightness(.8);animation:ending-netted-shake .12s linear infinite}
+@keyframes ending-netted-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}

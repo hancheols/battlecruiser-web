@@ -9,6 +9,7 @@
   const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}};
   let state={stage:'',index:0,gate6Done:false,gate9Done:false,pendingGate:0,...(read(KEY)||{})};
   let overlay;
+  let fxDone='';
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}};
   const evaActive=()=>{const step=read(EVA_KEY)?.step;return !!step&&step!=='complete';};
   const captain=()=>{const profile=read(PROFILE_KEY)||{};return {name:[profile.character,profile.lastName].filter(Boolean).join(' ')||'함장',image:profile.character==='Donna'?'captain-donna-scenario-bust.png':'captain-jake-scenario-bust.png'};};
@@ -561,6 +562,79 @@
     {speaker:'captain',name:'함장',text:'그럼 이 사태의 배후가 저들이라는 건가?'},
     {speaker:'captain',name:'함장',text:'이게 대체 무슨 일이지?'}
   ];
+  // ── 케플러 비밀기지 10관문 클리어 후 ──
+  // 호칭: 제이크가 주인공이면 도나가 파트너(오빠), 도나가 주인공이면 제이크가 파트너. 주인공은 연구실 장면에서 파트너로 교체된다.
+  const heroName=()=>read(PROFILE_KEY)?.character==='Donna'?'도나':'제이크';
+  const partnerName=()=>partner().name==='Donna'?'도나':'제이크';
+  const partnerCallsLuca=()=>partner().name==='Donna'?'오빠':'루카';
+  const capturedCall=()=>partner().name==='Donna'?'오빠를':'도나를';
+  const kb10ClearLines=[
+    {speaker:'captain',name:'함장',text:'저 우주항모를 우리 힘만으로 상대하는 건 무리야.',fx:'start'},
+    {speaker:'captain',name:'함장',text:'함대로 복귀하자, 제독님께 알려야겠어.'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:()=>`${heroName()}! 저쪽에!`,fx:'return'},
+    {speaker:'ayra',name:'아이라',text:'네놈들 따위가 감히 상대가 된다고 생각했나!'},
+    {speaker:'ayra',name:'아이라',text:'아무도 살아서 돌아가지 못할 것이다.'},
+    {speaker:'captain',name:'함장',text:'...루카, 말릭 어서 함대로 복귀해!'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:()=>`안돼, ${heroName()}!`,fx:'net'},
+    {speaker:'okoye',name:'아마라 오코예 함장',text:'캡틴... ...'},
+    {speaker:'okoye',name:'아마라 오코예 함장',text:'이럴수가...'},
+    {speaker:'malik',name:'캡틴 말릭 오코로',text:'캡틴의 명령이다. 모두 퇴각!'}
+  ];
+  const kb10BridgeLines=[
+    {speaker:'narration',name:'',text:'루카, 한성민 제독에게 그간의 일을 보고한다.'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:()=>`제독님, 어서 ${heroName()}를 구하러 가야합니다.`},
+    {speaker:'han',name:'한성민 제독',text:'안타깝지만, 그건 무모한 일일세.'},
+    {speaker:'han',name:'한성민 제독',text:'적의 규모도 모른 채 경거망동 했다간 우리 함대 전체가 위험할 수 있어.'},
+    {speaker:'okoye',name:'아마라 오코예 함장',text:'......'},
+    {speaker:'malik',name:'캡틴 말릭 오코로',text:'......'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'그럼 사령부에 지원을 요청하면 되지 않습니까?'},
+    {speaker:'han',name:'한성민 제독',text:'사령부에는 이미 보고했네, 각 지역의 잔당들을 소탕하느라 버거운 모양이야.'},
+    {speaker:'han',name:'한성민 제독',text:'일단 기다려보세.'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'제독님, 기다릴 여유가 없습니다!'},
+    {speaker:'han',name:'한성민 제독',text:'우린 지금 전장 한복판에 와있다.'},
+    {speaker:'han',name:'한성민 제독',text:'함장 한 명 때문에 모두를 희생시킬 순 없어!'},
+    {speaker:'han',name:'한성민 제독',text:()=>`캡틴 ${heroName()}는... 아무 일 없을 거야..`},
+    {speaker:'han',name:'한성민 제독',text:'이만 모두 해산! 적의 움직임에 대비하라!'}
+  ];
+  const kb10LabLines=[
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'에바, 저쪽에서 어떤 신호나 연락은 없어?'},
+    {speaker:'eva',name:'EVA-9',text:'적 기지 쪽에서는 아무런 신호도 잡히지 않습니다. 아마 차단막 때문인 것 같습니다.'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'으으.. 어떻게 해야하지?'},
+    {speaker:'partner',name:()=>partner().name,text:()=>`${partnerCallsLuca()}!`},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:()=>`${partnerName()}...`},
+    {speaker:'partner',name:()=>partner().name,text:'어떻게 된거야? 사령부에서 소식을 듣고 바로 왔어.'},
+    {speaker:'partner',name:()=>partner().name,text:()=>`${capturedCall()} 구하러가지 않는거야?`,swap:true},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'제독님은 꼼짝도 안하고 있어...'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'앗! 정찰대에서 호출이야. 뭔가 발견한 것 같아.'},
+    {speaker:'eva',name:'EVA-9',text:'적이 기지를 버리고 이동하는 것 같습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'우리 함선의 신호가 잡힙니다.'},
+    {speaker:'captain',name:'함장',text:'함교로 가보자!'}
+  ];
+  // 주인공 교체: 연구실에서 파트너가 등장한 뒤부터 플레이하는 함장이 파트너로 바뀐다(초상화 포함).
+  const swapProtagonist=()=>{
+    if(state.kb10Swapped)return;
+    const next=partner().name;
+    state.kb10Swapped=true;save();
+    window.setCommanderCharacter?.(next);
+  };
+  // 전투 장면에서 까맣게 사라졌다가 밝아지며 함교로 이동한다.
+  const wait2=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const kb10ToBridge=async()=>{
+    setStage('kb10-fade');
+    const fade=document.createElement('div');
+    fade.className='kb10-fade';
+    document.body.append(fade);
+    void fade.offsetWidth;
+    fade.classList.add('on');
+    await wait2(1100);
+    window.keplerEndingFx?.('end');
+    window.show?.('home');
+    setStage('kb10-bridge');
+    await wait2(700);
+    fade.classList.remove('on');
+    await wait2(1700);
+    fade.remove();
+  };
   // 케플러 10관문: 외계 함대 등장 직전의 조우 연출
   const kepler10IntroLines=[
     {speaker:'captain',name:'함장',text:'저건... 함선이잖아..'},
@@ -569,7 +643,7 @@
     {speaker:'okoye',name:'오코예 함장',text:'선발대 생존자가 저 함선으로부터 공격을 받았다고 합니다.'},
     {speaker:'captain',name:'함장',text:'일단 우리편은 아니란 거군... 전원 전투 준비!'}
   ];
-  const multiLine={'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
+  const multiLine={'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
   // 출격 직후 통신이 끝나면 준비된 전투를 바로 개시하는 단계
   const AUTO_START_STAGES=['malik','oort10','oort15','volkov','magenta6'];
   // 출격 직후 대화 단계(새로고침하면 준비된 전투가 사라지므로 다음 출격 때 다시 보여줌). 오르트 20관문은 보호막 함선 권고에 따라 편성을 바꿀 수 있게 [전투 개시]를 기다립니다.
@@ -618,6 +692,9 @@
     'kb1-pre':'KEPLER SECRET BASE · GATE 01 / BRIEFING',
     'kb5-pre':'KEPLER SECRET BASE · GATE 05 / BRIEFING',
     'kb5-clear':'KEPLER SECRET BASE · GATE 05 / MISSION COMPLETE',
+    'kb10-clear':'KEPLER SECRET BASE · GATE 10 / ALIEN CARRIER',
+    'kb10-bridge':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN',
+    'kb10-lab':'RESEARCH LAB · EVA-9',
     'kb5-farah':'HANGAR · FARAH NADIR',
     'katm210-para':'HANGAR · FARAH NADIR',
     'katm210-walk':'FLEET CORRIDOR',
@@ -649,6 +726,7 @@
     const line=current();overlay.hidden=!line;document.body.dataset.marsScene=line?state.stage:'';
     if(!line)return;
     overlay.dataset.speaker=line.speaker;
+    if(line.fx){const fxKey=state.stage+':'+state.index;if(fxDone!==fxKey){fxDone=fxKey;window.keplerEndingFx?.(line.fx);}}
     overlay.dataset.channel=line.incoming?'incoming':line.remote?'remote':'';
     // 표정이 지정된 대사는 표정 그림({인물}-expr-{표정}.png)을 쓰고, 같은 인물의 표정이 바뀌면 짧게 전환 효과를 준다.
     const portrait=overlay.querySelector('.mars-scenario-portrait');
@@ -814,6 +892,7 @@
     if(stage==='kb5-pre')state.kb5PreDone=true;
     if(stage==='kb5-clear')state.kb5ClearDone=true;
     if(stage==='kb5-farah')state.kb5FarahDone=true;
+    if(stage==='kb10-lab')state.kb10LabDone=true;
     if(pendingSortie&&pendingSortie.stage===stage){const proceed=pendingSortie.proceed;pendingSortie=null;setTimeout(proceed,0);}
     if(stage==='katm210-eva'){state.katm210EvaDone=true;syncPrecisionSearchButton();}
     if(stage==='katm210-ayra'){state.katm210AyraDone=true;window.setBattleHold?.(false);}
@@ -861,6 +940,7 @@
   };
   const advance=()=>{
     if(rewardPlaying)return;
+    if(current()?.swap)swapProtagonist();
     const step=rewardSteps[state.stage];
     if(step&&state.index===step.index){
       // 이 줄에서 보상을 지급하고, 물자창고 이송 연출이 끝나면 다음 대사로 넘어갑니다.
@@ -909,6 +989,10 @@
       window.show?.('home');setStage('katm5-admiral');paint();
     }else if(state.stage==='katm5-admiral'&&state.index>=katm5AdmiralLines.length-1){
       setStage('katm5-supply');paint();
+    }else if(state.stage==='kb10-clear'&&state.index>=kb10ClearLines.length-1){
+      state.kb10ClearDone=true;save();overlay.hidden=true;kb10ToBridge();
+    }else if(state.stage==='kb10-bridge'&&state.index>=kb10BridgeLines.length-1){
+      state.kb10BridgeDone=true;save();window.show?.('home');setStage('kb10-lab-pending');paint();
     }else if(state.stage==='kepler10-clear'&&state.index>=kepler10ClearLines.length-1){
       window.show?.('home');setStage('kepler10-lab-pending');paint();
     }else if(state.stage==='atm10-clear'&&state.index>=atm10ClearLines.length-1){
@@ -1043,14 +1127,14 @@
     if(/-pending$/.test(state.stage))return true;
     // 함교에서 진행되는 대화는 새로고침 후 복원될 때도 함교로 이동할 수 있어야 합니다.
     if(state.stage==='katm210-para')return id==='collection';
-    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
+    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
     if(state.stage==='magenta5-volkov')return id==='collection';
     if(state.stage==='katm210-para')return id==='collection';
     // 클리어 직후 안내 장면은 전투 결과 화면에서 어느 메뉴로 나가도 막지 않는다(막히면 버튼이 먹지 않는다).
     if(state.stage==='katm210-retreat')return true;
     if(state.stage==='kb5-farah')return id==='collection';
     if(state.stage==='katm210-walk')return id==='collection'||id==='home';
-    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear'].includes(state.stage)&&id==='home';
+    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear'].includes(state.stage)&&id==='home';
   };
   // 플레이어가 연구실(summon) 화면을 직접 열었을 때만 작전 회의를 시작한다.
   // 연구실로 바로 들어가면 지원 물품을 기본 지원의 50%만큼 추가로 지급한다(다른 화면을 거쳤다면 추가 지급 없음).
@@ -1058,7 +1142,7 @@
   window.addEventListener('game-screen-changed',event=>{
     const screen=event.detail?.screen;
     // 타스 10관문: 함교로 돌아오면 루카와의 대화, 연구실을 열면 EVA-9와의 대화가 이어진다.
-    const TAS10_NEXT={'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'}};
+    const TAS10_NEXT={'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
     const tasNext=TAS10_NEXT[state.stage];
     if(tasNext){if(screen===tasNext.screen){setStage(tasNext.stage);window.show?.(tasNext.screen);}return;}
     // 케플러 10관문 클리어를 이미 지나간 경우에도, 연구실을 열면 에바-9와의 대화가 나온다(한 번만).
@@ -1084,6 +1168,7 @@
     if(Number(chapter)===3&&region==='kepler-atmosphere'&&Number(gate)===5&&firstClear&&!state.katm5ClearDone&&!active()){setStage('katm5-clear');return;}
     if(Number(chapter)===3&&region==='kepler-atmosphere'&&Number(gate)===10&&firstClear&&!state.katm210EvaDone&&!active()){setStage('katm210-retreat');return;}
     if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===5&&firstClear&&!state.kb5ClearDone&&!active()){setStage('kb5-clear');return;}
+    if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===10&&firstClear&&!state.kb10ClearDone&&!active()){setStage('kb10-clear');return;}
     if(Number(chapter)===1&&region==='titan'&&firstClear){
       if(Number(gate)===5&&!state.titanGate5Done&&!active())setStage('titan-gate5');
       if(Number(gate)===10&&!state.titanFallDone&&!active())setStage('titan-call');

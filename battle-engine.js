@@ -11795,6 +11795,52 @@
       return match ? match[1] : null;
     } catch { return null; }
   };
+  // 케플러 비밀기지 10관문 클리어 뒤 시나리오 장면(mars-scenario.js에서 호출).
+  // start: 결과창을 감춘다 / return: 우주항모·외계 앙헬라·함재기 10대가 서서히 다시 나타난다 / net: 우주항모가 전기그물로 선봉함선을 붙잡는다.
+  window.keplerEndingFx = step => {
+    if (!refs.field || !refs.enemyLayer) return;
+    if (step === 'start') {
+      if (refs.battleResult) refs.battleResult.hidden = true;
+      return;
+    }
+    if (step === 'return') {
+      refs.enemyLayer.replaceChildren();
+      const ghosts = [];
+      const add = (className, src, x, y) => {
+        const element = document.createElement('div');
+        element.className = `boss-unit kepler-alien-vessel ${className} kepler-ending-ghost`;
+        element.style.left = percent(x);
+        if (y !== null) element.style.top = percent(y);
+        element.innerHTML = `<img class="boss-sprite" src="${src}" alt="" />`;
+        refs.enemyLayer.append(element);
+        ghosts.push(element);
+      };
+      add('kepler-alien-carrier', 'kepler-alien-carrier.png', .67, null);
+      add('kepler-alien-angela kepler-called', 'kepler-alien-angela.png', .3, null);
+      for (let slot = 0; slot < 10; slot += 1) add('kepler-alien-fighter', 'kepler-alien-fighter.png', .1 + slot * (.8 / 9), .36);
+      requestAnimationFrame(() => requestAnimationFrame(() => ghosts.forEach(element => element.classList.add('entered'))));
+      return;
+    }
+    if (step === 'net' && state?.allies?.length) {
+      const lead = state.allies.find(ally => !ally.dead) || state.allies[0];
+      const to = pointOf(lead);
+      const from = { x: .67, y: .3 };
+      const beam = document.createElement('i');
+      beam.className = 'fx-line kepler-carrier-shieldbreaker';
+      positionLine(beam, from, to);
+      refs.effects.append(beam);
+      setTimeout(() => beam.remove(), 700);
+      setTimeout(() => {
+        const net = document.createElement('i');
+        net.className = 'fx-ending-net';
+        net.style.left = percent(to.x);
+        net.style.top = percent(to.y);
+        refs.effects.append(net);
+        lead.el?.classList.add('ending-netted');
+      }, 420);
+    }
+  };
+
   window.setBattleHold = hold => {
     if (!state || state.status !== 'combat') return;
     state.paused = !!hold;
