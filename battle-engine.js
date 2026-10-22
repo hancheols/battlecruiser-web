@@ -2565,8 +2565,8 @@
     state.keplerCarrierFightersLaunched = carrier.fightersLaunched;
     const targetX = .1 + slot * (.8 / 9);
     // 함재기는 우주항모의 뱃머리 쪽 우현(화면 왼쪽 면)에서 출격한다.
-    const launchX = Math.max(.12, carrier.x - .16);
-    const launchY = carrier.y + .02;
+    const launchX = Math.max(.12, carrier.x - .12);
+    const launchY = carrier.y + .1;
     const fighter = {
       id: `kepler-alien-fighter-${index + 1}`,
       kind: 'boss',
@@ -10217,10 +10217,10 @@
         hp,
         maxHp: hp,
         attackPower: carrier ? 0 : angela ? 1050 : starcruiser ? Math.round(BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(sourceShip)) : Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
-        x: carrier ? .68 : [.5, .24, .76][index],
+        x: carrier ? .62 : [.5, .24, .76][index],
         y: -.26,
         entryStartY: -.26,
-        entryTargetY: carrier ? .33 : .17 + (angela ? 0 : .025),
+        entryTargetY: carrier ? .26 : .17 + (angela ? 0 : .025),
         entryDuration: 1500,
         entryTime: 1500 + index * 180,
         nextAttack: angela ? 2100 : starcruiser ? 680 : Infinity,
