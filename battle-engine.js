@@ -2555,8 +2555,12 @@
     if (!free.length) return;
     carrier.fighterWaves = (carrier.fighterWaves || 0) + 1;
     announce(carrier.fighterWaves === 1 ? '외계 우주항모 · 함재기 편대 출격' : `외계 우주항모 · 함재기 ${free.length}기 보충`, 'boss');
-    playFighterLaunchSound();
-    free.forEach((slot, order) => schedule(() => launchKeplerCarrierFighter(carrier, slot), order * 45));
+    // 선체 우측에서 한 기씩 차례로 나와 오른쪽 자리부터 한 줄로 선다.
+    free.sort((a, b) => b - a).forEach((slot, order) => schedule(() => {
+      if (!state || carrier.dead || state.status !== 'combat') return;
+      playFighterLaunchSound();
+      launchKeplerCarrierFighter(carrier, slot);
+    }, order * 260));
   }
 
   function launchKeplerCarrierFighter(carrier, slot) {
@@ -2564,9 +2568,9 @@
     const index = carrier.fightersLaunched++;
     state.keplerCarrierFightersLaunched = carrier.fightersLaunched;
     const targetX = .1 + slot * (.8 / 9);
-    // 함재기는 우주항모의 뱃머리 쪽 우현(화면 왼쪽 면)에서 출격한다.
-    const launchX = Math.max(.12, carrier.x - .12);
-    const launchY = carrier.y + .1;
+    // 함재기는 우주항모 선체의 오른쪽 면에서 출격한다.
+    const launchX = Math.min(.97, carrier.x + .3);
+    const launchY = carrier.y - .04;
     const fighter = {
       id: `kepler-alien-fighter-${index + 1}`,
       kind: 'boss',
@@ -2582,8 +2586,8 @@
       entryTargetX: targetX,
       entryStartY: launchY,
       entryTargetY: .36,
-      entryDuration: 650,
-      entryTime: 650,
+      entryDuration: 800,
+      entryTime: 800,
       nextAttack: 300,
       enemyShield: 0,
       enemyImmuneUntil: 0,
@@ -10217,7 +10221,7 @@
         hp,
         maxHp: hp,
         attackPower: carrier ? 0 : angela ? 1050 : starcruiser ? Math.round(BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(sourceShip)) : Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
-        x: carrier ? .62 : [.5, .24, .76][index],
+        x: carrier ? .67 : [.5, .24, .76][index],
         y: -.26,
         entryStartY: -.26,
         entryTargetY: carrier ? .26 : .17 + (angela ? 0 : .025),
