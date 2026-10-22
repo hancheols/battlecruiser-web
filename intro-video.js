@@ -15,11 +15,9 @@
   const VISIBLE_RATIO = 596 / 720; // 영상 아래쪽 자막 띠를 잘라 낸 뒤 보이는 높이 비율
   const LOOP_FADE = 1.6;         // 곡 끝에서 처음으로 돌아갈 때 겹쳐 흐르는 시간(초)
   // 영상 원본에는 장면이 바뀔 때 옆 장면 그림이 가장자리에 잠깐 비치는 구간이 있다(0.1초 간격, 1280px 기준 폭).
-  // 그 부분은 가리고 현재 장면 그림만 보이게 한다. 가려진 자리에는 뒤의 흐린 배경이 비친다.
+  // 그 폭만큼 영상을 오른쪽 기준으로 살짝 키워 현재 장면 그림만 보이게 한다(장면이 이미 천천히 움직이는 영상이라 어색하지 않다).
   const LEFT_SLIVER = [0,0,0,0,0,0,0,0,0,0,0,0,0,24,22,20,18,16,12,10,6,4,10,6,4,54,54,52,50,48,44,42,40,36,32,28,24,20,90,88,86,86,84,82,80,80,78,76,74,72,68,66,64,60,58,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,32,30,28,26,22,20,18,14,10,6,4,0,66,64,64,62,60,58,54,52,52,48,46,44,40,36,34,90,88,86,86,84,82,80,78,76,72,70,68,64,60,58];
   const CUT_MARGIN = 8;
-  // 11.3~14.55초 구간에는 오른쪽 가장자리에 비스듬히 비치는 옆 장면이 있다.
-  const rightSliver = time => (time >= 11.3 && time < 13.0 ? 92 : time >= 13.0 && time < 14.55 ? 64 : 0);
   // [시작 초, 자막]. 마지막 줄은 제목 카드로 크게 보여 준다.
   const LINES = [
     [0, '우리가 살고 있는 아름다운 지구,'],
@@ -148,13 +146,14 @@
   }
 
   function cropEdges() {
-    const time = video.currentTime || 0;
-    const position = time * 10;
+    const position = (video.currentTime || 0) * 10;
     const index = Math.floor(position);
-    const left = Math.max(LEFT_SLIVER[index] || 0, LEFT_SLIVER[index + 1] || 0);
-    const leftCut = left ? left + CUT_MARGIN : 0;
-    const rightCut = rightSliver(time);
-    video.style.clipPath = leftCut || rightCut ? `inset(0 ${(rightCut / 1280 * 100).toFixed(2)}% 0 ${(leftCut / 1280 * 100).toFixed(2)}%)` : 'none';
+    const here = LEFT_SLIVER[index] || 0;
+    const next = LEFT_SLIVER[index + 1] || 0;
+    // 같은 장면 안에서는 0.1초 사이를 부드럽게 이어 주고, 장면이 바뀌는 지점(한쪽이 0)은 큰 쪽을 쓴다.
+    const sliver = here && next ? here + (next - here) * (position - index) : Math.max(here, next);
+    const cut = sliver ? sliver + CUT_MARGIN : 0;
+    video.style.transform = cut ? `scale(${(1280 / (1280 - cut)).toFixed(4)})` : 'none';
   }
 
   function syncCaption() {

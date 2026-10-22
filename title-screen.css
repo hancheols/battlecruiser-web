@@ -22,3 +22,7 @@
 
 @keyframes title-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @media (prefers-reduced-motion:reduce){.title-hero{animation:none}}
+
+/* 지나가는 레이저 */
+#title-screen>.title-bolt{position:absolute;left:0;top:0;z-index:1;width:150px;height:4px;margin:-2px 0 0 -75px;border-radius:3px;opacity:0;pointer-events:none;background:linear-gradient(90deg,transparent,#59ecff 45%,#fff);box-shadow:0 0 10px #46e3ff,0 0 24px #1d9bd8;will-change:transform,opacity}
+#title-screen>.title-bolt.enemy{height:3px;background:linear-gradient(90deg,transparent,#ff5a6a 45%,#ffd2d6);box-shadow:0 0 10px #ff4258,0 0 24px #b3182b}

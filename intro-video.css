@@ -3,10 +3,10 @@
 #intro-video.leaving{opacity:0;pointer-events:none}
 #intro-video::before{content:"";position:absolute;inset:0;background:radial-gradient(1.5px 1.5px at 18% 22%,#fff9,transparent),radial-gradient(1px 1px at 72% 12%,#fff8,transparent),radial-gradient(1.5px 1.5px at 86% 64%,#cfe6ff99,transparent),radial-gradient(1px 1px at 30% 82%,#fff8,transparent),radial-gradient(1px 1px at 58% 46%,#fff6,transparent);pointer-events:none}
 .intro-stage{position:relative;display:flex;flex-direction:column;gap:22px;width:min(100%,520px)}
-.intro-window{position:relative;width:100%;aspect-ratio:1280/596;overflow:hidden;border-block:1px solid #5fb8ff66;background:transparent;box-shadow:0 0 34px #2a7bd866,0 0 0 1px #02050c}
+.intro-window{position:relative;width:100%;aspect-ratio:1280/596;overflow:hidden;border-block:1px solid #5fb8ff66;background:#000;box-shadow:0 0 34px #2a7bd866,0 0 0 1px #02050c}
 /* 영상 아래쪽 약 17%(영상 속 자막 띠)는 잘라 내고, 좌우는 천천히 훑는다 */
 /* 확대하지 않고 폭에 맞춘다. 영상 아래쪽 자막 띠(약 17%)는 창 밖으로 잘려 나간다 */
-.intro-window video{position:absolute;top:0;left:0;width:100%;height:auto;max-width:none;transition:clip-path .12s linear}
+.intro-window video{position:absolute;top:0;left:0;width:100%;height:auto;max-width:none;transform-origin:100% 50%}
 .intro-backdrop{position:absolute;inset:0;width:100%;height:100%;filter:blur(22px) brightness(.5) saturate(1.25);transform:scale(1.15);pointer-events:none}
 .intro-vignette{position:absolute;inset:0;background:linear-gradient(180deg,#02060f55 0%,transparent 18%,transparent 78%,#02060fcc 100%);pointer-events:none}
 .intro-caption{min-height:104px;padding:0 22px;text-align:center}
