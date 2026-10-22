@@ -510,7 +510,7 @@
     refs.battleMap.disabled = false;
     refs.field.classList.remove('combat-active');
     refs.viewport?.classList.remove('arena-battle');
-    if (refs.battleOperationLabel) refs.battleOperationLabel.textContent = isKeplerOperation(operation) ? 'CHAPTER 03 · KEPLER FRONTIER' : 'CHAPTER 1 · COMBAT ZONE';
+    if (refs.battleOperationLabel) refs.battleOperationLabel.textContent = isTapaoOperation(operation) ? 'CHAPTER 04 · TAPAO THONG' : isKeplerOperation(operation) ? 'CHAPTER 03 · KEPLER FRONTIER' : 'CHAPTER 1 · COMBAT ZONE';
     refs.battleClock.previousElementSibling.textContent = 'ELAPSED';
     if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = false;
     if (refs.frigateSkill) refs.frigateSkill.hidden = false;
@@ -526,13 +526,14 @@
       gate: Number(operation.gate) || 1
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
+    refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
     refs.viewport?.classList.toggle('kepler-secret-base-gate', isKeplerSecretBaseOperation(normalizedOperation));
     // 비밀기지 배경: 관문이 올라갈수록 그림을 조금씩 아래로 내려 보여 준다(1관문 위쪽 ~ 10관문 아래쪽).
     if (isKeplerSecretBaseOperation(normalizedOperation)) refs.viewport?.style.setProperty('--kepler-secret-base-y', `${((Number(normalizedOperation?.gate) || 1) - 1) * 10}%`);
     const fleet = resolveFleet();
     const blueExtraCount = magentaBlueBonusCount(normalizedOperation);
     const marsFirstGate = normalizedOperation.chapter === 1 && normalizedOperation.region === 'mars' && normalizedOperation.gate === 1;
-    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation)
+    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation) || isTapaoOperation(normalizedOperation)
       ? 0
       : marsFirstGate
       ? Math.round(ENEMY_WAVE.baseCount * .4)
@@ -972,7 +973,27 @@
   }
 
   function isKeplerOperation(operation = state?.operation) {
-    return Number(operation?.chapter) === 3 || String(operation?.region || '').toLowerCase() === 'kepler';
+    return Number(operation?.chapter) === 3 || isTapaoOperation(operation) || String(operation?.region || '').toLowerCase() === 'kepler';
+  }
+
+  // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
+  const TAPAO_ALIEN_SCALE = 1.3;
+  function isTapaoOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 4 || String(operation?.region || '').toLowerCase().startsWith('tapao-');
+  }
+
+  // 지역·관문별 외계 함대 웨이브. 한 웨이브를 모두 격파하면 다음 웨이브가 나온다.
+  // 행성 인근: 기본 스타크루저 3 / 5관문 앙헬라1+스타크루저2 / 10관문 스타크루저 3 뒤 앙헬라1+스타크루저2
+  // 위성 궤도: 기본 스타크루저 3 / 5관문 스타크루저 3 웨이브 2회 / 10관문 앙헬라1+스타크루저2 웨이브 2회
+  // 콜로니·게이트는 구성이 정해지지 않아 임시로 기본(스타크루저 3)을 쓴다.
+  function tapaoWavePlan(operation = state?.operation) {
+    const region = String(operation?.region || '').toLowerCase();
+    const gate = Number(operation?.gate) || 1;
+    const cruisers = ['starcruiser', 'starcruiser', 'starcruiser'];
+    const flagship = ['angela', 'starcruiser', 'starcruiser'];
+    if (region === 'tapao-near') return gate === 5 ? [flagship] : gate === 10 ? [cruisers, flagship] : [cruisers];
+    if (region === 'tapao-orbit') return gate === 5 ? [cruisers, cruisers] : gate === 10 ? [flagship, flagship] : [cruisers];
+    return [cruisers];
   }
 
   function isKeplerSecretBaseOperation(operation = state?.operation) {
@@ -1816,7 +1837,7 @@
       if (!isKeplerOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
       scheduleMidMonsterArrival();
     }
-    if (isKeplerSecretBaseOperation()) checkBossThreshold();
+    if (isKeplerSecretBaseOperation() || isTapaoOperation()) checkBossThreshold();
     updateFrigateButton();
     announce('전투 개시', 'danger');
     frameHandle = requestAnimationFrame(runFrame);
@@ -2531,9 +2552,9 @@
       ? targets.sort((a, b) => Math.hypot(a.x - ship.x, a.y - ship.y) - Math.hypot(b.x - ship.x, b.y - ship.y))[0]
       : targets[Math.floor(Math.random() * targets.length)];
     if (!target) return;
-    const damage = ship.variant === 'kepler-alien-angela' ? 350 : ship.variant === 'kepler-alien-starcruiser'
+    const damage = (ship.damageScale || 1) * (ship.variant === 'kepler-alien-angela' ? 350 : ship.variant === 'kepler-alien-starcruiser'
       ? BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(ship.damageSource)
-      : BLADE_LASER.hits * combatStatFactor(ship.damageSource);
+      : BLADE_LASER.hits * combatStatFactor(ship.damageSource));
     const shots = ship.variant === 'kepler-alien-angela' ? 2 : 1;
     for (let shot = 0; shot < shots; shot += 1) {
       schedule(() => {
@@ -2966,7 +2987,7 @@
     const targets = hostileAllyTargets();
     const target = targets.sort((a, b) => Math.hypot(a.x - ship.x, a.y - ship.y) - Math.hypot(b.x - ship.x, b.y - ship.y))[0];
     if (!target) return false;
-    const factor = combatStatFactor(ship.damageSource);
+    const factor = combatStatFactor(ship.damageSource) * (ship.damageScale || 1);
     const from = { x: ship.x, y: ship.y + .13 };
     const targetPoint = pointOf(target);
     const charge = document.createElement('i');
@@ -10190,6 +10211,30 @@
 
   function checkBossThreshold() {
     if (!state || state.status !== 'combat') return;
+    if (isTapaoOperation()) {
+      const plan = tapaoWavePlan();
+      const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
+      if (state.tapaoWavePending) return;
+      if (!state.keplerAlienFleetSpawned) {
+        state.tapaoWaveIndex = state.tapaoWaveIndex ?? 0;
+        spawnKeplerAlienFleet(plan[state.tapaoWaveIndex] || plan[0]);
+        return;
+      }
+      if (alive.length) return;
+      const nextWave = (state.tapaoWaveIndex || 0) + 1;
+      if (nextWave >= plan.length) { finishBattle(true); return; }
+      // 이번 웨이브를 모두 격파했다: 잠시 뒤 다음 웨이브가 나타난다.
+      state.tapaoWavePending = true;
+      state.tapaoWaveIndex = nextWave;
+      announce(`외계 함대 제${nextWave + 1}웨이브 접근`, 'boss');
+      schedule(() => {
+        if (!state || state.status !== 'combat') return;
+        state.tapaoWavePending = false;
+        state.keplerAlienFleetSpawned = false;
+        spawnKeplerAlienFleet(plan[nextWave]);
+      }, 2200);
+      return;
+    }
     if (isKeplerSecretBaseOperation()) {
       // 10관문: 함재기 선발대 3편대가 먼저 오고, 5초 뒤 우주항모가 나타난다(그 전에는 승리 판정도 하지 않는다).
       if (Number(state.operation?.gate) === 10 && !state.keplerCarrierArrived) { startKeplerCarrierPrelude(); return; }
@@ -10315,6 +10360,7 @@
   }
 
   function isMidMonsterOperation() {
+    if (isTapaoOperation()) return false;
     const region = String(state?.operation?.region || '').toLowerCase();
     const gate = Number(state?.operation?.gate) || 0;
     if (isKeplerSecretBaseOperation()) return false;
@@ -10329,20 +10375,21 @@
     return isMagentaTasOperation() || (region === 'titan' && gate >= 16 && gate !== 20) || (['oort', 'oort-cloud', 'oortcloud'].includes(region) && ![10, 15, 20].includes(gate));
   }
 
-  function spawnKeplerAlienFleet() {
+  function spawnKeplerAlienFleet(lineupOverride = null) {
     if (!state || state.status !== 'combat' || state.keplerAlienFleetSpawned) return;
     state.keplerAlienFleetSpawned = true;
     const region = String(state.operation?.region || '').toLowerCase();
     const gate = Number(state.operation?.gate) || 1;
     const atmosphere = region === 'kepler-atmosphere';
     const secretBase = region === 'kepler-base';
-    const lineup = secretBase
+    const lineup = lineupOverride ? lineupOverride : secretBase
       ? gate <= 4 ? ['starcruiser', 'escort', 'escort']
         : gate === 5 ? ['angela', 'starcruiser', 'starcruiser']
           : gate <= 9 ? ['starcruiser', 'starcruiser', 'escort']
             : ['carrier']
       : atmosphere ? ['angela', 'starcruiser', 'escort'] : ['angela', 'escort', 'escort'];
     const total = lineup.length;
+    const alienScale = isTapaoOperation() ? TAPAO_ALIEN_SCALE : 1;
     state.keplerAlienFleetSize = total;
     const fleet = [];
     for (let index = 0; index < total; index += 1) {
@@ -10356,7 +10403,7 @@
         ? { name: '스타 크루저', type: 'battlecruiser', rarity: 'SSR', enhancementStars: 3 }
         : carrier ? { name: '외계 우주항모', type: 'carrier', rarity: 'L', enhancementStars: 5 }
           : { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
-      const hp = carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000;
+      const hp = Math.round(alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
       const ship = {
         id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${index}`,
         kind: 'boss',
@@ -10364,6 +10411,7 @@
         name: angela ? '외계 앙헬라' : carrier ? '외계 우주항모' : starcruiser ? '외계 스타크루저' : '외계 호위함',
         ship: sourceShip,
         damageSource: sourceShip,
+        damageScale: alienScale,
         hp,
         maxHp: hp,
         attackPower: carrier ? 0 : angela ? 1050 : starcruiser ? Math.round(BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(sourceShip)) : Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
@@ -10414,7 +10462,7 @@
     updateHud(true);
     focusBattleAudio('boss');
     const regionLabel = secretBase ? '비밀기지' : atmosphere ? '대기권' : '행성권';
-    announce(`케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
+    announce(isTapaoOperation() ? `타파오 통 ${gate}관문 · ${carrierLineupLabel(lineup)} 접근` : `케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
   }
 
   function carrierLineupLabel(lineup) {
@@ -11923,7 +11971,7 @@
       const ratio = Math.max(0, boss.hp / Math.max(1, boss.maxHp) * 100);
       return { ratio, hp: `${formatNumber(Math.max(0, boss.hp))} / ${formatNumber(boss.maxHp)}` };
     };
-    if (isKeplerOperation() && ['kepler-orbit', 'kepler-atmosphere', 'kepler-base'].includes(String(state?.operation?.region || '').toLowerCase()) && state.keplerAlienFleetSpawned) {
+    if (isKeplerOperation() && (isTapaoOperation() || ['kepler-orbit', 'kepler-atmosphere', 'kepler-base'].includes(String(state?.operation?.region || '').toLowerCase())) && state.keplerAlienFleetSpawned) {
       // 함재기는 체력바에 표시하지 않는다(우주항모와 호위함만 표시).
       const livingFleet = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && ship.variant !== 'kepler-alien-fighter' && !ship.dead);
       if (!livingFleet.length) {

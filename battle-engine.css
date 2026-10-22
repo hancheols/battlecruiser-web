@@ -773,3 +773,5 @@
 @keyframes ending-net-pulse{from{opacity:.75}to{opacity:1}}
 .ally-unit.ending-netted{filter:grayscale(.6) brightness(.8);animation:ending-netted-shake .12s linear infinite}
 @keyframes ending-netted-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
+/* 타파오 통 행성 전투: 행성 색(장밋빛 베이지)이 은은하게 감도는 화면 */
+.battle-viewport.tapao-battle::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 60% at 82% 12%,#f0bfa655,transparent 62%),linear-gradient(180deg,#3a1d2a22,transparent 40%,#2a141c44);mix-blend-mode:screen}

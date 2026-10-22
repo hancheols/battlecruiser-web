@@ -695,3 +695,47 @@ body{background:#10192a}#app{isolation:isolate;background:#193453}#app::before{d
   #map .campaign-art.solar .solar-region-pins .solar-pin small{font-size:clamp(7px,1.8vw,9px)!important;letter-spacing:.06em}
 }
 
+
+/* 챕터 4 · 타파오 통 행성 (케플러 지도와 같은 구성, 행성의 장밋빛 베이지 색) */
+#map .galaxy-preview:has(.tapao-map){padding:0;min-height:0;border-color:#af837a;background:#0b0b12;box-shadow:0 0 28px #b9776922}
+.tapao-map{color:#f2deda}.tapao-scene{background:#181210}
+.tapao-scene>img{filter:saturate(.8) sepia(.2) brightness(.76)}
+.tapao-scene::after{background:linear-gradient(90deg,#120c0b1c 24%,#160e0dc2 69%,#110c0bf0),linear-gradient(0deg,#0f0b0aed,transparent 24%,transparent 83%,#150d0c99)}
+.tapao-map .magenta-map-grid{background:linear-gradient(#d39a8e20 1px,transparent 1px),linear-gradient(90deg,#d39a8e20 1px,transparent 1px)}
+.tapao-map .magenta-starlight{filter:sepia(.45) saturate(.7)}
+.tapao-map .magenta-map-heading small,.tapao-map .magenta-map-heading em{color:#d5a9a0}
+.tapao-sector-pins{top:38%;right:4%;width:min(46%,360px)}
+.tapao-sector-pins .magenta-pin{cursor:default;border:1px solid #bb8c8288;border-radius:8px;background:linear-gradient(105deg,#30211ee8,#161110e8);box-shadow:inset 3px 0 #bb877d,0 8px 18px #0008;color:#fae5e1}
+.tapao-sector-pins .magenta-pin>i{border-color:#daaca3;box-shadow:0 0 0 4px #c3867933,0 0 15px #c38679;background:#e7bfb7}
+.tapao-route-panel{background:linear-gradient(150deg,#1f1715,#100f10 65%,#1b1312);border-top-color:#ad7d736b}
+.tapao-route-panel .magenta-route-heading span small{color:#cda198}
+.tapao-route-panel .magenta-route-heading strong{color:#fae2dd}
+.tapao-route::before{border-color:#d3a09677}
+.tapao-route .magenta-gate{color:#f1dbd6;background:linear-gradient(155deg,#31221f,#161110 72%);border-color:#9e736a;box-shadow:inset 0 0 12px #d7908214,0 0 10px #7d3e3122}
+.tapao-route .magenta-gate span{background:linear-gradient(145deg,#784d44,#3f2b27);border-color:#cb958a;color:#fae3de;box-shadow:0 0 8px #c67a6b55,inset 0 0 8px #e7bcb41c}
+.tapao-route .magenta-gate span::after{border-color:#ebcbc566}
+.tapao-route .magenta-gate small{color:#d5b5af!important}
+.tapao-route .magenta-gate.selected{border-color:#f8d8d1;background:linear-gradient(155deg,#6e453de8,#31211eee);box-shadow:inset 0 0 14px #efac9f22,0 0 16px #d18b7d88;transform:translateY(-2px)}
+.tapao-route .magenta-gate.selected span{background:linear-gradient(145deg,#b87a6d,#6c4037);border-color:#f8dcd7;box-shadow:0 0 10px #f3bfb5,0 0 20px #c07b6d}
+.tapao-route .magenta-gate.cleared{border-color:#9fc8ad;background:linear-gradient(155deg,#22392f,#151e19)}
+.tapao-route .magenta-gate.cleared span{background:linear-gradient(145deg,#4e8366,#244636);border-color:#a8d7b5;color:#e5ffe9;box-shadow:0 0 10px #8dcba277}
+.tapao-route .magenta-gate:disabled{filter:saturate(.45) brightness(.72);opacity:.5}
+.tapao-route .magenta-gate:hover:not(:disabled),.tapao-route .magenta-gate:focus-visible{outline:2px solid #e7b6ac;outline-offset:2px}
+.tapao-route-panel .magenta-star-progress>b{border-color:#e4afa4;background:radial-gradient(circle,#f6d1ca 0,#c47160 48%,#643329 100%);box-shadow:0 0 10px #c9827499}
+.tapao-route-panel .magenta-star-progress>strong{color:#e8bbb2}
+.tapao-route-panel .magenta-deploy{border-color:#c88b7e;background:linear-gradient(115deg,#6c4138dd,#8e584dcc,#2e2220ee),url('battle-scene-background.png') center/cover;box-shadow:inset 0 1px #f5c8bf77,0 5px 20px #0008}
+.tapao-route-panel .magenta-deploy:hover,.tapao-route-panel .magenta-deploy:focus-visible{background:linear-gradient(115deg,#8a5a50dd,#af7265cc,#442e29ee),url('battle-scene-background.png') center/cover;outline:2px solid #f5c9c0}
+.tapao-sector-pins .magenta-pin{cursor:pointer}
+.tapao-sector-pins .magenta-pin.selected{border-color:#e6bcb4;background:linear-gradient(105deg,#6e453ddd,#2d1e1be8);box-shadow:inset 3px 0 #f4c2b8,0 0 18px #c17a6c66}
+.tapao-sector-pins .magenta-pin:hover:not(:disabled),.tapao-sector-pins .magenta-pin:focus-visible{border-color:#f6d0c8;box-shadow:inset 3px 0 #f4c2b8,0 0 15px #c17a6c66;outline:none}
+#map .tapao-route .magenta-gate.cleared.selected{border-color:#f8dbd6;background:linear-gradient(150deg,#527d5c,#263b32);box-shadow:inset 0 0 15px #e9b9af33,0 0 0 2px #e4afa488,0 0 20px #a9e0b3bb,0 0 32px #d48b7c66}
+#map .tapao-route .magenta-gate.cleared.selected span{background:linear-gradient(145deg,#84bd8e,#3d7657);border-color:#f9dfda;color:#fff;box-shadow:0 0 9px #f8dad4,0 0 18px #b6f5bf}
+@media(max-width:620px){
+  #map .magenta-sector-pins,#map .tapao-sector-pins,#map .campaign-art.solar .solar-region-pins{gap:clamp(4px,1.3vw,7px)}
+  #map .magenta-sector-pins .magenta-pin,#map .tapao-sector-pins .tapao-region-pin,#map .campaign-art.solar .solar-region-pins .solar-pin{min-height:clamp(38px,9vw,48px);padding:5px 8px;gap:7px}
+}
+/* 작전지역마다 행성이 놓인 위치를 조금씩 달리해 장면을 구분한다 */
+.tapao-scene[data-region="tapao-near"]>img{object-position:30% 55%}
+.tapao-scene[data-region="tapao-orbit"]>img{object-position:62% 45%;filter:saturate(.85) sepia(.28) brightness(.7)}
+.tapao-scene[data-region="tapao-colony"]>img{object-position:46% 70%;filter:saturate(.8) sepia(.3) brightness(.66) contrast(1.06)}
+.tapao-scene[data-region="tapao-gate"]>img{object-position:80% 30%;filter:saturate(.95) brightness(.74) contrast(1.08)}

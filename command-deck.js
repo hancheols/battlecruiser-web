@@ -1584,13 +1584,27 @@ function initializePlanetCampaign() {
     keplerRatings = JSON.parse(localStorage.getItem('kepler-campaign-stars-v1') || '{}') || {};
     for(let gateNumber=1;gateNumber<=10;gateNumber++)if(keplerRatings[String(gateNumber)]!=null&&keplerRatings['kepler-orbit-'+gateNumber]==null)keplerRatings['kepler-orbit-'+gateNumber]=keplerRatings[String(gateNumber)];
   } catch (_) {}
+  // 챕터 4: 타파오 통 행성. 4개 작전지역(관문 각 10개). 행성 인근·위성 궤도는 외계 함대 전투다.
+  const tapaoRegions = {
+    'tapao-near':{name:'타파오 통 행성인근',en:'PLANET VICINITY',count:10,image:'tapao-thong-planet.jpg'},
+    'tapao-orbit':{name:'타파오 통 위성궤도',en:'SATELLITE ORBIT',count:10,image:'tapao-thong-planet.jpg'},
+    'tapao-colony':{name:'타파오 콜로니',en:'TAPAO COLONY',count:10,image:'tapao-thong-planet.jpg'},
+    'tapao-gate':{name:'타파오 게이트',en:'TAPAO GATE',count:10,image:'tapao-thong-planet.jpg'}
+  };
+  let tapaoProgress = {'tapao-near':0,'tapao-orbit':0,'tapao-colony':0,'tapao-gate':0};
+  let tapaoRatings = {};
+  try {
+    const saved=JSON.parse(localStorage.getItem('tapao-campaign-v1')||'null');
+    if(saved&&typeof saved==='object')for(const key of Object.keys(tapaoRegions))tapaoProgress[key]=Math.max(0,Math.min(10,Number(saved[key])||0));
+  } catch (_) {}
+  try { tapaoRatings = JSON.parse(localStorage.getItem('tapao-campaign-stars-v1') || '{}') || {}; } catch (_) {}
   const roman = n => { let result=''; for(const [value,letter] of [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=value){result+=letter;n-=value;}return result; };
   const starRewardKey='starfleet-operation-star-rewards-v1';
   const regionStars=(ratingMap,key,count)=>Array.from({length:count},(_,index)=>Math.max(0,Math.min(3,Number(ratingMap[key+'-'+(index+1)])||0))).reduce((sum,value)=>sum+value,0);
   const starRewardButton=(stars,count)=>`<button type="button" class="magenta-star-progress region-star-claim" aria-label="작전지역 별점 ${stars}/${count*3} · 별점 보상 확인"><img class="operation-star-badge" src="operation-star-badge.png" alt="" aria-hidden="true"/><strong>${stars} <small>/ ${count*3}</small></strong></button>`;
   function openStarRewards(chapter,key){
-    const list=chapter===3?keplerRegions:chapter===2?magentaRegions:regions;
-    const ratingMap=chapter===3?keplerRatings:chapter===2?magentaRatings:ratings;
+    const list=chapter===4?tapaoRegions:chapter===3?keplerRegions:chapter===2?magentaRegions:regions;
+    const ratingMap=chapter===4?tapaoRatings:chapter===3?keplerRatings:chapter===2?magentaRatings:ratings;
     const area=list[key],stars=regionStars(ratingMap,key,area.count),maximum=area.count*3;
     const claimId=`${chapter}:${key}`;
     let claimed={};try{claimed=JSON.parse(localStorage.getItem(starRewardKey)||'{}')||{};}catch(_){}
@@ -1628,6 +1642,7 @@ function initializePlanetCampaign() {
   let region = null, gate = 1, running = null;
   let magentaRegion = 'magenta-near', magentaGate = 1;
   let keplerRegion = 'kepler-orbit', keplerGate = 1;
+  let tapaoRegion = 'tapao-near', tapaoGate = 1;
   const solarArt = `<svg viewBox="0 0 480 260" role="img" aria-label="태양과 행성들의 궤도를 표현한 태양계"><defs><radialGradient id="solarSun"><stop stop-color="#fff5b5"/><stop offset=".5" stop-color="#ffcb4a"/><stop offset="1" stop-color="#e85b19"/></radialGradient></defs><g fill="none" stroke="#91b8e5" opacity=".3">${[55,85,120,155,195,230].map(r=>`<ellipse cx="240" cy="130" rx="${r}" ry="${r*.47}"/>`).join('')}</g><circle cx="240" cy="130" r="29" fill="url(#solarSun)"/>${[[191,118,4,'#baa090'],[302,108,7,'#dfac67'],[143,157,9,'#5297de'],[364,173,7,'#cb6338'],[78,86,16,'#caa87e'],[431,104,13,'#d6c390']].map(([x,y,r,c])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('')}<ellipse cx="431" cy="104" rx="23" ry="5" fill="none" stroke="#e5cfa8" stroke-width="3" transform="rotate(-20 431 104)"/></svg>`;
   map.innerHTML = `<header class="campaign-heading"><small>SOLAR SYSTEM · EXPEDITION</small><h1>행성계</h1><p>작전 지역과 관문을 선택하세요</p></header><div class="campaign-art solar">${solarArt}<div class="region-world"></div><div class="region-caption">태양계 <small>SOLAR SYSTEM</small></div></div><div class="region-tabs">${Object.entries(regions).map(([k,r])=>`<button type="button" data-region="${k}">${r.name}<small>${r.count}개 관문</small></button>`).join('')}</div><div class="campaign-status">지역을 선택하면 관문이 표시됩니다.</div><div class="gate-grid" aria-label="관문 선택"></div><button type="button" class="campaign-battle" disabled><span class="combat-symbol">⚔</span><span><b>전선 출격</b><small>작전 지역을 선택하세요</small></span><span>›</span></button>`;
   const art = map.querySelector('.campaign-art'), status = map.querySelector('.campaign-status'), grid = map.querySelector('.gate-grid'), launch = map.querySelector('.campaign-battle');
@@ -1710,36 +1725,61 @@ function initializePlanetCampaign() {
     galaxyPanel.querySelector('.kepler-deploy').onclick=()=>launchOperation(3,keplerRegion,keplerGate);
     galaxyPanel.querySelector('.region-star-claim').onclick=()=>openStarRewards(3,keplerRegion);
   }
-  function operationFor(chapter,key,number){const r=chapter===3?keplerRegions[key]:chapter===2?magentaRegions[key]:regions[key];return {chapter,region:key,regionName:r.name,regionEn:r.en,gate:number};}
+  function renderTapao(){
+    const selected=tapaoRegions[tapaoRegion],cleared=tapaoProgress[tapaoRegion],regionEntries=Object.entries(tapaoRegions);
+    const totalStars=regionStars(tapaoRatings,tapaoRegion,selected.count);
+    galaxyPanel.innerHTML=`<div class="tapao-map">
+      <div class="magenta-scene tapao-scene">
+        <img src="tapao-thong-planet.jpg" alt="타파오 통 행성과 주변 우주"/><span class="magenta-map-grid" aria-hidden="true"></span><span class="magenta-orbit orbit-outer" aria-hidden="true"></span><span class="magenta-orbit orbit-inner" aria-hidden="true"></span><span class="magenta-starlight" aria-hidden="true"><i style="--star-start:18deg;--star-radius:205px;--star-delay:-2s"></i><i style="--star-start:104deg;--star-radius:180px;--star-delay:-7s"></i><i style="--star-start:196deg;--star-radius:220px;--star-delay:-12s"></i><i style="--star-start:288deg;--star-radius:194px;--star-delay:-18s"></i></span>
+        <div class="magenta-map-heading"><small>CHAPTER 04 · TAPAO THONG SECTOR</small><b>타파오 통 행성</b><em>TAPAO THONG PLANET · DEEP FRONTIER</em></div>
+        <div class="magenta-sector-pins tapao-sector-pins" aria-label="타파오 통 작전지역">${regionEntries.map(([key,r],index)=>{const locked=index>0&&tapaoProgress[regionEntries[index-1][0]]<10;return `<button type="button" class="magenta-pin tapao-region-pin pin-${index+1}${key===tapaoRegion?' selected':''}${locked?' locked':''}" data-tapao-region="${key}" aria-pressed="${key===tapaoRegion}" ${locked?'disabled':''}><i aria-hidden="true">${locked?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10V7a5 5 0 0 1 10 0v3"/><rect x="4" y="10" width="16" height="11" rx="2"/></svg>':''}</i><span><small>0${index+1} · ${r.en}</small><b>${r.name}</b></span></button>`;}).join('')}</div>
+      </div>
+      <div class="magenta-route-panel tapao-route-panel"><div class="magenta-route-heading"><span><small>선택 작전지역 · ${selected.en}</small><b>${selected.name}</b></span><strong>${cleared} <small>/ 10 완료</small></strong></div>
+        <div class="magenta-route tapao-route" aria-label="${selected.name} 관문 선택">${Array.from({length:10},(_,i)=>{const n=i+1,locked=n>cleared+1,stars=Math.max(0,Math.min(3,Number(tapaoRatings[tapaoRegion+'-'+n])||0));return `<button type="button" data-tapao-gate="${n}" class="magenta-gate${n===tapaoGate&&!locked?' selected':''}${n<=cleared?' cleared':''}" ${locked?'disabled':''} aria-label="${selected.name} ${n}관문 ${locked?'잠김':n<=cleared?'완료':'도전 가능'}" aria-pressed="${n===tapaoGate&&!locked}"><span>${String(n).padStart(2,'0')}</span><small>${locked?'잠김':n<=cleared?(stars?'★'.repeat(stars):'완료'):'도전'}</small></button>`;}).join('')}</div>
+        <div class="magenta-route-footer">${starRewardButton(totalStars,selected.count)}<button type="button" class="magenta-deploy tapao-deploy">전선 출격</button></div>
+      </div>
+    </div>`;
+    const scene=galaxyPanel.querySelector('.tapao-scene');scene.dataset.region=tapaoRegion;scene.querySelector('img').alt=selected.name+' 작전지역';
+    galaxyPanel.querySelectorAll('[data-tapao-region]').forEach(button=>button.onclick=()=>{tapaoRegion=button.dataset.tapaoRegion;tapaoGate=Math.min(tapaoProgress[tapaoRegion]+1,10);renderTapao();});
+    galaxyPanel.querySelectorAll('[data-tapao-gate]').forEach(button=>button.onclick=()=>{tapaoGate=Number(button.dataset.tapaoGate);renderTapao();});
+    galaxyPanel.querySelector('.tapao-deploy').onclick=()=>launchOperation(4,tapaoRegion,tapaoGate);
+    galaxyPanel.querySelector('.region-star-claim').onclick=()=>openStarRewards(4,tapaoRegion);
+  }
+  function operationFor(chapter,key,number){const r=chapter===4?tapaoRegions[key]:chapter===3?keplerRegions[key]:chapter===2?magentaRegions[key]:regions[key];return {chapter,region:key,regionName:r.name,regionEn:r.en,gate:number};}
   const chapterOneComplete=()=>Object.keys(regions).every(key=>progress[key]>=regions[key].count);
   const firstUnclearedMagenta=()=>Object.keys(magentaRegions).find(key=>magentaProgress[key]<magentaRegions[key].count);
   const chapterTwoComplete=()=>Object.keys(magentaRegions).every(key=>magentaProgress[key]>=magentaRegions[key].count);
   const firstUnclearedKepler=()=>Object.keys(keplerRegions).find(key=>keplerProgress[key]<keplerRegions[key].count);
   const chapterThreeComplete=()=>Object.keys(keplerRegions).every(key=>keplerProgress[key]>=keplerRegions[key].count);
+  const firstUnclearedTapao=()=>Object.keys(tapaoRegions).find(key=>tapaoProgress[key]<tapaoRegions[key].count);
+  const chapterFourComplete=()=>Object.keys(tapaoRegions).every(key=>tapaoProgress[key]>=tapaoRegions[key].count);
   const chapterTwoUnlocked=()=>chapterOneComplete()||Object.values(magentaProgress).some(value=>value>0);
   function launchOperation(chapter,key,number){
     if (window.tutorialAllowsGate && !window.tutorialAllowsGate(chapter,key,number)) {
       window.notice?.('파라의 안내에 따라 다음 관문으로 출격해 주세요.');
       return false;
     }
-    const list=chapter===3?keplerRegions:chapter===2?magentaRegions:regions,completed=chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
+    const list=chapter===4?tapaoRegions:chapter===3?keplerRegions:chapter===2?magentaRegions:regions,completed=chapter===4?tapaoProgress:chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
     if(!list[key]||number<1||number>list[key].count||number>completed[key]+1)return;
     if(chapter===1&&regionRequirement(key))return;
     if(chapter===3){const keys=Object.keys(keplerRegions),index=keys.indexOf(key);if(index>0&&keplerProgress[keys[index-1]]<10)return;}
-    if(chapter===2){magentaRegion=key;magentaGate=number;}else if(chapter===3){keplerRegion=key;keplerGate=number;}else{region=key;gate=number;}
+    if(chapter===4){if(!chapterThreeComplete())return;const keys=Object.keys(tapaoRegions),index=keys.indexOf(key);if(index>0&&tapaoProgress[keys[index-1]]<10)return;}
+    if(chapter===2){magentaRegion=key;magentaGate=number;}else if(chapter===3){keplerRegion=key;keplerGate=number;}else if(chapter===4){tapaoRegion=key;tapaoGate=number;}else{region=key;gate=number;}
     running={chapter,region:key,gate:number,complete:false};wave=1;placed=0;
     const operation=operationFor(chapter,key,number);window.battleOperation=operation;window.show('battle');requestAnimationFrame(()=>window.prepareBattle?.(operation));return true;
   }
   window.launchTutorialMarsGate=number=>launchOperation(1,'mars',Number(number));
   function chooseChapter(kind){
     if(kind==='galaxy'&&!chapterTwoUnlocked()){notice('챕터 1의 모든 관문을 완료하면 챕터 2가 개방됩니다.');return;}
+    if(kind==='tapao'&&!chapterThreeComplete()){notice('챕터 3의 모든 관문을 완료하면 챕터 4가 개방됩니다.');return;}
     chapterPicker.hidden=kind!==null;chapterBack.hidden=kind===null;art.hidden=kind!=='solar';galaxyPanel.hidden=!['solar','galaxy','kepler','tapao','neptune'].includes(kind);
     chapterHeading.querySelector('h1').textContent=kind==='solar'?'CHAP 1. 태양계':kind==='galaxy'?'CHAP 2. 마젠타 행성':kind==='kepler'?'CHAP 3. 케플러 행성':kind==='tapao'?'CHAP 4. 타파오 통 행성':kind==='neptune'?'CHAP 5. 수퍼 넵튠 행성':'우주지도';
     chapterHeading.querySelector('small').textContent=kind==='solar'?'SOLAR SYSTEM · EXPEDITION':kind==='galaxy'?'MAGENTA PLANET':kind==='kepler'?'KEPLER PLANET':kind==='tapao'?'TAPAO THONG PLANET':kind==='neptune'?'SUPER NEPTUNE PLANET':'CHAPTER SELECT';
-    chapterHeading.querySelector('p').textContent=kind==='solar'?'지도 속 작전 지역을 선택하세요':kind==='galaxy'?'작전지역을 선택하고 항로의 관문에 출격하세요':kind==='kepler'?'케플러 항로를 선택하고 관문에 출격하세요':kind?'미탐사 영역':'탐사할 영역을 선택하세요';
+    chapterHeading.querySelector('p').textContent=kind==='solar'?'지도 속 작전 지역을 선택하세요':kind==='galaxy'?'작전지역을 선택하고 항로의 관문에 출격하세요':kind==='kepler'?'케플러 항로를 선택하고 관문에 출격하세요':kind==='tapao'?'타파오 통 항로를 선택하고 관문에 출격하세요':kind?'미탐사 영역':'탐사할 영역을 선택하세요';
     if(kind==='solar'){renderSolar();return;}
     if(kind==='galaxy'){renderMagenta();return;}
     if(kind==='kepler'){const next=Object.keys(keplerRegions).find(key=>keplerProgress[key]<10);keplerRegion=next||'kepler-base';keplerGate=Math.min(keplerProgress[keplerRegion]+1,10);renderKepler();return;}
+    if(kind==='tapao'){const next=Object.keys(tapaoRegions).find(key=>tapaoProgress[key]<10);tapaoRegion=next||'tapao-gate';tapaoGate=Math.min(tapaoProgress[tapaoRegion]+1,10);renderTapao();return;}
     if(['galaxy','kepler','tapao','neptune'].includes(kind)){
       const name=kind==='galaxy'?'마젠타 행성':kind==='kepler'?'케플러 행성':kind==='tapao'?'타파오 통 행성':'수퍼 넵튠 행성',image=kind==='galaxy'?'magenta-planet.jpg':kind==='kepler'?'kepler-planet.jpg':kind==='tapao'?'tapao-thong-planet.jpg':'super-neptune-planet.png';
       galaxyPanel.innerHTML=`<div class="galactic-map original-planet-image orbit-${kind}"><img src="${image}" alt="${name}"/></div><h2>${name}</h2>`;
@@ -1754,7 +1794,9 @@ function initializePlanetCampaign() {
   galaxyCard.querySelector('.chapter-copy em').textContent='MAGENTA PLANET · 3개 작전지역 · 30개 관문';
   const keplerCard=galaxyCard.cloneNode(true);keplerCard.classList.remove('chapter-galaxy');keplerCard.classList.add('chapter-kepler');
   const tapaoCard=galaxyCard.cloneNode(true);tapaoCard.classList.remove('chapter-galaxy');tapaoCard.classList.add('chapter-tapao');
-  tapaoCard.querySelector('img').src='tapao-thong-planet.jpg';tapaoCard.querySelector('img').alt='타파오 통 행성';tapaoCard.querySelector('.chapter-copy small').textContent='CHAP 4.';tapaoCard.querySelector('.chapter-copy b').textContent='타파오 통 행성';tapaoCard.querySelector('.chapter-copy em').textContent='TAPAO THONG PLANET';tapaoCard.onclick=()=>chooseChapter('tapao');
+  tapaoCard.querySelector('img').src='tapao-thong-planet.jpg';tapaoCard.querySelector('img').alt='타파오 통 행성';tapaoCard.querySelector('.chapter-copy small').textContent='CHAP 4.';tapaoCard.querySelector('.chapter-copy b').textContent='타파오 통 행성';tapaoCard.querySelector('.chapter-copy em').textContent='TAPAO THONG PLANET · 4개 작전지역 · 40개 관문';tapaoCard.onclick=()=>chooseChapter('tapao');
+  // 챕터 3를 모두 완료해야 챕터 4가 열린다.
+  window.syncChapterFourCard=()=>{const unlocked=chapterThreeComplete();tapaoCard.classList.toggle('locked',!unlocked);tapaoCard.setAttribute('aria-disabled',String(!unlocked));tapaoCard.querySelector('.chapter-copy em').textContent=unlocked?'TAPAO THONG PLANET · 4개 작전지역 · 40개 관문':'CHAPTER 3 완료 후 개방';};
   keplerCard.querySelector('img').src='kepler-planet.jpg';keplerCard.querySelector('img').alt='케플러 행성';keplerCard.querySelector('.chapter-copy small').textContent='CHAP 3.';keplerCard.querySelector('.chapter-copy b').textContent='케플러 행성';keplerCard.querySelector('.chapter-copy em').textContent='KEPLER PLANET · 30개 관문';chapterPicker.append(keplerCard);keplerCard.onclick=()=>chooseChapter('kepler');
   galaxyPanel.innerHTML='<div class="galactic-map"><img src="milky-way-map.svg" alt="우리 은하 작전 지도"/><button type="button" class="galactic-solar" aria-label="태양계 지도로 이동"><i></i><b>태양계</b></button><span class="galactic-core">은하 중심</span></div><h2>우리 은하</h2><p>태양계 표식을 누르면 태양계 작전 지도로 이동합니다.</p><small>그 외 은하계 작전 지역은 준비 중입니다. · 위치와 크기는 개념도입니다.</small>';
   galaxyPanel.querySelector('.galactic-solar').onclick=()=>chooseChapter('solar');
@@ -1764,6 +1806,7 @@ function initializePlanetCampaign() {
   syncChapterTwoCard();
   chapterBack.onclick=()=>chooseChapter(null);
   chapterPicker.append(tapaoCard);
+  window.syncChapterFourCard();
   const neptuneCard=tapaoCard.cloneNode(true);neptuneCard.classList.replace('chapter-tapao','chapter-neptune');
   neptuneCard.querySelector('img').src='super-neptune-planet.png';neptuneCard.querySelector('img').alt='수퍼 넵튠 행성';neptuneCard.querySelector('.chapter-copy small').textContent='CHAP 5.';neptuneCard.querySelector('.chapter-copy b').textContent='수퍼 넵튠 행성';neptuneCard.querySelector('.chapter-copy em').textContent='SUPER NEPTUNE PLANET';neptuneCard.onclick=()=>chooseChapter('neptune');chapterPicker.append(neptuneCard);
   chapterPicker.tabIndex=0;chapterPicker.setAttribute('aria-label','탐사영역 목록 · 위아래로 스크롤');
@@ -1832,17 +1875,18 @@ function initializePlanetCampaign() {
   window.completeBattleOperation=result=>{
     if(!running||running.complete||!result?.victory)return false;
     running.complete=true;
-    const isMagenta=running.chapter===2,isKepler=running.chapter===3,earned=isKepler?keplerRatings:isMagenta?magentaRatings:ratings,completed=isKepler?keplerProgress:isMagenta?magentaProgress:progress;
+    const isMagenta=running.chapter===2,isKepler=running.chapter===3,isTapao=running.chapter===4,earned=isTapao?tapaoRatings:isKepler?keplerRatings:isMagenta?magentaRatings:ratings,completed=isTapao?tapaoProgress:isKepler?keplerProgress:isMagenta?magentaProgress:progress;
     const firstClear=running.gate>(Number(completed[running.region])||0);
     const stars=Math.max(1,Math.min(3,Number(result.stars)||1)),ratingKey=`${running.region}-${running.gate}`;
     earned[ratingKey]=Math.max(Number(earned[ratingKey])||0,stars);
     completed[running.region]=Math.max(completed[running.region],running.gate);
-    try{localStorage.setItem(isKepler?'kepler-campaign-v1':isMagenta?'magenta-campaign-v1':'planet-campaign-v1',JSON.stringify(completed));localStorage.setItem(isKepler?'kepler-campaign-stars-v1':isMagenta?'magenta-campaign-stars-v1':'planet-campaign-stars-v1',JSON.stringify(earned));}catch(_){}
+    try{localStorage.setItem(isTapao?'tapao-campaign-v1':isKepler?'kepler-campaign-v1':isMagenta?'magenta-campaign-v1':'planet-campaign-v1',JSON.stringify(completed));localStorage.setItem(isTapao?'tapao-campaign-stars-v1':isKepler?'kepler-campaign-stars-v1':isMagenta?'magenta-campaign-stars-v1':'planet-campaign-stars-v1',JSON.stringify(earned));}catch(_){}
      // 전투 결과 화면에서 사용자가 다음 관문/돌아가기를 선택할 때까지
      // 작전 화면을 유지한다. 여기서 지도 화면으로 이동하면 결과 버튼이
      // 사라지므로, 진행도만 저장하고 화면 전환은 각 버튼에 맡긴다.
      if(isMagenta){magentaRegion=running.region;magentaGate=running.gate;}
      else if(isKepler){keplerRegion=running.region;keplerGate=running.gate;}
+     else if(isTapao){tapaoRegion=running.region;tapaoGate=running.gate;}
      else{region=running.region;gate=running.gate;}
      window.updateOperationLocation();
      window.dispatchEvent(new CustomEvent('campaign-gate-cleared',{detail:{chapter:running.chapter||1,region:running.region,gate:running.gate,firstClear}}));
@@ -1851,7 +1895,7 @@ function initializePlanetCampaign() {
   window.isBattleGateFirstClear=()=>{
     if(!running)return false;
     const chapter=running.chapter||1;
-    const completed=chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
+    const completed=chapter===4?tapaoProgress:chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
     return Number(running.gate)>Number(completed[running.region]||0);
   };
   window.retryCurrentBattle=()=>{
@@ -1859,7 +1903,7 @@ function initializePlanetCampaign() {
   };
    window.advanceBattleStage=()=>{
      if(!running)return window.show('map');
-     const chapter=running.chapter||1,key=running.region,list=chapter===3?keplerRegions:chapter===2?magentaRegions:regions,completed=chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
+     const chapter=running.chapter||1,key=running.region,list=chapter===4?tapaoRegions:chapter===3?keplerRegions:chapter===2?magentaRegions:regions,completed=chapter===4?tapaoProgress:chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
      if(running.gate<list[key].count){
        launchOperation(chapter,key,Math.min(running.gate+1,completed[key]+1));
        return;
@@ -1873,7 +1917,9 @@ function initializePlanetCampaign() {
      window.returnToBattleMap();
    };
    window.returnToBattleMap=()=>{
-     if(running?.chapter===3){
+     if(running?.chapter===4){
+        tapaoRegion=running.region;tapaoGate=running.gate;chooseChapter('tapao');
+     }else if(running?.chapter===3){
         keplerRegion=running.region;keplerGate=running.gate;chooseChapter('kepler');
      }else if(running?.chapter===2){
         magentaRegion=running.region;magentaGate=running.gate;
@@ -1892,20 +1938,21 @@ function initializePlanetCampaign() {
   window.updateOperationLocation=()=>{
     if(chapterOneComplete()){
       const magentaKey=firstUnclearedMagenta(),keplerKey=chapterTwoComplete()?firstUnclearedKepler():null;
-      const nextChapter=chapterTwoComplete()?(chapterThreeComplete()?4:3):2;
-      const nextKey=nextChapter===2?magentaKey:nextChapter===3?keplerKey:null;
+      const nextChapter=chapterTwoComplete()?(chapterThreeComplete()?(chapterFourComplete()?5:4):3):2;
+      const nextKey=nextChapter===2?magentaKey:nextChapter===3?keplerKey:nextChapter===4?firstUnclearedTapao():null;
       const caption=document.querySelector('.deck-caption'),platform=document.querySelector('.flagship-platform'),button=document.querySelector('.deck-launch');
-      const chapterImage=nextChapter===2?'magenta-planet.jpg':nextChapter===3?'kepler-planet-map.png':'tapao-thong-planet.jpg';
-      const chapterTitle=nextChapter===2?'마젠타 행성':nextChapter===3?'케플러 행성':'타파오 통 행성';
-      const chapterCode=nextChapter===2?'MAGENTA PLANET':nextChapter===3?'KEPLER PLANET':'TAPAO THONG PLANET';
-      const operationName=nextKey?(nextChapter===2?magentaRegions[nextKey].name:keplerRegions[nextKey].name):chapterTitle;
-      const chapterDone=nextChapter===4;
-      if(caption){caption.querySelector('span').textContent=`현재 작전 위치 · CHAPTER ${nextChapter}`;caption.querySelector('b').textContent=nextKey?`${operationName} · ${roman((nextChapter===2?magentaProgress:keplerProgress)[nextKey]+1)} 관문`:chapterDone?'다음 작전 챕터 · 준비 중':`${chapterTitle} · 모든 관문 클리어`;}
+      const chapterImage=nextChapter===2?'magenta-planet.jpg':nextChapter===3?'kepler-planet-map.png':nextChapter===4?'tapao-thong-planet.jpg':'super-neptune-planet.png';
+      const chapterTitle=nextChapter===2?'마젠타 행성':nextChapter===3?'케플러 행성':nextChapter===4?'타파오 통 행성':'수퍼 넵튠 행성';
+      const chapterCode=nextChapter===2?'MAGENTA PLANET':nextChapter===3?'KEPLER PLANET':nextChapter===4?'TAPAO THONG PLANET':'SUPER NEPTUNE PLANET';
+      const progressOf=nextChapter===2?magentaProgress:nextChapter===3?keplerProgress:tapaoProgress;
+      const operationName=nextKey?(nextChapter===2?magentaRegions[nextKey].name:nextChapter===3?keplerRegions[nextKey].name:tapaoRegions[nextKey].name):chapterTitle;
+      const chapterDone=nextChapter===5;
+      if(caption){caption.querySelector('span').textContent=`현재 작전 위치 · CHAPTER ${nextChapter}`;caption.querySelector('b').textContent=nextKey?`${operationName} · ${roman(progressOf[nextKey]+1)} 관문`:chapterDone?'다음 작전 챕터 · 준비 중':`${chapterTitle} · 모든 관문 클리어`;}
       if(platform&&platform.dataset.operation!==`chapter${nextChapter}:${nextKey||'complete'}`){
         platform.dataset.operation=`chapter${nextChapter}:${nextKey||'complete'}`;
         platform.innerHTML=`<img class="chapter-platform-image" src="${chapterImage}" alt="${chapterTitle} 챕터 이미지"/><div class="fleet-tag"><b>${operationName}</b><span>${nextKey?chapterCode+' · 현재 작전 지역':chapterDone?chapterCode+' · 작전 준비 중':chapterCode+' · 모든 관문 클리어'}</span></div>`;
       }
-      if(button){button.disabled=!nextKey;button.querySelector('small').textContent=nextKey?`${chapterCode} · ${operationName} · GATE ${roman((nextChapter===2?magentaProgress:keplerProgress)[nextKey]+1)}`:chapterDone?'CHAPTER 4 · 준비 중':'ALL CHAPTER OPERATIONS COMPLETE';}
+      if(button){button.disabled=!nextKey;button.querySelector('small').textContent=nextKey?`${chapterCode} · ${operationName} · GATE ${roman(progressOf[nextKey]+1)}`:chapterDone?'CHAPTER 5 · 준비 중':'ALL CHAPTER OPERATIONS COMPLETE';}
       syncChapterTwoCard();
       return;
     }
@@ -1932,7 +1979,10 @@ function initializePlanetCampaign() {
       if(!chapterThreeComplete()){
         const key=firstUnclearedKepler();launchOperation(3,key,keplerProgress[key]+1);return;
       }
-      notice('케플러 챕터를 모두 완료했습니다. 다음 챕터는 준비 중입니다.');
+      if(!chapterFourComplete()){
+        const key=firstUnclearedTapao();launchOperation(4,key,tapaoProgress[key]+1);return;
+      }
+      notice('타파오 통 챕터를 모두 완료했습니다. 다음 챕터는 준비 중입니다.');
       return;
     }
     const key=firstUncleared();
