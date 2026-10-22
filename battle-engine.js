@@ -594,7 +594,16 @@
 
     refs.battleOperationName.textContent = `${normalizedOperation.regionName} · ${normalizedOperation.gate}번 관문`;
     refs.battleClock.textContent = '00:00';
-    if (isTapaoColonyOperation(normalizedOperation)) state.tapaoColony = { nextSpawn: 2200, spawned: 0 };
+    refs.field?.querySelector('.tapao-ground')?.remove();
+    if (isTapaoColonyOperation(normalizedOperation)) {
+      state.tapaoColony = { nextSpawn: 2200, nextDecor: 300, spawned: 0, ground: [] };
+      const ground = document.createElement('div');
+      ground.className = 'tapao-ground';
+      refs.field.insertBefore(ground, refs.enemyLayer);
+      refs.groundLayer = ground;
+      // 시작 화면이 비어 보이지 않게 이미 흘러가고 있던 지형처럼 건축물을 미리 몇 개 깔아 둔다.
+      for (let index = 0; index < 5; index += 1) spawnTapaoDecor(.12 + index * .16 + Math.random() * .12);
+    }
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
       state.bounty = { ...operation.bounty };
@@ -1007,6 +1016,22 @@
   // 외계 함대(공중전)와 함께 나오며, 승리 조건은 외계 함대 격파다(포탑은 승패에 영향이 없다).
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
   const TAPAO_COLONY_TILE_ROWS = 1822, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert.webp 크기
+  // 외계 식민지 건축물 스프라이트(2배 해상도 아틀라스). 값은 [x, y, 너비, 높이] 픽셀이며 화면에는 절반 크기로 표시한다.
+  const TAPAO_ATLAS = { src: 'tapao-colony-structures.webp', w: 2048, h: 920 };
+  const TAPAO_STRUCTS = {"dome":[0,0,260,260],"bunkerClosed":[264,0,216,216],"bunkerOpen":[484,0,216,216],"spires":[704,0,284,336],"hexArray":[992,0,336,312],"pad":[1332,0,336,336],"conduit":[1672,0,104,392],"citadel":[0,396,572,520],"radar":[576,396,232,232],"ruins":[812,396,260,208],"crystals":[1076,396,240,256],"pods":[1320,396,260,260]};
+  const TAPAO_STRUCT_ANCHOR = { x: .47, y: .44 };   // 칸 안에서 그림의 중심이 놓인 위치(비율)
+  // 장식 건축물과 나타나는 비율. 성채는 드물게만 나온다.
+  const TAPAO_DECOR_WEIGHTS = [['dome', 22], ['pods', 14], ['hexArray', 12], ['pad', 10], ['conduit', 10], ['radar', 10], ['ruins', 8], ['spires', 8], ['crystals', 8], ['citadel', 3]];
+  function tapaoStructStyle(element, name) {
+    const [rx, ry, rw, rh] = TAPAO_STRUCTS[name];
+    const w = rw / 2, h = rh / 2;
+    element.style.width = `${w}px`;
+    element.style.height = `${h}px`;
+    element.style.backgroundImage = `url('${TAPAO_ATLAS.src}')`;
+    element.style.backgroundSize = `${TAPAO_ATLAS.w / 2}px ${TAPAO_ATLAS.h / 2}px`;
+    element.style.backgroundPosition = `-${rx / 2}px -${ry / 2}px`;
+    return { w, h };
+  }
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
@@ -10660,7 +10685,40 @@
     showBossWarning(refs.battleAnnouncement?.textContent || "");
   }
 
-  // ───────── 타파오 콜로니: 숨은 대공 포탑 ─────────
+  // ───────── 타파오 콜로니: 외계 건축물과 숨은 대공 포탑 ─────────
+  function pickTapaoDecor() {
+    const total = TAPAO_DECOR_WEIGHTS.reduce((sum, [, weight]) => sum + weight, 0);
+    let roll = Math.random() * total;
+    for (const [name, weight] of TAPAO_DECOR_WEIGHTS) { roll -= weight; if (roll <= 0) return name; }
+    return 'dome';
+  }
+
+  // 장식 건축물 하나를 만든다. startY가 주어지면 그 높이(비율)에, 아니면 화면 위 바깥에서 내려온다.
+  function spawnTapaoDecor(startY = null) {
+    const colony = state.tapaoColony;
+    if (!colony || !refs.groundLayer) return;
+    const field = refs.field.getBoundingClientRect();
+    const fieldWidth = Math.max(1, field.width || 375), fieldHeight = Math.max(1, field.height || 700);
+    const name = pickTapaoDecor();
+    const element = document.createElement('div');
+    element.className = 'tapao-struct';
+    const { w, h } = tapaoStructStyle(element, name);
+    element.style.marginLeft = `${-w * TAPAO_STRUCT_ANCHOR.x}px`;
+    element.style.marginTop = `${-h * TAPAO_STRUCT_ANCHOR.y}px`;
+    const halfW = w * .36 / fieldWidth, halfH = h * .36 / fieldHeight;
+    const y = startY ?? -(h * .6) / fieldHeight - .02;
+    let x = .1 + Math.random() * .8;
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const clash = colony.ground.some(other => Math.abs(other.x - x) < halfW + other.halfW && Math.abs(other.y - y) < halfH + other.halfH);
+      if (!clash) break;
+      x = .1 + Math.random() * .8;
+    }
+    element.style.left = percent(x);
+    element.style.top = percent(y);
+    refs.groundLayer.append(element);
+    colony.ground.push({ element, x, y, halfW, halfH, h });
+  }
+
   function spawnTapaoTurret() {
     const gate = Number(state.operation?.gate) || 1;
     const hp = Math.round((5000 + gate * 900) * TAPAO_ALIEN_SCALE);
@@ -10675,7 +10733,7 @@
       hp,
       maxHp: hp,
       x,
-      y: -.07,
+      y: -.08,
       concealed: true,
       revealed: false,
       dead: false,
@@ -10683,11 +10741,23 @@
       nextShot: 700,
       requiredForGate: false
     };
+    // 닫힌 벙커(덮개가 닫혀 평범한 구조물처럼 보임)와 열린 벙커를 겹쳐 두고, 드러날 때 덮개가 열린다.
     const element = document.createElement('div');
     element.className = 'tapao-turret';
+    const { w, h } = tapaoStructStyle(element, 'bunkerClosed');
+    element.style.backgroundImage = 'none';
+    element.style.marginLeft = `${-w * TAPAO_STRUCT_ANCHOR.x}px`;
+    element.style.marginTop = `${-h * TAPAO_STRUCT_ANCHOR.y}px`;
     element.style.left = percent(x);
     element.style.top = percent(turret.y);
-    element.innerHTML = '<i class="tt-mound"></i><i class="tt-hatch"></i><i class="tt-gun"></i><span class="tt-hp"><i></i></span>';
+    const closed = document.createElement('i');
+    closed.className = 'tt-closed';
+    tapaoStructStyle(closed, 'bunkerClosed');
+    const open = document.createElement('i');
+    open.className = 'tt-open';
+    tapaoStructStyle(open, 'bunkerOpen');
+    element.append(closed, open);
+    element.insertAdjacentHTML('beforeend', '<i class="tt-gun"></i><span class="tt-hp"><i></i></span>');
     turret.el = element;
     refs.enemyLayer.append(element);
     state.midBosses.push(turret);
@@ -10700,6 +10770,16 @@
     const fieldHeight = Math.max(1, field?.height || 700);
     const fieldWidth = Math.max(1, field?.width || 375);
     const gate = Number(state.operation?.gate) || 1;
+    const scroll = (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
+    // 장식 건축물: 배경과 같은 속도로 내려오고, 화면 아래로 벗어나면 지운다.
+    colony.nextDecor -= dt;
+    if (colony.nextDecor <= 0) { spawnTapaoDecor(); colony.nextDecor = 1500 + Math.random() * 1700; }
+    colony.ground = colony.ground.filter(item => {
+      item.y += scroll;
+      item.element.style.top = percent(item.y);
+      if (item.y - item.halfH > 1.15) { item.element.remove(); return false; }
+      return true;
+    });
     const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
     colony.nextSpawn -= dt;
     if (colony.nextSpawn <= 0 && turrets.length < 6) {
@@ -10709,9 +10789,9 @@
     }
     const damage = Math.round((70 + gate * 9) * TAPAO_ALIEN_SCALE);
     turrets.forEach(turret => {
-      turret.y += (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
+      turret.y += scroll;
       turret.el.style.top = percent(turret.y);
-      if (turret.y > 1.1) { turret.dead = true; turret.el.remove(); return; }
+      if (turret.y > 1.12) { turret.dead = true; turret.el.remove(); return; }
       if (!turret.revealed && turret.y >= .24) {
         turret.revealed = true;
         turret.concealed = false;
