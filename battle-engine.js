@@ -2706,7 +2706,7 @@
       requiredForGate: true
     };
     const element = document.createElement('div');
-    element.className = 'boss-unit kepler-alien-vessel kepler-alien-angela';
+    element.className = 'boss-unit kepler-alien-vessel kepler-alien-angela kepler-called';
     element.style.left = percent(angela.x);
     element.innerHTML = '<img class="boss-sprite" src="kepler-alien-angela.png" alt="외계 앙헬라" /><span>ANGELA</span>';
     angela.el = element;
@@ -2749,7 +2749,7 @@
       requiredForGate: true
     };
     const element = document.createElement('div');
-    element.className = 'boss-unit kepler-alien-vessel kepler-alien-escort';
+    element.className = 'boss-unit kepler-alien-vessel kepler-alien-escort kepler-called';
     element.style.left = percent(x);
     element.style.top = percent(escort.y);
     element.innerHTML = '<img class="boss-sprite" src="kepler-alien-escort.png" alt="외계 호위함" /><span>ALIEN ESCORT</span>';

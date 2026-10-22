@@ -762,3 +762,5 @@
 .battle-viewport.kepler-secret-base-gate .space-battlefield{overflow:visible}
 .boss-unit.kepler-alien-vessel.kepler-alien-carrier>span{display:none}
 .boss-unit.kepler-alien-vessel>span{display:none!important}
+/* 우주항모가 호출한 호위함·외계 앙헬라는 보스 선체와 함재기보다 위 레이어에 둔다 */
+.boss-unit.kepler-alien-vessel.kepler-called{z-index:12}
