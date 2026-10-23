@@ -1151,43 +1151,64 @@
     const y = portal ? portal.y : TAPAO_GATE_PORTAL.stopY;
     return { x: .5 + TAPAO_GATE_PORTAL.w * .016 / fieldWidth, y: y + TAPAO_GATE_PORTAL.h * (.297 - .5) / fieldHeight };
   }
-  function warpTapaoEscort(targetX, targetY, wave, label, index) {
-    const hole = tapaoGatePortalHole();
-    const [ship] = tapaoGateFleet(['escort'], { xs: [hole.x], wave, label, idSuffix: index });
-    if (!ship) return;
-    ship.x = hole.x; ship.y = hole.y;
-    ship.entryStartX = hole.x; ship.entryStartY = hole.y;
-    ship.entryTargetX = targetX; ship.entryTargetY = targetY;
-    ship.entryDuration = 1400; ship.entryTime = 1400;
-    ship.el.style.left = percent(hole.x); ship.el.style.top = percent(hole.y);
-    ship.el.classList.add('tapao-warp-in');
-    const flash = document.createElement('i');
-    flash.className = 'tapao-warp-flash';
-    flash.style.left = percent(hole.x); flash.style.top = percent(hole.y);
-    refs.enemyLayer.append(flash);
-    setTimeout(() => flash.remove(), 1000);
-    playFighterLaunchSound();
+  // 관문이 먼저 빛을 모으고(충전) 터지듯 열리면, 함선이 구멍에서 늘어난 모습으로 튀어나와 정해진 자리로 빠져나온다.
+  const TAPAO_WARP_CHARGE = 700;
+  function tapaoPortalSurge(big) {
+    const portal = state?.tapaoGateMap?.portal?.element;
+    if (!portal) return;
+    const surge = document.createElement('b');
+    surge.className = `tapao-portal-surge${big ? ' big' : ''}`;
+    surge.innerHTML = '<i class="ps-core"></i><i class="ps-arcs"></i><i class="ps-ring"></i><i class="ps-ring r2"></i>';
+    portal.append(surge);
+    portal.classList.remove('warping');
+    void portal.offsetWidth;
+    portal.classList.add('warping');
+    clearTimeout(portal.warpTimer);
+    portal.warpTimer = setTimeout(() => portal.classList.remove('warping'), TAPAO_WARP_CHARGE + 1100);
+    setTimeout(() => surge.remove(), TAPAO_WARP_CHARGE + 1300);
+  }
+  function warpTapaoShip(role, targetX, targetY, wave, label, index, onSpawned) {
+    if (!state || state.status !== 'combat') return;
+    const angela = role === 'angela';
+    tapaoPortalSurge(angela || role === 'starcruiser');
+    schedule(() => {
+      if (!state || state.status !== 'combat') return;
+      const hole = tapaoGatePortalHole();
+      // 보스 체력바가 앙헬라를 가리키도록 앙헬라를 핵심 함선 자리에 둔다.
+      if (angela) {
+        if (state.boss && !state.boss.dead) state.midBosses.push(state.boss);
+        state.boss = null;
+      }
+      const [ship] = tapaoGateFleet([role], { xs: [hole.x], wave, label, idSuffix: index });
+      if (!ship) return;
+      ship.x = hole.x; ship.y = hole.y;
+      ship.entryStartX = hole.x; ship.entryStartY = hole.y;
+      ship.entryTargetX = targetX; ship.entryTargetY = targetY;
+      ship.entryDuration = angela ? 2000 : 1500; ship.entryTime = ship.entryDuration;
+      ship.el.style.left = percent(hole.x); ship.el.style.top = percent(hole.y);
+      ship.el.classList.add('tapao-warp-in');
+      const flash = document.createElement('i');
+      flash.className = `tapao-warp-flash${role === 'escort' ? '' : ' big'}`;
+      flash.style.left = percent(hole.x); flash.style.top = percent(hole.y);
+      refs.enemyLayer.append(flash);
+      setTimeout(() => flash.remove(), 1100);
+      playFighterLaunchSound();
+      onSpawned?.();
+    }, TAPAO_WARP_CHARGE);
   }
   function startTapaoGateWarpWaves() {
     if (!state?.tapaoGateFinal || state.tapaoGateFinal.warpStarted) return;
     state.tapaoGateFinal.warpStarted = true;
     const gap = TAPAO_GATE_FINAL_GAP;
-    warpTapaoEscort(.5, .34, 1, '외계 함대 제2웨이브 · 관문에서 외계 호위함 워프 아웃', 0);
-    schedule(() => warpTapaoEscort(.28, .32, 2, '외계 함대 제3웨이브 · 외계 호위함 2척 워프 아웃', 0), gap);
-    schedule(() => warpTapaoEscort(.72, .32, 2, null, 1), gap + 500);
-    schedule(() => tapaoGateFleet(['starcruiser', 'starcruiser', 'starcruiser'], { xs: [.5, .22, .78], wave: 3, label: '외계 함대 제4웨이브 · 외계 스타크루저 3척 접근' }), gap * 2);
-    schedule(() => {
-      if (!state || state.status !== 'combat') return;
-      // 보스 체력바가 앙헬라를 가리키도록 앙헬라를 핵심 함선 자리에 둔다.
-      if (state.boss && !state.boss.dead) state.midBosses.push(state.boss);
-      state.boss = null;
-      tapaoGateFleet(['angela'], { xs: [.5], wave: 4, label: '외계 함대 제5웨이브 · 보스 외계 앙헬라 출현' });
-    }, gap * 3);
-    schedule(() => warpTapaoEscort(.3, .36, 4, '관문에서 외계 호위함 2척 추가 워프 아웃', 2), gap * 4);
-    schedule(() => {
-      warpTapaoEscort(.7, .36, 4, null, 3);
-      if (state?.tapaoGateFinal) state.tapaoGateFinal.done = true;
-    }, gap * 4 + 500);
+    warpTapaoShip('escort', .5, .34, 1, '외계 함대 제2웨이브 · 관문에서 외계 호위함 워프 아웃', 0);
+    schedule(() => warpTapaoShip('escort', .28, .32, 2, '외계 함대 제3웨이브 · 외계 호위함 2척 워프 아웃', 0), gap);
+    schedule(() => warpTapaoShip('escort', .72, .32, 2, null, 1), gap + 500);
+    schedule(() => warpTapaoShip('starcruiser', .5, .36, 3, '외계 함대 제4웨이브 · 관문에서 외계 스타크루저 3척 워프 아웃', 0), gap * 2);
+    schedule(() => warpTapaoShip('starcruiser', .2, .28, 3, null, 1), gap * 2 + 500);
+    schedule(() => warpTapaoShip('starcruiser', .8, .28, 3, null, 2), gap * 2 + 1000);
+    schedule(() => warpTapaoShip('angela', .5, .2, 4, '외계 함대 제5웨이브 · 관문에서 보스 외계 앙헬라 워프 아웃', 0), gap * 3);
+    schedule(() => warpTapaoShip('escort', .3, .36, 4, '관문에서 외계 호위함 2척 추가 워프 아웃', 2), gap * 4);
+    schedule(() => warpTapaoShip('escort', .7, .36, 4, null, 3, () => { if (state?.tapaoGateFinal) state.tapaoGateFinal.done = true; }), gap * 4 + 500);
   }
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
@@ -3252,6 +3273,7 @@
       const progress = 1 - boss.entryTime / boss.entryDuration;
       const eased = 1 - Math.pow(1 - progress, 3);
       boss.y = boss.entryStartY + (boss.entryTargetY - boss.entryStartY) * eased;
+      if (Number.isFinite(boss.entryStartX) && Number.isFinite(boss.entryTargetX)) boss.x = boss.entryStartX + (boss.entryTargetX - boss.entryStartX) * eased;
       if (boss.variant?.startsWith('kepler-alien-')) {
         boss.el.style.left = percent(boss.x);
         boss.el.style.top = percent(boss.y);

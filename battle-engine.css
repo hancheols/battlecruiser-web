@@ -833,3 +833,20 @@
 @keyframes tapao-warp-in{0%{transform:scale(.08,1.8);opacity:0;filter:brightness(4) drop-shadow(0 0 18px #9fe3ff)}35%{transform:scale(.5,1.25);opacity:1;filter:brightness(2.4) drop-shadow(0 0 14px #9fe3ff)}100%{transform:scale(1);opacity:1;filter:none}}
 .tapao-warp-flash{position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;z-index:20;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(160,225,255,.75) 22%,rgba(80,160,255,.25) 50%,rgba(80,160,255,0) 70%);mix-blend-mode:screen;animation:tapao-warp-flash .9s ease-out forwards}
 @keyframes tapao-warp-flash{0%{transform:scale(.2);opacity:0}20%{transform:scale(1.1);opacity:1}100%{transform:scale(1.9,.5);opacity:0}}
+.tapao-warp-flash.big{width:260px;height:260px;margin:-130px 0 0 -130px}
+/* 관문 워프 연출: 구멍이 빛을 모으며 번개가 휘돌고, 열리는 순간 섬광과 충격파 고리가 퍼진다 */
+.tapao-gate-portal.warping{animation:tapao-portal-warp 1.8s ease-out}
+@keyframes tapao-portal-warp{0%{filter:drop-shadow(24px 30px 16px rgba(25,12,4,.5))}30%{filter:drop-shadow(24px 30px 16px rgba(25,12,4,.5)) drop-shadow(0 0 22px rgba(120,200,255,.9)) brightness(1.15)}42%{filter:drop-shadow(24px 30px 16px rgba(25,12,4,.5)) drop-shadow(0 0 40px rgba(170,230,255,1)) brightness(1.4)}100%{filter:drop-shadow(24px 30px 16px rgba(25,12,4,.5))}}
+.tapao-gate-portal.warping>i{animation-duration:.5s}
+.tapao-portal-surge{position:absolute;left:51.6%;top:29.7%;width:0;height:0;pointer-events:none}
+.tapao-portal-surge>i{position:absolute;left:0;top:0;border-radius:50%;transform:translate(-50%,-50%)}
+.tapao-portal-surge>.ps-core{width:150px;height:140px;background:radial-gradient(circle,#fff 0,rgba(200,240,255,.95) 18%,rgba(90,170,255,.55) 42%,rgba(60,120,255,0) 70%);mix-blend-mode:screen;animation:tapao-ps-core 1.9s ease-out forwards}
+@keyframes tapao-ps-core{0%{transform:translate(-50%,-50%) scale(.15);opacity:0}30%{transform:translate(-50%,-50%) scale(.7);opacity:.85}38%{transform:translate(-50%,-50%) scale(.55);opacity:.9}44%{transform:translate(-50%,-50%) scale(1.5);opacity:1}100%{transform:translate(-50%,-50%) scale(1.1);opacity:0}}
+.tapao-portal-surge>.ps-arcs{width:170px;height:160px;background:repeating-conic-gradient(from 0deg,rgba(200,240,255,0) 0deg 14deg,rgba(220,245,255,.95) 15deg 16.5deg,rgba(200,240,255,0) 18deg 31deg);-webkit-mask:radial-gradient(circle,transparent 22%,#000 38%,transparent 70%);mask:radial-gradient(circle,transparent 22%,#000 38%,transparent 70%);mix-blend-mode:screen;animation:tapao-ps-arcs 1.1s ease-in forwards}
+@keyframes tapao-ps-arcs{0%{transform:translate(-50%,-50%) rotate(0) scale(1.3);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) rotate(-420deg) scale(.35);opacity:.2}}
+.tapao-portal-surge>.ps-ring{width:120px;height:110px;border:5px solid rgba(190,235,255,.95);box-shadow:0 0 18px rgba(120,200,255,.9),inset 0 0 14px rgba(120,200,255,.8);opacity:0;animation:tapao-ps-ring 1s .7s ease-out forwards}
+.tapao-portal-surge>.ps-ring.r2{border-width:3px;animation-delay:.85s}
+@keyframes tapao-ps-ring{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}100%{transform:translate(-50%,-50%) scale(3.2);opacity:0}}
+.tapao-portal-surge.big>.ps-core{width:210px;height:195px}
+.tapao-portal-surge.big>.ps-ring{border-width:7px;animation-name:tapao-ps-ring-big}
+@keyframes tapao-ps-ring-big{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}100%{transform:translate(-50%,-50%) scale(4.4);opacity:0}}
