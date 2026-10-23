@@ -2167,7 +2167,8 @@
       updatePirates(dt);
       updateAlliedFleet(dt);
       updateBoss(dt);
-      if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGroundSynced) state.tapaoGroundSynced = syncTapaoGroundLayer();
+      // 전장 크기가 전투 중에 바뀌어도(주소창·상단 표시 변화 등) 지형 층이 항상 같은 크기를 유지하게 매 프레임 맞춘다.
+      if (state.tapaoColony || state.tapaoGateMap) syncTapaoGroundLayer();
       if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGateMap?.stopped) {
         const tilePx = parseFloat(refs.viewport?.style.getPropertyValue('--tapao-tile')) || 1;
         state.tapaoBgY = ((Number(state.tapaoBgY) || 0) + TAPAO_SCROLL_SPEED * dt / 1000) % tilePx;
@@ -10833,6 +10834,9 @@
   function syncTapaoGroundLayer() {
     const ground = refs.groundLayer, field = refs.field;
     if (!ground || !field || !field.offsetHeight) return false;
+    const key = `${field.offsetLeft},${field.offsetTop},${field.offsetWidth},${field.offsetHeight}`;
+    if (ground.dataset.layout === key) return true;
+    ground.dataset.layout = key;
     ground.style.left = `${field.offsetLeft}px`;
     ground.style.top = `${field.offsetTop}px`;
     ground.style.width = `${field.offsetWidth}px`;
