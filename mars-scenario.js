@@ -658,6 +658,12 @@
     {speaker:'luca',name:'파일럿 루카 레예스',text:'벌써 눈치들 채셨어, 조심하라고.',remote:true},
     {speaker:'captain',name:'함장',text:'전원 위치로! 충격에 대비하라!'}
   ];
+  // 타파오 행성인근 5관문 클리어 직후
+  const tapaoNear5ClearLines=[
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'이 녀석들 전보다 더 강해진 거 같아.'},
+    {speaker:'captain',name:'함장',text:'다른 행성에서 상대했던 것과는 다른 것 같아...'},
+    {speaker:'okoye',name:'아마라 오코예 함장',text:'저기 계속 옵니다.'}
+  ];
   const tapaoLabLines=[
     {speaker:'eva',name:'EVA-9',text:'제독님의 지시에 따라 보급품을 지급합니다. 탐사드론 30개, 연구인력 30명, 골드 30,000이 입고되었습니다.'}
   ];
@@ -694,7 +700,7 @@
     {speaker:'okoye',name:'오코예 함장',text:'선발대 생존자가 저 함선으로부터 공격을 받았다고 합니다.'},
     {speaker:'captain',name:'함장',text:'일단 우리편은 아니란 거군... 전원 전투 준비!'}
   ];
-  const multiLine={'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
+  const multiLine={'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'tapao-near5-clear':tapaoNear5ClearLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
   // 출격 직후 통신이 끝나면 준비된 전투를 바로 개시하는 단계
   const AUTO_START_STAGES=['malik','oort10','oort15','volkov','magenta6','tapao-near-pre'];
   // 출격 직후 대화 단계(새로고침하면 준비된 전투가 사라지므로 다음 출격 때 다시 보여줌). 오르트 20관문은 보호막 함선 권고에 따라 편성을 바꿀 수 있게 [전투 개시]를 기다립니다.
@@ -752,6 +758,7 @@
     'tapao-admiral':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN',
     'tapao-lab':'RESEARCH LAB · FLEET SUPPLY',
     'tapao-near-pre':'TAPAO THONG · PLANET VICINITY GATE 01 / ARRIVAL',
+    'tapao-near5-clear':'TAPAO THONG · PLANET VICINITY GATE 05 / MISSION COMPLETE',
     'kb5-farah':'HANGAR · FARAH NADIR',
     'katm210-para':'HANGAR · FARAH NADIR',
     'katm210-walk':'FLEET CORRIDOR',
@@ -952,6 +959,7 @@
     if(stage==='kb10-lab')state.kb10LabDone=true;
     if(stage==='tapao-lab')state.tapaoLabDone=true;
     if(stage==='tapao-near-pre')state.tapaoNearPreDone=true;
+    if(stage==='tapao-near5-clear')state.tapaoNear5ClearDone=true;
     if(pendingSortie&&pendingSortie.stage===stage){const proceed=pendingSortie.proceed;pendingSortie=null;setTimeout(proceed,0);}
     if(stage==='katm210-eva'){state.katm210EvaDone=true;syncPrecisionSearchButton();}
     if(stage==='katm210-ayra'){state.katm210AyraDone=true;window.setBattleHold?.(false);}
@@ -1199,7 +1207,7 @@
     if(state.stage==='magenta5-volkov')return id==='collection';
     if(state.stage==='katm210-para')return id==='collection';
     // 클리어 직후 안내 장면은 전투 결과 화면에서 어느 메뉴로 나가도 막지 않는다(막히면 버튼이 먹지 않는다).
-    if(state.stage==='katm210-retreat')return true;
+    if(state.stage==='katm210-retreat'||state.stage==='tapao-near5-clear')return true;
     if(state.stage==='kb5-farah'||state.stage==='tapao-hangar')return id==='collection';
     if(state.stage==='katm210-walk')return id==='collection'||id==='home';
     return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear','tapao-bridge','tapao-admiral'].includes(state.stage)&&id==='home';
@@ -1239,6 +1247,7 @@
     if(Number(chapter)===3&&region==='kepler-atmosphere'&&Number(gate)===10&&firstClear&&!state.katm210EvaDone&&!active()){setStage('katm210-retreat');return;}
     if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===5&&firstClear&&!state.kb5ClearDone&&!active()){setStage('kb5-clear');return;}
     if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===10&&firstClear&&!state.kb10ClearDone&&!active()){setStage('kb10-clear');return;}
+    if(Number(chapter)===4&&region==='tapao-near'&&Number(gate)===5&&firstClear&&!state.tapaoNear5ClearDone&&!active()){setStage('tapao-near5-clear');return;}
     if(Number(chapter)===1&&region==='titan'&&firstClear){
       if(Number(gate)===5&&!state.titanGate5Done&&!active())setStage('titan-gate5');
       if(Number(gate)===10&&!state.titanFallDone&&!active())setStage('titan-call');

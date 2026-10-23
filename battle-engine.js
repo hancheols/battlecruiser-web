@@ -997,7 +997,7 @@
   }
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
-  const TAPAO_ALIEN_SCALE = 1.3;
+  const TAPAO_ALIEN_SCALE = 1.2;
   function isTapaoOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 4 || String(operation?.region || '').toLowerCase().startsWith('tapao-');
   }
