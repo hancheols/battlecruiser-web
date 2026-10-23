@@ -1066,7 +1066,7 @@
     return String(operation?.region || '').toLowerCase() === 'tapao-gate';
   }
   // 타파오 게이트: 콜로니와 같은 사막 위에 미스터리 서클(눌린 모래 문양 4종)과 피라미드(2종)가 곳곳에 흘러간다. 크기는 화면 px.
-  const TAPAO_GATE_DECOR = { circle: 220, pyramid: 130 };
+  const TAPAO_GATE_DECOR = { circle: 220, pyramid: 390 };
   // 맵 끝의 관문: 마지막 웨이브가 나오고 잠시 뒤 화면 위에서 내려오며, 정해진 높이에 닿으면 지형 흐름이 멈춘다.
   const TAPAO_GATE_PORTAL = { w: 600, h: 608, stopY: .36, enterDelay: 6000 };
   function spawnTapaoGatePortal() {
@@ -1096,7 +1096,7 @@
       if (gate.ground.some(other => Math.abs(other.x - x) < halfW + other.halfW && Math.abs(other.y - y) < halfH + other.halfH)) continue;
       const element = document.createElement('i');
       element.className = `tapao-gate-decor ${circle ? 'circle' : 'pyramid'}`;
-      element.style.cssText = `left:${percent(x)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background-image:url('tapao-gate-${pick}.webp');transform:translateY(${(y * fieldHeight).toFixed(1)}px)`;
+      element.style.cssText = `left:${percent(x)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background-image:url('tapao-gate-${pick}${circle ? '' : '-v2'}.webp');transform:translateY(${(y * fieldHeight).toFixed(1)}px)`;
       // 서클은 바닥 무늬라서 피라미드보다 아래에 깐다.
       if (circle) refs.groundLayer.prepend(element); else refs.groundLayer.append(element);
       gate.ground.push({ element, x, y, halfW, halfH });
@@ -1119,7 +1119,7 @@
     }
     gate.nextDecor -= TAPAO_SCROLL_SPEED * dt / 1000;
     if (gate.nextDecor <= 0 && !gate.portal) {
-      spawnTapaoGateDecor(-.3);
+      spawnTapaoGateDecor(-.42);
       gate.nextDecor = 150 + Math.random() * 170;
     }
     gate.ground = gate.ground.filter(item => {
