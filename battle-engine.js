@@ -595,13 +595,11 @@
 
     refs.battleOperationName.textContent = `${normalizedOperation.regionName} · ${normalizedOperation.gate}번 관문`;
     refs.battleClock.textContent = '00:00';
+    refs.viewport?.querySelector('.tapao-ground')?.remove();
     refs.field?.querySelector('.tapao-ground')?.remove();
     if (isTapaoColonyOperation(normalizedOperation)) {
       state.tapaoColony = { cycleIndex: 0, lastV: 0, gapDone: true, spawned: 0, ground: [] };
-      const ground = document.createElement('div');
-      ground.className = 'tapao-ground';
-      refs.field.insertBefore(ground, refs.enemyLayer);
-      refs.groundLayer = ground;
+      createTapaoGroundLayer();
       // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 군집 둘과 그 사이 돔·수호탑을 미리 깔아 둔다.
       const cyclePrefill = TAPAO_CYCLE_PX / tapaoField().fieldHeight;
       spawnTapaoHexV(.96);
@@ -611,10 +609,7 @@
     }
     if (isTapaoGateOperation(normalizedOperation)) {
       state.tapaoGateMap = { nextDecor: 160, ground: [] };
-      const ground = document.createElement('div');
-      ground.className = 'tapao-ground';
-      refs.field.insertBefore(ground, refs.enemyLayer);
-      refs.groundLayer = ground;
+      createTapaoGroundLayer();
       // 시작 화면이 비어 보이지 않게 서클·피라미드를 몇 개 미리 깔아 둔다.
       [.14, .4, .64, .88].forEach(y => spawnTapaoGateDecor(y));
     }
@@ -1068,7 +1063,7 @@
   // 타파오 게이트: 콜로니와 같은 사막 위에 미스터리 서클(눌린 모래 문양 4종)과 피라미드(2종)가 곳곳에 흘러간다. 크기는 화면 px.
   const TAPAO_GATE_DECOR = { circle: 220, pyramid: 130 };
   // 맵 끝의 관문: 마지막 웨이브가 나오고 잠시 뒤 화면 위에서 내려오며, 정해진 높이에 닿으면 지형 흐름이 멈춘다.
-  const TAPAO_GATE_PORTAL = { w: 300, h: 304, stopY: .3, enterDelay: 6000 };
+  const TAPAO_GATE_PORTAL = { w: 600, h: 608, stopY: .36, enterDelay: 6000 };
   function spawnTapaoGatePortal() {
     const gate = state.tapaoGateMap;
     if (!gate || gate.portal || !refs.groundLayer) return;
@@ -2171,6 +2166,7 @@
       updatePirates(dt);
       updateAlliedFleet(dt);
       updateBoss(dt);
+      if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGroundSynced) state.tapaoGroundSynced = syncTapaoGroundLayer();
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       if (state.tapaoGateMap) updateTapaoGateMap(dt);
       updateToxicPoison(dt);
@@ -10819,6 +10815,24 @@
   }
 
   // ───────── 타파오 콜로니: 육각 구조물 군집 · 돔 포탑 · 수호탑 ─────────
+  // 지형 층은 전장과 같은 위치·크기로 화면에 놓되 잘라내지 않아, 구조물이 상단·하단 막대 뒤로 자연스럽게 이어진다.
+  function createTapaoGroundLayer() {
+    const ground = document.createElement('div');
+    ground.className = 'tapao-ground';
+    refs.viewport.insertBefore(ground, refs.field);
+    refs.groundLayer = ground;
+    syncTapaoGroundLayer();
+    return ground;
+  }
+  function syncTapaoGroundLayer() {
+    const ground = refs.groundLayer, field = refs.field;
+    if (!ground || !field || !field.offsetHeight) return false;
+    ground.style.left = `${field.offsetLeft}px`;
+    ground.style.top = `${field.offsetTop}px`;
+    ground.style.width = `${field.offsetWidth}px`;
+    ground.style.height = `${field.offsetHeight}px`;
+    return true;
+  }
   function tapaoField() {
     const field = refs.field.getBoundingClientRect();
     return { fieldWidth: Math.max(1, field.width || 375), fieldHeight: Math.max(1, field.height || 700) };
@@ -10880,7 +10894,7 @@
     element.style.top = percent(y);
     element.innerHTML = '<i class="tt-dome"></i><i class="tt-core"></i><span class="tt-hp"><i></i></span>';
     turret.el = element;
-    refs.enemyLayer.append(element);
+    (refs.groundLayer || refs.enemyLayer).append(element);
     state.midBosses.push(turret);
   }
 
@@ -10915,7 +10929,7 @@
     element.style.top = percent(y);
     element.innerHTML = '<i class="tt-ground"></i><i class="tt-shadow"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
     tower.el = element;
-    refs.enemyLayer.append(element);
+    (refs.groundLayer || refs.enemyLayer).append(element);
     state.midBosses.push(tower);
   }
 

@@ -786,8 +786,8 @@
 .battle-viewport.tapao-colony-map::before{display:block;content:"";position:absolute;inset:0;z-index:0;opacity:1;background:url('tapao-colony-desert-v7.webp') 0 0/100% auto repeat-y;animation:tapao-colony-scroll var(--tapao-scroll-duration,55s) linear infinite}
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
-.tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
-.tapao-gate-portal{position:absolute;left:50%;top:0;width:300px;height:304px;margin:-152px 0 0 -150px;z-index:3;background:url('tapao-gate-portal.webp') center/100% 100% no-repeat;filter:drop-shadow(6px 9px 8px rgba(30,15,5,.55));pointer-events:none;will-change:transform}
+.tapao-ground{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}
+.tapao-gate-portal{position:absolute;left:50%;top:0;width:600px;height:608px;margin:-304px 0 0 -300px;z-index:3;background:url('tapao-gate-portal-v2.webp') center/100% 100% no-repeat;filter:drop-shadow(24px 30px 16px rgba(25,12,4,.5));pointer-events:none;will-change:transform}
 .tapao-gate-portal>i{position:absolute;left:51.6%;top:29.7%;width:25%;height:23%;border-radius:50%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(255,255,255,0),rgba(170,225,255,.6),rgba(255,255,255,0) 30%,rgba(120,200,255,.55) 55%,rgba(255,255,255,0) 75%,rgba(210,240,255,.55));-webkit-mask:radial-gradient(circle,#000 40%,transparent 70%);mask:radial-gradient(circle,#000 40%,transparent 70%);mix-blend-mode:screen;animation:tapao-portal-spin 3.2s linear infinite}
 .tapao-gate-portal::after{content:"";position:absolute;left:51.6%;top:29.7%;width:30%;height:28%;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(170,225,255,.55),rgba(80,150,255,0) 70%);mix-blend-mode:screen;animation:tapao-portal-pulse 1.8s ease-in-out infinite}
 @keyframes tapao-portal-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
