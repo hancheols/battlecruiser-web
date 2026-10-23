@@ -997,7 +997,23 @@
   }
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
-  const TAPAO_ALIEN_SCALE = 1.2;
+  // 지역별 외계 함선 강화(체력·공격력): 행성인근·위성궤도 +10%, 콜로니 +15%, 게이트 +20%.
+  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2 };
+  const tapaoAlienScale = (operation = state?.operation) => TAPAO_ALIEN_SCALES[String(operation?.region || '').toLowerCase()] || 1.1;
+  // 함종 상성(타파오 통부터, 아군이 외계 함선을 칠 때만): 중전함 > 구축함 > 순양함 > 중전함. 유리하면 피해 +10%, 불리하면 -10%.
+  // 외계 함선의 공격에는 적용하지 않는다. 함재기·포탑처럼 함종이 없는 대상은 상성이 없다.
+  const TAPAO_MATCHUP_RATE = .1;
+  const TAPAO_TYPE_BEATS = { dreadnought: 'destroyer', destroyer: 'battlecruiser', battlecruiser: 'dreadnought' };
+  const TAPAO_ALIEN_TYPES = { 'kepler-alien-angela': 'dreadnought', 'kepler-alien-starcruiser': 'battlecruiser', 'kepler-alien-escort': 'destroyer' };
+  function tapaoMatchupMultiplier(source, target) {
+    if (!isTapaoOperation() || !target?.variant?.startsWith('kepler-alien-')) return 1;
+    const defender = TAPAO_ALIEN_TYPES[target.variant];
+    const attacker = (source?.owner || source)?.ship?.type;
+    if (!attacker || !defender) return 1;
+    if (TAPAO_TYPE_BEATS[attacker] === defender) return 1 + TAPAO_MATCHUP_RATE;
+    if (TAPAO_TYPE_BEATS[defender] === attacker) return 1 - TAPAO_MATCHUP_RATE;
+    return 1;
+  }
   function isTapaoOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 4 || String(operation?.region || '').toLowerCase().startsWith('tapao-');
   }
@@ -9948,7 +9964,7 @@
     const pandoraDespairMultiplier = source?.isPandora && source.pandoraDespairActive && source.pandoraStars < 5 ? 2 : 1;
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
-    const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier;
+    const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchupMultiplier(source, target);
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     const scaledPackets = basePackets * statFactor * (1+researchDamage) + (source?.starDamageRemainder || 0);
@@ -10456,7 +10472,7 @@
             : ['carrier']
       : atmosphere ? ['angela', 'starcruiser', 'escort'] : ['angela', 'escort', 'escort'];
     const total = lineup.length;
-    const alienScale = isTapaoOperation() ? TAPAO_ALIEN_SCALE : 1;
+    const alienScale = isTapaoOperation() ? tapaoAlienScale() : 1;
     state.keplerAlienFleetSize = total;
     const fleet = [];
     for (let index = 0; index < total; index += 1) {
