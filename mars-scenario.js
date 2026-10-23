@@ -664,6 +664,63 @@
     {speaker:'captain',name:'함장',text:'다른 행성에서 상대했던 것과는 다른 것 같아...'},
     {speaker:'okoye',name:'아마라 오코예 함장',text:'저기 계속 옵니다.'}
   ];
+  // 타파오 행성인근 10관문 클리어: 에바의 무전 → 격납고(강제 이동) → 연구실(볼코프·한 제독) → 함교.
+  // 호칭: 제이크로 플레이 중이면 나포된 쪽은 도나(동생), 도나로 플레이 중이면 제이크(오빠)다. 볼코프는 주인공을 나포된 사람의 반대 호칭으로 부른다.
+  const protagonistIsJake=()=>read(PROFILE_KEY)?.character!=='Donna';
+  const capturedRole=()=>protagonistIsJake()?'동생':'오빠';
+  const protagonistRole=()=>protagonistIsJake()?'오빠':'동생';
+  const tapaoNear10ClearLines=[
+    {speaker:'eva',name:'EVA-9',text:'함장님, 기체 손상이 심각합니다.',remote:true},
+    {speaker:'eva',name:'EVA-9',text:'돌아오셔서 재정비 후에 진행하시는 것을 권고합니다.',remote:true},
+    {speaker:'captain',name:'함장',text:'생각보다 힘든 상대였어.'},
+    {speaker:'captain',name:'함장',text:'돌아가서 함선을 재정비한다. 모두 귀환하라.'}
+  ];
+  const tapaoNear10HangarLines=[
+    {speaker:'farah',name:'파라 나디르',text:'세상에, 함선이 난리도 아니네.. 실드가 뚫려서 선체가 파괴될 뻔 했어.'},
+    {speaker:'farah',name:'파라 나디르',text:'더 이상은 무리일 것 같은데...'},
+    {speaker:'captain',name:'함장',text:'엔지니어? 최대한 빨리 정비해줘.'},
+    {speaker:'captain',name:'함장',text:'곧 다시 나가야 하니까.'},
+    {speaker:'farah',name:'파라 나디르',text:'네, 알겠습니다. 그런데 소식은...?'},
+    {speaker:'captain',name:'함장',text:'아직 아무 단서도 없었어.'},
+    {speaker:'farah',name:'파라 나디르',text:'그렇군요... 연구실로 와 달라고 에바가 전해달라고 했습니다.'},
+    {speaker:'captain',name:'함장',text:'...? 알았어. 바로 가볼게'}
+  ];
+  const tapaoNear10LabLines=[
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:()=>`자네가 그 납치된 녀석의 ${protagonistRole()}인가?`},
+    {speaker:'captain',name:'함장',text:'누구십니까?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'나는 사령관 볼코프라고 하네.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'사라진 녀석의 소식을 듣고 왔는데, 남매가 있을 줄은 몰랐군.'},
+    {speaker:'captain',name:'함장',text:()=>`제 ${capturedRole()}${capturedRole()==='동생'?'을':'를'} 아십니까?`},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'가까운 사람을 조심하라고 경고했는데... 듣지 않은 모양이더군.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'그 녀석과 자네에겐 안됐지만, 덕분에 실체가 드러나게 되었지.'},
+    {speaker:'captain',name:'함장',text:'배신자가 있다는 뜻입니까?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'목소리를 낮추게, 누군가 듣고 있을지 모르니..'},
+    {speaker:'captain',name:'함장',text:'대체 무슨...'},
+    {speaker:'han',name:'한성민 제독',text:'볼코프, 자네가 여긴 웬일인가?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'오랜만이군, 한 제독. 잘 지냈나?'},
+    {speaker:'han',name:'한성민 제독',text:'사령관께서 온다는 이야기는 듣지 못했는데, 내 부하들이 보고를 안한건가?'},
+    {speaker:'han',name:'한성민 제독',text:'아니면, 뭔가 사연이 있어서 몰래 온건가?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'(웃으며) 상관을 대하는 태도가 이게 뭔가?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'아무리 전쟁영웅이라도 말이지.'},
+    {speaker:'han',name:'한성민 제독',text:'상관이라면 우리 함대에 몰래 잠입하지는 않았겠지.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'농담이야, 한. 적의 동태를 살피는 비밀임무 중에 한 제독 함대의 이야기를 듣고 잠시 와본 것 뿐이야.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'물론 빈 손으로 온건 아니지.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'보아하니 자네도 입장이 난처하겠군, 제독.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'몸조심하게, 지켜보는 눈들이 많으니...그럼 이만.'},
+    {speaker:'han',name:'한성민 제독',text:'조심히 가게 친구. 다음부터는 몰래 다니지 말라고.'},
+    {speaker:'han',name:'한성민 제독',text:'자네는, 연구실에 용건이 있나?'},
+    {speaker:'captain',name:'함장',text:'네.. 네 그렇습니다.'},
+    {speaker:'han',name:'한성민 제독',text:'용건이 끝나면 함교로 오게, 할 말이 있으니.'},
+    {speaker:'captain',name:'함장',text:'네, 제독.'}
+  ];
+  const tapaoNear10RewardIndex=tapaoNear10LabLines.findIndex(line=>String(line.text).startsWith('물론 빈 손으로'));
+  // 함교로 이동하면 제독이 묻고, 주인공이 대답을 고른다(이후 전개는 선택값만 저장한다).
+  const tapaoNear10BridgeLines=[
+    {speaker:'han',name:'한성민 제독',text:'볼코프 사령관과 아는 사이인가?',choices:[
+      {text:'아는 사이다.',flag:'tapaoVolkovKnown'},
+      {text:'모르는 사이다.',flag:'tapaoVolkovUnknown'}
+    ]}
+  ];
   const tapaoLabLines=[
     {speaker:'eva',name:'EVA-9',text:'제독님의 지시에 따라 보급품을 지급합니다. 탐사드론 30개, 연구인력 30명, 골드 30,000이 입고되었습니다.'}
   ];
@@ -700,7 +757,7 @@
     {speaker:'okoye',name:'오코예 함장',text:'선발대 생존자가 저 함선으로부터 공격을 받았다고 합니다.'},
     {speaker:'captain',name:'함장',text:'일단 우리편은 아니란 거군... 전원 전투 준비!'}
   ];
-  const multiLine={'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'tapao-near5-clear':tapaoNear5ClearLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
+  const multiLine={'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'tapao-near5-clear':tapaoNear5ClearLines,'tapao-near10-clear':tapaoNear10ClearLines,'tapao-near10-hangar':tapaoNear10HangarLines,'tapao-near10-lab':tapaoNear10LabLines,'tapao-near10-bridge':tapaoNear10BridgeLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
   // 출격 직후 통신이 끝나면 준비된 전투를 바로 개시하는 단계
   const AUTO_START_STAGES=['malik','oort10','oort15','volkov','magenta6','tapao-near-pre'];
   // 출격 직후 대화 단계(새로고침하면 준비된 전투가 사라지므로 다음 출격 때 다시 보여줌). 오르트 20관문은 보호막 함선 권고에 따라 편성을 바꿀 수 있게 [전투 개시]를 기다립니다.
@@ -708,6 +765,7 @@
   // 대사 중간에 보상을 주는 지점: 해당 줄에서 [계속]을 누르면 지급 + 물자창고 이송 연출 후 다음 줄로 넘어갑니다.
   const REWARD_ICON={gold:['골드','gold-resource-icon.svg'],precisionScout:['정밀탐색드론','icons/precision-scout-drone.webp'],ssrShipTicket:['SSR 함선 선택 교환권','icons/ssr-ship-ticket.svg?v=3'],frameTicket:['함선골조 교환권','icons/frame-ticket.svg?v=2'],frameCannon:['함포 골조','icons/ship-frame.png'],frameMissile:['미사일 골조','icons/ship-frame.png'],frameLaser:['레이저포 골조','icons/ship-frame.png'],framePiercing:['관통레이저 골조','icons/ship-frame.png'],frameCarrier:['함재기 골조','icons/ship-frame.png'],goldVault:['금고','icons/vault.png'],thoriumBox:['토륨 상자','icons/thorium-box.png'],thorium:['토륨','thorium-crystal-icon.png'],scoutTron:['탐사드론','icons/scout-drone.png'],researchStaff:['연구인력','icons/research-personnel-20261002.png'],journal:['연구일지','icons/research-journal.png'],core:['범용연구코어','icons/research-core.png']};
   const rewardSteps={
+    'tapao-near10-lab':{index:tapaoNear10RewardIndex,flag:'tapaoNear10VolkovRewardGranted',kicker:'COMMANDER VOLKOV · SECRET SUPPLY',title:'볼코프의 지원 물자',rewards:{scoutTron:30,researchStaff:30,gold:50000}},
     'tapao-lab':{index:0,flag:'tapaoLabRewardGranted',kicker:'ADMIRAL HAN · TAPAO SORTIE SUPPLY',title:'타파오 출정 보급품',rewards:{scoutTron:30,researchStaff:30,gold:30000}},
     'katm5-supply':{index:0,flag:'katm5SupplyRewardGranted',kicker:'EVA-9 · RESEARCH PERSONNEL',title:'사령부 연구인력 지원',rewards:{researchStaff:100}},
     'kb5-farah':{index:2,flag:'kb5FarahPrecisionGranted',kicker:'FARAH · PRECISION SCOUT',title:'정밀탐색드론 개량품',rewards:{precisionScout:20}},
@@ -759,6 +817,10 @@
     'tapao-lab':'RESEARCH LAB · FLEET SUPPLY',
     'tapao-near-pre':'TAPAO THONG · PLANET VICINITY GATE 01 / ARRIVAL',
     'tapao-near5-clear':'TAPAO THONG · PLANET VICINITY GATE 05 / MISSION COMPLETE',
+    'tapao-near10-clear':'TAPAO THONG · PLANET VICINITY GATE 10 / MISSION COMPLETE',
+    'tapao-near10-hangar':'HANGAR · FARAH NADIR',
+    'tapao-near10-lab':'RESEARCH LAB · COMMANDER VOLKOV',
+    'tapao-near10-bridge':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN',
     'kb5-farah':'HANGAR · FARAH NADIR',
     'katm210-para':'HANGAR · FARAH NADIR',
     'katm210-walk':'FLEET CORRIDOR',
@@ -960,6 +1022,10 @@
     if(stage==='tapao-lab')state.tapaoLabDone=true;
     if(stage==='tapao-near-pre')state.tapaoNearPreDone=true;
     if(stage==='tapao-near5-clear')state.tapaoNear5ClearDone=true;
+    if(stage==='tapao-near10-clear')state.tapaoNear10ClearDone=true;
+    if(stage==='tapao-near10-hangar')state.tapaoNear10HangarDone=true;
+    if(stage==='tapao-near10-lab')state.tapaoNear10LabDone=true;
+    if(stage==='tapao-near10-bridge')state.tapaoNear10BridgeDone=true;
     if(pendingSortie&&pendingSortie.stage===stage){const proceed=pendingSortie.proceed;pendingSortie=null;setTimeout(proceed,0);}
     if(stage==='katm210-eva'){state.katm210EvaDone=true;syncPrecisionSearchButton();}
     if(stage==='katm210-ayra'){state.katm210AyraDone=true;window.setBattleHold?.(false);}
@@ -993,7 +1059,7 @@
       return;
     }
     // 타파오 통 도입부: 케플러 연구실 장면 → 함교 → 격납고 → 함교(제독) → 연구실 순서로, 각 장면이 끝나면 다음 화면으로 이동할 때까지 기다린다.
-    const TAPAO_FLOW={'kb10-lab':'tapao-bridge-pending','tapao-bridge':'tapao-hangar-pending','tapao-hangar':'tapao-admiral-pending','tapao-admiral':'tapao-lab-pending'};
+    const TAPAO_FLOW={'tapao-near10-hangar':'tapao-near10-lab-pending','tapao-near10-lab':'tapao-near10-bridge-pending','kb10-lab':'tapao-bridge-pending','tapao-bridge':'tapao-hangar-pending','tapao-hangar':'tapao-admiral-pending','tapao-admiral':'tapao-lab-pending'};
     if(stage==='tapao-bridge')state.tapaoBridgeDone=true;
     if(stage==='tapao-hangar')state.tapaoHangarDone=true;
     if(stage==='tapao-admiral')state.tapaoAdmiralDone=true;
@@ -1050,6 +1116,10 @@
       setStage('lab-pending');
       state.labDirect=true;save();
       paint();
+    }else if(state.stage==='tapao-near10-clear'&&state.index>=tapaoNear10ClearLines.length-1){
+      // 마지막 줄: 격납고로 강제 이동해 파라와의 대화가 이어진다.
+      state.tapaoNear10ClearDone=true;save();
+      window.show?.('collection');setStage('tapao-near10-hangar');paint();
     }else if(state.stage==='kb5-clear'&&state.index>=kb5ClearLines.length-1){
       window.show?.('home');setStage('kb5-hangar-pending');paint();
     }else if(state.stage==='katm210-retreat'&&state.index>=katm210RetreatLines.length-1){
@@ -1203,14 +1273,14 @@
     if(/-pending$/.test(state.stage))return true;
     // 함교에서 진행되는 대화는 새로고침 후 복원될 때도 함교로 이동할 수 있어야 합니다.
     if(state.stage==='katm210-para')return id==='collection';
-    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='tapao-lab'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
+    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='tapao-lab'||state.stage==='tapao-near10-lab'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
     if(state.stage==='magenta5-volkov')return id==='collection';
     if(state.stage==='katm210-para')return id==='collection';
     // 클리어 직후 안내 장면은 전투 결과 화면에서 어느 메뉴로 나가도 막지 않는다(막히면 버튼이 먹지 않는다).
-    if(state.stage==='katm210-retreat'||state.stage==='tapao-near5-clear')return true;
-    if(state.stage==='kb5-farah'||state.stage==='tapao-hangar')return id==='collection';
+    if(state.stage==='katm210-retreat'||state.stage==='tapao-near5-clear'||state.stage==='tapao-near10-clear')return true;
+    if(state.stage==='kb5-farah'||state.stage==='tapao-hangar'||state.stage==='tapao-near10-hangar')return id==='collection';
     if(state.stage==='katm210-walk')return id==='collection'||id==='home';
-    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear','tapao-bridge','tapao-admiral'].includes(state.stage)&&id==='home';
+    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear','tapao-bridge','tapao-admiral','tapao-near10-bridge'].includes(state.stage)&&id==='home';
   };
   // 플레이어가 연구실(summon) 화면을 직접 열었을 때만 작전 회의를 시작한다.
   // 연구실로 바로 들어가면 지원 물품을 기본 지원의 50%만큼 추가로 지급한다(다른 화면을 거쳤다면 추가 지급 없음).
@@ -1218,7 +1288,7 @@
   window.addEventListener('game-screen-changed',event=>{
     const screen=event.detail?.screen;
     // 타스 10관문: 함교로 돌아오면 루카와의 대화, 연구실을 열면 EVA-9와의 대화가 이어진다.
-    const TAS10_NEXT={'tapao-bridge-pending':{screen:'home',stage:'tapao-bridge'},'tapao-hangar-pending':{screen:'collection',stage:'tapao-hangar'},'tapao-admiral-pending':{screen:'home',stage:'tapao-admiral'},'tapao-lab-pending':{screen:'summon',stage:'tapao-lab'},'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
+    const TAS10_NEXT={'tapao-near10-lab-pending':{screen:'summon',stage:'tapao-near10-lab'},'tapao-near10-bridge-pending':{screen:'home',stage:'tapao-near10-bridge'},'tapao-bridge-pending':{screen:'home',stage:'tapao-bridge'},'tapao-hangar-pending':{screen:'collection',stage:'tapao-hangar'},'tapao-admiral-pending':{screen:'home',stage:'tapao-admiral'},'tapao-lab-pending':{screen:'summon',stage:'tapao-lab'},'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
     const tasNext=TAS10_NEXT[state.stage];
     if(tasNext){if(screen===tasNext.screen){setStage(tasNext.stage);window.show?.(tasNext.screen);}return;}
     // 케플러 10관문 클리어를 이미 지나간 경우에도, 연구실을 열면 에바-9와의 대화가 나온다(한 번만).
@@ -1248,6 +1318,7 @@
     if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===5&&firstClear&&!state.kb5ClearDone&&!active()){setStage('kb5-clear');return;}
     if(Number(chapter)===3&&region==='kepler-base'&&Number(gate)===10&&firstClear&&!state.kb10ClearDone&&!active()){setStage('kb10-clear');return;}
     if(Number(chapter)===4&&region==='tapao-near'&&Number(gate)===5&&firstClear&&!state.tapaoNear5ClearDone&&!active()){setStage('tapao-near5-clear');return;}
+    if(Number(chapter)===4&&region==='tapao-near'&&Number(gate)===10&&firstClear&&!state.tapaoNear10ClearDone&&!active()){setStage('tapao-near10-clear');return;}
     if(Number(chapter)===1&&region==='titan'&&firstClear){
       if(Number(gate)===5&&!state.titanGate5Done&&!active())setStage('titan-gate5');
       if(Number(gate)===10&&!state.titanFallDone&&!active())setStage('titan-call');
