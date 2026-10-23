@@ -529,8 +529,11 @@
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
+    refs.viewport?.classList.toggle('tapao-gate-map', isTapaoGateOperation(normalizedOperation));
     if ((isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation)) && refs.viewport) {
-      const tile = Math.round(TAPAO_COLONY_TILE_ROWS * (refs.viewport.clientWidth || 375) / TAPAO_COLONY_TILE_WIDTH);
+      // 지역별 사막 타일(게이트는 별도 모래결 사진). 화면 폭에 맞춘 타일 높이로 배경이 이어진다.
+      const [tileRows, tileWidth] = isTapaoGateOperation(normalizedOperation) ? [TAPAO_GATE_TILE_ROWS, TAPAO_GATE_TILE_WIDTH] : [TAPAO_COLONY_TILE_ROWS, TAPAO_COLONY_TILE_WIDTH];
+      const tile = Math.round(tileRows * (refs.viewport.clientWidth || 375) / tileWidth);
       refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
       refs.viewport.style.setProperty('--tapao-bg-y', '0px');
       refs.viewport.style.setProperty('--tapao-scroll-duration', `${(tile / TAPAO_SCROLL_SPEED).toFixed(2)}s`);
@@ -1041,6 +1044,7 @@
   // 타파오 콜로니: 사막 지형이 끝없이 아래로 흐르는 전투 맵. 모래 속에 숨은 대공 포탑이 간간이 솟아올라 아군을 쏜다(지상전).
   // 외계 함대(공중전)와 함께 나오며, 승리 조건은 외계 함대 격파다(포탑은 승패에 영향이 없다).
   const TAPAO_SCROLL_SPEED = 30;      // 배경이 흐르는 속도(px/초). 포탑도 같은 속도로 내려와 땅에 붙어 있는 것처럼 보인다.
+  const TAPAO_GATE_TILE_ROWS = 864, TAPAO_GATE_TILE_WIDTH = 836;       // tapao-gate-desert-v1.webp 크기
   const TAPAO_COLONY_TILE_ROWS = 1011, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert-v7.webp 크기
   // 타파오 콜로니 구성: 가운데에 육각 구조물 군집(V자 세 겹)이 일정 간격으로 흘러가고, 군집 사이 빈 곳에 좌우 돔 포탑과 가운데 수호탑이 선다.
   // 크기와 간격은 화면 px 기준이다. 육각 그림은 맞붙였을 때 1시·11시 방향 이웃과 모서리가 딱 맞는 간격(stepX, stepY)으로 쌓는다.
