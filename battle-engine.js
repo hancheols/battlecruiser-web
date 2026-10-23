@@ -527,12 +527,12 @@
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
-    refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation));
+    refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
-    refs.viewport?.classList.toggle('tapao-gate-map', isTapaoGateOperation(normalizedOperation));
-    if ((isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation)) && refs.viewport) {
+    refs.viewport?.classList.toggle('tapao-gate-map', isTapaoGateFinal(normalizedOperation));
+    if ((isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation)) && refs.viewport) {
       // 지역별 사막 타일(게이트는 별도 모래결 사진). 화면 폭에 맞춘 타일 높이로 배경이 이어진다.
-      const [tileRows, tileWidth] = isTapaoGateOperation(normalizedOperation) ? [TAPAO_GATE_TILE_ROWS, TAPAO_GATE_TILE_WIDTH] : [TAPAO_COLONY_TILE_ROWS, TAPAO_COLONY_TILE_WIDTH];
+      const [tileRows, tileWidth] = isTapaoGateFinal(normalizedOperation) ? [TAPAO_GATE_TILE_ROWS, TAPAO_GATE_TILE_WIDTH] : [TAPAO_COLONY_TILE_ROWS, TAPAO_COLONY_TILE_WIDTH];
       const tile = Math.round(tileRows * (refs.viewport.clientWidth || 375) / tileWidth);
       refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
       refs.viewport.style.setProperty('--tapao-bg-y', '0px');
@@ -601,7 +601,7 @@
     refs.battleClock.textContent = '00:00';
     refs.viewport?.querySelector('.tapao-ground')?.remove();
     refs.field?.querySelector('.tapao-ground')?.remove();
-    if (isTapaoColonyOperation(normalizedOperation)) {
+    if (isTapaoColonyMap(normalizedOperation)) {
       state.tapaoColony = { cycleIndex: 0, lastV: 0, gapDone: true, spawned: 0, ground: [] };
       createTapaoGroundLayer();
       // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 군집 둘과 그 사이 돔·수호탑을 미리 깔아 둔다.
@@ -611,7 +611,7 @@
       spawnTapaoGap(.96 - cyclePrefill / 2);
       state.tapaoColony.lastV = .96 - cyclePrefill;
     }
-    if (isTapaoGateOperation(normalizedOperation)) {
+    if (isTapaoGateFinal(normalizedOperation)) {
       state.tapaoGateMap = { nextDecor: 160, ground: [] };
       createTapaoGroundLayer();
       // 시작 화면이 비어 보이지 않게 서클·피라미드를 몇 개 미리 깔아 둔다.
@@ -1110,14 +1110,6 @@
     if (gate.stopped) return;
     const { fieldHeight } = tapaoField();
     const scroll = (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
-    // 마지막 웨이브가 나오면 잠시 뒤 관문이 나타난다.
-    if (!gate.portal) {
-      const plan = tapaoWavePlan();
-      if (state.keplerAlienFleetSpawned && (state.tapaoWaveIndex ?? 0) >= plan.length - 1) {
-        gate.portalTimer = (gate.portalTimer ?? TAPAO_GATE_PORTAL.enterDelay) - dt;
-        if (gate.portalTimer <= 0) spawnTapaoGatePortal();
-      }
-    }
     gate.nextDecor -= TAPAO_SCROLL_SPEED * dt / 1000;
     if (gate.nextDecor <= 0 && !gate.portal) {
       spawnTapaoGateDecor(-.42);
@@ -1133,10 +1125,79 @@
     if (gate.portal && gate.portal.y >= TAPAO_GATE_PORTAL.stopY) {
       gate.stopped = true;
       refs.viewport?.classList.add('tapao-scroll-stopped');
+      startTapaoGateWarpWaves();
     }
+  }
+  // 게이트 10관문: 스타크루저 1척 → 10초 뒤 1척 추가(관문이 다가온다) → 관문 도착 시 호위함 1척 워프
+  // → 15초 뒤 호위함 2척(0.5초 간격) 워프 → 15초 뒤 스타크루저 3척 → 15초 뒤 앙헬라 → 15초 뒤 호위함 2척 워프. 5웨이브 모두 격파하면 클리어.
+  const TAPAO_GATE_FINAL_GAP = 15000;
+  function startTapaoGateFinal() {
+    state.tapaoGateFinal = { done: false };
+    schedule(() => tapaoGateFleet(['starcruiser'], { xs: [.5], wave: 0, label: '외계 함대 제1웨이브 · 외계 스타크루저 접근' }), 600);
+    schedule(() => {
+      tapaoGateFleet(['starcruiser'], { xs: [.74], wave: 0, label: '외계 스타크루저 1척 추가 접근 · 전방에 관문 포착' });
+      spawnTapaoGatePortal();
+    }, 10600);
+  }
+  function tapaoGateFleet(lineup, options) {
+    if (!state || state.status !== 'combat') return [];
+    state.keplerAlienFleetSpawned = false;
+    return spawnKeplerAlienFleet(lineup, { append: true, ...options }) || [];
+  }
+  // 관문 구멍(화면 좌표)에서 함선이 번쩍이며 나타나 정해진 자리로 빠져나온다.
+  function tapaoGatePortalHole() {
+    const { fieldWidth, fieldHeight } = tapaoField();
+    const portal = state.tapaoGateMap?.portal;
+    const y = portal ? portal.y : TAPAO_GATE_PORTAL.stopY;
+    return { x: .5 + TAPAO_GATE_PORTAL.w * .016 / fieldWidth, y: y + TAPAO_GATE_PORTAL.h * (.297 - .5) / fieldHeight };
+  }
+  function warpTapaoEscort(targetX, targetY, wave, label, index) {
+    const hole = tapaoGatePortalHole();
+    const [ship] = tapaoGateFleet(['escort'], { xs: [hole.x], wave, label, idSuffix: index });
+    if (!ship) return;
+    ship.x = hole.x; ship.y = hole.y;
+    ship.entryStartX = hole.x; ship.entryStartY = hole.y;
+    ship.entryTargetX = targetX; ship.entryTargetY = targetY;
+    ship.entryDuration = 1400; ship.entryTime = 1400;
+    ship.el.style.left = percent(hole.x); ship.el.style.top = percent(hole.y);
+    ship.el.classList.add('tapao-warp-in');
+    const flash = document.createElement('i');
+    flash.className = 'tapao-warp-flash';
+    flash.style.left = percent(hole.x); flash.style.top = percent(hole.y);
+    refs.enemyLayer.append(flash);
+    setTimeout(() => flash.remove(), 1000);
+    playFighterLaunchSound();
+  }
+  function startTapaoGateWarpWaves() {
+    if (!state?.tapaoGateFinal || state.tapaoGateFinal.warpStarted) return;
+    state.tapaoGateFinal.warpStarted = true;
+    const gap = TAPAO_GATE_FINAL_GAP;
+    warpTapaoEscort(.5, .34, 1, '외계 함대 제2웨이브 · 관문에서 외계 호위함 워프 아웃', 0);
+    schedule(() => warpTapaoEscort(.28, .32, 2, '외계 함대 제3웨이브 · 외계 호위함 2척 워프 아웃', 0), gap);
+    schedule(() => warpTapaoEscort(.72, .32, 2, null, 1), gap + 500);
+    schedule(() => tapaoGateFleet(['starcruiser', 'starcruiser', 'starcruiser'], { xs: [.5, .22, .78], wave: 3, label: '외계 함대 제4웨이브 · 외계 스타크루저 3척 접근' }), gap * 2);
+    schedule(() => {
+      if (!state || state.status !== 'combat') return;
+      // 보스 체력바가 앙헬라를 가리키도록 앙헬라를 핵심 함선 자리에 둔다.
+      if (state.boss && !state.boss.dead) state.midBosses.push(state.boss);
+      state.boss = null;
+      tapaoGateFleet(['angela'], { xs: [.5], wave: 4, label: '외계 함대 제5웨이브 · 보스 외계 앙헬라 출현' });
+    }, gap * 3);
+    schedule(() => warpTapaoEscort(.3, .36, 4, '관문에서 외계 호위함 2척 추가 워프 아웃', 2), gap * 4);
+    schedule(() => {
+      warpTapaoEscort(.7, .36, 4, null, 3);
+      if (state?.tapaoGateFinal) state.tapaoGateFinal.done = true;
+    }, gap * 4 + 500);
   }
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
+  }
+  // 게이트 10관문만 관문 맵을 쓰고, 게이트 1~9관문은 콜로니와 같은 맵(육각 구조물·포탑)을 쓴다.
+  function isTapaoGateFinal(operation = state?.operation) {
+    return isTapaoGateOperation(operation) && Number(operation?.gate) === 10;
+  }
+  function isTapaoColonyMap(operation = state?.operation) {
+    return isTapaoColonyOperation(operation) || (isTapaoGateOperation(operation) && !isTapaoGateFinal(operation));
   }
 
   function isKeplerSecretBaseOperation(operation = state?.operation) {
@@ -10387,6 +10448,13 @@
       }
       return;
     }
+    if (isTapaoGateFinal()) {
+      if (!state.tapaoGateFinal) { startTapaoGateFinal(); return; }
+      if (!state.tapaoGateFinal.done) return;
+      const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
+      if (!alive.length) finishBattle(true);
+      return;
+    }
     if (isTapaoOperation()) {
       const plan = tapaoWavePlan();
       const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
@@ -10581,7 +10649,7 @@
           : { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
       const hp = Math.round(alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
       const ship = {
-        id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${options.wave !== undefined ? `w${options.wave}-` : ''}${index}`,
+        id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${options.wave !== undefined ? `w${options.wave}-` : ''}${options.idSuffix ?? ''}${index}${options.xs ? `-${Math.round(options.xs[index] * 100)}` : ''}`,
         kind: 'boss',
         variant: angela ? 'kepler-alien-angela' : carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort',
         name: angela ? '외계 앙헬라' : carrier ? '외계 우주항모' : starcruiser ? '외계 스타크루저' : '외계 호위함',
@@ -10641,8 +10709,10 @@
     updateHud(true);
     focusBattleAudio('boss');
     const regionLabel = secretBase ? '비밀기지' : atmosphere ? '대기권' : '행성권';
-    if (options.wave !== undefined) { announce(`외계 함대 제${options.wave + 1}웨이브 · 스타크루저 1척 + 함재기 10기 접근`, 'boss'); return; }
+    if (options.label !== undefined) { if (options.label) announce(options.label, 'boss'); return fleet; }
+    if (options.wave !== undefined) { announce(`외계 함대 제${options.wave + 1}웨이브 · 스타크루저 1척 + 함재기 10기 접근`, 'boss'); return fleet; }
     announce(isTapaoOperation() ? `타파오 통 ${gate}관문 · ${carrierLineupLabel(lineup)} 접근` : `케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
+    return fleet;
   }
 
   function carrierLineupLabel(lineup) {

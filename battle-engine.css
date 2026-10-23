@@ -827,3 +827,9 @@
 @keyframes tapao-smoke{0%{opacity:.85;transform:translateY(0) scale(.5)}100%{opacity:0;transform:translateY(-30px) scale(1.7)}}
 @keyframes tapao-laser-fly{from{transform:translate(0,0) rotate(var(--ang,0rad))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--ang,0rad))}}
 .fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;animation-name:tapao-laser-fly;animation-timing-function:linear;transform:rotate(var(--ang,0rad));background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}
+
+/* 타파오 게이트 10관문: 관문에서 워프해 나오는 외계 함선 */
+.boss-unit.tapao-warp-in .boss-sprite{animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) both}
+@keyframes tapao-warp-in{0%{transform:scale(.08,1.8);opacity:0;filter:brightness(4) drop-shadow(0 0 18px #9fe3ff)}35%{transform:scale(.5,1.25);opacity:1;filter:brightness(2.4) drop-shadow(0 0 14px #9fe3ff)}100%{transform:scale(1);opacity:1;filter:none}}
+.tapao-warp-flash{position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;z-index:20;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(160,225,255,.75) 22%,rgba(80,160,255,.25) 50%,rgba(80,160,255,0) 70%);mix-blend-mode:screen;animation:tapao-warp-flash .9s ease-out forwards}
+@keyframes tapao-warp-flash{0%{transform:scale(.2);opacity:0}20%{transform:scale(1.1);opacity:1}100%{transform:scale(1.9,.5);opacity:0}}
