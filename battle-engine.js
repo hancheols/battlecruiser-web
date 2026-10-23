@@ -1096,7 +1096,8 @@
       if (gate.ground.some(other => Math.abs(other.x - x) < halfW + other.halfW && Math.abs(other.y - y) < halfH + other.halfH)) continue;
       const element = document.createElement('i');
       element.className = `tapao-gate-decor ${circle ? 'circle' : 'pyramid'}`;
-      element.style.cssText = `left:${percent(x)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background-image:url('tapao-gate-${pick}${circle ? '' : '-v2'}.webp');transform:translateY(${(y * fieldHeight).toFixed(1)}px)`;
+      element.style.cssText = `left:${percent(x)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;${circle ? `background-image:url('tapao-gate-${pick}.webp');` : ''}transform:translateY(${(y * fieldHeight).toFixed(1)}px)`;
+      if (!circle) element.innerHTML = `<i class="pyr-shadow"></i><i class="pyr-body" style="background-image:url('tapao-gate-${pick}-v3.webp')"></i>`;
       // 서클은 바닥 무늬라서 피라미드보다 아래에 깐다.
       if (circle) refs.groundLayer.prepend(element); else refs.groundLayer.append(element);
       gate.ground.push({ element, x, y, halfW, halfH });
