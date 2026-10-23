@@ -787,6 +787,12 @@
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
 .tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
+.tapao-gate-portal{position:absolute;left:50%;top:0;width:300px;height:304px;margin:-152px 0 0 -150px;z-index:3;background:url('tapao-gate-portal.webp') center/100% 100% no-repeat;filter:drop-shadow(6px 9px 8px rgba(30,15,5,.55));pointer-events:none;will-change:transform}
+.tapao-gate-portal>i{position:absolute;left:51.6%;top:29.7%;width:25%;height:23%;border-radius:50%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(255,255,255,0),rgba(170,225,255,.6),rgba(255,255,255,0) 30%,rgba(120,200,255,.55) 55%,rgba(255,255,255,0) 75%,rgba(210,240,255,.55));-webkit-mask:radial-gradient(circle,#000 40%,transparent 70%);mask:radial-gradient(circle,#000 40%,transparent 70%);mix-blend-mode:screen;animation:tapao-portal-spin 3.2s linear infinite}
+.tapao-gate-portal::after{content:"";position:absolute;left:51.6%;top:29.7%;width:30%;height:28%;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(170,225,255,.55),rgba(80,150,255,0) 70%);mix-blend-mode:screen;animation:tapao-portal-pulse 1.8s ease-in-out infinite}
+@keyframes tapao-portal-spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes tapao-portal-pulse{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(.9)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+.battle-viewport.tapao-scroll-stopped::before{animation-play-state:paused}
 .tapao-gate-decor{position:absolute;top:0;background-position:center;background-size:100% 100%;background-repeat:no-repeat;pointer-events:none;will-change:transform}
 .tapao-gate-decor.circle{z-index:1;opacity:.96}
 .tapao-gate-decor.pyramid{z-index:2}

@@ -528,6 +528,7 @@
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation));
+    refs.viewport?.classList.remove('tapao-scroll-stopped');
     if ((isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation)) && refs.viewport) {
       const tile = Math.round(TAPAO_COLONY_TILE_ROWS * (refs.viewport.clientWidth || 375) / TAPAO_COLONY_TILE_WIDTH);
       refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
@@ -1066,6 +1067,21 @@
   }
   // 타파오 게이트: 콜로니와 같은 사막 위에 미스터리 서클(눌린 모래 문양 4종)과 피라미드(2종)가 곳곳에 흘러간다. 크기는 화면 px.
   const TAPAO_GATE_DECOR = { circle: 220, pyramid: 130 };
+  // 맵 끝의 관문: 마지막 웨이브가 나오고 잠시 뒤 화면 위에서 내려오며, 정해진 높이에 닿으면 지형 흐름이 멈춘다.
+  const TAPAO_GATE_PORTAL = { w: 300, h: 304, stopY: .3, enterDelay: 6000 };
+  function spawnTapaoGatePortal() {
+    const gate = state.tapaoGateMap;
+    if (!gate || gate.portal || !refs.groundLayer) return;
+    const { fieldHeight } = tapaoField();
+    const y = -(TAPAO_GATE_PORTAL.h / 2 + 12) / fieldHeight;
+    const element = document.createElement('div');
+    element.className = 'tapao-gate-portal';
+    element.style.transform = `translateY(${(y * fieldHeight).toFixed(1)}px)`;
+    element.innerHTML = '<i aria-hidden="true"></i>';
+    refs.groundLayer.append(element);
+    gate.portal = { element, x: .5, y, halfW: TAPAO_GATE_PORTAL.w / 2 / tapaoField().fieldWidth, halfH: TAPAO_GATE_PORTAL.h / 2 / fieldHeight, portal: true };
+    gate.ground.push(gate.portal);
+  }
   function spawnTapaoGateDecor(y, name = null) {
     const gate = state?.tapaoGateMap;
     if (!gate || !refs.groundLayer) return false;
@@ -1090,10 +1106,19 @@
   }
   function updateTapaoGateMap(dt) {
     const gate = state.tapaoGateMap;
+    if (gate.stopped) return;
     const { fieldHeight } = tapaoField();
     const scroll = (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
+    // 마지막 웨이브가 나오면 잠시 뒤 관문이 나타난다.
+    if (!gate.portal) {
+      const plan = tapaoWavePlan();
+      if (state.keplerAlienFleetSpawned && (state.tapaoWaveIndex ?? 0) >= plan.length - 1) {
+        gate.portalTimer = (gate.portalTimer ?? TAPAO_GATE_PORTAL.enterDelay) - dt;
+        if (gate.portalTimer <= 0) spawnTapaoGatePortal();
+      }
+    }
     gate.nextDecor -= TAPAO_SCROLL_SPEED * dt / 1000;
-    if (gate.nextDecor <= 0) {
+    if (gate.nextDecor <= 0 && !gate.portal) {
       spawnTapaoGateDecor(-.3);
       gate.nextDecor = 150 + Math.random() * 170;
     }
@@ -1103,6 +1128,11 @@
       if (item.y - item.halfH > 1.2) { item.element.remove(); return false; }
       return true;
     });
+    // 관문이 제자리에 닿으면 배경과 지형의 흐름을 멈춘다(맵 끝).
+    if (gate.portal && gate.portal.y >= TAPAO_GATE_PORTAL.stopY) {
+      gate.stopped = true;
+      refs.viewport?.classList.add('tapao-scroll-stopped');
+    }
   }
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
