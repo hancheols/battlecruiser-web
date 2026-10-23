@@ -721,6 +721,8 @@
       {text:'모르는 사이다.',flag:'tapaoVolkovUnknown',next:'tapao-near10-unknown'}
     ]}
   ];
+  // 분기 대화가 끝나면 제독이 공통 대사를 하고 도움(보급품)을 준다. '모르는 사이다 → 배신자 이야기' 선택만 큰 보상, 나머지는 작은 보상.
+  const tapaoHanClosing={speaker:'han',name:'한성민 제독',text:'어쨌든, 지금 어려운 싸움을 하고 있으니 제독으로서 도움을 주려고 불렀네.'};
   // '아는 사이다' 를 고르면 제독이 어떻게 아는 사이인지 되묻는다.
   const tapaoNear10KnownLines=[
     {speaker:'han',name:'한성민 제독',text:'어떻게 아는 사이지?',choices:[
@@ -729,10 +731,12 @@
     ]}
   ];
   const tapaoNear10KnownALines=[
-    {speaker:'han',name:'한성민 제독',text:'싱거운 친구로군.'}
+    {speaker:'han',name:'한성민 제독',text:'싱거운 친구로군.'},
+    tapaoHanClosing
   ];
   const tapaoNear10KnownBLines=[
-    {speaker:'han',name:'한성민 제독',text:'마젠타 작전에서 만났겠지만, 몰래 찾아 올 정도의 사이였나.'}
+    {speaker:'han',name:'한성민 제독',text:'마젠타 작전에서 만났겠지만, 몰래 찾아 올 정도의 사이였나.'},
+    tapaoHanClosing
   ];
   // '모르는 사이다' 를 고르면 제독이 둘이 무슨 얘기를 했는지 묻는다.
   const tapaoNear10UnknownLines=[
@@ -745,11 +749,13 @@
     {speaker:'han',name:'한성민 제독',text:'여기저기 들쑤시고 다니는 버릇은 여전하구만.'},
     {speaker:'han',name:'한성민 제독',text:'자네 생각은 어떤가?'},
     {speaker:'captain',name:'함장',text:'조심해서 나쁠 건 없다고 생각합니다.'},
-    {speaker:'han',name:'한성민 제독',text:'......그렇군.'}
+    {speaker:'han',name:'한성민 제독',text:'......그렇군.'},
+    tapaoHanClosing
   ];
   const tapaoNear10UnknownBLines=[
     {speaker:'han',name:'한성민 제독',text:'배신자 운운하는 이야기를 하지 않았나?'},
-    {speaker:'han',name:'한성민 제독',text:'난 자네를 돕고 있는데, 실망시키는군.'}
+    {speaker:'han',name:'한성민 제독',text:'난 자네를 돕고 있는데, 실망시키는군.'},
+    tapaoHanClosing
   ];
   const tapaoLabLines=[
     {speaker:'eva',name:'EVA-9',text:'제독님의 지시에 따라 보급품을 지급합니다. 탐사드론 30개, 연구인력 30명, 골드 30,000이 입고되었습니다.'}
@@ -795,6 +801,10 @@
   // 대사 중간에 보상을 주는 지점: 해당 줄에서 [계속]을 누르면 지급 + 물자창고 이송 연출 후 다음 줄로 넘어갑니다.
   const REWARD_ICON={gold:['골드','gold-resource-icon.svg'],precisionScout:['정밀탐색드론','icons/precision-scout-drone.webp'],ssrShipTicket:['SSR 함선 선택 교환권','icons/ssr-ship-ticket.svg?v=3'],frameTicket:['함선골조 교환권','icons/frame-ticket.svg?v=2'],frameCannon:['함포 골조','icons/ship-frame.png'],frameMissile:['미사일 골조','icons/ship-frame.png'],frameLaser:['레이저포 골조','icons/ship-frame.png'],framePiercing:['관통레이저 골조','icons/ship-frame.png'],frameCarrier:['함재기 골조','icons/ship-frame.png'],goldVault:['금고','icons/vault.png'],thoriumBox:['토륨 상자','icons/thorium-box.png'],thorium:['토륨','thorium-crystal-icon.png'],scoutTron:['탐사드론','icons/scout-drone.png'],researchStaff:['연구인력','icons/research-personnel-20261002.png'],journal:['연구일지','icons/research-journal.png'],core:['범용연구코어','icons/research-core.png']};
   const rewardSteps={
+    'tapao-near10-unknown-a':{index:4,flag:'tapaoNear10HanGiftGranted',kicker:'ADMIRAL HAN · SPECIAL SUPPORT',title:'제독의 특별 지원',rewards:{scoutTron:20,gold:50000,thorium:500}},
+    'tapao-near10-unknown-b':{index:2,flag:'tapaoNear10HanGiftGranted',kicker:'ADMIRAL HAN · SUPPORT',title:'제독의 지원',rewards:{scoutTron:5,researchStaff:5}},
+    'tapao-near10-known-a':{index:1,flag:'tapaoNear10HanGiftGranted',kicker:'ADMIRAL HAN · SUPPORT',title:'제독의 지원',rewards:{scoutTron:5,researchStaff:5}},
+    'tapao-near10-known-b':{index:1,flag:'tapaoNear10HanGiftGranted',kicker:'ADMIRAL HAN · SUPPORT',title:'제독의 지원',rewards:{scoutTron:5,researchStaff:5}},
     'tapao-near10-lab':{index:tapaoNear10RewardIndex,flag:'tapaoNear10VolkovRewardGranted',kicker:'COMMANDER VOLKOV · SECRET SUPPLY',title:'볼코프의 지원 물자',rewards:{scoutTron:30,researchStaff:30,gold:50000}},
     'tapao-lab':{index:0,flag:'tapaoLabRewardGranted',kicker:'ADMIRAL HAN · TAPAO SORTIE SUPPLY',title:'타파오 출정 보급품',rewards:{scoutTron:30,researchStaff:30,gold:30000}},
     'katm5-supply':{index:0,flag:'katm5SupplyRewardGranted',kicker:'EVA-9 · RESEARCH PERSONNEL',title:'사령부 연구인력 지원',rewards:{researchStaff:100}},
