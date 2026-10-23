@@ -9964,7 +9964,9 @@
     const pandoraDespairMultiplier = source?.isPandora && source.pandoraDespairActive && source.pandoraStars < 5 ? 2 : 1;
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
-    const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchupMultiplier(source, target);
+    // 타파오 통 함종 상성: 우위(+10%)·열세(-10%)는 피해 숫자의 색으로 구분해 보여준다.
+    const tapaoMatchup = tapaoMatchupMultiplier(source, target);
+    const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchup;
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     const scaledPackets = basePackets * statFactor * (1+researchDamage) + (source?.starDamageRemainder || 0);
@@ -9987,7 +9989,7 @@
     target.hp -= dealt;
     if (!dealt && !absorbed) return;
     flashTarget(target);
-    showUnitDamage(target, dealt || `${formatNumber(absorbed)} SHIELD`);
+    showUnitDamage(target, dealt || `${formatNumber(absorbed)} SHIELD`, tapaoMatchup > 1 ? 'up' : tapaoMatchup < 1 ? 'down' : '');
     applyExplosiveShellSplash(target, boostedPackets, source, attackType);
     applyMeltingLaser(target, boostedPackets, source, attackType);
     applyExplodingLaserSplash(target, boostedPackets, source, attackType);
@@ -12319,7 +12321,7 @@
   // (1.6배 이상 노랑, 2.5배 이상 주황). 진행도에 따라 피해량이 커져도 "평소보다 센 한 방"만 눈에 띕니다.
   // 한꺼번에 숫자가 너무 많으면 작은 숫자는 건너뛰어 화면이 지저분해지지 않게 합니다.
   let activeDamageLabels = 0, recentDamageAverage = 0;
-  function showUnitDamage(target, amount = 1) {
+  function showUnitDamage(target, amount = 1, matchup = '') {
     const numeric = typeof amount === 'number';
     let tier = '';
     if (numeric) {
@@ -12331,7 +12333,7 @@
     activeDamageLabels += 1;
     const point = pointOf(target);
     const label = document.createElement('i');
-    label.className = `damage-one${tier}${numeric ? '' : ' dmg-note'}`;
+    label.className = `damage-one${tier}${numeric ? '' : ' dmg-note'}${matchup === 'up' ? ' dmg-advantage' : matchup === 'down' ? ' dmg-weak' : ''}`;
     label.textContent = numeric ? formatNumber(amount) : String(amount);
     setTimeout(() => { activeDamageLabels = Math.max(0, activeDamageLabels - 1); }, 620);
     label.style.left = percent(point.x + (Math.random() - .5) * .02);
