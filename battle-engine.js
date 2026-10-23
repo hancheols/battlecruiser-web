@@ -1062,8 +1062,9 @@
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
   const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7, TAPAO_TURRET_ELECTRIC_TAKEN = .6;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%, 전기 -40%)
   const TAPAO_COLONY_CRUISER_WAVES = 2;
-  // 게이트 1~9관문: 4족 보행 전차가 사막 위를 걸어 내려오며 3초마다 포격(300 피해)한다. 지상 유닛이라 포탑과 같은 피해 배율을 받는다.
-  const TAPAO_WALKER = { w: 108, h: 112, hp: 6000, damage: 300, interval: 3000, walk: 14, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
+  // 게이트 1~9관문: 4족 보행 전차가 사막 위를 걸어 내려오다 사거리(range)에 닿으면 멈춰 서서 3초마다 포격(300 피해)한다. 줄(lanes)마다 한 대까지.
+  // 포탄은 보이지 않고 아군 쪽 피격 폭발만 나타난다. 지상 유닛이라 포탑과 같은 피해 배율을 받는다.
+  const TAPAO_WALKER = { w: 108, h: 112, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
   function isTapaoGateOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-gate';
   }
@@ -9853,7 +9854,7 @@
     const targetPoint = pointOf(target);
     const projectile = document.createElement('i');
     projectile.className = `fx-enemy${kind === 'corrosion' || kind === 'monster-acid' ? ' corrosion' : ''}${kind === 'suicide' ? ' suicide' : ''}${kind === 'monster-spike' ? ' monster-spike' : ''}${kind === 'monster-acid' ? ' monster-acid' : ''}${kind === 'oort-slime' ? ' oort-slime' : ''}${kind === 'flameball' ? ' flameball' : ''}${kind === 'ancient-bone-spike' ? ' ancient-bone-spike' : ''}${kind === 'plasma-bug' ? ' plasma-bug' : ''}${extraClass ? ` ${extraClass}` : ''}`;
-    const baseTravel = extraClass === 'tapao-laser' ? 260 : extraClass === 'tapao-shell' ? 900 : kind === 'flameball' ? 705 : kind === 'plasma-bug' ? 520 : 470;
+    const baseTravel = extraClass === 'tapao-laser' ? 260 : kind === 'flameball' ? 705 : kind === 'plasma-bug' ? 520 : 470;
     positionProjectile(projectile, sourcePoint, targetPoint);
     if (extraClass === 'tapao-laser') {
       // 포탑 레이저: 화면 비율이 아니라 실제 화면 픽셀 기준 각도로 눕혀서 비행 내내 목표를 똑바로 향하게 한다.
@@ -9861,7 +9862,6 @@
       projectile.style.setProperty('--ang', `${Math.atan2((targetPoint.y - sourcePoint.y) * fieldRect.height, (targetPoint.x - sourcePoint.x) * fieldRect.width)}rad`);
       projectile.style.transform = '';
     }
-    if (extraClass === 'tapao-shell') projectile.style.transform = '';
     projectile.style.animationDuration = `${baseTravel}ms`;
     refs.effects.append(projectile);
     schedule(() => {
@@ -11046,14 +11046,18 @@
   function spawnTapaoWalker() {
     const colony = state.tapaoColony;
     const { fieldHeight } = tapaoField();
-    const lanes = TAPAO_WALKER.lanes.filter((_, index) => index !== colony.lastWalkerLane);
-    const lane = TAPAO_WALKER.lanes.indexOf(lanes[Math.floor(Math.random() * lanes.length)]);
+    const busy = (state.midBosses || []).filter(unit => unit.walker && !unit.dead).map(unit => unit.lane);
+    const free = TAPAO_WALKER.lanes.map((_, index) => index).filter(index => !busy.includes(index));
+    if (!free.length) return;
+    const lanes = free.length > 1 ? free.filter(index => index !== colony.lastWalkerLane) : free;
+    const lane = lanes[Math.floor(Math.random() * lanes.length)];
     colony.lastWalkerLane = lane;
     const walker = {
       id: `tapao-walker-${++colony.spawned}`,
       kind: 'boss',
       variant: 'tapao-turret',
       walker: true,
+      lane,
       name: '4족 보행 전차',
       hp: TAPAO_WALKER.hp,
       maxHp: TAPAO_WALKER.hp,
@@ -11064,6 +11068,8 @@
       dead: false,
       stun: 0,
       nextShot: 1500,
+      stopY: TAPAO_WALKER.range[0] + Math.random() * (TAPAO_WALKER.range[1] - TAPAO_WALKER.range[0]),
+      planted: false,
       requiredForGate: false
     };
     const element = document.createElement('div');
@@ -11113,9 +11119,12 @@
     }
     const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
     turrets.forEach(turret => {
-      turret.y += scroll;
-      // 보행 전차는 땅을 따라 흐르면서 스스로도 앞으로 걸어 나온다.
-      if (turret.walker) turret.y += (TAPAO_WALKER.walk / fieldHeight) * dt / 1000;
+      // 보행 전차는 사거리에 닿을 때까지 걸어 나오고, 닿으면 그 자리(화면 위치)에 멈춰 서서 격파될 때까지 포격한다.
+      if (!turret.walker || !turret.planted) turret.y += scroll;
+      if (turret.walker && !turret.planted) {
+        turret.y += (TAPAO_WALKER.walk / fieldHeight) * dt / 1000;
+        if (turret.y >= turret.stopY) { turret.planted = true; turret.nextShot = Math.min(turret.nextShot, 600); turret.el.classList.add('planted'); }
+      }
       turret.el.style.top = percent(turret.y);
       if (turret.y > 1.12) { turret.dead = true; turret.el.remove(); return; }
       if (!turret.revealed && turret.y >= turret.revealY) {
@@ -11125,6 +11134,7 @@
       }
       if (!turret.revealed) return;
       turret.el.querySelector('.tt-hp i').style.width = `${Math.max(0, turret.hp / turret.maxHp * 100)}%`;
+      if (turret.walker && !turret.planted) return;
       turret.nextShot -= dt;
       if (turret.nextShot > 0) return;
       const targets = state.allies.filter(ally => !ally.dead);
@@ -11133,11 +11143,15 @@
       turret.el.classList.add('firing');
       schedule(() => turret.el?.classList.remove('firing'), 130);
       if (turret.walker) {
-        // 보행 전차: 화면 안에 들어와 있을 때만 3초마다 포탄을 곡사로 날린다.
+        // 보행 전차: 포구 섬광 뒤 잠시 후 목표 위치에 포탄이 떨어져 터진다(포탄 자체는 그리지 않는다).
         turret.nextShot = TAPAO_WALKER.interval;
-        if (turret.y < .03 || turret.y > .92) return;
+        if (turret.y > .92) return;
         const target = targets[Math.floor(Math.random() * targets.length)];
-        enemyProjectile(source, target, 'tapao-shell', TAPAO_WALKER.damage, null, { x: turret.x, y: turret.y + TAPAO_WALKER.h * .4 / fieldHeight }, 'tapao-shell');
+        playBossFireSound();
+        schedule(() => {
+          if (!state || state.status !== 'combat' || target.dead) return;
+          resolveEnemyProjectileHit(source, target, 'tapao-shell', TAPAO_WALKER.damage, null, pointOf(target));
+        }, TAPAO_WALKER.hitDelay);
       } else if (turret.spire) {
         // 수호탑: 0.5초마다 살아 있는 아군을 차례로 돌아가며 조준한다.
         turret.nextShot = TAPAO_SPIRE.interval;
