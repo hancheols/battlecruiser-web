@@ -527,8 +527,8 @@
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
-    refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation));
-    if (isTapaoColonyOperation(normalizedOperation) && refs.viewport) {
+    refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation));
+    if ((isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation)) && refs.viewport) {
       const tile = Math.round(TAPAO_COLONY_TILE_ROWS * (refs.viewport.clientWidth || 375) / TAPAO_COLONY_TILE_WIDTH);
       refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
       refs.viewport.style.setProperty('--tapao-scroll-duration', `${(tile / TAPAO_SCROLL_SPEED).toFixed(2)}s`);
@@ -607,6 +607,15 @@
       spawnTapaoHexV(.96 - cyclePrefill);
       spawnTapaoGap(.96 - cyclePrefill / 2);
       state.tapaoColony.lastV = .96 - cyclePrefill;
+    }
+    if (isTapaoGateOperation(normalizedOperation)) {
+      state.tapaoGateMap = { nextDecor: 160, ground: [] };
+      const ground = document.createElement('div');
+      ground.className = 'tapao-ground';
+      refs.field.insertBefore(ground, refs.enemyLayer);
+      refs.groundLayer = ground;
+      // 시작 화면이 비어 보이지 않게 서클·피라미드를 몇 개 미리 깔아 둔다.
+      [.14, .4, .64, .88].forEach(y => spawnTapaoGateDecor(y));
     }
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
@@ -1052,6 +1061,49 @@
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
   const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7, TAPAO_TURRET_ELECTRIC_TAKEN = .6;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%, 전기 -40%)
   const TAPAO_COLONY_CRUISER_WAVES = 2;                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
+  function isTapaoGateOperation(operation = state?.operation) {
+    return String(operation?.region || '').toLowerCase() === 'tapao-gate';
+  }
+  // 타파오 게이트: 콜로니와 같은 사막 위에 미스터리 서클(눌린 모래 문양 4종)과 피라미드(2종)가 곳곳에 흘러간다. 크기는 화면 px.
+  const TAPAO_GATE_DECOR = { circle: 220, pyramid: 130 };
+  function spawnTapaoGateDecor(y, name = null) {
+    const gate = state?.tapaoGateMap;
+    if (!gate || !refs.groundLayer) return false;
+    const { fieldWidth, fieldHeight } = tapaoField();
+    const pick = name || (Math.random() < .6 ? `circle${1 + Math.floor(Math.random() * 4)}` : `pyramid${1 + Math.floor(Math.random() * 2)}`);
+    const circle = pick.startsWith('circle');
+    const size = circle ? TAPAO_GATE_DECOR.circle : TAPAO_GATE_DECOR.pyramid;
+    const halfW = size * .45 / fieldWidth, halfH = size * .45 / fieldHeight;
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      // 서클은 가장자리에 조금 걸쳐도 되게 화면 폭 전체에서 고른다.
+      const x = (size * .3 + Math.random() * Math.max(1, fieldWidth - size * .6)) / fieldWidth;
+      if (gate.ground.some(other => Math.abs(other.x - x) < halfW + other.halfW && Math.abs(other.y - y) < halfH + other.halfH)) continue;
+      const element = document.createElement('i');
+      element.className = `tapao-gate-decor ${circle ? 'circle' : 'pyramid'}`;
+      element.style.cssText = `left:${percent(x)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background-image:url('tapao-gate-${pick}.webp');transform:translateY(${(y * fieldHeight).toFixed(1)}px)`;
+      // 서클은 바닥 무늬라서 피라미드보다 아래에 깐다.
+      if (circle) refs.groundLayer.prepend(element); else refs.groundLayer.append(element);
+      gate.ground.push({ element, x, y, halfW, halfH });
+      return true;
+    }
+    return false;
+  }
+  function updateTapaoGateMap(dt) {
+    const gate = state.tapaoGateMap;
+    const { fieldHeight } = tapaoField();
+    const scroll = (TAPAO_SCROLL_SPEED / fieldHeight) * dt / 1000;
+    gate.nextDecor -= TAPAO_SCROLL_SPEED * dt / 1000;
+    if (gate.nextDecor <= 0) {
+      spawnTapaoGateDecor(-.3);
+      gate.nextDecor = 150 + Math.random() * 170;
+    }
+    gate.ground = gate.ground.filter(item => {
+      item.y += scroll;
+      item.element.style.transform = `translateY(${(item.y * fieldHeight).toFixed(1)}px)`;
+      if (item.y - item.halfH > 1.2) { item.element.remove(); return false; }
+      return true;
+    });
+  }
   function isTapaoColonyOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-colony';
   }
@@ -2090,6 +2142,7 @@
       updateAlliedFleet(dt);
       updateBoss(dt);
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
+      if (state.tapaoGateMap) updateTapaoGateMap(dt);
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
       updateAngelaSwords(dt);

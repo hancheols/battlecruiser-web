@@ -787,6 +787,9 @@
 .battle-viewport.tapao-colony-map.tapao-battle::after{display:none}
 @keyframes tapao-colony-scroll{from{background-position:0 0}to{background-position:0 var(--tapao-tile,820px)}}
 .tapao-ground{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
+.tapao-gate-decor{position:absolute;top:0;background-position:center;background-size:100% 100%;background-repeat:no-repeat;pointer-events:none;will-change:transform}
+.tapao-gate-decor.circle{z-index:1;opacity:.96}
+.tapao-gate-decor.pyramid{z-index:2}
 .tapao-hex-v{position:absolute;left:50%;top:0;width:0;height:0;will-change:transform;filter:drop-shadow(5px 7px 5px rgba(14,8,4,.6))}
 .tapao-hex-v>i{position:absolute;background:url('tapao-colony-hex-v6.webp') center/100% 100% no-repeat}
 .tapao-turret{position:absolute;z-index:5;pointer-events:none}
