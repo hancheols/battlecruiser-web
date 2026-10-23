@@ -1019,7 +1019,7 @@
   }
 
   // 지역·관문별 외계 함대 웨이브. 한 웨이브를 모두 격파하면 다음 웨이브가 나온다.
-  // 행성 인근: 기본 스타크루저 3 / 5관문 앙헬라1+스타크루저2 / 10관문 스타크루저 3 뒤 앙헬라1+스타크루저2
+  // 행성 인근: 기본 스타크루저 3 / 5·10관문 앙헬라1+스타크루저2 한 번
   // 위성 궤도: 기본 스타크루저 3 / 5관문 스타크루저 3 웨이브 2회 / 10관문 앙헬라1+스타크루저2 웨이브 2회
   // 콜로니·게이트는 구성이 정해지지 않아 임시로 기본(스타크루저 3)을 쓴다.
   function tapaoWavePlan(operation = state?.operation) {
@@ -1027,7 +1027,7 @@
     const gate = Number(operation?.gate) || 1;
     const cruisers = ['starcruiser', 'starcruiser', 'starcruiser'];
     const flagship = ['angela', 'starcruiser', 'starcruiser'];
-    if (region === 'tapao-near') return gate === 5 ? [flagship] : gate === 10 ? [cruisers, flagship] : [cruisers];
+    if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
     if (region === 'tapao-orbit') return gate === 5 ? [cruisers, cruisers] : gate === 10 ? [flagship, flagship] : [cruisers];
     return [cruisers];
   }
