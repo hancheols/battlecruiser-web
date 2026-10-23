@@ -723,6 +723,13 @@
   ];
   // 분기 대화가 끝나면 제독이 공통 대사를 하고 도움(보급품)을 준다. '모르는 사이다 → 배신자 이야기' 선택만 큰 보상, 나머지는 작은 보상.
   const tapaoHanClosing={speaker:'han',name:'한성민 제독',text:'어쨌든, 지금 어려운 싸움을 하고 있으니 제독으로서 도움을 주려고 불렀네.'};
+  // 제독의 마지막 당부. 주인공의 대답은 나포된 쪽(제이크로 플레이 중이면 동생, 도나로 플레이 중이면 오빠)을 찾겠다는 다짐이다. 이 줄이 끝나면 시나리오가 끝난다.
+  const tapaoHanOutro=[
+    {speaker:'han',name:'한성민 제독',text:'무사히 돌아온 것만으로도 다행이야.'},
+    {speaker:'han',name:'한성민 제독',text:'갈수록 쉽지 않을 텐데, 괜찮겠나?'},
+    {speaker:'captain',name:'함장',text:()=>`감사합니다. 반드시 ${capturedRole()}${capturedRole()==='동생'?'을':'를'} 찾아오겠습니다.`},
+    {speaker:'narration',name:'',text:'한성민 제독이 말없이 고개를 끄덕인다.'}
+  ];
   // '아는 사이다' 를 고르면 제독이 어떻게 아는 사이인지 되묻는다.
   const tapaoNear10KnownLines=[
     {speaker:'han',name:'한성민 제독',text:'어떻게 아는 사이지?',choices:[
@@ -732,11 +739,13 @@
   ];
   const tapaoNear10KnownALines=[
     {speaker:'han',name:'한성민 제독',text:'싱거운 친구로군.'},
-    tapaoHanClosing
+    tapaoHanClosing,
+    ...tapaoHanOutro
   ];
   const tapaoNear10KnownBLines=[
     {speaker:'han',name:'한성민 제독',text:'마젠타 작전에서 만났겠지만, 몰래 찾아 올 정도의 사이였나.'},
-    tapaoHanClosing
+    tapaoHanClosing,
+    ...tapaoHanOutro
   ];
   // '모르는 사이다' 를 고르면 제독이 둘이 무슨 얘기를 했는지 묻는다.
   const tapaoNear10UnknownLines=[
@@ -750,12 +759,14 @@
     {speaker:'han',name:'한성민 제독',text:'자네 생각은 어떤가?'},
     {speaker:'captain',name:'함장',text:'조심해서 나쁠 건 없다고 생각합니다.'},
     {speaker:'han',name:'한성민 제독',text:'......그렇군.'},
-    tapaoHanClosing
+    tapaoHanClosing,
+    ...tapaoHanOutro
   ];
   const tapaoNear10UnknownBLines=[
     {speaker:'han',name:'한성민 제독',text:'배신자 운운하는 이야기를 하지 않았나?'},
     {speaker:'han',name:'한성민 제독',text:'난 자네를 돕고 있는데, 실망시키는군.'},
-    tapaoHanClosing
+    tapaoHanClosing,
+    ...tapaoHanOutro
   ];
   const tapaoLabLines=[
     {speaker:'eva',name:'EVA-9',text:'제독님의 지시에 따라 보급품을 지급합니다. 탐사드론 30개, 연구인력 30명, 골드 30,000이 입고되었습니다.'}
