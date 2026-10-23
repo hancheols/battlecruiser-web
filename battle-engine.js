@@ -532,6 +532,7 @@
     if ((isTapaoColonyOperation(normalizedOperation) || isTapaoGateOperation(normalizedOperation)) && refs.viewport) {
       const tile = Math.round(TAPAO_COLONY_TILE_ROWS * (refs.viewport.clientWidth || 375) / TAPAO_COLONY_TILE_WIDTH);
       refs.viewport.style.setProperty('--tapao-tile', `${tile}px`);
+      refs.viewport.style.setProperty('--tapao-bg-y', '0px');
       refs.viewport.style.setProperty('--tapao-scroll-duration', `${(tile / TAPAO_SCROLL_SPEED).toFixed(2)}s`);
     }
     refs.viewport?.classList.toggle('kepler-secret-base-gate', isKeplerSecretBaseOperation(normalizedOperation));
@@ -2167,6 +2168,11 @@
       updateAlliedFleet(dt);
       updateBoss(dt);
       if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGroundSynced) state.tapaoGroundSynced = syncTapaoGroundLayer();
+      if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGateMap?.stopped) {
+        const tilePx = parseFloat(refs.viewport?.style.getPropertyValue('--tapao-tile')) || 1;
+        state.tapaoBgY = ((Number(state.tapaoBgY) || 0) + TAPAO_SCROLL_SPEED * dt / 1000) % tilePx;
+        refs.viewport?.style.setProperty('--tapao-bg-y', `${state.tapaoBgY.toFixed(2)}px`);
+      }
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       if (state.tapaoGateMap) updateTapaoGateMap(dt);
       updateToxicPoison(dt);
@@ -10927,7 +10933,7 @@
     element.style.marginTop = `${-TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY}px`;
     element.style.left = percent(.5);
     element.style.top = percent(y);
-    element.innerHTML = '<i class="tt-ground"></i><i class="tt-shadow"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
+    element.innerHTML = '<i class="tt-ground"></i><i class="tt-shadow"></i><i class="tt-spire"></i><i class="tt-sand"></i><span class="tt-hp"><i></i></span>';
     tower.el = element;
     (refs.groundLayer || refs.enemyLayer).append(element);
     state.midBosses.push(tower);
@@ -12367,7 +12373,8 @@
       refs.battleBossBar.style.width = `${primaryDisplay.ratio}%`;
       refs.battleBossHp.textContent = primaryDisplay.hp;
       const escorts = livingFleet.filter(ship => ship !== primary);
-      if (escorts.length) {
+      // 타파오 통에서는 핵심 함선 한 척(앙헬라, 없으면 스타크루저)만 체력바에 표시한다.
+      if (escorts.length && !isTapaoOperation()) {
         const hp = escorts.reduce((sum, ship) => sum + ship.hp, 0);
         const maxHp = escorts.reduce((sum, ship) => sum + ship.maxHp, 0);
         const escortNames = [...new Set(escorts.map(ship => ship.name.replace('외계 ', '')))];
