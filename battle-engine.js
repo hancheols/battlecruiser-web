@@ -1064,7 +1064,7 @@
   const TAPAO_COLONY_CRUISER_WAVES = 2;
   // 게이트 1~9관문: 4족 보행 전차가 사막 위를 걸어 내려오다 사거리(range)에 닿으면 멈춰 서서 3초마다 포격(300 피해)한다. 줄(lanes)마다 한 대까지.
   // 포탄은 보이지 않고 아군 쪽 피격 폭발만 나타난다. 지상 유닛이라 포탑과 같은 피해 배율을 받는다.
-  const TAPAO_WALKER = { w: 108, h: 112, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
+  const TAPAO_WALKER = { w: 108, h: 112, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], stand: 1500, hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
   function isTapaoGateOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-gate';
   }
@@ -11119,8 +11119,12 @@
     }
     const turrets = (state.midBosses || []).filter(unit => unit.variant === 'tapao-turret' && !unit.dead);
     turrets.forEach(turret => {
-      // 보행 전차는 사거리에 닿을 때까지 걸어 나오고, 닿으면 그 자리(화면 위치)에 멈춰 서서 격파될 때까지 포격한다.
-      if (!turret.walker || !turret.planted) turret.y += scroll;
+      // 보행 전차: 사거리에 닿을 때까지 걸어 나오고 → 잠시 멈춰 서서(땅과 함께 흐름) → 뒤로 걸으며 화면 위치를 지킨 채 격파될 때까지 포격한다.
+      if (turret.walker && turret.planted && !turret.backing) {
+        turret.standTime = (turret.standTime || 0) + dt;
+        if (turret.standTime >= TAPAO_WALKER.stand) { turret.backing = true; turret.el.classList.add('backing'); }
+      }
+      if (!turret.walker || !turret.backing) turret.y += scroll;
       if (turret.walker && !turret.planted) {
         turret.y += (TAPAO_WALKER.walk / fieldHeight) * dt / 1000;
         if (turret.y >= turret.stopY) { turret.planted = true; turret.nextShot = Math.min(turret.nextShot, 600); turret.el.classList.add('planted'); }

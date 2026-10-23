@@ -859,6 +859,7 @@
 .tapao-turret.walker.firing>.tw-body{transform:translateY(-3px)}
 @keyframes tapao-walker-muzzle{0%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(.6)}}
 .tapao-turret.walker.planted>.tw-body{animation:none;background-position-x:0}
+.tapao-turret.walker.backing>.tw-body{animation:tapao-walker-step .72s steps(8) infinite reverse}
 .tapao-turret.walker.wrecked>.tw-body{animation:none;background-position-x:0;filter:grayscale(.7) brightness(.42) drop-shadow(5px 6px 4px rgba(20,10,4,.5))}
 .tapao-turret.walker.wrecked>.tw-flash{display:none}
 .tapao-turret.walker.hit>.tw-body{filter:brightness(1.7) drop-shadow(7px 9px 5px rgba(40,22,8,.5))}
