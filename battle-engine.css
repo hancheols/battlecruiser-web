@@ -850,3 +850,16 @@
 .tapao-portal-surge.big>.ps-core{width:210px;height:195px}
 .tapao-portal-surge.big>.ps-ring{border-width:7px;animation-name:tapao-ps-ring-big}
 @keyframes tapao-ps-ring-big{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}100%{transform:translate(-50%,-50%) scale(4.4);opacity:0}}
+/* 게이트 4족 보행 전차: 8프레임 걷기 시트 */
+.tapao-turret.walker{z-index:6}
+.tapao-turret.walker>.tw-body{position:absolute;inset:0;background:url('tapao-walker-v1.webp') 0 0/800% 100% no-repeat;filter:drop-shadow(7px 9px 5px rgba(40,22,8,.5));animation:tapao-walker-step .96s steps(8) infinite}
+@keyframes tapao-walker-step{from{background-position-x:0}to{background-position-x:-864px}}
+.tapao-turret.walker>.tw-flash{position:absolute;left:50%;top:88%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,#fff 0,#ffd27a 30%,rgba(255,120,40,.6) 55%,rgba(255,120,40,0) 72%);opacity:0;transform:scale(.4)}
+.tapao-turret.walker.firing>.tw-flash{animation:tapao-walker-muzzle .35s ease-out}
+.tapao-turret.walker.firing>.tw-body{transform:translateY(-3px)}
+@keyframes tapao-walker-muzzle{0%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(.6)}}
+.tapao-turret.walker.wrecked>.tw-body{animation:none;background-position-x:0;filter:grayscale(.7) brightness(.42) drop-shadow(5px 6px 4px rgba(20,10,4,.5))}
+.tapao-turret.walker.wrecked>.tw-flash{display:none}
+.tapao-turret.walker.hit>.tw-body{filter:brightness(1.7) drop-shadow(7px 9px 5px rgba(40,22,8,.5))}
+@keyframes tapao-shell-fly{0%{transform:translate(0,0) scale(.7)}50%{transform:translate(calc(var(--dx) * .5),calc(var(--dy) * .5 - 70px)) scale(1.4)}100%{transform:translate(var(--dx),var(--dy)) scale(.85)}}
+.fx-enemy.tapao-shell{width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;clip-path:none;animation-name:tapao-shell-fly;animation-timing-function:linear;background:radial-gradient(circle at 40% 35%,#fff7d6,#ffb347 45%,#c4541a 80%);box-shadow:0 0 8px #ffb347,0 0 18px rgba(255,110,30,.8)}
