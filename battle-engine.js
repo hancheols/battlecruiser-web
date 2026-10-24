@@ -277,7 +277,7 @@
   const HYPERION_MAX_OUTPUT = { durationMultiplier: 1.5, disruptionDuration: 3000, disruptionRadius: 118 };
   // 라이온하트(L급 전투순양함): 레이저 500 · 0.5초 간격 순환 발사. 핵심기술 '사자의 포효' = 전장 중앙으로 순간이동 → 포효(전체 1초 작동불능) → 3초간 0.2초 간격 난사 → 복귀.
   const LIONHEART_LASER = { hits: 500, interval: 500, travel: 110 };
-  const LIONHEART_ROAR = { hits: 500, interval: 200, duration: 3000, travel: 110, stun: 1000, roarDelay: 800, barrageDelay: 800, returnDelay: 450, center: { x: .5, y: .5 }, brave: { stun: 2000, damage: 1000 } };   // brave = 보조기술 사자의 용맹(3성): 포효 작동불능 2초 + 전체 피해 1000
+  const LIONHEART_ROAR = { hits: 500, interval: 120, duration: 3000, travel: 110, stun: 1000, roarDelay: 800, barrageDelay: 800, returnDelay: 450, center: { x: .5, y: .5 }, brave: { stun: 2000, damage: 1000 } };   // brave = 보조기술 사자의 용맹(3성): 포효 작동불능 2초 + 전체 피해 1000
   // 포구 위치(함체 기준 비율): 앞 쌍포 · 중앙 쌍포 · 좌우 측면 쌍포 · 뒤 쌍포. 순서대로 돌아가며 한 발씩 쏜다.
   const LIONHEART_MUZZLES = [[-.0497, -.0899], [.0451, -.0899], [-.0054, -.0676], [.0059, -.0676], [-.0447, -.0899], [.0510, -.0899], [-.0036, -.0255], [.0027, -.0255], [-.0415, .0152], [.0420, .0152], [-.0632, .0323], [.0578, .0323], [-.0596, .0323], [.0627, .0323]];
   // 일반공격은 갑판 위 포문(앞 가운데 쌍포 · 중앙 쌍포)에서만 순환 발사하고, 사자의 포효 난사 때는 모든 포문(14곳)을 돌아가며 쏜다.
