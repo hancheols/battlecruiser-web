@@ -10632,10 +10632,13 @@
     if (isTapaoOperation()) {
       const plan = tapaoWavePlan();
       const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
-      if (state.tapaoWavePending) return;
+      if (state.tapaoWavePending || state.tapaoStoryLock) return;
+      if (state.tapaoStory === undefined) state.tapaoStory = isTapaoOrbit10Story();
       if (!state.keplerAlienFleetSpawned) {
         state.tapaoWaveIndex = state.tapaoWaveIndex ?? 0;
         spawnKeplerAlienFleet(plan[state.tapaoWaveIndex] || plan[0]);
+        // 위성궤도 10관문 첫 클리어: 1웨이브 함대가 보이면 전투를 잠시 멈추고 대화를 띄운다.
+        if (state.tapaoStory && !state.tapaoStoryStarted) { state.tapaoStoryStarted = true; schedule(() => startOrbit10Act('a'), 1300); }
         return;
       }
       if (alive.length) return;
@@ -10650,6 +10653,8 @@
         state.tapaoWavePending = false;
         state.keplerAlienFleetSpawned = false;
         spawnKeplerAlienFleet(plan[nextWave]);
+        // 2웨이브 함대가 나타나면 전투를 멈추고 구원 연출로 넘어간다(이 연출로 관문이 클리어된다).
+        if (state.tapaoStory && nextWave === 1) { state.tapaoStoryLock = true; schedule(() => startOrbit10Act('b'), 1600); }
       }, 2200);
       return;
     }
@@ -11491,6 +11496,95 @@
       finishBattle(true, '고대 괴수가 깊은 군락지로 퇴각했습니다.');
     }, 1250);
   }
+
+  // ── 타파오 위성궤도 10관문 첫 클리어 연출 ─────────────────────────────────────────────
+  // a: 1웨이브 접근 대화 → 전투 재개 / b: 2웨이브가 나타난 뒤 절망의 대화 → L급 스타크루저 5척 순간이동 + 3연 광자포
+  // c: 유키히사·아이라 대화 → 적 함대 퇴각 / d: 마무리 대화 → 관문 클리어(별 3개). 재도전에서는 연출 없이 2웨이브를 모두 처치해야 한다.
+  function isTapaoOrbit10Story() {
+    const op = state?.operation;
+    return String(op?.region || '').toLowerCase() === 'tapao-orbit' && Number(op?.gate) === 10 && Boolean(window.isBattleGateFirstClear?.());
+  }
+  function startOrbit10Act(act) {
+    if (!state || state.status !== 'combat') return;
+    state.paused = true;
+    window.dispatchEvent(new CustomEvent('tapao-orbit10-act-start', { detail: { act } }));
+  }
+  function orbit10AlienFleet() {
+    return [state.boss, ...(state.midBosses || [])].filter(unit => unit?.variant?.startsWith('kepler-alien-') && !unit.dead);
+  }
+  function playOrbit10Arrival() {
+    const enemies = orbit10AlienFleet();
+    const xs = [.1, .3, .5, .7, .9], baseY = .47;
+    state.tapaoStoryCruisers = [];
+    xs.forEach((x, index) => schedule(() => {
+      if (!state) return;
+      const el = document.createElement('div');
+      el.className = 'tapao-story-cruiser';
+      el.style.left = percent(x);
+      el.style.top = percent(baseY);
+      el.innerHTML = '<i class="tsc-halo"></i><img src="star-cruiser-battle-topview-20261007.png" alt="" /><b>L</b>';
+      refs.effects.append(el);
+      state.tapaoStoryCruisers.push(el);
+      const flash = document.createElement('i');
+      flash.className = 'tapao-warp-flash big';
+      flash.style.left = percent(x);
+      flash.style.top = percent(baseY);
+      refs.effects.append(flash);
+      schedule(() => flash.remove(), 1100);
+      playHyperionWarpSound();
+    }, index * 130));
+    // 도착 직후 광자포 충전 → 각 함선이 적 한 척을 골라 3연 광자포를 쏜다.
+    schedule(() => playPhotonChargeSound(), 1100);
+    xs.forEach((x, index) => {
+      if (!enemies.length) return;
+      const target = enemies[index % enemies.length];
+      for (let shot = 0; shot < BATTLECRUISER_MAIN_BATTERY.empoweredShots; shot += 1) {
+        schedule(() => {
+          if (!state) return;
+          const from = { x, y: baseY - .05 }, to = pointOf(target);
+          launchPhotonShell(from, to);
+          playPhotonShotSound();
+          schedule(() => {
+            createPlasmaCannonImpact(to, true);
+            createExplosion(to, 'enemy');
+            flashTarget(target);
+            if (shot === BATTLECRUISER_MAIN_BATTERY.empoweredShots - 1) shakeBattlefield();
+          }, BATTLECRUISER_MAIN_BATTERY.travel);
+        }, 1500 + index * 90 + shot * BATTLECRUISER_MAIN_BATTERY.empoweredShotInterval);
+      }
+    });
+  }
+  function playOrbit10Retreat() {
+    announce('외계 함대 퇴각', 'friendly');
+    orbit10AlienFleet().forEach(unit => {
+      unit.dead = true;
+      unit.el?.classList.add('tapao-story-retreat');
+      const point = pointOf(unit);
+      const flash = document.createElement('i');
+      flash.className = 'tapao-warp-flash big';
+      flash.style.left = percent(point.x);
+      flash.style.top = percent(point.y);
+      refs.effects.append(flash);
+      schedule(() => flash.remove(), 1100);
+      schedule(() => unit.el?.remove(), 1500);
+    });
+    playHyperionWarpSound();
+    refs.battleBossHud.hidden = true;
+  }
+  window.addEventListener('tapao-orbit10-act-end', event => {
+    if (!state || state.status !== 'combat') return;
+    const act = event.detail?.act;
+    if (act === 'a') window.setBattleHold?.(false);
+    else if (act === 'b') { playOrbit10Arrival(); schedule(() => startOrbit10Act('c'), 4300); }
+    else if (act === 'c') { playOrbit10Retreat(); schedule(() => startOrbit10Act('d'), 2400); }
+    else if (act === 'd') {
+      state.tapaoStoryDone = true;
+      (state.tapaoStoryCruisers || []).forEach(el => { el.classList.add('leaving'); schedule(() => el.remove(), 600); });
+      state.paused = false;
+      state.lastFrame = performance.now();
+      finishBattle(true);
+    }
+  });
 
   function configureFrigateButton() {
     const frigate = state.frigate;
@@ -12477,6 +12571,7 @@
   }
 
   function battleStars() {
+    if (state.tapaoStoryDone) return 3;
     const living = state.allies.filter(ally => !ally.dead).length;
     return living >= 3 ? 3 : living === 2 ? 2 : 1;
   }

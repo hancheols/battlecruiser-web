@@ -882,3 +882,16 @@
 .lionheart-roar-shake{animation:lionheart-roar-shake .6s linear}
 @keyframes lionheart-roar-shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-5px,3px)}30%{transform:translate(5px,-3px)}45%{transform:translate(-4px,-2px)}60%{transform:translate(4px,3px)}80%{transform:translate(-2px,1px)}}
 .lionheart-roar-stunned{filter:brightness(1.55) saturate(.6) drop-shadow(0 0 8px #ffdf8a)}
+/* 위성궤도 10관문 첫 클리어 연출: 순간이동해 온 L급 스타크루저와 퇴각하는 외계 함대 */
+.tapao-story-cruiser{position:absolute;width:58px;height:112px;margin:-60px 0 0 -29px;z-index:19;pointer-events:none;transition:opacity .5s}
+.tapao-story-cruiser.leaving{opacity:0}
+.tapao-story-cruiser>img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 10px #ff526dcc) drop-shadow(0 6px 6px #000b);animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) both}
+.tapao-story-cruiser>.tsc-halo{position:absolute;left:50%;top:50%;width:92px;height:150px;margin:-75px 0 0 -46px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,82,109,.38),rgba(255,82,109,0) 70%);animation:tsc-halo 1.2s ease-in-out infinite alternate}
+.tapao-story-cruiser>b{position:absolute;z-index:2;left:50%;bottom:-4px;transform:translateX(-50%);padding:0 6px;border-radius:7px;background:#ff526d;color:#fff;font:700 11px/16px var(--font-num,sans-serif);box-shadow:0 0 8px #ff526d}
+@keyframes tsc-halo{from{opacity:.55;transform:scale(.94)}to{opacity:1;transform:scale(1.06)}}
+.boss-unit.tapao-story-retreat{animation:tapao-story-retreat 1.4s ease-in forwards}
+.boss-unit.tapao-story-retreat .boss-sprite{animation:tapao-story-retreat-sprite 1.4s ease-in forwards}
+@keyframes tapao-story-retreat{0%{opacity:1}60%{opacity:1}100%{opacity:0}}
+@keyframes tapao-story-retreat-sprite{0%{filter:none}40%{filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
+.boss-unit.kepler-alien-starcruiser.tapao-story-retreat .boss-sprite{animation:tapao-story-retreat-sprite-sc 1.4s ease-in forwards}
+@keyframes tapao-story-retreat-sprite-sc{0%{transform:rotate(180deg);filter:none}40%{transform:rotate(180deg);filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:rotate(180deg) scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
