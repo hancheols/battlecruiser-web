@@ -23,7 +23,7 @@
       id: 'weekly', label: 'WEEKLY', code: 'WEEKLY DIRECTIVES', reset: '갱신 4D 13H',
       missions: [
         { id: 'front-20', icon: '◎', title: '전선 장악', detail: '전선 전투 20회 완료', tiers: [{ goal: 20, reward: { gold: 5000, thorium: 80 } }] },
-        { id: 'destroy-500', icon: '✦', title: '대규모 소탕', detail: '적 함선 10000기 격파', tiers: [{ goal: 10000, reward: { gold: 10000, thorium: 200 } }] },
+        { id: 'destroy-500', icon: '✦', title: '대규모 소탕', detail: '적 함선 1000기 격파', tiers: [{ goal: 1000, reward: { gold: 10000, thorium: 200 } }] },
         { id: 'research-50', icon: '⌬', title: '집중 연구', detail: '연구 총 50회 완료', tiers: [{ goal: 50, reward: { gold: 6400, thorium: 100 } }] },
         { id: 'scan-50', icon: '◇', title: '함대 재정비', detail: '함선 탐색 50회 완료', tiers: [{ goal: 50, reward: { gold: 9000, thorium: 140 } }] },
         { id: 'boss-5', icon: '◆', title: '지휘함 격파', detail: '보스 함대 5회 격파', tiers: [{ goal: 5, reward: { gold: 10000, thorium: 160 } }] },

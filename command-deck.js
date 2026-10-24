@@ -816,7 +816,7 @@ function initializeFleetFormation(){
   const fleetFormationStorageKey='starfleet-fleet-formation-v1';
   // 함대 버프: SR급 이상 전투순양함이 3성 이상이면 편성만으로 함대 전체에 효과가 붙는다(화면에는 내용을 적지 않고, 편성할 때 수치만 잠시 띄운다).
   // hp 내구도 · damage 공격력 · speed 공격속도 · reduction 피해감소
-  const fleetBuffTable={'돌격 거북선':{hp:.10,reduction:.10},'야마토':{speed:.05,damage:.05},'거북선':{reduction:.08},'브라운베스':{damage:.05},'아이언피스트':{hp:.03,damage:.03},'마젤란':{hp:.03},'스타 크루저':{speed:.02,damage:.02},'퓨리':{damage:.03}};
+  const fleetBuffTable={'돌격 거북선':{hp:.10,reduction:.10},'야마토':{speed:.05,damage:.05},'거북선':{reduction:.08},'브라운베스':{damage:.05},'아이언피스트':{hp:.03,damage:.03},'마젤란':{hp:.03},'스타 크루저':{speed:.02,damage:.02},'퓨리':{damage:.03},'라이온하트':{damage:.15}};
   const fleetBuffLabels={hp:'내구도',damage:'공격력',speed:'공격속도',reduction:'피해감소'};
   window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<3)return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});return total;};
   let lastFleetBuff={hp:0,damage:0,speed:0,reduction:0};
