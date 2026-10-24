@@ -1001,7 +1001,7 @@
   };
   // 교신 수신 줄은 초상화 자리에 신호 파동을, 원거리 교신 줄은 초상화에 통신 화면(주사선) 효과를 씌웁니다.
   const SIGNAL_PORTRAIT='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="7" fill="#9ff0ff"/><path d="M42 42a26 26 0 0 0 0 36M78 42a26 26 0 0 1 0 36M30 30a43 43 0 0 0 0 60M90 30a43 43 0 0 1 0 60" fill="none" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/><path d="M60 67v40" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/></svg>');
-  const portraitFor=speaker=>speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp':speaker==='ayra'?'ayra-scenario-bust.webp':speaker==='han'?'han-seong-min-bust.png':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.png':speaker==='yukihisa'?'yukihisa-bust.png?v=1':speaker==='malik'?'captain-malik-okoro-bust.png?v=20261011-3':speaker==='volkov'?'viktor-volkov-bust.png?v=20261013-2':speaker==='luca'?'luca-reyes-bust.png?v=20261013-1':'eva9-tutorial-bust.png';
+  const portraitFor=speaker=>speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp':speaker==='ayra'?'ayra-scenario-bust.webp':speaker==='han'?'han-seong-min-bust.png':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.png':speaker==='yukihisa'?'yukihisa-bust.png?v=2':speaker==='malik'?'captain-malik-okoro-bust.png?v=20261011-3':speaker==='volkov'?'viktor-volkov-bust.png?v=20261013-2':speaker==='luca'?'luca-reyes-bust.png?v=20261013-1':'eva9-tutorial-bust.png';
   const paint=()=>{
     if(!overlay)return;
     const line=current();overlay.hidden=!line;document.body.dataset.marsScene=line?state.stage:'';
