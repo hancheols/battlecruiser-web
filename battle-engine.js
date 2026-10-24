@@ -1066,13 +1066,13 @@
   const TAPAO_COLONY_TILE_ROWS = 1011, TAPAO_COLONY_TILE_WIDTH = 836;   // tapao-colony-desert-v7.webp 크기
   // 타파오 콜로니 구성: 가운데에 육각 구조물 군집(V자 세 겹)이 일정 간격으로 흘러가고, 군집 사이 빈 곳에 좌우 돔 포탑과 가운데 수호탑이 선다.
   // 크기와 간격은 화면 px 기준이다. 육각 그림은 맞붙였을 때 1시·11시 방향 이웃과 모서리가 딱 맞는 간격(stepX, stepY)으로 쌓는다.
-  const TAPAO_HEX = { w: 84, h: 92, stepX: 40.85, stepY: 66.8 };
+  const TAPAO_HEX = { w: 63, h: 69, stepX: 30.64, stepY: 50.1 };   // 원래 크기(84×92)의 75%: 포탑 군집을 웨이브(15초)마다 하나씩 놓을 수 있게 육각 군집을 줄였다.
   TAPAO_HEX.apex = TAPAO_HEX.stepY * 3.5;                // 군집 중심에서 맨 아래(첫 V 꼭짓점) 칸 중심까지
   TAPAO_HEX.vHeight = TAPAO_HEX.stepY * 7 + TAPAO_HEX.h; // 군집 전체 높이(V 세 겹)
-  const TAPAO_CYCLE_PX = 900;                           // 육각 군집이 되풀이되는 간격(군집 + 빈 곳). 빈 곳 가운데에 수호탑이 서고, 위·아래로 갈라 돔 포탑이 선다.
+  const TAPAO_CYCLE_PX = 680;                           // 육각 군집이 되풀이되는 간격(군집 + 빈 곳). 빈 곳 가운데에 수호탑이 서고, 위·아래로 갈라 돔 포탑이 선다.
   // 돔 포탑 배치: [빈 곳 중심에서 위(-)·아래(+)로 떨어진 px, 방향(-1 왼쪽/1 오른쪽), 가장자리에서의 px]. 수호탑 줄(±108px) 밖에 지그재그로 흩어 한꺼번에 몰리지 않게 한다.
-  const TAPAO_DOME_SLOTS = [[-140, 1, 40], [60, -1, 40], [140, 1, 112]];
-  const TAPAO_FIRST_TURRET_DELAY = 8;                    // 전투 시작 뒤 첫 포탑이 화면에 나타나기까지의 시간(초). 그 전에는 함재기만 상대한다.
+  const TAPAO_DOME_SLOTS = [[-90, 1, 40], [15, -1, 112], [100, 1, 40]];
+  const TAPAO_FIRST_TURRET_DELAY = 6;                    // 전투 시작 뒤 첫 포탑이 화면에 나타나기까지의 시간(초). 그 전에는 함재기만 상대한다.
   const TAPAO_GAP_SPAWN_Y = .34;                         // 빈 곳 전체가 화면 위 바깥에 있을 때(중심이 이 값만큼 위) 한꺼번에 놓는다
   // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
   const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
