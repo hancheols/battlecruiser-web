@@ -858,3 +858,11 @@
 .tapao-turret.walker.hit>.tw-body{filter:brightness(1.7) drop-shadow(7px 9px 5px rgba(40,22,8,.5))}
 .tapao-turret.spire .tt-hp{left:2%;right:2%;bottom:2%;height:8px;border-radius:4px;border:1px solid rgba(255,255,255,.35);background:rgba(20,12,6,.78);box-shadow:0 2px 3px rgba(0,0,0,.5);z-index:2}
 .tapao-turret.spire .tt-hp i{border-radius:3px}
+/* 우주해적 보상: 상자·금고가 물자창고로 날아가는 연출 */
+.loot-fly{position:absolute;z-index:61;pointer-events:none;object-fit:contain;filter:drop-shadow(0 0 6px rgba(255,214,120,.9)) drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.loot-chip{position:absolute;z-index:60;right:10px;bottom:118px;display:flex;align-items:center;gap:6px;max-width:calc(100% - 20px);padding:5px 10px 5px 6px;border-radius:999px;border:1px solid rgba(255,214,120,.55);background:rgba(10,16,30,.82);color:#ffe9b8;font:600 12px/1.2 var(--font-body,sans-serif);pointer-events:none;box-shadow:0 0 12px rgba(255,190,80,.25)}
+.loot-chip>img{width:22px;height:22px;object-fit:contain}
+.loot-chip>b{font-weight:700;color:#fff;font-family:var(--font-num,inherit);white-space:nowrap}
+.loot-chip>b:empty{display:none}
+.loot-chip.bump{animation:loot-chip-bump .22s ease-out}
+@keyframes loot-chip-bump{0%{box-shadow:0 0 22px rgba(255,214,120,.95);transform:scale(1.08)}100%{box-shadow:0 0 12px rgba(255,190,80,.25);transform:scale(1)}}

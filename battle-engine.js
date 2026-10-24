@@ -10442,7 +10442,51 @@
     window.grantExplorationLoot?.('thoriumBox', boxes);
     window.grantExplorationLoot?.('goldVault', vaults);
     announce(`${pirate.isGoldenPirate ? '황금 우주해적' : '우주해적선'} 격파 · 토륨 상자 +${boxes} · 금고 +${vaults}`, 'friendly');
+    flyPirateLoot(pirate, boxes, vaults);
     schedule(() => pirate.el?.remove(), 420);
+  }
+
+  // 우주해적 보상: 터진 자리에서 토륨 상자·금고가 튀어 오른 뒤, 화면 오른쪽 아래 '물자창고' 표시로 날아가 들어간다.
+  function flyPirateLoot(pirate, boxes, vaults) {
+    if (!refs.viewport || !pirate?.el || typeof Element.prototype.animate !== 'function') return;
+    const viewportRect = refs.viewport.getBoundingClientRect(), unitRect = pirate.el.getBoundingClientRect();
+    if (!unitRect.width) return;
+    const startX = unitRect.left + unitRect.width / 2 - viewportRect.left, startY = unitRect.top + unitRect.height / 2 - viewportRect.top;
+    refs.viewport.querySelector('.loot-chip')?.remove();
+    const chip = document.createElement('div');
+    chip.className = 'loot-chip';
+    chip.innerHTML = '<img src="icons/vault.png" alt="" /><span>물자창고</span><b></b>';
+    refs.viewport.append(chip);
+    const chipRect = chip.getBoundingClientRect();
+    const endX = chipRect.left + 20 - viewportRect.left, endY = chipRect.top + chipRect.height / 2 - viewportRect.top;
+    const items = [];
+    for (let i = 0; i < Math.min(boxes, 4); i += 1) items.push({ src: 'icons/thorium-box.png', last: i === Math.min(boxes, 4) - 1 ? `토륨 상자 +${boxes}` : '' });
+    for (let i = 0; i < Math.min(vaults, 4); i += 1) items.push({ src: 'icons/vault.png', last: i === Math.min(vaults, 4) - 1 ? `금고 +${vaults}` : '' });
+    const pop = pirate.isGoldenPirate ? 56 : 44;
+    items.forEach((item, index) => {
+      const icon = document.createElement('img');
+      icon.className = 'loot-fly';
+      icon.src = item.src;
+      icon.alt = '';
+      icon.style.cssText = `left:${startX}px;top:${startY}px;width:${pop * .62}px;height:${pop * .62}px`;
+      refs.viewport.append(icon);
+      const angle = (index / items.length) * Math.PI * 2 + Math.random() * .5;
+      const bx = Math.cos(angle) * (30 + Math.random() * 26), by = Math.sin(angle) * (22 + Math.random() * 20) - 18;
+      const dx = endX - startX, dy = endY - startY;
+      const flight = icon.animate([
+        { transform: 'translate(-50%,-50%) scale(.3)', opacity: 0 },
+        { transform: `translate(calc(-50% + ${bx}px), calc(-50% + ${by}px)) scale(1.15)`, opacity: 1, offset: .22 },
+        { transform: `translate(calc(-50% + ${bx}px), calc(-50% + ${by}px)) scale(1)`, opacity: 1, offset: .42 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.4)`, opacity: .9 }
+      ], { duration: 1150, delay: index * 90, easing: 'cubic-bezier(.4,0,.7,.5)', fill: 'forwards' });
+      flight.playbackRate = battleSpeed;
+      flight.finished.then(() => {
+        chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
+        if (item.last) { const note = chip.querySelector('b'); note.textContent = note.textContent ? `${note.textContent} · ${item.last}` : item.last; }
+      }, () => {}).finally(() => icon.remove());
+    });
+    chip.animate([{ opacity: 0, transform: 'translateX(14px)' }, { opacity: 1, transform: 'none' }], { duration: 240, fill: 'forwards' });
+    setTimeout(() => chip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' }).finished.then(() => chip.remove(), () => chip.remove()), 2700 / (battleSpeed || 1));
   }
 
   function checkBossThreshold() {
