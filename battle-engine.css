@@ -809,19 +809,12 @@
 .tapao-turret.dome>.tt-core{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,#fff 0,#a8e2ff 30%,rgba(47,125,255,.55) 55%,rgba(47,125,255,0) 72%);opacity:0;transform:scale(.4);transition:opacity .1s,transform .1s}
 .tapao-turret.dome.firing>.tt-core{opacity:1;transform:scale(1.35)}
 .tapao-turret.spire>.tt-spire{position:absolute;inset:0;background:url('tapao-colony-spire-v5.webp') center/100% 100% no-repeat;transition:filter .12s}
-.tapao-turret.spire>.tt-ground{position:absolute;left:-18%;right:-24%;bottom:-3%;height:15%;border-radius:50%;background:radial-gradient(ellipse at 45% 50%,rgba(70,42,14,.55),rgba(70,42,14,0) 72%)}
 .tapao-turret.spire>.tt-shadow{position:absolute;inset:0;background:url('tapao-colony-spire-v5.webp') center/100% 100% no-repeat;filter:brightness(0) blur(2.5px);opacity:.55;transform-origin:50% 90%;transform:translate(6px,2px) skewX(-34deg) scaleY(-.55)}
 .tapao-turret.spire.wrecked>.tt-shadow{display:none}
-.tapao-turret.spire>.tt-sand{position:absolute;left:0;right:0;bottom:-6%;height:20%;border-radius:50%;background:radial-gradient(ellipse at 42% 40%,rgba(245,200,140,.75) 0,rgba(245,200,140,0) 38%),radial-gradient(ellipse at 50% 55%,rgba(206,140,78,.97) 0,rgba(198,132,72,.9) 36%,rgba(188,124,66,.5) 56%,rgba(188,124,66,0) 72%);pointer-events:none}
-.tapao-turret.spire>.tt-sand::before,.tapao-turret.spire>.tt-sand::after{content:"";position:absolute;top:28%;width:34%;height:46%;border-radius:50%;background:radial-gradient(ellipse,rgba(236,190,128,.55),rgba(236,190,128,0) 70%);animation:tapao-sand-drift 3.6s ease-out infinite}
-.tapao-turret.spire>.tt-sand::before{left:46%}
-.tapao-turret.spire>.tt-sand::after{left:20%;animation-delay:1.8s}
-@keyframes tapao-sand-drift{0%{opacity:0;transform:translate(0,0) scale(.6)}25%{opacity:.9}100%{opacity:0;transform:translate(34px,-6px) scale(1.5)}}
-.tapao-turret.spire>.tt-ground{left:-24%;right:-30%;bottom:-6%;height:20%;background:radial-gradient(ellipse at 45% 50%,rgba(60,34,12,.6),rgba(60,34,12,0) 70%)}
 .tapao-turret.spire.firing>.tt-spire{filter:drop-shadow(0 0 8px #6cc6ff) brightness(1.25)}
 .tapao-turret.dome.wrecked>.tt-dome{background-image:url('tapao-colony-dome-wreck-v8.webp')}
 .tapao-turret.spire.wrecked>.tt-spire{background-image:url('tapao-colony-spire-wreck-v8.webp');filter:drop-shadow(4px 5px 4px rgba(14,8,4,.6))}
-.tapao-turret.wrecked>.tt-core,.tapao-turret.wrecked .tt-hp,.tapao-turret.wrecked>.tt-ground{display:none}
+.tapao-turret.wrecked>.tt-core,.tapao-turret.wrecked .tt-hp{display:none}
 .tapao-turret.wrecked::after{content:"";position:absolute;left:26%;top:30%;width:44%;height:36%;border-radius:50%;background:radial-gradient(circle,rgba(74,70,66,.6),rgba(74,70,66,0) 70%);animation:tapao-smoke 3.4s ease-out infinite}
 .tapao-turret.spire.wrecked::after{top:46%}
 @keyframes tapao-smoke{0%{opacity:.85;transform:translateY(0) scale(.5)}100%{opacity:0;transform:translateY(-30px) scale(1.7)}}
@@ -863,3 +856,5 @@
 .tapao-turret.walker.wrecked>.tw-body{animation:none;background-position-x:0;filter:grayscale(.7) brightness(.42) drop-shadow(5px 6px 4px rgba(20,10,4,.5))}
 .tapao-turret.walker.wrecked>.tw-flash{display:none}
 .tapao-turret.walker.hit>.tw-body{filter:brightness(1.7) drop-shadow(7px 9px 5px rgba(40,22,8,.5))}
+.tapao-turret.spire .tt-hp{left:2%;right:2%;bottom:2%;height:8px;border-radius:4px;border:1px solid rgba(255,255,255,.35);background:rgba(20,12,6,.78);box-shadow:0 2px 3px rgba(0,0,0,.5);z-index:2}
+.tapao-turret.spire .tt-hp i{border-radius:3px}

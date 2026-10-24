@@ -1057,7 +1057,7 @@
   const TAPAO_GAP_SPAWN_Y = .34;                         // 빈 곳 전체가 화면 위 바깥에 있을 때(중심이 이 값만큼 위) 한꺼번에 놓는다
   // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
   const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
-  const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 500 };
+  const TAPAO_SPIRE = { w: 88, h: 197, anchorY: .55, hp: 10000, damage: 20, interval: 250 };
   // 외계 공중 함대: 15초마다 함재기 10기 + (앞의 2웨이브는) 스타크루저 1척, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
   const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7, TAPAO_TURRET_ELECTRIC_TAKEN = .6;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%, 전기 -40%)
@@ -11037,7 +11037,7 @@
     element.style.marginTop = `${-TAPAO_SPIRE.h * TAPAO_SPIRE.anchorY}px`;
     element.style.left = percent(.5);
     element.style.top = percent(y);
-    element.innerHTML = '<i class="tt-ground"></i><i class="tt-shadow"></i><i class="tt-spire"></i><i class="tt-sand"></i><span class="tt-hp"><i></i></span>';
+    element.innerHTML = '<i class="tt-shadow"></i><i class="tt-spire"></i><span class="tt-hp"><i></i></span>';
     tower.el = element;
     (refs.groundLayer || refs.enemyLayer).append(element);
     state.midBosses.push(tower);
@@ -11157,7 +11157,7 @@
           resolveEnemyProjectileHit(source, target, 'tapao-shell', TAPAO_WALKER.damage, null, pointOf(target));
         }, TAPAO_WALKER.hitDelay);
       } else if (turret.spire) {
-        // 수호탑: 0.5초마다 살아 있는 아군을 차례로 돌아가며 조준한다.
+        // 수호탑: 0.25초마다 살아 있는 아군을 차례로 돌아가며 조준한다.
         turret.nextShot = TAPAO_SPIRE.interval;
         turret.shotCursor += 1;
         const target = targets[turret.shotCursor % targets.length];
