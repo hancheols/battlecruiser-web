@@ -181,7 +181,7 @@
   const cruiserLaserVoices=Array.from({length:4},()=>cruiserLaserAudio.cloneNode());registerBattleAudioPool(cruiserLaserVoices,.42);
   let cruiserLaserVoiceIndex=0,lastCruiserLaserAt=-Infinity;
   function playCruiserLaserSound(){const now=performance.now();if(now-lastCruiserLaserAt<90)return;lastCruiserLaserAt=now;const audio=cruiserLaserVoices[cruiserLaserVoiceIndex++%cruiserLaserVoices.length];try{audio.currentTime=0;audio.play().catch(()=>{});}catch{}}
-  const photonChargeAudio=window.createGameAudio('sound/cruiser_photon_chrg.ogg');photonChargeAudio.preload='auto';photonChargeAudio.volume=.82;
+  const photonChargeAudio=window.createGameAudio('sound/cruiser_photon_charge_up.mp3');photonChargeAudio.preload='auto';photonChargeAudio.volume=.82;
   const photonChargeVoices=Array.from({length:3},()=>photonChargeAudio.cloneNode());registerBattleAudioPool(photonChargeVoices,.82,3);
   let photonChargeVoiceIndex=0;
   function playPhotonChargeSound(){const audio=photonChargeVoices[photonChargeVoiceIndex++%photonChargeVoices.length];try{audio.currentTime=0;audio.play().catch(()=>{});}catch{}}
