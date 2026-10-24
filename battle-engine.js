@@ -302,7 +302,7 @@
   const ANGELA_WING_EFFECT = { immunity: 1000, shield: 500, enhancedImmunity: 2000, enhancedShield: 1000, duration: 5000, judgmentDamage: 1000, judgmentInterval: 1000, judgmentWidth: .035 };
   const CARRIER_INTERCEPTOR = { hits: 55, count: 6, interval: 330, travel: 260 };
   const CARRIER_OVERFLOW = { duration: 5000, shieldInterval: 500, shieldAmount: 100, extraLifetime: 7000 };
-  const SPACE_PIRATE = { hp: 1000, goldenHp: 10000, normalChance: .1, goldenChance: .01, duration: 35000, thoriumMin: 10, thoriumMax: 100, goldenThoriumMin: 1, goldenThoriumMax: 200 };
+  const SPACE_PIRATE = { hp: 1000, goldenHp: 10000, normalChance: .1, goldenChance: .01, duration: 35000, loot: [1, 2, 1, 3], goldenLoot: [4, 7, 4, 8] };   // loot = [토륨 상자 최소, 최대, 금고 최소, 최대]
   const PLASMA_BUG = { hp: 3000, count: 5, speed: .000015, range: .15, charge: 3000, cooldown: 1000, damage: 1000, emerge: 900, shotSpeed: .55, tailOffset: 42 };
   const PLASMA_BUG_MARKUP = '<span class="plasma-bug-earth" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pb-rig" aria-hidden="true"><span class="pb-body"><i class="pb-shadow"></i><i class="pb-shadow pb-abd-shadow"></i><span class="pb-front"><img class="pb-img" src="enemy-plasma-bug.png" alt="" /></span><span class="pb-abd-wrap"><span class="pb-abd"><img class="pb-img" src="enemy-plasma-bug.png" alt="" /><img class="pb-glow" src="enemy-plasma-bug.png" alt="" /></span></span></span></span><span class="enemy-hp"><i></i></span>';
   const KDDX_LASER = { hits: 450, interval: 1500, travel: 110 };
@@ -1029,7 +1029,7 @@
 
   // 지역·관문별 외계 함대 웨이브. 한 웨이브를 모두 격파하면 다음 웨이브가 나온다.
   // 행성 인근: 기본 스타크루저 3 / 5·10관문 앙헬라1+스타크루저2 한 번
-  // 위성 궤도: 기본 스타크루저 3 / 5관문 스타크루저 3 웨이브 2회 / 10관문 앙헬라1+스타크루저2 웨이브 2회
+  // 위성 궤도: 기본 스타크루저 3 (5관문 포함) / 10관문 앙헬라1+스타크루저2 웨이브 2회
   // 콜로니·게이트는 구성이 정해지지 않아 임시로 기본(스타크루저 3)을 쓴다.
   function tapaoWavePlan(operation = state?.operation) {
     const region = String(operation?.region || '').toLowerCase();
@@ -1037,7 +1037,7 @@
     const cruisers = ['starcruiser', 'starcruiser', 'starcruiser'];
     const flagship = ['angela', 'starcruiser', 'starcruiser'];
     if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
-    if (region === 'tapao-orbit') return gate === 5 ? [cruisers, cruisers] : gate === 10 ? [flagship, flagship] : [cruisers];
+    if (region === 'tapao-orbit') return gate === 10 ? [flagship, flagship] : [cruisers];
     return [cruisers];
   }
 
@@ -10435,25 +10435,13 @@
     pirate.dead = true;
     pirate.el?.classList.add('destroyed');
     if (!playDeathFx(pirate, pirate.isGoldenPirate ? 'large' : 'small')) createExplosion(pointOf(pirate), pirate.isGoldenPirate ? 'golden-pirate' : 'space-pirate');
-    const balances = window.gameResources || (window.gameResources = { gold: 0, thorium: 0, lionToken: 0 });
-    if (pirate.isGoldenPirate) {
-      if (Math.random() < .5) {
-        const thorium = SPACE_PIRATE.goldenThoriumMin + Math.floor(Math.random() * (SPACE_PIRATE.goldenThoriumMax - SPACE_PIRATE.goldenThoriumMin + 1));
-        balances.thorium = (Number(balances.thorium) || 0) + thorium;
-        announce(`황금 우주해적 격파 · 토륨 +${thorium}`, 'friendly');
-      } else {
-        balances.lionToken = (Number(balances.lionToken) || 0) + 1;
-        window.recordLionTokensEarned?.(1);
-        announce('황금 우주해적 격파 · 사자증표 +1', 'friendly');
-      }
-    } else {
-      const thorium = SPACE_PIRATE.thoriumMin + Math.floor(Math.random() * (SPACE_PIRATE.thoriumMax - SPACE_PIRATE.thoriumMin + 1));
-      balances.thorium = (Number(balances.thorium) || 0) + thorium;
-      announce(`우주해적선 격파 · 토륨 +${thorium}`, 'friendly');
-    }
-    try { localStorage.setItem('starfleet-game-resources-v1', JSON.stringify(balances)); } catch {}
-    window.updateGameResourceHud?.();
-    window.dispatchEvent(new Event('game-resources-updated'));
+    // 보상: 일반 해적은 토륨 상자 1~2개 + 금고 1~3개, 황금 해적은 토륨 상자 4~7개 + 금고 4~8개(각각 무작위)를 보관함으로 받는다.
+    const [boxMin, boxMax, vaultMin, vaultMax] = pirate.isGoldenPirate ? SPACE_PIRATE.goldenLoot : SPACE_PIRATE.loot;
+    const boxes = boxMin + Math.floor(Math.random() * (boxMax - boxMin + 1));
+    const vaults = vaultMin + Math.floor(Math.random() * (vaultMax - vaultMin + 1));
+    window.grantExplorationLoot?.('thoriumBox', boxes);
+    window.grantExplorationLoot?.('goldVault', vaults);
+    announce(`${pirate.isGoldenPirate ? '황금 우주해적' : '우주해적선'} 격파 · 토륨 상자 +${boxes} · 금고 +${vaults}`, 'friendly');
     schedule(() => pirate.el?.remove(), 420);
   }
 
