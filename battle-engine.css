@@ -867,8 +867,8 @@
 .loot-chip.bump{animation:loot-chip-bump .22s ease-out}
 @keyframes loot-chip-bump{0%{box-shadow:0 0 22px rgba(255,214,120,.95);transform:scale(1.08)}100%{box-shadow:0 0 12px rgba(255,190,80,.25);transform:scale(1)}}
 /* 라이온하트: 탑뷰·황금빛 레이저·사자의 포효(충격파) */
-.ship-topview.lionheart-topview{width:62px;height:149px;overflow:visible;filter:drop-shadow(0 7px 8px #000d) drop-shadow(0 0 8px #ffc65a88);transition:transform 150ms ease-out,filter .2s}
-.ship-topview.lionheart-topview img{position:absolute;left:50%;top:50%;display:block;width:62px;height:149px;max-width:none;object-fit:contain;transform:translate(-50%,-50%);transform-origin:center}
+.ship-topview.lionheart-topview{width:56px;height:170px;overflow:visible;filter:drop-shadow(0 7px 8px #000d) drop-shadow(0 0 8px #ffc65a88);transition:transform 150ms ease-out,filter .2s}
+.ship-topview.lionheart-topview img{position:absolute;left:50%;top:50%;display:block;width:56px;height:170px;max-width:none;object-fit:contain;transform:translate(-50%,-50%);transform-origin:center}
 .lionheart-topview .battlecruiser-fx{z-index:0}
 .ship-topview.lionheart-topview::after{display:none}
 .ally-unit.lionheart-jumping{z-index:14;transition:left 90ms linear,top 90ms linear,filter .18s}
@@ -895,3 +895,5 @@
 @keyframes tapao-story-retreat-sprite{0%{filter:none}40%{filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
 .boss-unit.kepler-alien-starcruiser.tapao-story-retreat .boss-sprite{animation:tapao-story-retreat-sprite-sc 1.4s ease-in forwards}
 @keyframes tapao-story-retreat-sprite-sc{0%{transform:rotate(180deg);filter:none}40%{transform:rotate(180deg);filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:rotate(180deg) scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
+.lionheart-quad-thrusters .bc-thruster{width:7px;height:13px;bottom:-1px;box-shadow:0 1px 5px #48dfff55,0 3px 11px #207fbd38}
+.lionheart-quad-thrusters .bc-thruster:nth-child(1){left:calc(50% - 17px)}.lionheart-quad-thrusters .bc-thruster:nth-child(2){left:calc(50% - 6px)}.lionheart-quad-thrusters .bc-thruster:nth-child(3){left:calc(50% + 7px)}.lionheart-quad-thrusters .bc-thruster:nth-child(4){left:calc(50% + 15px)}

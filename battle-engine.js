@@ -279,7 +279,7 @@
   const LIONHEART_LASER = { hits: 500, interval: 500, travel: 110 };
   const LIONHEART_ROAR = { hits: 500, interval: 200, duration: 3000, travel: 110, stun: 1000, roarDelay: 450, barrageDelay: 550, returnDelay: 450, center: { x: .5, y: .5 } };
   // 포구 위치(함체 기준 비율): 앞 쌍포 · 중앙 쌍포 · 좌우 측면 쌍포 · 뒤 쌍포. 순서대로 돌아가며 한 발씩 쏜다.
-  const LIONHEART_MUZZLES = [[-.004, -.056], [.004, -.056], [-.04, -.026], [.04, -.026], [-.004, -.017], [.004, -.017], [-.04, .021], [.04, .021], [-.004, .060], [.004, .060]];
+  const LIONHEART_MUZZLES = [[-.0497, -.0899], [.0451, -.0899], [-.0054, -.0676], [.0059, -.0676], [-.0447, -.0899], [.0510, -.0899], [-.0036, -.0255], [.0027, -.0255], [-.0415, .0152], [.0420, .0152], [-.0632, .0323], [.0578, .0323], [-.0596, .0323], [.0627, .0323]];
   const APOCALYPSE_LASER = { hits: 110, interval: 500, travel: 115 };
   const APOCALYPSE_MAIN = { heavyHits: 220, salvos: 4, enhancedHits: 330, enhancedShots: 8, charge: 1000, interval: 250, travel: 115 };
   const NEMESIS_LASER = { hits: 100, duration: 3000, tick: 500, reload: 3000 };
@@ -8115,7 +8115,7 @@
     trace.className = 'hyperion-jump-trace lionheart-jump-trace';
     trace.style.left = percent(point.x);
     trace.style.top = percent(point.y);
-    trace.innerHTML = '<div class="ship-topview lionheart-topview"><img src="lionheart-battle-topview.png" alt="" /></div>';
+    trace.innerHTML = '<div class="ship-topview lionheart-topview"><img src="lionheart-battle-topview.png?v=2" alt="" /></div>';
     refs.effects.append(trace);
     schedule(() => trace.remove(), 620);
   }
@@ -13154,7 +13154,7 @@
       return `<div class="ship-topview helios-topview" style="--rarity-color:${color}"><img src="helios-battle-topview.png" alt="" /></div>`;
     }
     if (ship?.name === '라이온하트') {
-      return `<div class="ship-topview lionheart-topview" style="--rarity-color:${color}"><img src="lionheart-battle-topview.png" alt="" />${turtleThrusterFx}</div>`;
+      return `<div class="ship-topview lionheart-topview" style="--rarity-color:${color}"><img src="lionheart-battle-topview.png?v=2" alt="" /><span class="battlecruiser-fx lionheart-quad-thrusters" aria-hidden="true"><i class="bc-thruster"></i><i class="bc-thruster"></i><i class="bc-thruster"></i><i class="bc-thruster"></i></span></div>`;
     }
     if (ship?.name === '히페리온') {
       return `<div class="ship-topview hyperion-topview" style="--rarity-color:${color}"><img src="hyperion-battle-topview.png" alt="" />${hyperionThrusterFx}</div>`;
