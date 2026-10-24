@@ -866,3 +866,19 @@
 .loot-chip>b:empty{display:none}
 .loot-chip.bump{animation:loot-chip-bump .22s ease-out}
 @keyframes loot-chip-bump{0%{box-shadow:0 0 22px rgba(255,214,120,.95);transform:scale(1.08)}100%{box-shadow:0 0 12px rgba(255,190,80,.25);transform:scale(1)}}
+/* 라이온하트: 탑뷰·황금빛 레이저·사자의 포효(충격파) */
+.ship-topview.lionheart-topview{width:62px;height:149px;overflow:visible;filter:drop-shadow(0 7px 8px #000d) drop-shadow(0 0 8px #ffc65a88);transition:transform 150ms ease-out,filter .2s}
+.ship-topview.lionheart-topview img{position:absolute;left:50%;top:50%;display:block;width:62px;height:149px;max-width:none;object-fit:contain;transform:translate(-50%,-50%);transform-origin:center}
+.lionheart-topview .battlecruiser-fx{z-index:0}
+.ship-topview.lionheart-topview::after{display:none}
+.ally-unit.lionheart-jumping{z-index:14;transition:left 90ms linear,top 90ms linear,filter .18s}
+.hyperion-jump-trace .lionheart-topview{filter:brightness(4) grayscale(1) drop-shadow(0 0 8px #fff) drop-shadow(0 0 22px #ffe3a0);opacity:.94}
+.fx-line.lionheart-laser{background:linear-gradient(90deg,#fff,#fff0c2 24%,#ffc65a 56%,#ff8a1f 78%,transparent);box-shadow:0 0 6px #fff,0 0 15px #ffd27a,0 0 27px #ff9a3a}
+.lionheart-roar-wave{position:absolute;z-index:22;width:0;height:0;pointer-events:none}
+.lionheart-roar-wave>i{position:absolute;left:0;top:0;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;border:5px solid rgba(255,226,150,.95);box-shadow:0 0 22px rgba(255,190,70,.9),inset 0 0 26px rgba(255,210,110,.7);opacity:0;animation:lionheart-roar-ring .95s cubic-bezier(.15,.7,.3,1) forwards}
+.lionheart-roar-wave>i:nth-child(2){animation-delay:.14s;border-color:rgba(255,255,255,.9)}
+.lionheart-roar-wave>i:nth-child(3){animation-delay:.28s;border-color:rgba(255,170,60,.85)}
+@keyframes lionheart-roar-ring{0%{transform:scale(.2);opacity:1}100%{transform:scale(11);opacity:0}}
+.lionheart-roar-shake{animation:lionheart-roar-shake .6s linear}
+@keyframes lionheart-roar-shake{0%,100%{transform:translate(0,0)}15%{transform:translate(-5px,3px)}30%{transform:translate(5px,-3px)}45%{transform:translate(-4px,-2px)}60%{transform:translate(4px,3px)}80%{transform:translate(-2px,1px)}}
+.lionheart-roar-stunned{filter:brightness(1.55) saturate(.6) drop-shadow(0 0 8px #ffdf8a)}

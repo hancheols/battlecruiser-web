@@ -275,6 +275,11 @@
   const HYPERION_LASER = { hits: 300, interval: 330, travel: 110 };
   const HYPERION_MAIN = { hits: 300, interval: 100, duration: 2500, travel: 110, returnDelay: 500, movementSteps: 20, movementDistance: .26 };
   const HYPERION_MAX_OUTPUT = { durationMultiplier: 1.5, disruptionDuration: 3000, disruptionRadius: 118 };
+  // 라이온하트(L급 전투순양함): 레이저 500 · 0.5초 간격 순환 발사. 핵심기술 '사자의 포효' = 전장 중앙으로 순간이동 → 포효(전체 1초 작동불능) → 3초간 0.2초 간격 난사 → 복귀.
+  const LIONHEART_LASER = { hits: 500, interval: 500, travel: 110 };
+  const LIONHEART_ROAR = { hits: 500, interval: 200, duration: 3000, travel: 110, stun: 1000, roarDelay: 450, barrageDelay: 550, returnDelay: 450, center: { x: .5, y: .5 } };
+  // 포구 위치(함체 기준 비율): 앞 쌍포 · 중앙 쌍포 · 좌우 측면 쌍포 · 뒤 쌍포. 순서대로 돌아가며 한 발씩 쏜다.
+  const LIONHEART_MUZZLES = [[-.004, -.056], [.004, -.056], [-.04, -.026], [.04, -.026], [-.004, -.017], [.004, -.017], [-.04, .021], [.04, .021], [-.004, .060], [.004, .060]];
   const APOCALYPSE_LASER = { hits: 110, interval: 500, travel: 115 };
   const APOCALYPSE_MAIN = { heavyHits: 220, salvos: 4, enhancedHits: 330, enhancedShots: 8, charge: 1000, interval: 250, travel: 115 };
   const NEMESIS_LASER = { hits: 100, duration: 3000, tick: 500, reload: 3000 };
@@ -1277,6 +1282,7 @@
     const isIowa = ship.name === '아이오와';
     const isHelios = ship.name === '헬리오스';
     const isHyperion = ship.name === '히페리온';
+    const isLionheart = ship.name === '라이온하트';
     const isApocalypse = ship.name === '아포칼립스';
     const isNemesis = ship.name === '네메시스';
     const isAegis = ship.name === '아이기스';
@@ -1308,7 +1314,7 @@
     const isYamato = ship.name === '야마토';
     const isStarCruiser = ship.name === '스타 크루저';
     const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
-    const fallbackHp = isGaruda ? 1000 : isAngela ? 7900 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 8000 : isCarrier ? 3500 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isHyperion ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
+    const fallbackHp = isGaruda ? 1000 : isAngela ? 7900 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 8000 : isCarrier ? 3500 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
     const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
@@ -1343,6 +1349,8 @@
       heliosStars: isHelios ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isHyperion,
       hyperionStars: isHyperion ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
+      isLionheart,
+      lionheartStars: isLionheart ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isApocalypse,
       apocalypseStars: isApocalypse ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isNemesis,
@@ -1440,7 +1448,7 @@
         .forEach(key => { ally[key] = Math.max(ally[key], 5); });
     }
     const element = document.createElement('div');
-    element.className = `ally-unit ally-${['front', 'left', 'right'][index]}${ship.type === 'battlecruiser' ? ' battlecruiser-unit' : ''}${isAssaultTurtle ? ' assault-turtle-unit' : ''}${isTurtleShip ? ' turtle-ship-unit' : ''}${isAtlas ? ' atlas-unit' : ''}${isIowa ? ' iowa-unit' : ''}${isHyperion ? ' hyperion-unit' : ''}${isApocalypse ? ' apocalypse-unit' : ''}${isNemesis ? ' nemesis-unit' : ''}${isAegis ? ' aegis-unit' : ''}${isColossus ? ' colossus-unit' : ''}${isBastion ? ' bastion-unit' : ''}${isHammer ? ' hammer-unit' : ''}${isNimitz ? ' nimitz-unit' : ''}${isAngela ? ' angela-unit' : ''}${isTank ? ' tank-unit' : ''}${isDozer ? ' dozer-unit' : ''}${isCarrier ? ' carrier-unit' : ''}${isDreadTurtle ? ' dread-turtle-unit' : ''}${isSuPanokseon ? ' supanokseon-unit' : ''}${isKddx ? ' kddx-unit' : ''}${isPegasus ? ' pegasus-unit' : ''}${isPlanetDestroyer ? ' planet-destroyer-unit' : ''}${isPandora ? ' pandora-unit' : ''}${isVaryag ? ' varyag-unit' : ''}${isGaruda ? ' garuda-unit' : ''}${isFury ? ' fury-unit' : ''}${isBrownBess ? ' brown-bess-unit' : ''}${isYamato ? ' yamato-unit' : ''}${isOmega ? ' omega-unit' : ''}${isDeimos ? ' deimos-unit' : ''}${isUranus ? ' uranus-unit' : ''}${isSpear ? ' spear-unit' : ''}${isBlade ? ' blade-unit' : ''}${isIronFist ? ' ironfist-unit' : ''}`;
+    element.className = `ally-unit ally-${['front', 'left', 'right'][index]}${ship.type === 'battlecruiser' ? ' battlecruiser-unit' : ''}${isAssaultTurtle ? ' assault-turtle-unit' : ''}${isTurtleShip ? ' turtle-ship-unit' : ''}${isAtlas ? ' atlas-unit' : ''}${isIowa ? ' iowa-unit' : ''}${isHyperion ? ' hyperion-unit' : ''}${isLionheart ? ' lionheart-unit' : ''}${isApocalypse ? ' apocalypse-unit' : ''}${isNemesis ? ' nemesis-unit' : ''}${isAegis ? ' aegis-unit' : ''}${isColossus ? ' colossus-unit' : ''}${isBastion ? ' bastion-unit' : ''}${isHammer ? ' hammer-unit' : ''}${isNimitz ? ' nimitz-unit' : ''}${isAngela ? ' angela-unit' : ''}${isTank ? ' tank-unit' : ''}${isDozer ? ' dozer-unit' : ''}${isCarrier ? ' carrier-unit' : ''}${isDreadTurtle ? ' dread-turtle-unit' : ''}${isSuPanokseon ? ' supanokseon-unit' : ''}${isKddx ? ' kddx-unit' : ''}${isPegasus ? ' pegasus-unit' : ''}${isPlanetDestroyer ? ' planet-destroyer-unit' : ''}${isPandora ? ' pandora-unit' : ''}${isVaryag ? ' varyag-unit' : ''}${isGaruda ? ' garuda-unit' : ''}${isFury ? ' fury-unit' : ''}${isBrownBess ? ' brown-bess-unit' : ''}${isYamato ? ' yamato-unit' : ''}${isOmega ? ' omega-unit' : ''}${isDeimos ? ' deimos-unit' : ''}${isUranus ? ' uranus-unit' : ''}${isSpear ? ' spear-unit' : ''}${isBlade ? ' blade-unit' : ''}${isIronFist ? ' ironfist-unit' : ''}`;
     element.style.left = percent(ally.x);
     element.style.top = percent(ally.y);
     element.style.setProperty('--rarity-color', RARITY_COLORS[ship.rarity] || RARITY_COLORS.R);
@@ -1499,6 +1507,7 @@
     'battlecruiser:아포칼립스': { interval: 500, shots: 1, cycle: 500 },
     'battlecruiser:헬리오스': { interval: 800, shots: 1, cycle: 800 },
     'battlecruiser:히페리온': { interval: 330, shots: 1, cycle: 330 },
+    'battlecruiser:라이온하트': { interval: 500, shots: 1, cycle: 500 },
     'battlecruiser:마젤란': { interval: 500, shots: 1, cycle: 500 },
     'battlecruiser:퓨리': { interval: 1000, shots: 2, cycle: 1000 },
     'battlecruiser:아이언피스트': { interval: 330, shots: 1, cycle: 330 },
@@ -1593,6 +1602,7 @@
       enemy.iowaStars = stars;
       enemy.heliosStars = stars;
       enemy.hyperionStars = stars;
+      enemy.lionheartStars = stars;
       enemy.apocalypseStars = stars;
       enemy.magellanStars = stars;
       enemy.furyStars = stars;
@@ -1690,6 +1700,7 @@
     '아이오와': { interval: () => IOWA_CANNON.interval, fire: fireIowaCannon },
     '헬리오스': { interval: () => HELIOS_REFRACTION.interval, fire: fireHeliosRefraction },
     '히페리온': { interval: () => HYPERION_LASER.interval, fire: fireHyperionLaser },
+    '라이온하트': { interval: () => LIONHEART_LASER.interval, fire: fireLionheartLaser },
     '아포칼립스': { interval: () => APOCALYPSE_LASER.interval, fire: fireApocalypseLaser },
     '마젤란': { interval: () => MAGELLAN_CANNON.interval, fire: fireMagellanCannon },
     '퓨리': { interval: () => FURY_MISSILE.interval, fire: fireFuryMissiles },
@@ -1757,6 +1768,7 @@
     '니미츠': fireNimitzTotalOffensive,
     '도저': fireDozerEvasiveManeuver,
     '히페리온': fireHyperionJump,
+    '라이온하트': fireLionheartRoar,
     '돌격 거북선': fireAssaultTurtleCharge
   };
 
@@ -2459,7 +2471,7 @@
           if (!energyRechargeLocked && !ally.rechargePause && (!ally.charging || brownBessRechargesWhileSniping)) ally.energy = Math.min(ally.maxEnergy, ally.energy + dt * attackSpeedRatio / 100);
           updateBattlecruiserEnergy(ally);
           if (ally.energy >= ally.maxEnergy) {
-            const triggerMainBattery = ally.isAngela ? fireAngelaWings(ally) : ally.isTank ? fireTankPetrification(ally) : ally.isDozer ? fireDozerEvasiveManeuver(ally) : ally.isIronFist ? fireIronFistMainBattery(ally) : ally.isBlade ? fireBladePiercingVolley(ally) : ally.isOmega ? fireOmegaFocusStrike(ally) : ally.isDeimos ? fireDeimosShotgun(ally) : ally.isUranus ? fireUranusFocusBarrage(ally) : ally.isSpear ? fireSpearLaserVolley(ally) : ally.isVaryag ? fireVaryagSuicideDrones(ally) : ally.isGaruda ? fireGarudaGuardian(ally) : ally.isPandora ? firePandoraTorpedoes(ally) : ally.isPlanetDestroyer ? firePlanetDestroyerSupernova(ally) : ally.isPegasus ? firePegasusAnnihilation(ally) : ally.isKddx ? fireKddxChainLightning(ally) : ally.isSuPanokseon ? fireSuPanokseonMainBattery(ally) : ally.isAtlas ? fireAtlasMainBattery(ally) : ally.isNemesis ? fireNemesisElectricNet(ally) : ally.isAegis ? fireAegisRepair(ally) : ally.isColossus ? fireColossusMainShield(ally) : ally.isBastion ? fireBastionMainBattery(ally) : ally.isHammer ? fireHammerDrones(ally) : ally.isNimitz ? fireNimitzTotalOffensive(ally) : ally.isDreadTurtle ? fireDreadTurtleGwimyeonShield(ally) : ally.isAssaultTurtle ? fireAssaultTurtleCharge(ally) : ally.isTurtleShip ? fireTurtleShipBombardment(ally) : ally.isIowa ? fireIowaTomahawk(ally) : ally.isHelios ? fireHeliosMainBattery(ally) : ally.isHyperion ? fireHyperionJump(ally) : ally.isApocalypse ? fireApocalypseMainBattery(ally) : ally.isMagellan ? fireMagellanMainBattery(ally) : ally.isYamato ? fireYamatoFullBarrage(ally) : ally.isBrownBess ? fireBrownBessSniper(ally) : ally.isFury ? fireFuryBarrage(ally) : fireBattlecruiserMainBattery(ally);
+            const triggerMainBattery = ally.isLionheart ? fireLionheartRoar(ally) : ally.isAngela ? fireAngelaWings(ally) : ally.isTank ? fireTankPetrification(ally) : ally.isDozer ? fireDozerEvasiveManeuver(ally) : ally.isIronFist ? fireIronFistMainBattery(ally) : ally.isBlade ? fireBladePiercingVolley(ally) : ally.isOmega ? fireOmegaFocusStrike(ally) : ally.isDeimos ? fireDeimosShotgun(ally) : ally.isUranus ? fireUranusFocusBarrage(ally) : ally.isSpear ? fireSpearLaserVolley(ally) : ally.isVaryag ? fireVaryagSuicideDrones(ally) : ally.isGaruda ? fireGarudaGuardian(ally) : ally.isPandora ? firePandoraTorpedoes(ally) : ally.isPlanetDestroyer ? firePlanetDestroyerSupernova(ally) : ally.isPegasus ? firePegasusAnnihilation(ally) : ally.isKddx ? fireKddxChainLightning(ally) : ally.isSuPanokseon ? fireSuPanokseonMainBattery(ally) : ally.isAtlas ? fireAtlasMainBattery(ally) : ally.isNemesis ? fireNemesisElectricNet(ally) : ally.isAegis ? fireAegisRepair(ally) : ally.isColossus ? fireColossusMainShield(ally) : ally.isBastion ? fireBastionMainBattery(ally) : ally.isHammer ? fireHammerDrones(ally) : ally.isNimitz ? fireNimitzTotalOffensive(ally) : ally.isDreadTurtle ? fireDreadTurtleGwimyeonShield(ally) : ally.isAssaultTurtle ? fireAssaultTurtleCharge(ally) : ally.isTurtleShip ? fireTurtleShipBombardment(ally) : ally.isIowa ? fireIowaTomahawk(ally) : ally.isHelios ? fireHeliosMainBattery(ally) : ally.isHyperion ? fireHyperionJump(ally) : ally.isApocalypse ? fireApocalypseMainBattery(ally) : ally.isMagellan ? fireMagellanMainBattery(ally) : ally.isYamato ? fireYamatoFullBarrage(ally) : ally.isBrownBess ? fireBrownBessSniper(ally) : ally.isFury ? fireFuryBarrage(ally) : fireBattlecruiserMainBattery(ally);
             if (triggerMainBattery) {
               if (!ally.isBrownBess) focusBattleAudio('core');
               ally.energy = 0;
@@ -2678,6 +2690,8 @@
             ? IOWA_CANNON.interval
             : ally.isHelios
             ? HELIOS_REFRACTION.interval
+            : ally.isLionheart
+            ? LIONHEART_LASER.interval
             : ally.isHyperion
             ? HYPERION_LASER.interval
             : ally.isApocalypse
@@ -2697,6 +2711,7 @@
             : BATTLECRUISER_LASER.interval * (.9 + Math.random() * .2);
           if (ally.isIowa) fireIowaCannon(ally);
           else if (ally.isHelios) fireHeliosRefraction(ally);
+          else if (ally.isLionheart) fireLionheartLaser(ally);
           else if (ally.isHyperion) fireHyperionLaser(ally);
           else if (ally.isApocalypse) fireApocalypseLaser(ally);
           else if (ally.isMagellan) fireMagellanCannon(ally);
@@ -8066,6 +8081,103 @@
     return true;
   }
 
+  function lionheartMuzzlePoints(ally) {
+    return LIONHEART_MUZZLES.map(([px, py]) => orientedAllyPoint(ally, px, py));
+  }
+
+  function drawLionheartLaser(from, target) {
+    playCruiserLaserSound();
+    const beam = document.createElement('i');
+    beam.className = 'fx-line hyperion-laser lionheart-laser';
+    positionLine(beam, from, pointOf(target));
+    refs.effects.append(beam);
+    schedule(() => beam.remove(), LIONHEART_LASER.travel + 40);
+  }
+
+  // 일반공격: 레이저 500 · 0.5초마다 한 발, 포구를 돌아가며 순환 발사한다.
+  function fireLionheartLaser(ally) {
+    const target = shooterTargetFor(ally);
+    if (!target) return false;
+    const index = ally.lionheartMuzzleIndex || 0;
+    ally.lionheartMuzzleIndex = (index + 1) % LIONHEART_MUZZLES.length;
+    drawLionheartLaser(lionheartMuzzlePoints(ally)[index], target);
+    schedule(() => {
+      if (!target.dead) shooterDamage(target, LIONHEART_LASER.hits);
+    }, LIONHEART_LASER.travel);
+    return true;
+  }
+
+  function lionheartTeleportTrace(ally, point) {
+    const trace = document.createElement('div');
+    trace.className = 'hyperion-jump-trace lionheart-jump-trace';
+    trace.style.left = percent(point.x);
+    trace.style.top = percent(point.y);
+    trace.innerHTML = '<div class="ship-topview lionheart-topview"><img src="lionheart-battle-topview.png" alt="" /></div>';
+    refs.effects.append(trace);
+    schedule(() => trace.remove(), 620);
+  }
+
+  // 핵심기술 사자의 포효: 전장 중앙으로 순간이동 → 포효(전장 전체 충격파, 모든 적 1초 작동불능) → 3초간 0.2초 간격 레이저 난사 → 원래 자리로 복귀 순간이동.
+  function fireLionheartRoar(ally) {
+    if (!hostileTargetsFor(ally).length) return false;
+    const origin = { x: ally.x, y: ally.y };
+    const center = LIONHEART_ROAR.center;
+    ally.charging = true;
+    ally.el.classList.add('lionheart-jumping');
+    playHyperionWarpSound();
+    lionheartTeleportTrace(ally, origin);
+    ally.x = center.x;
+    ally.y = center.y;
+    ally.el.style.left = percent(ally.x);
+    ally.el.style.top = percent(ally.y);
+    announce(`${ally.ship.name} · 사자의 포효`, 'friendly');
+    schedule(() => {
+      if (ally.dead || state?.status !== 'combat') return;
+      // 포효: 충격파가 전장 전체로 퍼지고 모든 적이 1초간 작동불능이 된다.
+      playBossRoarSound();
+      const wave = document.createElement('div');
+      wave.className = 'lionheart-roar-wave';
+      wave.style.left = percent(ally.x);
+      wave.style.top = percent(ally.y);
+      wave.innerHTML = '<i></i><i></i><i></i>';
+      refs.effects.append(wave);
+      schedule(() => wave.remove(), 1200);
+      refs.field.classList.add('lionheart-roar-shake');
+      schedule(() => refs.field?.classList.remove('lionheart-roar-shake'), 700);
+      hostileTargetsFor(ally).forEach(target => {
+        if (target.dead) return;
+        applyTimedEnemyStun(target, LIONHEART_ROAR.stun);
+        target.el?.classList.add('lionheart-roar-stunned');
+        schedule(() => target.el?.classList.remove('lionheart-roar-stunned'), LIONHEART_ROAR.stun + 80);
+      });
+    }, LIONHEART_ROAR.roarDelay);
+    const barrageStart = LIONHEART_ROAR.roarDelay + LIONHEART_ROAR.barrageDelay;
+    const shots = Math.ceil(LIONHEART_ROAR.duration / LIONHEART_ROAR.interval);
+    for (let shot = 0; shot < shots; shot += 1) {
+      schedule(() => {
+        if (ally.dead) return;
+        const pool = shooterTargetsFor(ally);
+        if (!pool.length) return;
+        const target = pool[Math.floor(Math.random() * pool.length)];
+        faceAllyTowardTarget(ally, target);
+        const muzzles = lionheartMuzzlePoints(ally);
+        drawLionheartLaser(muzzles[shot % muzzles.length], target);
+        schedule(() => { if (!target.dead) shooterDamage(target, LIONHEART_ROAR.hits); }, LIONHEART_ROAR.travel);
+      }, barrageStart + shot * LIONHEART_ROAR.interval);
+    }
+    schedule(() => {
+      if (!ally.dead && state?.status === 'combat') playHyperionWarpSound();
+      lionheartTeleportTrace(ally, { x: ally.x, y: ally.y });
+      ally.x = origin.x;
+      ally.y = origin.y;
+      ally.el.style.left = percent(ally.x);
+      ally.el.style.top = percent(ally.y);
+      ally.charging = false;
+      ally.el?.classList.remove('lionheart-jumping');
+    }, barrageStart + LIONHEART_ROAR.duration + LIONHEART_ROAR.returnDelay);
+    return true;
+  }
+
   function apocalypseMuzzlePoints(ally) {
     return [{ x: -.07, y: -.048 }, { x: .07, y: -.048 }, { x: -.052, y: .004 }, { x: .052, y: .004 }]
       .map(point => orientedAllyPoint(ally, point.x, point.y));
@@ -12940,6 +13052,9 @@
     }
     if (ship?.name === '헬리오스') {
       return `<div class="ship-topview helios-topview" style="--rarity-color:${color}"><img src="helios-battle-topview.png" alt="" /></div>`;
+    }
+    if (ship?.name === '라이온하트') {
+      return `<div class="ship-topview lionheart-topview" style="--rarity-color:${color}"><img src="lionheart-battle-topview.png" alt="" />${turtleThrusterFx}</div>`;
     }
     if (ship?.name === '히페리온') {
       return `<div class="ship-topview hyperion-topview" style="--rarity-color:${color}"><img src="hyperion-battle-topview.png" alt="" />${hyperionThrusterFx}</div>`;
