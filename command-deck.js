@@ -822,7 +822,7 @@ function initializeFleetFormation(){
   // hp 내구도 · damage 공격력 · speed 공격속도 · reduction 피해감소
   const fleetBuffTable={'돌격 거북선':{hp:.10,reduction:.10},'야마토':{speed:.05,damage:.05},'거북선':{reduction:.08},'브라운베스':{damage:.05},'아이언피스트':{hp:.03,damage:.03},'마젤란':{hp:.03},'스타 크루저':{speed:.02,damage:.02},'퓨리':{damage:.03},'라이온하트':{damage:.15}};
   const fleetBuffLabels={hp:'내구도',damage:'공격력',speed:'공격속도',reduction:'피해감소'};
-  window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<3)return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});if((ships||[]).some(ship=>ship&&ship.name==='라이온하트'&&ship.type==='battlecruiser'&&Math.floor(Number(ship.enhancementStars??ship.stars)||0)>=5))for(const key in total)total[key]*=2;return total;};
+  window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<(ship.rarity==='L'?1:3))return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});if((ships||[]).some(ship=>ship&&ship.name==='라이온하트'&&ship.type==='battlecruiser'&&Math.floor(Number(ship.enhancementStars??ship.stars)||0)>=5))for(const key in total)total[key]*=2;return total;};
   let lastFleetBuff={hp:0,damage:0,speed:0,reduction:0};
   const showFleetBuffChange=(before,after)=>{
     const lines=Object.keys(fleetBuffLabels).map(key=>({key,delta:Math.round(((after[key]||0)-(before[key]||0))*1000)/10})).filter(entry=>entry.delta!==0);
