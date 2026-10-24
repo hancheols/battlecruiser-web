@@ -8182,7 +8182,6 @@
     announce(`${ally.ship.name} · 사자의 포효`, 'friendly');
     const { fx } = lionheartRoarEffects(ally);
     ally.el.classList.add('lionheart-roar-charging');
-    playPhotonChargeSound();
     schedule(() => {
       ally.el?.classList.remove('lionheart-roar-charging');
       if (ally.dead || state?.status !== 'combat') return;
