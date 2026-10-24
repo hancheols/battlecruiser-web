@@ -617,11 +617,16 @@
       state.tapaoColony = { cycleIndex: 0, lastV: 0, gapDone: true, spawned: 0, ground: [] };
       createTapaoGroundLayer();
       // 시작 화면이 비어 보이지 않게, 이미 흘러가고 있던 지형처럼 군집 둘과 그 사이 돔·수호탑을 미리 깔아 둔다.
-      const cyclePrefill = TAPAO_CYCLE_PX / tapaoField().fieldHeight;
+      // 구성: [포탑 군집(수호탑 1 + 돔 3)] [육각 군집] [포탑 군집] [육각 군집] ... 아래로 흐른다. 첫 포탑 군집은 시작 후 TAPAO_FIRST_TURRET_DELAY초 뒤에 화면에 들어온다.
+      const { fieldHeight: prefillHeight } = tapaoField();
+      const cyclePrefill = TAPAO_CYCLE_PX / prefillHeight;
+      const lowestDomePx = Math.max(...TAPAO_DOME_SLOTS.map(slot => slot[0]), 0);
+      const firstGapY = .02 - lowestDomePx / prefillHeight - TAPAO_FIRST_TURRET_DELAY * TAPAO_SCROLL_SPEED / prefillHeight;
       spawnTapaoHexV(.96);
-      spawnTapaoHexV(.96 - cyclePrefill);
-      spawnTapaoGap(.96 - cyclePrefill / 2);
-      state.tapaoColony.lastV = .96 - cyclePrefill;
+      spawnTapaoGap(firstGapY);
+      spawnTapaoHexV(firstGapY - cyclePrefill / 2);
+      state.tapaoColony.lastV = firstGapY - cyclePrefill / 2;
+      state.tapaoColony.gapDone = false;
     }
     if (isTapaoGateFinal(normalizedOperation)) {
       state.tapaoGateMap = { nextDecor: 160, ground: [] };
@@ -1064,9 +1069,10 @@
   const TAPAO_HEX = { w: 84, h: 92, stepX: 40.85, stepY: 66.8 };
   TAPAO_HEX.apex = TAPAO_HEX.stepY * 3.5;                // 군집 중심에서 맨 아래(첫 V 꼭짓점) 칸 중심까지
   TAPAO_HEX.vHeight = TAPAO_HEX.stepY * 7 + TAPAO_HEX.h; // 군집 전체 높이(V 세 겹)
-  const TAPAO_CYCLE_PX = 1100;                           // 육각 군집이 되풀이되는 간격(군집 + 빈 곳). 빈 곳 가운데에 수호탑이 서고, 위·아래로 갈라 돔 포탑이 선다.
+  const TAPAO_CYCLE_PX = 900;                           // 육각 군집이 되풀이되는 간격(군집 + 빈 곳). 빈 곳 가운데에 수호탑이 서고, 위·아래로 갈라 돔 포탑이 선다.
   // 돔 포탑 배치: [빈 곳 중심에서 위(-)·아래(+)로 떨어진 px, 방향(-1 왼쪽/1 오른쪽), 가장자리에서의 px]. 수호탑 줄(±108px) 밖에 지그재그로 흩어 한꺼번에 몰리지 않게 한다.
-  const TAPAO_DOME_SLOTS = [[-235, 1, 40], [-185, -1, 40], [-140, 1, 112], [140, -1, 112], [185, 1, 40], [235, -1, 40]];
+  const TAPAO_DOME_SLOTS = [[-140, 1, 40], [60, -1, 40], [140, 1, 112]];
+  const TAPAO_FIRST_TURRET_DELAY = 8;                    // 전투 시작 뒤 첫 포탑이 화면에 나타나기까지의 시간(초). 그 전에는 함재기만 상대한다.
   const TAPAO_GAP_SPAWN_Y = .34;                         // 빈 곳 전체가 화면 위 바깥에 있을 때(중심이 이 값만큼 위) 한꺼번에 놓는다
   // 돔 포탑(내구 3000, 레이저포 100 피해 2초 간격)과 수호탑(내구 10000, 레이저포 20 피해 0.5초 간격, 아군을 돌아가며 조준)
   const TAPAO_DOME = { w: 59, h: 60, hp: 3000, damage: 100, interval: 2000 };
