@@ -734,8 +734,5 @@ body{background:#10192a}#app{isolation:isolate;background:#193453}#app::before{d
   #map .magenta-sector-pins,#map .tapao-sector-pins,#map .campaign-art.solar .solar-region-pins{gap:clamp(4px,1.3vw,7px)}
   #map .magenta-sector-pins .magenta-pin,#map .tapao-sector-pins .tapao-region-pin,#map .campaign-art.solar .solar-region-pins .solar-pin{min-height:clamp(38px,9vw,48px);padding:5px 8px;gap:7px}
 }
-/* 작전지역마다 행성이 놓인 위치를 조금씩 달리해 장면을 구분한다 */
-.tapao-scene[data-region="tapao-near"]>img{object-position:30% 55%}
-.tapao-scene[data-region="tapao-orbit"]>img{object-position:62% 45%;filter:saturate(.85) sepia(.28) brightness(.7)}
-.tapao-scene[data-region="tapao-colony"]>img{object-position:46% 70%;filter:saturate(.8) sepia(.3) brightness(.66) contrast(1.06)}
-.tapao-scene[data-region="tapao-gate"]>img{object-position:80% 30%;filter:saturate(.95) brightness(.74) contrast(1.08)}
+/* 타파오 통 행성 그림은 작전지역과 관계없이 항상 같은 위치와 색으로 보여준다 */
+.tapao-scene>img{object-position:30% 55%}
