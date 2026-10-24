@@ -277,9 +277,11 @@
   const HYPERION_MAX_OUTPUT = { durationMultiplier: 1.5, disruptionDuration: 3000, disruptionRadius: 118 };
   // 라이온하트(L급 전투순양함): 레이저 500 · 0.5초 간격 순환 발사. 핵심기술 '사자의 포효' = 전장 중앙으로 순간이동 → 포효(전체 1초 작동불능) → 3초간 0.2초 간격 난사 → 복귀.
   const LIONHEART_LASER = { hits: 500, interval: 500, travel: 110 };
-  const LIONHEART_ROAR = { hits: 500, interval: 200, duration: 3000, travel: 110, stun: 1000, roarDelay: 450, barrageDelay: 550, returnDelay: 450, center: { x: .5, y: .5 } };
+  const LIONHEART_ROAR = { hits: 500, interval: 200, duration: 3000, travel: 110, stun: 1000, roarDelay: 800, barrageDelay: 800, returnDelay: 450, center: { x: .5, y: .5 }, brave: { stun: 2000, damage: 1000 } };   // brave = 보조기술 사자의 용맹(3성): 포효 작동불능 2초 + 전체 피해 1000
   // 포구 위치(함체 기준 비율): 앞 쌍포 · 중앙 쌍포 · 좌우 측면 쌍포 · 뒤 쌍포. 순서대로 돌아가며 한 발씩 쏜다.
   const LIONHEART_MUZZLES = [[-.0497, -.0899], [.0451, -.0899], [-.0054, -.0676], [.0059, -.0676], [-.0447, -.0899], [.0510, -.0899], [-.0036, -.0255], [.0027, -.0255], [-.0415, .0152], [.0420, .0152], [-.0632, .0323], [.0578, .0323], [-.0596, .0323], [.0627, .0323]];
+  // 일반공격은 갑판 위 포문(앞 가운데 쌍포 · 중앙 쌍포)에서만 순환 발사하고, 사자의 포효 난사 때는 모든 포문(14곳)을 돌아가며 쏜다.
+  const LIONHEART_DECK_MUZZLES = [2, 6, 3, 7];
   const APOCALYPSE_LASER = { hits: 110, interval: 500, travel: 115 };
   const APOCALYPSE_MAIN = { heavyHits: 220, salvos: 4, enhancedHits: 330, enhancedShots: 8, charge: 1000, interval: 250, travel: 115 };
   const NEMESIS_LASER = { hits: 100, duration: 3000, tick: 500, reload: 3000 };
@@ -8101,9 +8103,9 @@
   function fireLionheartLaser(ally) {
     const target = shooterTargetFor(ally);
     if (!target) return false;
-    const index = ally.lionheartMuzzleIndex || 0;
-    ally.lionheartMuzzleIndex = (index + 1) % LIONHEART_MUZZLES.length;
-    drawLionheartLaser(lionheartMuzzlePoints(ally)[index], target);
+    const turn = ally.lionheartMuzzleIndex || 0;
+    ally.lionheartMuzzleIndex = (turn + 1) % LIONHEART_DECK_MUZZLES.length;
+    drawLionheartLaser(lionheartMuzzlePoints(ally)[LIONHEART_DECK_MUZZLES[turn % LIONHEART_DECK_MUZZLES.length]], target);
     schedule(() => {
       if (!target.dead) shooterDamage(target, LIONHEART_LASER.hits);
     }, LIONHEART_LASER.travel);
@@ -8120,11 +8122,50 @@
     schedule(() => trace.remove(), 620);
   }
 
-  // 핵심기술 사자의 포효: 전장 중앙으로 순간이동 → 포효(전장 전체 충격파, 모든 적 1초 작동불능) → 3초간 0.2초 간격 레이저 난사 → 원래 자리로 복귀 순간이동.
+  // 핵심기술 사자의 포효: 전장 중앙으로 순간이동 → (충전) 포효 연출 + 모든 적 작동불능 → 3초간 0.2초 간격 레이저 난사(모든 포문 순환) → 복귀.
+  // 보조기술 사자의 용맹(3성 이상): 작동불능 2초 + 모든 적에게 피해 1000.
+  function lionheartRoarEffects(ally) {
+    const fx = (className, html = '', ttl = 1500) => {
+      const el = document.createElement('div');
+      el.className = className;
+      el.style.left = percent(ally.x);
+      el.style.top = percent(ally.y);
+      if (html) el.innerHTML = html;
+      refs.effects.append(el);
+      schedule(() => el.remove(), ttl);
+      return el;
+    };
+    // 장면 전체를 어둡게 눌러 포효가 도드라지게 한다
+    const dim = document.createElement('div');
+    dim.className = 'lionheart-roar-dim';
+    dim.style.setProperty('--cx', percent(ally.x));
+    dim.style.setProperty('--cy', percent(ally.y));
+    refs.effects.append(dim);
+    schedule(() => dim.remove(), 2400);
+    fx('lionheart-roar-charge', '<i></i><i></i><i></i>', LIONHEART_ROAR.roarDelay + 200);
+    return { fx, dim };
+  }
+  function lionheartRoarBurst(ally, fx) {
+    fx('lionheart-roar-head', '<i></i>', 1700);
+    fx('lionheart-roar-rays', '', 1500);
+    fx('lionheart-roar-wave', '<i></i><i></i><i></i><i></i><i></i>', 1700);
+    const flash = document.createElement('div');
+    flash.className = 'lionheart-roar-flash';
+    refs.effects.append(flash);
+    schedule(() => flash.remove(), 700);
+    const title = document.createElement('div');
+    title.className = 'lionheart-roar-title';
+    title.innerHTML = '<span>사자의 포효</span><small>ROAR OF THE LION</small>';
+    refs.effects.append(title);
+    schedule(() => title.remove(), 1900);
+    refs.field.classList.add('lionheart-roar-shake');
+    schedule(() => refs.field?.classList.remove('lionheart-roar-shake'), 900);
+  }
   function fireLionheartRoar(ally) {
     if (!hostileTargetsFor(ally).length) return false;
     const origin = { x: ally.x, y: ally.y };
     const center = LIONHEART_ROAR.center;
+    const brave = ally.lionheartStars >= 3;
     ally.charging = true;
     ally.el.classList.add('lionheart-jumping');
     playHyperionWarpSound();
@@ -8134,24 +8175,23 @@
     ally.el.style.left = percent(ally.x);
     ally.el.style.top = percent(ally.y);
     announce(`${ally.ship.name} · 사자의 포효`, 'friendly');
+    const { fx } = lionheartRoarEffects(ally);
+    ally.el.classList.add('lionheart-roar-charging');
+    playPhotonChargeSound();
     schedule(() => {
+      ally.el?.classList.remove('lionheart-roar-charging');
       if (ally.dead || state?.status !== 'combat') return;
-      // 포효: 충격파가 전장 전체로 퍼지고 모든 적이 1초간 작동불능이 된다.
+      // 포효: 사자 형상이 적진을 향해 포효하고, 충격파가 전장 전체로 퍼진다. 모든 적이 작동불능이 된다.
       playBossRoarSound();
-      const wave = document.createElement('div');
-      wave.className = 'lionheart-roar-wave';
-      wave.style.left = percent(ally.x);
-      wave.style.top = percent(ally.y);
-      wave.innerHTML = '<i></i><i></i><i></i>';
-      refs.effects.append(wave);
-      schedule(() => wave.remove(), 1200);
-      refs.field.classList.add('lionheart-roar-shake');
-      schedule(() => refs.field?.classList.remove('lionheart-roar-shake'), 700);
+      schedule(() => playBossRoarSound(), 220);
+      lionheartRoarBurst(ally, fx);
+      const stunTime = brave ? LIONHEART_ROAR.brave.stun : LIONHEART_ROAR.stun;
       hostileTargetsFor(ally).forEach(target => {
         if (target.dead) return;
-        applyTimedEnemyStun(target, LIONHEART_ROAR.stun);
+        applyTimedEnemyStun(target, stunTime);
         target.el?.classList.add('lionheart-roar-stunned');
-        schedule(() => target.el?.classList.remove('lionheart-roar-stunned'), LIONHEART_ROAR.stun + 80);
+        schedule(() => target.el?.classList.remove('lionheart-roar-stunned'), stunTime + 80);
+        if (brave) schedule(() => { if (!target.dead) shooterDamage(target, LIONHEART_ROAR.brave.damage); }, 260);
       });
     }, LIONHEART_ROAR.roarDelay);
     const barrageStart = LIONHEART_ROAR.roarDelay + LIONHEART_ROAR.barrageDelay;

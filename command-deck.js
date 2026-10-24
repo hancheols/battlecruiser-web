@@ -460,7 +460,7 @@ function initializeFleetFormation(){
     'battlecruiser:헬리오스':[1000,'레이저포',125,'굴절레이저 100 · 0.8초 간격 / 연쇄 2회','강화 굴절레이저 200 × 5발'],
     'battlecruiser:아이언피스트':[2700,'함포 · 미사일',606,'함포 200 · 0.33초 간격','철권 · 함포 500 × 3발 + 미사일 250 × 10발'],
     'battlecruiser:히페리온':[9000,'레이저포',909,'레이저 300 · 0.33초 간격','함선 도약 · 최대출력'],
-    'battlecruiser:라이온하트':[9000,'레이저포',1000,'레이저 500 · 0.5초 간격 순환 발사','사자의 포효 : 전장 중앙으로 순간이동 · 포효로 모든 적 1초 작동불능 · 3초간 0.2초 간격 레이저 500 난사 후 복귀'],
+    'battlecruiser:라이온하트':[9000,'레이저포',1000,'레이저 500 · 0.5초 간격 · 갑판 포문에서 순환 발사','사자의 포효 : 전장 중앙에서 포효 후 3초간 레이저포 난사'],
     'destroyer:바랴그':[5300,'미사일',500,'스플래시 미사일 200 · 0.4초마다 1발 순환 발사','자폭드론 6기 · 기당 범위 피해 500'],
     'destroyer:행성파괴자':[6000,'레이저포 · 함재기 · 관통레이저',761,'레이저 350 × 5발 + 함재기 3기','초신성 · 광선 범위 2,000 피해 × 5회'],
     'destroyer:수 판옥선':[6000,'함포',1000,'함포 300 · 0.3초 간격','선측 포격 10발 · 비격진천뢰 5발'],
@@ -554,6 +554,7 @@ function initializeFleetFormation(){
     'battlecruiser:아이언피스트':{aux:'철권TT',ultimate:'철방패'},
     'battlecruiser:야마토':{aux:'미사일',ultimate:'최후의 저항'},
     'battlecruiser:히페리온':{aux:'최대출력'},
+    'battlecruiser:라이온하트':{aux:'사자의 용맹',ultimate:'무리의 우두머리'},
     'battlecruiser:거북선':{aux:'확산탄',ultimate:'쾌속'},
     'battlecruiser:돌격 거북선':{aux:'일휘소탕',ultimate:'혈염산하'},
     'destroyer:블레이드':{aux:'보조레이저'},
@@ -588,6 +589,7 @@ function initializeFleetFormation(){
     'battlecruiser:아이언피스트':{aux:'철권TT : 주포 6연발, 발사 간격 0.5초',ultimate:'철방패 : 자신에게 최대 내구도 30% 보호막 (5초)'},
     'battlecruiser:야마토':{aux:'미사일 : 좌우 미사일 발사 추가',ultimate:'최후의 저항 : 치명적 피해를 입었을 때 전장에 10초간 남아서 공격.'},
     'battlecruiser:히페리온':{aux:'최대출력 : 집중 사격 지속시간 1.5배'},
+    'battlecruiser:라이온하트':{aux:'사자의 용맹 : 포효의 효과 2초로 증가 및 데미지 1000 발생',ultimate:'무리의 우두머리 : 함대버프 효과가 2배로 적용'},
     'dreadnought:앙헬라':{aux:'천사의 날개 강화 : 아군 면역 2초 · 보호막 1000',ultimate:'징벌의 칼 : 날개 효과 동안 뱃머리에서 대검을 1초마다 발사, 관통한 적에게 1000 피해'},
     'dreadnought:니미츠':{aux:'전면공세 지원 : 발동 시 자신이 1초간 피해 면역',ultimate:'함재기 폭주 : 함재기 공격력 50% 증가'},
     'dreadnought:콜로서스':{aux:'보호막 강화 : 아군 전체에 최대 내구도 52.5% 보호막',ultimate:'응징의 방패 : 깨지고 남은 보호막을 적에게 던져 피해 (최대 3회 타격)'},
@@ -641,6 +643,8 @@ function initializeFleetFormation(){
     if(ship?.type==='battlecruiser'&&ship?.name==='스타 크루저'&&stars>=3)return '중광자포 · 범위 공격 1,000';
     if(ship?.type==='battlecruiser'&&ship?.name==='헬리오스'&&stars>=3)return '강화 굴절레이저 400 × 5발';
     if(ship?.type==='battlecruiser'&&ship?.name==='아포칼립스'&&stars>=3)return '강화 포격 330 × 8발';
+    if(ship?.type==='battlecruiser'&&ship?.name==='라이온하트'&&stars>=5)return '무리의 우두머리 · 함대버프 효과 2배 · 사자의 용맹 · 포효 작동불능 2초, 피해 1000';
+    if(ship?.type==='battlecruiser'&&ship?.name==='라이온하트'&&stars>=3)return '사자의 용맹 · 포효 작동불능 2초 · 모든 적에게 피해 1000';
     if(ship?.type==='dreadnought'&&ship?.name==='탱크'&&stars>=3)return '암석화 · 2초 무적 → 3초 피해 60% 감소 · 5초 도발';
     if(ship?.type==='dreadnought'&&ship?.name==='네메시스'){
       const count=stars>=5?3:stars>=3?2:1;
@@ -818,7 +822,7 @@ function initializeFleetFormation(){
   // hp 내구도 · damage 공격력 · speed 공격속도 · reduction 피해감소
   const fleetBuffTable={'돌격 거북선':{hp:.10,reduction:.10},'야마토':{speed:.05,damage:.05},'거북선':{reduction:.08},'브라운베스':{damage:.05},'아이언피스트':{hp:.03,damage:.03},'마젤란':{hp:.03},'스타 크루저':{speed:.02,damage:.02},'퓨리':{damage:.03},'라이온하트':{damage:.15}};
   const fleetBuffLabels={hp:'내구도',damage:'공격력',speed:'공격속도',reduction:'피해감소'};
-  window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<3)return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});return total;};
+  window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<3)return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});if((ships||[]).some(ship=>ship&&ship.name==='라이온하트'&&ship.type==='battlecruiser'&&Math.floor(Number(ship.enhancementStars??ship.stars)||0)>=5))for(const key in total)total[key]*=2;return total;};
   let lastFleetBuff={hp:0,damage:0,speed:0,reduction:0};
   const showFleetBuffChange=(before,after)=>{
     const lines=Object.keys(fleetBuffLabels).map(key=>({key,delta:Math.round(((after[key]||0)-(before[key]||0))*1000)/10})).filter(entry=>entry.delta!==0);
