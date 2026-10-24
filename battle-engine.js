@@ -81,6 +81,11 @@
   const midBossKillAudio=window.createGameAudio('sound/boss_mid_kill.wav');midBossKillAudio.preload='auto';midBossKillAudio.volume=.72;
   const midBossKillVoices=Array.from({length:2},()=>midBossKillAudio.cloneNode());registerBattleAudioPool(midBossKillVoices,.72,3);
   let bossRoarVoiceIndex=0,bossKillVoiceIndex=0,midBossKillVoiceIndex=0,bossFireVoiceIndex=0,bossBladeVolleyVoiceIndex=0,poisonBombVoiceIndex=0;
+  // 라이온하트 전용 포효음(사자의 포효)
+  const lionheartRoarAudio=window.createGameAudio('sound/lionheart_roar.mp3');lionheartRoarAudio.preload='auto';lionheartRoarAudio.volume=.85;
+  const lionheartRoarVoices=Array.from({length:2},()=>lionheartRoarAudio.cloneNode());registerBattleAudioPool(lionheartRoarVoices,.85,3);
+  let lionheartRoarVoiceIndex=0;
+  function playLionheartRoarSound(){const audio=lionheartRoarVoices[lionheartRoarVoiceIndex++%lionheartRoarVoices.length];try{audio.currentTime=0;audio.play().catch(()=>{});}catch{}}
   function playBossRoarSound(){const audio=bossRoarVoices[bossRoarVoiceIndex++%bossRoarVoices.length];try{audio.currentTime=0;audio.play().catch(()=>{});}catch{}}
   // 보스 출현 경고음: 파일 없이 합성음(사이렌처럼 오르내리는 톤 3회)으로 만든다. 설정의 효과음 음량·끄기를 따른다.
   let bossWarningCtx = null;
@@ -8182,8 +8187,7 @@
       ally.el?.classList.remove('lionheart-roar-charging');
       if (ally.dead || state?.status !== 'combat') return;
       // 포효: 사자 형상이 적진을 향해 포효하고, 충격파가 전장 전체로 퍼진다. 모든 적이 작동불능이 된다.
-      playBossRoarSound();
-      schedule(() => playBossRoarSound(), 220);
+      playLionheartRoarSound();
       lionheartRoarBurst(ally, fx);
       const stunTime = brave ? LIONHEART_ROAR.brave.stun : LIONHEART_ROAR.stun;
       hostileTargetsFor(ally).forEach(target => {
