@@ -916,5 +916,4 @@
 @keyframes lionheart-title{0%{opacity:0;transform:scale(2.4)}16%{opacity:1;transform:scale(.94)}26%{transform:scale(1.04)}34%{transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(1.08) translateY(-12px)}}
 .lionheart-roar-shake{animation:lionheart-roar-shake .85s linear}
 @keyframes lionheart-roar-shake{0%,100%{transform:translate(0,0)}8%{transform:translate(-9px,5px)}16%{transform:translate(9px,-5px)}24%{transform:translate(-8px,-4px)}32%{transform:translate(8px,6px)}44%{transform:translate(-6px,3px)}56%{transform:translate(5px,-3px)}70%{transform:translate(-3px,2px)}85%{transform:translate(2px,-1px)}}
-.lionheart-roar-stunned{filter:brightness(1.7) saturate(.55) drop-shadow(0 0 10px #ffdf8a);animation:lionheart-stun-shake .1s linear infinite}
-@keyframes lionheart-stun-shake{0%{translate:-2px 0}50%{translate:2px 1px}100%{translate:-2px -1px}}
+.lionheart-roar-stunned{filter:brightness(1.7) saturate(.55) drop-shadow(0 0 10px #ffdf8a)}
