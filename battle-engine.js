@@ -631,6 +631,7 @@
       refs.battleClock.textContent = `${String(Math.floor(state.bounty.limit / 60)).padStart(2, '0')}:${String(state.bounty.limit % 60).padStart(2, '0')}`;
       if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = true;
     }
+    state.fleetBuff = window.computeFleetBuff?.(fleet.main.map(entry => entry.ship)) || { hp: 0, damage: 0, speed: 0, reduction: 0 };
     fleet.main.forEach(entry => createAlly(entry.ship, entry.slot, false));
     for (let index = 0; index < enemyTotal; index += 1) createNormalEnemy(index, enemyTotal);
     configureStartButton();
@@ -1316,7 +1317,7 @@
     const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
     const fallbackHp = isGaruda ? 1000 : isAngela ? 7900 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 8000 : isCarrier ? 3500 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
-    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1));
+    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
     const maxShield = isCarrier ? 3000 : 0;
     const ally = {
@@ -1934,6 +1935,7 @@
     state.allies = [];
     state.enemies = [];
     state.kills = 0;
+    state.fleetBuff = window.computeFleetBuff?.(match.fleet.slice(0, 3)) || { hp: 0, damage: 0, speed: 0, reduction: 0 };
     match.fleet.slice(0, 3).forEach((ship, index) => { if (ship) createAlly(ship, index, false); });
     match.enemyDeck.slice(0, 3).forEach((ship, index) => { if (ship) createArenaEnemyShip(ship, index); });
     state.status = 'combat';
@@ -2427,6 +2429,7 @@
       if (!ally.charging && ally.nextShot > 0) ally.nextShot += dt * (1 - attackSpeedRatio);
       const energyRechargeLocked = Number(ally.energyRechargeDisabledUntil) > performance.now();
       if (state.fleetAttackSpeedBoostUntil > performance.now() && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * IOWA_TOMAHAWK.fleetSpeedBonus;
+      if (state.fleetBuff?.speed && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * state.fleetBuff.speed;
       if (ally.gwimyeonShieldActive && ally.dreadTurtleFearEnabled) updateDreadTurtleNearbyFear(ally);
       const mainBatteryReady = !ally.charging && ally.energy >= ally.maxEnergy && (ally.isStarCruiser || ally.isBrownBess || ally.isYamato);
       if (!(ally.facingLockUntil > performance.now() || mainBatteryReady)) faceAllyTowardTarget(ally, shooterTargetFor(ally));
@@ -10258,9 +10261,11 @@
     const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchup;
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
-    const scaledPackets = basePackets * statFactor * (1+researchDamage) + (source?.starDamageRemainder || 0);
+    // 함대 버프(공격력): 편성된 아군 함선의 공격에만 곱한다(고정 피해·파생 피해 제외).
+    const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? 1 + (Number(state.fleetBuff?.damage) || 0) : 1;
+    const scaledPackets = basePackets * statFactor * fleetDamage * (1+researchDamage) + (source?.starDamageRemainder || 0);
     const roundedPackets = Math.round(scaledPackets);
-    if (source && (statFactor !== 1 || researchDamage)) source.starDamageRemainder = scaledPackets - roundedPackets;
+    if (source && (statFactor !== 1 || researchDamage || fleetDamage !== 1)) source.starDamageRemainder = scaledPackets - roundedPackets;
     const boostedPackets = Math.max(1, roundedPackets);
     const absorbed = Math.min(Math.max(0, Number(target.enemyShield) || 0), boostedPackets);
     if (absorbed > 0) {
@@ -10338,7 +10343,7 @@
     const fireDustMultiplier = ally.fireDustActive && source?.kind === 'boss' && source.variant === 'flame-beast' ? 1.5 : 1;
     const tankReduction = Number(ally.tankReducedFrom || 0) <= now && Number(ally.tankReducedUntil || 0) > now ? Number(ally.tankReductionRatio || 1) : 1;
     const nemesisReduction = ally.nemesisNetActive ? (ally.nemesisStars >= 5 ? .8 : .9) : 1;
-    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally));
+    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally)) * (1 - (ally.isArenaShip ? 0 : Math.min(.9, Number(state.fleetBuff?.reduction) || 0)));
     const shieldDamageFactor=(1-Math.min(.9,ally.tacticalDefense?.reduction||0))/(1+(ally.tacticalDefense?.shield||0));
     if (ally.isVaryag && ally.varyagStars >= 5 && !ally.varyagLastStandUsed && packets * packetDamage >= ally.hp + ally.shield) {
       ally.varyagLastStandUsed = true;

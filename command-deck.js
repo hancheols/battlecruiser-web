@@ -814,7 +814,22 @@ function initializeFleetFormation(){
   };
   const fleetAssignments=Array(4).fill(null),fleetTypeNames={dreadnought:'중전함',battlecruiser:'전투순양함',destroyer:'구축함',frigate:'프리깃'},rarityColors={L:'#ff526d',SSR:'#ffd45b',SR:'#c883ff',R:'#69d8ff'},rarityOrder={L:4,SSR:3,SR:2,R:1},fleetTypeOrder={dreadnought:0,battlecruiser:1,destroyer:2,frigate:3};
   const fleetFormationStorageKey='starfleet-fleet-formation-v1';
-  function saveFleetAssignments(){try{localStorage.setItem(fleetFormationStorageKey,JSON.stringify(fleetAssignments.map(ship=>ship?{type:ship.type,name:ship.name,rarity:ship.rarity,enhancementStars:ship.enhancementStars}:null)));}catch{}}
+  // 함대 버프: SR급 이상 전투순양함이 3성 이상이면 편성만으로 함대 전체에 효과가 붙는다(화면에는 내용을 적지 않고, 편성할 때 수치만 잠시 띄운다).
+  // hp 내구도 · damage 공격력 · speed 공격속도 · reduction 피해감소
+  const fleetBuffTable={'돌격 거북선':{hp:.10,reduction:.10},'야마토':{speed:.05,damage:.05},'거북선':{reduction:.08},'브라운베스':{damage:.05},'아이언피스트':{hp:.03,damage:.03},'마젤란':{hp:.03},'스타 크루저':{speed:.02,damage:.02},'퓨리':{damage:.03}};
+  const fleetBuffLabels={hp:'내구도',damage:'공격력',speed:'공격속도',reduction:'피해감소'};
+  window.computeFleetBuff=ships=>{const total={hp:0,damage:0,speed:0,reduction:0};(ships||[]).forEach(ship=>{if(!ship||ship.type!=='battlecruiser')return;if(Math.floor(Number(ship.enhancementStars??ship.stars)||0)<3)return;const buff=fleetBuffTable[ship.name];if(buff)for(const key in buff)total[key]+=buff[key];});return total;};
+  let lastFleetBuff={hp:0,damage:0,speed:0,reduction:0};
+  const showFleetBuffChange=(before,after)=>{
+    const lines=Object.keys(fleetBuffLabels).map(key=>({key,delta:Math.round(((after[key]||0)-(before[key]||0))*1000)/10})).filter(entry=>entry.delta!==0);
+    if(!lines.length)return;
+    document.querySelector('.fleet-buff-pop')?.remove();
+    const pop=document.createElement('div');pop.className='fleet-buff-pop';pop.setAttribute('aria-hidden','true');
+    pop.innerHTML=lines.map(({key,delta})=>`<p class="${delta>0?'up':'down'}"><i>${delta>0?'▲':'▼'}</i><span>${fleetBuffLabels[key]}</span><b>${delta>0?'+':'-'}${Math.abs(delta)}%</b></p>`).join('');
+    document.body.append(pop);
+    setTimeout(()=>pop.remove(),1900);
+  };
+  function saveFleetAssignments(){const nextBuff=window.computeFleetBuff(fleetAssignments);if(document.querySelector('.screen.active')?.id==='collection')showFleetBuffChange(lastFleetBuff,nextBuff);lastFleetBuff=nextBuff;try{localStorage.setItem(fleetFormationStorageKey,JSON.stringify(fleetAssignments.map(ship=>ship?{type:ship.type,name:ship.name,rarity:ship.rarity,enhancementStars:ship.enhancementStars}:null)));}catch{}}
   const isFrigateUnlocked=()=>{try{const saved=JSON.parse(localStorage.getItem('starfleet-tactical-weapon-research-v1')||'{}')||{};return Math.max(Number(saved.frigate?.level)||0,Number(saved.frigateTree?.firepower1)||0)>=1;}catch{return false;}};
   const showFrigateLockWarning=()=>{const slot=stage.querySelector('[data-fleet-slot="3"]'),warning=slot?.querySelector('.frigate-slot-warning');if(!slot||!warning)return;warning.textContent='무기연구-프리깃 개발 필요';warning.hidden=false;clearTimeout(slot.frigateWarningTimer);slot.frigateWarningTimer=setTimeout(()=>{warning.hidden=true;},1800);};
   const syncFrigateSlotLock=()=>{const slot=stage.querySelector('[data-fleet-slot="3"]'),locked=!isFrigateUnlocked(),role=slot?.dataset.slotRole||'Frigate';if(!slot)return;slot.classList.toggle('frigate-locked',locked);if(locked&&fleetAssignments[3]?.type==='frigate'){fleetAssignments[3]=null;renderFleetSlot(3);saveFleetAssignments();}else slot.setAttribute('aria-label',locked?`${role} slot · locked · frigate research required`:slot.classList.contains('occupied')?`${role} slot · ${fleetAssignments[3]?.name} assigned`:`${role} slot · empty`);};
