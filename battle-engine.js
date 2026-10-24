@@ -1080,10 +1080,10 @@
   // 외계 공중 함대: 15초마다 함재기 10기 + (앞의 2웨이브는) 스타크루저 1척, 3회. 3번째 웨이브까지 모두 격파하면 클리어.
   const TAPAO_COLONY_WAVE_DELAYS = [600, 15600, 30600];
   const TAPAO_TURRET_MISSILE_TAKEN = 1.2, TAPAO_TURRET_CANNON_TAKEN = .7, TAPAO_TURRET_ELECTRIC_TAKEN = .6;   // 포탑이 받는 피해 배율(미사일 +20%, 함포 -30%, 전기 -40%)
-  const TAPAO_COLONY_CRUISER_WAVES = 2;
+  const TAPAO_COLONY_CRUISER_WAVES = 3;
   // 게이트 1~9관문: 4족 보행 전차가 사막 위를 걸어 내려오다 사거리(range)에 닿으면 멈춰 서서 3초마다 포격(300 피해)한다. 줄(lanes)마다 한 대까지.
   // 포탄은 보이지 않고 아군 쪽 피격 폭발만 나타난다. 지상 유닛이라 포탑과 같은 피해 배율을 받는다.
-  const TAPAO_WALKER = { w: 54, h: 56, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], stand: 1500, hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
+  const TAPAO_WALKER = { w: 54, h: 56, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], stand: 1500, hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 3개 웨이브 모두 1척씩 나온다(합계 3척).
   function isTapaoGateOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-gate';
   }
@@ -11392,7 +11392,7 @@
   function spawnTapaoColonyWave(wave) {
     if (!state || state.status !== 'combat') return;
     state.keplerAlienFleetSpawned = false;
-    if (wave < TAPAO_COLONY_CRUISER_WAVES) spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [[.5], [.72]][wave] || [.5], wave });
+    if (wave < TAPAO_COLONY_CRUISER_WAVES) spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [[.5], [.72], [.28]][wave] || [.5], wave });
     else announce(`외계 함대 제${wave + 1}웨이브 · 함재기 10기 접근`, 'boss');
     state.tapaoColonyWaves = wave + 1;
     playFighterLaunchSound();
