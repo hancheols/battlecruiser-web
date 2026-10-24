@@ -847,7 +847,7 @@
 .tapao-turret.walker{z-index:6}
 .tapao-turret.walker>.tw-body{position:absolute;inset:0;background:url('tapao-walker-v1.webp') 0 0/800% 100% no-repeat;filter:drop-shadow(7px 9px 5px rgba(40,22,8,.5));animation:tapao-walker-step .96s steps(8) infinite}
 @keyframes tapao-walker-step{from{background-position-x:0}to{background-position-x:-864px}}
-.tapao-turret.walker>.tw-flash{position:absolute;left:50%;top:88%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,#fff 0,#ffd27a 30%,rgba(255,120,40,.6) 55%,rgba(255,120,40,0) 72%);opacity:0;transform:scale(.4)}
+.tapao-turret.walker>.tw-flash{position:absolute;left:50%;top:88%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:radial-gradient(circle,#fff 0,#ffd27a 30%,rgba(255,120,40,.6) 55%,rgba(255,120,40,0) 72%);opacity:0;transform:scale(.4)}
 .tapao-turret.walker.firing>.tw-flash{animation:tapao-walker-muzzle .35s ease-out}
 .tapao-turret.walker.firing>.tw-body{transform:translateY(-3px)}
 @keyframes tapao-walker-muzzle{0%{opacity:1;transform:scale(1.5)}100%{opacity:0;transform:scale(.6)}}

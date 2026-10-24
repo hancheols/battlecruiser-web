@@ -1064,7 +1064,7 @@
   const TAPAO_COLONY_CRUISER_WAVES = 2;
   // 게이트 1~9관문: 4족 보행 전차가 사막 위를 걸어 내려오다 사거리(range)에 닿으면 멈춰 서서 3초마다 포격(300 피해)한다. 줄(lanes)마다 한 대까지.
   // 포탄은 보이지 않고 아군 쪽 피격 폭발만 나타난다. 지상 유닛이라 포탑과 같은 피해 배율을 받는다.
-  const TAPAO_WALKER = { w: 108, h: 112, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], stand: 1500, hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
+  const TAPAO_WALKER = { w: 54, h: 56, hp: 6000, damage: 300, interval: 3000, walk: 14, range: [.22, .32], stand: 1500, hitDelay: 450, first: 3000, every: 12000, lanes: [.26, .5, .74] };                  // 스타크루저는 앞의 2개 웨이브에만 1척씩 나온다(합계 2척). 마지막 웨이브는 함재기만 나온다.
   function isTapaoGateOperation(operation = state?.operation) {
     return String(operation?.region || '').toLowerCase() === 'tapao-gate';
   }
