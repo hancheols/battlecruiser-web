@@ -538,7 +538,7 @@
       gate: Number(operation.gate) || 1
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
-    refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
+    refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation) && normalizedOperation.chapter !== 5);
     // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
     const neptuneBackground = normalizedOperation.chapter === 5 ? (window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgrounds?.[normalizedOperation.gate] || window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background) : '';
     refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
@@ -1038,7 +1038,7 @@
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
   // 지역별 외계 함선 강화(체력·공격력): 행성인근·위성궤도 +10%, 콜로니 +15%, 게이트 +20%.
-  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2 };
+  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2 };
   const tapaoAlienScale = (operation = state?.operation) => TAPAO_ALIEN_SCALES[String(operation?.region || '').toLowerCase()] || 1.1;
   // 함종 상성(타파오 통부터, 아군이 외계 함선을 칠 때만): 중전함 > 구축함 > 순양함 > 중전함. 유리하면 피해 +10%, 불리하면 -10%.
   // 외계 함선의 공격에는 적용하지 않는다. 함재기·포탑처럼 함종이 없는 대상은 상성이 없다.
@@ -1055,7 +1055,12 @@
     return 1;
   }
   function isTapaoOperation(operation = state?.operation) {
-    return Number(operation?.chapter) === 4 || String(operation?.region || '').toLowerCase().startsWith('tapao-');
+    return Number(operation?.chapter) === 4 || String(operation?.region || '').toLowerCase().startsWith('tapao-') || isNeptuneAlienOperation(operation);
+  }
+  // 넵튠 게이트 3~5관문: 타파오와 같은 외계 함대 웨이브 전투(외계 함선 내구도만 20% 더 높다).
+  const NEPTUNE_ALIEN_HP_FACTOR = 1.2;
+  function isNeptuneAlienOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && Number(operation?.gate) >= 3;
   }
 
   // 지역·관문별 외계 함대 웨이브. 한 웨이브를 모두 격파하면 다음 웨이브가 나온다.
@@ -1067,6 +1072,12 @@
     const gate = Number(operation?.gate) || 1;
     const cruisers = ['starcruiser', 'starcruiser', 'starcruiser'];
     const flagship = ['angela', 'starcruiser', 'starcruiser'];
+    // 넵튠 게이트: 3관문 호위함2+크루저1 → 크루저2 / 4관문 호위함5 → 크루저2 → 크루저1+호위함2 / 5관문 외계 항모
+    if (region === 'neptune-gate') {
+      if (gate === 3) return [['escort', 'escort', 'starcruiser'], ['starcruiser', 'starcruiser']];
+      if (gate === 4) return [['escort', 'escort', 'escort', 'escort', 'escort'], ['starcruiser', 'starcruiser'], ['starcruiser', 'escort', 'escort']];
+      return [['carrier']];
+    }
     if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
     if (region === 'tapao-orbit') return gate === 10 ? [flagship, flagship] : [cruisers];
     return [cruisers];
@@ -10908,6 +10919,8 @@
       : atmosphere ? ['angela', 'starcruiser', 'escort'] : ['angela', 'escort', 'escort'];
     const total = lineup.length;
     const alienScale = isTapaoOperation() ? tapaoAlienScale() : 1;
+    const hpFactor = isNeptuneAlienOperation() ? NEPTUNE_ALIEN_HP_FACTOR : 1;
+    const spreadXs = options.xs || ({ 1: [.5], 2: [.34, .66], 3: [.5, .24, .76], 5: [.5, .3, .7, .12, .88] }[total] || [.5, .24, .76]);
     state.keplerAlienFleetSize = total;
     const fleet = [];
     for (let index = 0; index < total; index += 1) {
@@ -10921,7 +10934,7 @@
         ? { name: '스타 크루저', type: 'battlecruiser', rarity: 'SSR', enhancementStars: 3 }
         : carrier ? { name: '외계 우주항모', type: 'carrier', rarity: 'L', enhancementStars: 5 }
           : { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
-      const hp = Math.round(alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
+      const hp = Math.round(hpFactor * alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
       const ship = {
         id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${options.wave !== undefined ? `w${options.wave}-` : ''}${options.idSuffix ?? ''}${index}${options.xs ? `-${Math.round(options.xs[index] * 100)}` : ''}`,
         kind: 'boss',
@@ -10933,7 +10946,7 @@
         hp,
         maxHp: hp,
         attackPower: carrier ? 0 : angela ? 1050 : starcruiser ? Math.round(BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(sourceShip)) : Math.round(BLADE_LASER.hits * combatStatFactor(sourceShip)),
-        x: carrier ? .67 : (options.xs || [.5, .24, .76])[index],
+        x: carrier ? .67 : spreadXs[index],
         y: -.26,
         entryStartY: -.26,
         entryTargetY: carrier ? .26 : .17 + (angela ? 0 : .025),
@@ -10985,7 +10998,7 @@
     const regionLabel = secretBase ? '비밀기지' : atmosphere ? '대기권' : '행성권';
     if (options.label !== undefined) { if (options.label) announce(options.label, 'boss'); return fleet; }
     if (options.wave !== undefined) { announce(`외계 함대 제${options.wave + 1}웨이브 · 스타크루저 1척 + 함재기 10기 접근`, 'boss'); return fleet; }
-    announce(isTapaoOperation() ? `타파오 통 ${gate}관문 · ${carrierLineupLabel(lineup)} 접근` : `케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
+    announce(isTapaoOperation() ? `${Number(state.operation?.chapter) === 5 ? '넵튠 게이트' : '타파오 통'} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근` : `케플러 ${regionLabel} ${gate}관문 · ${carrierLineupLabel(lineup)} 접근`, 'boss');
     return fleet;
   }
 
