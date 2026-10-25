@@ -12500,6 +12500,7 @@
       refs.battleResultStars.textContent = '☆☆☆';
       refs.battleResultCopy.textContent = reason || '보스 격파 전에 아군 전력이 모두 이탈했습니다.';
       refs.battleRewards.innerHTML = '<span>획득 보상 <b>없음</b></span>';
+      window.dispatchEvent(new CustomEvent('battle-operation-defeat', { detail: { operation: state.operation } }));
       addResultButton('재도전', () => window.retryCurrentBattle?.());
       addResultButton('함교로 복귀', () => window.show?.('home'));
     }

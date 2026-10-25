@@ -1679,7 +1679,11 @@ function initializePlanetCampaign() {
   let magentaRegion = 'magenta-near', magentaGate = 1;
   let keplerRegion = 'kepler-orbit', keplerGate = 1;
   let tapaoRegion = 'tapao-near', tapaoGate = 1;
-  let neptuneRegion = 'neptune-gate', neptuneGate = 1;
+  let neptuneRegion = 'neptune-gate', neptuneGate = 1, neptuneIntroPassed = false;
+  // 보상은 최초 1회: 넵튠 게이트는 패배하면 진행도가 처음으로 돌아가므로 역대 최고 기록을 따로 둔다.
+  let neptuneBest = {};
+  try { neptuneBest = JSON.parse(localStorage.getItem('neptune-campaign-best-v1') || '{}') || {}; } catch (_) {}
+  for (const key of Object.keys(neptuneRegions)) neptuneBest[key] = Math.max(Number(neptuneBest[key]) || 0, neptuneProgress[key]);
   const solarArt = `<svg viewBox="0 0 480 260" role="img" aria-label="태양과 행성들의 궤도를 표현한 태양계"><defs><radialGradient id="solarSun"><stop stop-color="#fff5b5"/><stop offset=".5" stop-color="#ffcb4a"/><stop offset="1" stop-color="#e85b19"/></radialGradient></defs><g fill="none" stroke="#91b8e5" opacity=".3">${[55,85,120,155,195,230].map(r=>`<ellipse cx="240" cy="130" rx="${r}" ry="${r*.47}"/>`).join('')}</g><circle cx="240" cy="130" r="29" fill="url(#solarSun)"/>${[[191,118,4,'#baa090'],[302,108,7,'#dfac67'],[143,157,9,'#5297de'],[364,173,7,'#cb6338'],[78,86,16,'#caa87e'],[431,104,13,'#d6c390']].map(([x,y,r,c])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('')}<ellipse cx="431" cy="104" rx="23" ry="5" fill="none" stroke="#e5cfa8" stroke-width="3" transform="rotate(-20 431 104)"/></svg>`;
   map.innerHTML = `<header class="campaign-heading"><small>SOLAR SYSTEM · EXPEDITION</small><h1>행성계</h1><p>작전 지역과 관문을 선택하세요</p></header><div class="campaign-art solar">${solarArt}<div class="region-world"></div><div class="region-caption">태양계 <small>SOLAR SYSTEM</small></div></div><div class="region-tabs">${Object.entries(regions).map(([k,r])=>`<button type="button" data-region="${k}">${r.name}<small>${r.count}개 관문</small></button>`).join('')}</div><div class="campaign-status">지역을 선택하면 관문이 표시됩니다.</div><div class="gate-grid" aria-label="관문 선택"></div><button type="button" class="campaign-battle" disabled><span class="combat-symbol">⚔</span><span><b>전선 출격</b><small>작전 지역을 선택하세요</small></span><span>›</span></button>`;
   const art = map.querySelector('.campaign-art'), status = map.querySelector('.campaign-status'), grid = map.querySelector('.gate-grid'), launch = map.querySelector('.campaign-battle');
@@ -1825,6 +1829,11 @@ function initializePlanetCampaign() {
     if(chapter===3){const keys=Object.keys(keplerRegions),index=keys.indexOf(key);if(index>0&&keplerProgress[keys[index-1]]<10)return;}
     if(chapter===4){if(!chapterThreeComplete())return;const keys=Object.keys(tapaoRegions),index=keys.indexOf(key);if(index>0&&tapaoProgress[keys[index-1]]<10)return;}
     if(chapter===5){if(!chapterFourComplete())return;const keys=Object.keys(neptuneRegions),index=keys.indexOf(key);if(index>0&&neptuneProgress[keys[index-1]]<neptuneRegions[keys[index-1]].count)return;}
+    // 넵튠 게이트 1관문 출격: 제독 대화와 게이트 진입 연출 뒤에 전투가 시작된다.
+    if(chapter===5&&key==='neptune-gate'&&number===1&&!neptuneIntroPassed&&window.playNeptuneGateIntro){
+      window.playNeptuneGateIntro(()=>{neptuneIntroPassed=true;try{launchOperation(5,key,1);}finally{neptuneIntroPassed=false;}});
+      return true;
+    }
     if(chapter===5){neptuneRegion=key;neptuneGate=number;}else if(chapter===2){magentaRegion=key;magentaGate=number;}else if(chapter===3){keplerRegion=key;keplerGate=number;}else if(chapter===4){tapaoRegion=key;tapaoGate=number;}else{region=key;gate=number;}
     running={chapter,region:key,gate:number,complete:false};wave=1;placed=0;
     const operation=operationFor(chapter,key,number);window.battleOperation=operation;window.show('battle');requestAnimationFrame(()=>window.prepareBattle?.(operation));return true;
@@ -1941,10 +1950,11 @@ function initializePlanetCampaign() {
     if(!running||running.complete||!result?.victory)return false;
     running.complete=true;
     const isNeptune=running.chapter===5,isMagenta=running.chapter===2,isKepler=running.chapter===3,isTapao=running.chapter===4,earned=isNeptune?neptuneRatings:isTapao?tapaoRatings:isKepler?keplerRatings:isMagenta?magentaRatings:ratings,completed=isNeptune?neptuneProgress:isTapao?tapaoProgress:isKepler?keplerProgress:isMagenta?magentaProgress:progress;
-    const firstClear=running.gate>(Number(completed[running.region])||0);
+    const firstClear=running.gate>(Number((isNeptune?neptuneBest:completed)[running.region])||0);
     const stars=Math.max(1,Math.min(3,Number(result.stars)||1)),ratingKey=`${running.region}-${running.gate}`;
     earned[ratingKey]=Math.max(Number(earned[ratingKey])||0,stars);
     completed[running.region]=Math.max(completed[running.region],running.gate);
+    if(isNeptune){neptuneBest[running.region]=Math.max(Number(neptuneBest[running.region])||0,running.gate);try{localStorage.setItem('neptune-campaign-best-v1',JSON.stringify(neptuneBest));}catch(_){}}
     try{localStorage.setItem(isNeptune?'neptune-campaign-v1':isTapao?'tapao-campaign-v1':isKepler?'kepler-campaign-v1':isMagenta?'magenta-campaign-v1':'planet-campaign-v1',JSON.stringify(completed));localStorage.setItem(isNeptune?'neptune-campaign-stars-v1':isTapao?'tapao-campaign-stars-v1':isKepler?'kepler-campaign-stars-v1':isMagenta?'magenta-campaign-stars-v1':'planet-campaign-stars-v1',JSON.stringify(earned));}catch(_){}
      // 전투 결과 화면에서 사용자가 다음 관문/돌아가기를 선택할 때까지
      // 작전 화면을 유지한다. 여기서 지도 화면으로 이동하면 결과 버튼이
@@ -1962,10 +1972,20 @@ function initializePlanetCampaign() {
     if(!running)return false;
     const chapter=running.chapter||1;
     const completed=chapter===5?neptuneProgress:chapter===4?tapaoProgress:chapter===3?keplerProgress:chapter===2?magentaProgress:progress;
-    return Number(running.gate)>Number(completed[running.region]||0);
+    return Number(running.gate)>Number((chapter===5?neptuneBest:completed)[running.region]||0);
   };
+  // 넵튠 게이트(5관문 연속 클리어)에서 패배하면 진행도를 처음으로 되돌린다.
+  window.addEventListener('battle-operation-defeat',event=>{
+    const op=event.detail?.operation;
+    if(Number(op?.chapter)!==5||op?.region!=='neptune-gate'||neptuneProgress['neptune-gate']>=neptuneRegions['neptune-gate'].count)return;
+    neptuneProgress['neptune-gate']=0;neptuneGate=1;
+    try{localStorage.setItem('neptune-campaign-v1',JSON.stringify(neptuneProgress));}catch(_){}
+  });
   window.retryCurrentBattle=()=>{
-    if(!running)return;launchOperation(running.chapter||1,running.region,running.gate);
+    if(!running)return;
+    // 넵튠 게이트는 1관문부터 다시(시나리오 포함) 시작한다.
+    if(running.chapter===5&&running.region==='neptune-gate'&&neptuneProgress['neptune-gate']<neptuneRegions['neptune-gate'].count){launchOperation(5,'neptune-gate',1);return;}
+    launchOperation(running.chapter||1,running.region,running.gate);
   };
    window.advanceBattleStage=()=>{
      if(!running)return window.show('map');
