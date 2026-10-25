@@ -540,7 +540,7 @@
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
     // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
-    const neptuneBackground = normalizedOperation.chapter === 5 ? window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background : '';
+    const neptuneBackground = normalizedOperation.chapter === 5 ? (window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgrounds?.[normalizedOperation.gate] || window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background) : '';
     refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
     refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground);
     if (refs.viewport) {
