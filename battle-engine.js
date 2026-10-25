@@ -11450,7 +11450,7 @@
   // 1관문: 적 없이 기지 시설 함선 50기를 파괴한다(1기 2%). 2관문: 로봇 두 종(미사일형·기관총형)이 공중에 떠서 사격한다.
   // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
   const NEPTUNE_BASE = {
-    scroll: 40, tileRatio: 3762 / 836,
+    scroll: 40, tileRatio: 1599 / 836,
     facility: { total: 100, hpMin: 10000, hpMax: 20000, w: 48, h: 48, every: 800 },
     robot: { total: 80, every: 900, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
     // 크기는 원래의 25%

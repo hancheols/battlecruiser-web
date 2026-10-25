@@ -1621,7 +1621,7 @@ function initializePlanetCampaign() {
   try { tapaoRatings = JSON.parse(localStorage.getItem('tapao-campaign-stars-v1') || '{}') || {}; } catch (_) {}
   // 챕터 5 수퍼 넵튠 행성: 작전지역 4곳(관문 5·10·10·15). 전투 배경은 지역별로 background 키만 채우면 바뀐다(비워 두면 화성과 같은 기본 성운 배경).
   const neptuneRegions = {
-    'neptune-gate':{name:'넵튠 게이트',en:'NEPTUNE GATE',count:5,image:'super-neptune-planet-map.png',background:'',gateBackgrounds:{1:'neptune-gate-bg-12-tile.jpg',2:'neptune-gate-bg-12-tile.jpg',3:'neptune-gate-bg-34.jpg',4:'neptune-gate-bg-34.jpg',5:'neptune-gate-bg-5.webp'},tallBackgrounds:[3,4,5]},
+    'neptune-gate':{name:'넵튠 게이트',en:'NEPTUNE GATE',count:5,image:'super-neptune-planet-map.png',background:'',gateBackgrounds:{1:'neptune-gate-bg-12-tile2.jpg',2:'neptune-gate-bg-12-tile2.jpg',3:'neptune-gate-bg-34.jpg',4:'neptune-gate-bg-34.jpg',5:'neptune-gate-bg-5.webp'},tallBackgrounds:[3,4,5]},
     'asman-supply':{name:'아스만 병참기지',en:'ASMAN SUPPLY BASE',count:10,image:'super-neptune-planet-map.png',background:''},
     'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:''},
     'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:''}
