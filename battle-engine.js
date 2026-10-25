@@ -11942,11 +11942,11 @@
   }
   function playOrbit10Arrival() {
     const enemies = orbit10AlienFleet();
-    // 유키히사 함대는 아군 선봉 함선과 같은 높이의 가로줄에 나타난다(가운데 한 척만 선봉 바로 앞).
-    const xs = [.1, .3, .5, .7, .9];
+    // 유키히사 함대 4척은 아군 선봉 함선과 같은 높이의 가로줄에서 선봉의 좌우 두 척씩 나타난다.
+    const xs = [.14, .32, .68, .86];
     const vanguard = (state.allies || []).find(ally => !ally.dead && ally.role === '선봉') || state.allies?.[0];
     const lineY = Number(vanguard?.y) || .71;
-    const ys = xs.map(x => x === .5 ? lineY - .1 : lineY);
+    const ys = xs.map(() => lineY);
     state.tapaoStoryCruisers = [];
     xs.forEach((x, index) => schedule(() => {
       const baseY = ys[index];
