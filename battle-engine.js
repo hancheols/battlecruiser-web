@@ -10760,7 +10760,11 @@
         state.keplerAlienFleetSpawned = false;
         spawnKeplerAlienFleet(plan[nextWave]);
         // 2웨이브 함대가 나타나면 전투를 멈추고 구원 연출로 넘어간다(이 연출로 관문이 클리어된다).
-        if (state.tapaoStory && nextWave === 1) { state.tapaoStoryLock = true; schedule(() => startOrbit10Act('b'), 1600); }
+        if (state.tapaoStory && nextWave === 1) {
+          // 아군이 아무리 강해도 유키히사 함대의 광자포 연출이 끝나기 전에 적이 먼저 쓰러지지 않도록, 2웨이브 함대는 퇴각할 때까지 피해를 받지 않는다.
+          orbit10AlienFleet().forEach(unit => { unit.enemyImmuneUntil = Infinity; });
+          state.tapaoStoryLock = true; schedule(() => startOrbit10Act('b'), 1600);
+        }
       }, 2200);
       return;
     }
