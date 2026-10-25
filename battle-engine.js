@@ -11458,6 +11458,8 @@
   };
   // 1관문 목표 50곳: 배경 그림(836×1881) 위의 좌표 [x, y, 반지름]. 그림 속 함선·건물·돔 위에 투명 목표 영역을 겹친다.
   const NEPTUNE_MAP = { src: 'neptune-gate-bg-12.webp', w: 836, h: 1881, scrollSeconds: 60 };
+  // 중앙 대형 함선(위 목록의 7~16번째)은 부서진 모습 대신 은은하게 어두워지기만 한다.
+  const NEPTUNE_SOFT_WRECKS = new Set([6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
   const NEPTUNE_HOTSPOTS = [
     [35, 370, 30], [135, 370, 30], [30, 480, 30], [130, 480, 30], [25, 600, 30], [120, 600, 30],
     [415, 250, 45], [415, 400, 45], [415, 550, 45], [415, 670, 35], [360, 250, 25], [470, 250, 25], [350, 430, 25], [490, 430, 25], [340, 560, 25], [495, 540, 25],
@@ -11499,7 +11501,7 @@
     const spec = NEPTUNE_BASE.facility;
     NEPTUNE_HOTSPOTS.forEach(([hx, hy, hr], index) => {
       const unit = {
-        id: `neptune-hotspot-${index + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', hotspot: true, name: '시설', fx: hx / NEPTUNE_MAP.w, fy: hy / NEPTUNE_MAP.h, rad: hr,
+        id: `neptune-hotspot-${index + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', hotspot: true, name: '시설', soft: NEPTUNE_SOFT_WRECKS.has(index), fx: hx / NEPTUNE_MAP.w, fy: hy / NEPTUNE_MAP.h, rad: hr,
         hp: 0, maxHp: 0, x: .5, y: -1, concealed: true, dead: false, stun: 0, requiredForGate: false
       };
       unit.hp = unit.maxHp = Math.round((spec.hpMin + Math.random() * (spec.hpMax - spec.hpMin)) / 100) * 100;
@@ -11683,9 +11685,23 @@
     const k = px / size, R = px / 2;
     try { if (img?.complete && img.naturalWidth) g.drawImage(img, left / map.w * img.naturalWidth, top / map.h * img.naturalHeight, size / map.w * img.naturalWidth, size / map.h * img.naturalHeight, 0, 0, px, px); } catch (_) {}
     // 그을림: 채도를 빼고 어둡게
-    g.globalCompositeOperation = 'saturation'; g.fillStyle = '#777'; g.fillRect(0, 0, px, px);
-    g.globalCompositeOperation = 'multiply'; g.fillStyle = '#3a3835'; g.fillRect(0, 0, px, px);
+    g.globalCompositeOperation = 'saturation'; g.fillStyle = unit.soft ? '#999' : '#777'; g.fillRect(0, 0, px, px);
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = unit.soft ? '#7a7672' : '#3a3835'; g.fillRect(0, 0, px, px);
     g.globalCompositeOperation = 'source-over';
+    if (unit.soft) {
+      // 대형 함선: 구덩이·균열 없이 중심만 살짝 그을려 어두워진다.
+      const soot = g.createRadialGradient(R, R, 0, R, R, R * .8);
+      soot.addColorStop(0, 'rgba(0,0,0,.45)'); soot.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = soot; g.fillRect(0, 0, px, px);
+      g.globalCompositeOperation = 'destination-in';
+      const softMask = g.createRadialGradient(R, R, R * .45, R, R, R);
+      softMask.addColorStop(0, '#000'); softMask.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = softMask; g.fillRect(0, 0, px, px);
+      wreck.append(canvas);
+      wreck.insertAdjacentHTML('beforeend', '<i class="nw-ember soft"></i>');
+      map.el.append(wreck);
+      return;
+    }
     // 구덩이: 울퉁불퉁한 윤곽의 검은 웅덩이
     const pit = (rad, alpha) => {
       g.beginPath();

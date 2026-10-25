@@ -969,3 +969,4 @@
 @keyframes nw-flash{0%{filter:brightness(3) saturate(1.4)}100%{filter:none}}
 @keyframes nw-ember{from{opacity:.25}to{opacity:.85}}
 @keyframes nw-smoke{0%{opacity:0;transform:translate(0,0) scale(.5)}20%{opacity:.75}100%{opacity:0;transform:translate(8px,-26px) scale(1.7)}}
+.nw-ember.soft{inset:30%;opacity:.35;animation:nw-ember 1.6s ease-in-out infinite alternate}
