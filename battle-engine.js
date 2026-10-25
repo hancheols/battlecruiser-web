@@ -11955,7 +11955,7 @@
       el.className = 'tapao-story-cruiser';
       el.style.left = percent(x);
       el.style.top = percent(baseY);
-      el.innerHTML = '<i class="tsc-halo"></i><img src="star-cruiser-battle-topview-20261007.png" alt="" /><b>L</b>';
+      el.innerHTML = '<i class="tsc-halo"></i><img src="star-cruiser-battle-topview-20261007.png" alt="" />';
       refs.effects.append(el);
       state.tapaoStoryCruisers.push(el);
       const flash = document.createElement('i');
