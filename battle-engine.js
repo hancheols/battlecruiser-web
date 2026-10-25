@@ -11665,6 +11665,73 @@
     }
   }
 
+  // 파괴된 시설: 같은 자리의 배경 그림을 잘라 그을리고(채도·밝기 낮춤), 구덩이·번쩍이는 균열·파편·연기를 덧그린 합성 잔해.
+  function addNeptuneWreck(unit, map) {
+    const size = unit.rad * 2.6 * map.scale;
+    const left = unit.fx * map.w - size / 2, top = unit.fy * map.h - size / 2;
+    const wreck = document.createElement('div');
+    wreck.className = 'nep-wreck';
+    wreck.style.cssText = `left:${left}px;top:${top}px;width:${size}px;height:${size}px`;
+    const res = 2, px = Math.max(24, Math.round(size * res));
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = px;
+    const g = canvas.getContext('2d');
+    let seed = 0;
+    for (const ch of unit.id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const img = map.el.querySelector('img');
+    const k = px / size, R = px / 2;
+    try { if (img?.complete && img.naturalWidth) g.drawImage(img, left / map.w * img.naturalWidth, top / map.h * img.naturalHeight, size / map.w * img.naturalWidth, size / map.h * img.naturalHeight, 0, 0, px, px); } catch (_) {}
+    // 그을림: 채도를 빼고 어둡게
+    g.globalCompositeOperation = 'saturation'; g.fillStyle = '#777'; g.fillRect(0, 0, px, px);
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = '#3a3835'; g.fillRect(0, 0, px, px);
+    g.globalCompositeOperation = 'source-over';
+    // 구덩이: 울퉁불퉁한 윤곽의 검은 웅덩이
+    const pit = (rad, alpha) => {
+      g.beginPath();
+      const n = 16;
+      for (let i = 0; i < n; i += 1) { const a = i / n * Math.PI * 2, r = rad * (.78 + rnd() * .38); g[i ? 'lineTo' : 'moveTo'](R + Math.cos(a) * r, R + Math.sin(a) * r); }
+      g.closePath(); g.fillStyle = `rgba(4,3,3,${alpha})`; g.fill();
+    };
+    pit(R * .62, .62); pit(R * .4, .9);
+    // 균열: 바깥쪽 불빛이 새는 갈라진 선
+    for (let c = 0; c < 7; c += 1) {
+      let x = R, y = R, a = rnd() * Math.PI * 2;
+      const path = [[x, y]];
+      for (let step = 0; step < 6; step += 1) { a += (rnd() - .5) * 1.1; const len = R * (.12 + rnd() * .12); x += Math.cos(a) * len; y += Math.sin(a) * len; path.push([x, y]); }
+      g.beginPath(); path.forEach(([cx, cy], i) => g[i ? 'lineTo' : 'moveTo'](cx, cy));
+      g.strokeStyle = 'rgba(255,120,40,.55)'; g.lineWidth = 3 * k; g.stroke();
+      g.strokeStyle = 'rgba(0,0,0,.9)'; g.lineWidth = 1.4 * k; g.stroke();
+    }
+    // 파편: 어두운 조각과 번쩍이는 금속 가장자리
+    for (let d = 0; d < 16; d += 1) {
+      const a = rnd() * Math.PI * 2, r = R * (.25 + rnd() * .55), cx = R + Math.cos(a) * r, cy = R + Math.sin(a) * r, sz = R * (.04 + rnd() * .09);
+      g.beginPath();
+      const pts = 3 + Math.floor(rnd() * 3);
+      for (let i = 0; i < pts; i += 1) { const aa = i / pts * Math.PI * 2 + rnd(), rr = sz * (.6 + rnd() * .7); g[i ? 'lineTo' : 'moveTo'](cx + Math.cos(aa) * rr, cy + Math.sin(aa) * rr); }
+      g.closePath(); g.fillStyle = `rgba(${24 + rnd() * 30 | 0},${24 + rnd() * 26 | 0},${26 + rnd() * 24 | 0},.95)`; g.fill();
+      g.strokeStyle = 'rgba(170,185,205,.55)'; g.lineWidth = .8 * k; g.stroke();
+    }
+    // 가장자리를 부드럽게 지운다
+    g.globalCompositeOperation = 'destination-in';
+    const mask = g.createRadialGradient(R, R, R * .5, R, R, R);
+    mask.addColorStop(0, '#000'); mask.addColorStop(.72, 'rgba(0,0,0,.95)'); mask.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = mask; g.fillRect(0, 0, px, px);
+    wreck.append(canvas);
+    // 남은 불씨와 피어오르는 연기
+    wreck.insertAdjacentHTML('beforeend', '<i class="nw-ember"></i><b class="nw-smoke s1"></b><b class="nw-smoke s2"></b><b class="nw-smoke s3"></b>');
+    map.el.append(wreck);
+    // 폭발과 함께 사방으로 튀는 파편
+    for (let i = 0; i < 9; i += 1) {
+      const shard = document.createElement('i');
+      shard.className = 'nw-shard';
+      const a = rnd() * Math.PI * 2, dist = size * (.45 + rnd() * .7);
+      shard.style.cssText = `left:50%;top:50%;width:${2 + rnd() * 3}px;height:${2 + rnd() * 5}px`;
+      wreck.append(shard);
+      shard.animate([{ transform: 'translate(-50%,-50%) rotate(0)', opacity: 1 }, { transform: `translate(calc(-50% + ${Math.cos(a) * dist}px), calc(-50% + ${Math.sin(a) * dist}px)) rotate(${rnd() * 540}deg)`, opacity: 0 }], { duration: 700 + rnd() * 500, easing: 'cubic-bezier(.1,.7,.3,1)', fill: 'forwards' }).finished.then(() => shard.remove(), () => shard.remove());
+    }
+  }
+
   function destroyNeptuneUnit(unit) {
     const base = state.neptuneBase;
     unit.dead = true;
@@ -11672,14 +11739,7 @@
     if (unit.unitType !== 'facility') schedule(() => createExplosion({ x: unit.x + .02, y: unit.y - .02 }, 'enemy'), 160);
     state.midBosses = state.midBosses.filter(item => item !== unit);
     if (unit.hotspot && base?.map) {
-      // 부서진 구조물: 배경 그림 위에 그을음·불씨가 남는다.
-      const scorch = document.createElement('i');
-      const size = unit.rad * 2.4 * base.map.scale;
-      const left = unit.fx * base.map.w - size / 2, top = unit.fy * base.map.h - size / 2;
-      // 파괴된 모습: 같은 자리의 배경 그림을 잘라 새까맣게 그을린 상태로 덮고, 균열 같은 어둠과 불씨를 얹는다.
-      scorch.className = 'nep-scorch';
-      scorch.style.cssText = `left:${left}px;top:${top}px;width:${size}px;height:${size}px;background-image:url(${NEPTUNE_MAP.src});background-size:${base.map.w}px ${base.map.h}px;background-position:${-left}px ${-top}px`;
-      base.map.el.append(scorch);
+      addNeptuneWreck(unit, base.map);
       unit.el?.remove();
     } else unit.el?.remove();
     if (base) { base.destroyed += 1; state.kills = base.destroyed; }
