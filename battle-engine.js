@@ -11484,7 +11484,9 @@
     const gate = Number(operation.gate);
     const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.gate2Targets.length;
     state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
-    state.normalTotal = total;
+    state.neptuneBase.robotsKilled = 0;
+    // 2관문: 진행도의 절반은 시설 10곳(1곳 2), 절반은 로봇 20기(1기 1). 둘 다 끝내야 클리어한다.
+    state.normalTotal = gate === 2 ? total * 2 + NEPTUNE_BASE.robot.total : total;
     state.kills = 0;
     refs.viewport?.style.setProperty('--nep-y', '0px');
     buildNeptuneMap(state.neptuneBase);
@@ -11660,10 +11662,8 @@
         neptuneBullet(source, unit.target, gunSpec.damage, { x: unit.x + (gunSpec.muzzleX - .5) * gunSpec.w / fieldWidth, y: unit.y - gunSpec.w * gunSpec.ratio / 2 / fieldHeight });
       }
     });
-    if (base.destroyed >= base.total && state.status === 'combat') {
-      state.kills = base.destroyed;
-      finishBattle(true);
-    }
+    const robotsDone = base.gate !== 2 || base.robotsKilled >= NEPTUNE_BASE.robot.total;
+    if (base.destroyed >= base.total && robotsDone && state.status === 'combat') finishBattle(true);
   }
 
   // 파괴된 시설: 같은 자리의 배경 그림을 잘라 그을리고(채도·밝기 낮춤), 구덩이·번쩍이는 균열·파편·연기를 덧그린 합성 잔해.
@@ -11757,7 +11757,10 @@
       addNeptuneWreck(unit, base.map);
       unit.el?.remove();
     } else unit.el?.remove();
-    if (base && unit.unitType === 'facility') { base.destroyed += 1; state.kills = base.destroyed; }
+    if (base) {
+      if (unit.unitType === 'facility') { base.destroyed += 1; state.kills += base.gate === 2 ? 2 : 1; }
+      else { base.robotsKilled += 1; state.kills += 1; }
+    }
     updateHud();
   }
 
