@@ -542,7 +542,7 @@
     // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
     const neptuneBackground = normalizedOperation.chapter === 5 ? (window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgrounds?.[normalizedOperation.gate] || window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background) : '';
     refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
-    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground);
+    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground && !(isNeptuneBaseOperation(normalizedOperation) && normalizedOperation.gate === 1));
     if (refs.viewport) {
       if (neptuneBackground) refs.viewport.style.setProperty('--neptune-region-bg', `url("${neptuneBackground}")`);
       else refs.viewport.style.removeProperty('--neptune-region-bg');
@@ -2330,7 +2330,7 @@
       updateAlliedFleet(dt);
       updateBoss(dt);
       // 전장 크기가 전투 중에 바뀌어도(주소창·상단 표시 변화 등) 지형 층이 항상 같은 크기를 유지하게 매 프레임 맞춘다.
-      if (state.tapaoColony || state.tapaoGateMap) syncTapaoGroundLayer();
+      if (state.tapaoColony || state.tapaoGateMap || state.neptuneBase?.map) syncTapaoGroundLayer();
       if ((state.tapaoColony || state.tapaoGateMap) && !state.tapaoGateMap?.stopped) {
         const tilePx = parseFloat(refs.viewport?.style.getPropertyValue('--tapao-tile')) || 1;
         state.tapaoBgY = ((Number(state.tapaoBgY) || 0) + TAPAO_SCROLL_SPEED * dt / 1000) % tilePx;
@@ -11450,13 +11450,28 @@
   // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
   const NEPTUNE_BASE = {
     scroll: 40, tileRatio: 1599 / 836,
-    facility: { total: 100, hpMin: 10000, hpMax: 20000, w: 48, h: 48, every: 800 },
+    facility: { total: 50, hpMin: 10000, hpMax: 20000 },
     robot: { total: 80, every: 900, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
     // 크기는 원래의 25%
     missile: { w: 18.5, ratio: 445 / 360, damage: 100, count: 2, interval: 2000, hold: 1500, back: 16, minY: .11 },
     gun: { w: 23, ratio: 458 / 340, damage: 10, interval: 100, idle: 1000, muzzleX: .24 }
   };
-  const NEPTUNE_ROBOT_LANES = [.14, .32, .5, .68, .86];
+  // 1관문 목표 50곳: 배경 그림(836×1881) 위의 좌표 [x, y, 반지름]. 그림 속 함선·건물·돔 위에 투명 목표 영역을 겹친다.
+  const NEPTUNE_MAP = { src: 'neptune-gate-bg-12.webp', w: 836, h: 1881, scrollSeconds: 60 };
+  const NEPTUNE_HOTSPOTS = [
+    [35, 370, 30], [135, 370, 30], [30, 480, 30], [130, 480, 30], [25, 600, 30], [120, 600, 30],
+    [415, 250, 45], [415, 400, 45], [415, 550, 45], [415, 670, 35], [360, 250, 25], [470, 250, 25], [350, 430, 25], [490, 430, 25], [340, 560, 25], [495, 540, 25],
+    [160, 50, 30], [35, 190, 35], [140, 185, 35], [100, 270, 35], [215, 270, 25],
+    [340, 45, 25], [495, 45, 25], [420, 25, 20],
+    [580, 150, 22], [580, 240, 22], [580, 330, 22], [585, 420, 22],
+    [740, 150, 60], [800, 60, 30],
+    [690, 380, 45], [780, 420, 40], [655, 520, 35], [770, 550, 45], [650, 600, 25],
+    [730, 880, 50], [690, 720, 25],
+    [50, 740, 40], [130, 820, 30], [20, 830, 25],
+    [415, 860, 45],
+    [235, 1010, 50], [600, 1030, 40], [740, 1140, 55], [415, 1110, 35],
+    [415, 1400, 70], [205, 1440, 45], [620, 1440, 45], [415, 1250, 40], [415, 1600, 40]
+  ];
   function isNeptuneBaseOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && [1, 2].includes(Number(operation?.gate));
   }
@@ -11468,6 +11483,61 @@
     state.normalTotal = total;
     state.kills = 0;
     refs.viewport?.style.setProperty('--nep-y', '0px');
+    if (gate === 1) buildNeptuneMap(state.neptuneBase);
+  }
+
+  function buildNeptuneMap(base) {
+    const { fieldWidth, fieldHeight } = tapaoField();
+    const ground = createTapaoGroundLayer();
+    const mapW = Math.max(fieldWidth, fieldHeight * NEPTUNE_MAP.w / NEPTUNE_MAP.h), mapH = mapW * NEPTUNE_MAP.h / NEPTUNE_MAP.w;
+    const map = document.createElement('div');
+    map.className = 'nep-map';
+    map.style.cssText = `width:${mapW}px;height:${mapH}px;left:${(fieldWidth - mapW) / 2}px`;
+    map.innerHTML = `<img src="${NEPTUNE_MAP.src}" alt="" />`;
+    ground.append(map);
+    base.map = { el: map, w: mapW, h: mapH, left: (fieldWidth - mapW) / 2, scale: mapW / NEPTUNE_MAP.w };
+    const spec = NEPTUNE_BASE.facility;
+    NEPTUNE_HOTSPOTS.forEach(([hx, hy, hr], index) => {
+      const unit = {
+        id: `neptune-hotspot-${index + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', hotspot: true, name: '시설', fx: hx / NEPTUNE_MAP.w, fy: hy / NEPTUNE_MAP.h, rad: hr,
+        hp: 0, maxHp: 0, x: .5, y: -1, concealed: true, dead: false, stun: 0, requiredForGate: false
+      };
+      unit.hp = unit.maxHp = Math.round((spec.hpMin + Math.random() * (spec.hpMax - spec.hpMin)) / 100) * 100;
+      const size = hr * 2 * base.map.scale;
+      const element = document.createElement('div');
+      element.className = 'nep-unit nep-hotspot';
+      element.style.cssText = `width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px`;
+      element.innerHTML = '<span class="nu-hp"><i></i></span>';
+      unit.el = element;
+      refs.enemyLayer.append(element);
+      state.midBosses.push(unit);
+    });
+    base.spawned = base.total;
+    positionNeptuneMap(base, 0);
+  }
+
+  // 배경 그림이 아래로 천천히 내려가는 만큼 목표 영역도 같은 자리에 붙어 따라간다.
+  function positionNeptuneMap(base, elapsed) {
+    const { fieldWidth, fieldHeight } = tapaoField();
+    const map = base.map, t = Math.min(1, elapsed / NEPTUNE_MAP.scrollSeconds);
+    const mapW = Math.max(fieldWidth, fieldHeight * NEPTUNE_MAP.w / NEPTUNE_MAP.h);
+    if (Math.abs(mapW - map.w) > .5) {
+      // 전장 크기가 달라지면(전투 화면이 열린 직후 등) 배경과 목표 크기를 다시 맞춘다.
+      map.w = mapW; map.h = mapW * NEPTUNE_MAP.h / NEPTUNE_MAP.w; map.scale = mapW / NEPTUNE_MAP.w; map.left = (fieldWidth - mapW) / 2;
+      map.el.style.cssText = `width:${map.w}px;height:${map.h}px;left:${map.left}px`;
+      state.midBosses.forEach(unit => { if (!unit.hotspot) return; const size = unit.rad * 2 * map.scale; unit.el.style.width = unit.el.style.height = `${size}px`; unit.el.style.margin = `${-size / 2}px 0 0 ${-size / 2}px`; });
+    }
+    const offset = (fieldHeight - map.h) * (1 - t);
+    map.el.style.top = `${offset.toFixed(1)}px`;
+    state.midBosses.forEach(unit => {
+      if (!unit.hotspot || unit.dead) return;
+      unit.x = (map.left + unit.fx * map.w) / fieldWidth;
+      unit.y = (offset + unit.fy * map.h) / fieldHeight;
+      unit.concealed = unit.y < .04 || unit.y > .99 || unit.x < .01 || unit.x > .99;
+      unit.el.style.left = percent(unit.x);
+      unit.el.style.top = percent(unit.y);
+      unit.el.style.display = unit.concealed ? 'none' : '';
+    });
   }
 
   function spawnNeptuneFacility() {
@@ -11541,20 +11611,17 @@
       return true;
     });
     const units = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead);
+    if (base.gate === 1) positionNeptuneMap(base, state.elapsed);
     base.timer -= dt;
     if (base.timer <= 0 && base.spawned < base.total) {
-      if (base.gate === 1) { base.timer = NEPTUNE_BASE.facility.every; spawnNeptuneFacility(); }
+      if (base.gate === 1) base.timer = 1e9;
       else if (units.length < NEPTUNE_BASE.robot.maxAlive) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
       else base.timer = 400;
     }
     const allies = state.allies.filter(ally => !ally.dead);
     units.forEach(unit => {
       if (unit.unitType === 'facility') {
-        // 시설 함선: 배경과 함께 내려온다. 격파하지 못하고 지나가면 다시 나온다.
-        unit.y += scroll;
-        unit.el.style.top = percent(unit.y);
         unit.el.querySelector('.nu-hp i').style.width = `${Math.max(0, unit.hp / unit.maxHp * 100)}%`;
-        if (unit.y > 1.08) { unit.dead = true; unit.el.remove(); base.spawned -= 1; state.midBosses = state.midBosses.filter(item => item !== unit); }
         return;
       }
       if (!unit.planted) {
@@ -11604,11 +11671,14 @@
     createExplosion(pointOf(unit), 'enemy');
     if (unit.unitType !== 'facility') schedule(() => createExplosion({ x: unit.x + .02, y: unit.y - .02 }, 'enemy'), 160);
     state.midBosses = state.midBosses.filter(item => item !== unit);
-    if (unit.unitType === 'facility' && unit.el) {
-      // 부서진 시설은 연기를 내며 배경과 함께 계속 흘러 내려간다.
-      unit.el.classList.add('wrecked');
-      unit.el.querySelector('.nu-hp')?.remove();
-      base?.wrecks.push({ el: unit.el, y: unit.y });
+    if (unit.hotspot && base?.map) {
+      // 부서진 구조물: 배경 그림 위에 그을음·불씨가 남는다.
+      const scorch = document.createElement('i');
+      const size = unit.rad * 2.6 * base.map.scale;
+      scorch.className = 'nep-scorch';
+      scorch.style.cssText = `left:${unit.fx * base.map.w - size / 2}px;top:${unit.fy * base.map.h - size / 2}px;width:${size}px;height:${size}px`;
+      base.map.el.append(scorch);
+      unit.el?.remove();
     } else unit.el?.remove();
     if (base) { base.destroyed += 1; state.kills = base.destroyed; }
     updateHud();

@@ -953,3 +953,12 @@
 @keyframes nu-recoil{0%{transform:translateY(0)}50%{transform:translateY(1px)}100%{transform:translateY(0)}}
 .fx-enemy.neptune-bullet{background:linear-gradient(90deg,#ffe9a000,#ffd34a,#fff);height:2px;filter:drop-shadow(0 0 3px #ffb83a)}
 .fx-enemy.neptune-missile{background:linear-gradient(90deg,#ff7a2a00,#ff9a3c,#fff0c8);filter:drop-shadow(0 0 5px #ff7a2a)}
+
+/* 1관문: 배경 그림 위의 투명 목표 영역 */
+.nep-map{position:absolute;overflow:visible}
+.nep-map>img{display:block;width:100%;height:100%}
+.nep-hotspot{border-radius:50%;border:1.5px solid #ffb04ae0;box-shadow:0 0 9px #ff7a2a99,inset 0 0 8px #ff7a2a55;background:radial-gradient(circle,#ff9a3c1c,transparent 72%);animation:nu-ring 1.4s ease-in-out infinite}
+.nep-hotspot.hit{background:radial-gradient(circle,#fff6,#ff9a3c33 60%,transparent 75%)}
+.nep-hotspot .nu-hp{left:-2px;right:-2px;bottom:-6px}
+.nep-scorch{position:absolute;border-radius:50%;background:radial-gradient(circle,#000d 0,#000a 38%,#1a0a0455 62%,transparent 74%);box-shadow:0 0 14px #ff6a2a55;animation:nu-scorch 2.4s ease-out forwards;pointer-events:none}
+@keyframes nu-scorch{0%{box-shadow:0 0 26px #ffa04aee;filter:brightness(2)}100%{box-shadow:0 0 6px #ff6a2a22;filter:brightness(1)}}
