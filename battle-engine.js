@@ -542,7 +542,7 @@
     // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
     const neptuneBackground = normalizedOperation.chapter === 5 ? (window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgrounds?.[normalizedOperation.gate] || window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background) : '';
     refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
-    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground && !(isNeptuneBaseOperation(normalizedOperation) && normalizedOperation.gate === 1));
+    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground && !isNeptuneBaseOperation(normalizedOperation));
     if (refs.viewport) {
       if (neptuneBackground) refs.viewport.style.setProperty('--neptune-region-bg', `url("${neptuneBackground}")`);
       else refs.viewport.style.removeProperty('--neptune-region-bg');
@@ -11451,7 +11451,9 @@
   const NEPTUNE_BASE = {
     scroll: 40, tileRatio: 1599 / 836,
     facility: { total: 50, hpMin: 5000, hpMax: 10000 },
-    robot: { total: 80, every: 900, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
+    robot: { total: 20, every: 350, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
+    // 2관문: 파괴할 시설 10곳(1곳 10%)을 지키는 로봇 두 종을 처음에 배치한다.
+    gate2Targets: [6, 8, 28, 33, 35, 40, 41, 43, 45, 46],
     // 크기는 원래의 25%
     missile: { w: 18.5, ratio: 445 / 360, damage: 100, count: 2, interval: 2000, hold: 1500, back: 16, minY: .11 },
     gun: { w: 23, ratio: 458 / 340, damage: 10, interval: 100, idle: 1000, muzzleX: .24 }
@@ -11480,12 +11482,12 @@
 
   function startNeptuneBase(operation) {
     const gate = Number(operation.gate);
-    const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.robot.total;
-    state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
+    const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.gate2Targets.length;
+    state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
     state.normalTotal = total;
     state.kills = 0;
     refs.viewport?.style.setProperty('--nep-y', '0px');
-    if (gate === 1) buildNeptuneMap(state.neptuneBase);
+    buildNeptuneMap(state.neptuneBase);
   }
 
   function buildNeptuneMap(base) {
@@ -11500,6 +11502,7 @@
     base.map = { el: map, w: mapW, h: mapH, left: (fieldWidth - mapW) / 2, scale: mapW / NEPTUNE_MAP.w };
     const spec = NEPTUNE_BASE.facility;
     NEPTUNE_HOTSPOTS.forEach(([hx, hy, hr], index) => {
+      if (base.gate === 2 && !NEPTUNE_BASE.gate2Targets.includes(index)) return;
       const unit = {
         id: `neptune-hotspot-${index + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', hotspot: true, name: '시설', soft: NEPTUNE_SOFT_WRECKS.has(index), fx: hx / NEPTUNE_MAP.w, fy: hy / NEPTUNE_MAP.h, rad: hr,
         hp: 0, maxHp: 0, x: .5, y: -1, concealed: true, dead: false, stun: 0, requiredForGate: false
@@ -11561,7 +11564,7 @@
 
   function spawnNeptuneRobot() {
     const base = state.neptuneBase, spec = NEPTUNE_BASE.robot;
-    const missile = base.spawned % 2 === 0;
+    const missile = base.robotSpawned % 2 === 0;
     const sprite = missile ? NEPTUNE_BASE.missile : NEPTUNE_BASE.gun;
     const others = state.midBosses.filter(unit => unit.unitType && unit.unitType !== 'facility' && !unit.dead);
     const imgH = sprite.w * sprite.ratio;
@@ -11569,7 +11572,7 @@
     let x = .06 + Math.random() * .88;
     for (let attempt = 0; attempt < 10 && others.some(unit => Math.abs(unit.x - x) < .045 && Math.abs(unit.stopY - stopY) < .035); attempt += 1) x = .06 + Math.random() * .88;
     const unit = {
-      id: `neptune-robot-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: missile ? 'missile' : 'gun',
+      id: `neptune-robot-${base.robotSpawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: missile ? 'missile' : 'gun',
       name: missile ? '미사일 로봇' : '기관총 로봇', hp: spec.hp, maxHp: spec.hp, enemyShield: spec.shield, enemyShieldMax: spec.shield,
       x, y: -.1, stopY, planted: false, holdTime: 0, nextShot: missile ? 700 : sprite.idle,
       concealed: false, dead: false, stun: 0, requiredForGate: false, target: null, targetTime: 0
@@ -11583,7 +11586,7 @@
     unit.el = element;
     refs.enemyLayer.append(element);
     state.midBosses.push(unit);
-    base.spawned += 1;
+    base.robotSpawned += 1;
   }
 
   function neptuneBullet(source, target, damage, origin) {
@@ -11613,13 +11616,9 @@
       return true;
     });
     const units = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead);
-    if (base.gate === 1) positionNeptuneMap(base, state.elapsed);
+    positionNeptuneMap(base, state.elapsed);
     base.timer -= dt;
-    if (base.timer <= 0 && base.spawned < base.total) {
-      if (base.gate === 1) base.timer = 1e9;
-      else if (units.length < NEPTUNE_BASE.robot.maxAlive) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
-      else base.timer = 400;
-    }
+    if (base.gate === 2 && base.timer <= 0 && base.robotSpawned < NEPTUNE_BASE.robot.total) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
     const allies = state.allies.filter(ally => !ally.dead);
     units.forEach(unit => {
       if (unit.unitType === 'facility') {
@@ -11758,7 +11757,7 @@
       addNeptuneWreck(unit, base.map);
       unit.el?.remove();
     } else unit.el?.remove();
-    if (base) { base.destroyed += 1; state.kills = base.destroyed; }
+    if (base && unit.unitType === 'facility') { base.destroyed += 1; state.kills = base.destroyed; }
     updateHud();
   }
 
