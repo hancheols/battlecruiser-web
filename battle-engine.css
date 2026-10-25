@@ -932,20 +932,24 @@
 .nep-facility .nu-glow{position:absolute;left:10%;right:10%;bottom:-4px;height:8px;border-radius:50%;background:radial-gradient(#5fc8ff99,transparent 70%)}
 .nep-unit .nu-hp,.nep-unit .nu-shield{position:absolute;left:8%;right:8%;height:3px;background:#0009;overflow:hidden}
 .nep-unit .nu-hp{bottom:-7px}.nep-unit .nu-hp i{display:block;height:100%;background:#ff5a5a}
-.nep-robot .nu-bars{position:absolute;left:0;right:0;bottom:0}
+.nep-robot .nu-bars{position:absolute;left:50%;width:26px;bottom:0;transform:translateX(-50%)}
+.nep-robot .nu-bars .nu-shield,.nep-robot .nu-bars .nu-hp{left:0;right:0}
 .nep-robot .nu-shield{bottom:-11px}.nep-robot .nu-shield i{display:block;height:100%;background:#6fd6ff}
 .nep-robot .nu-hp{bottom:-7px}
 .nep-wrecked,.nep-facility.wrecked{opacity:.8}
 .nep-facility.wrecked .nu-sprite{filter:grayscale(1) brightness(.35)}
 .nep-facility.wrecked .nu-glow{background:radial-gradient(#ff8a3a88,transparent 70%)}
 .nep-missile .nu-sprite{animation:nu-bob 1.6s ease-in-out infinite;filter:drop-shadow(0 8px 6px #000a)}
-.nep-gun .nu-sprite{transform:rotate(180deg);filter:drop-shadow(0 6px 5px #000a)}
+.nep-gun .nu-sprite{filter:drop-shadow(0 3px 2px #000a)}
 .nep-gun.firing .nu-sprite{animation:nu-recoil .1s linear infinite}
+.nu-muzzle{position:absolute;left:24%;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;opacity:0;background:radial-gradient(circle,#fff 0,#fff3b0 22%,#ffb13a 50%,#ff5a1a66 72%,transparent 80%);mix-blend-mode:screen}
+.nep-gun.firing .nu-muzzle{animation:nu-muzzle .1s steps(2) infinite}
+@keyframes nu-muzzle{0%{opacity:1;transform:scale(1.15) rotate(0)}50%{opacity:.7;transform:scale(.7) rotate(40deg)}100%{opacity:1;transform:scale(1.25) rotate(80deg)}}
 .nep-robot.hit .nu-sprite{filter:brightness(2.2)}
 .nu-thrust{position:absolute;width:16%;height:30%;border-radius:50% 50% 60% 60%;background:linear-gradient(#fff,#bde8ff 25%,#3d94ff99 60%,transparent);mix-blend-mode:screen;filter:blur(.6px);animation:nu-flame .14s linear infinite alternate;transform-origin:50% 0}
 .nu-thrust.l{left:20%;top:76%}.nu-thrust.r{left:66%;top:90%}
 @keyframes nu-flame{from{transform:scaleY(.75);opacity:.8}to{transform:scaleY(1.25);opacity:1}}
 @keyframes nu-bob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
-@keyframes nu-recoil{0%{transform:rotate(180deg) translateY(0)}50%{transform:rotate(180deg) translateY(2px)}100%{transform:rotate(180deg) translateY(0)}}
+@keyframes nu-recoil{0%{transform:translateY(0)}50%{transform:translateY(1px)}100%{transform:translateY(0)}}
 .fx-enemy.neptune-bullet{background:linear-gradient(90deg,#ffe9a000,#ffd34a,#fff);height:2px;filter:drop-shadow(0 0 3px #ffb83a)}
 .fx-enemy.neptune-missile{background:linear-gradient(90deg,#ff7a2a00,#ff9a3c,#fff0c8);filter:drop-shadow(0 0 5px #ff7a2a)}

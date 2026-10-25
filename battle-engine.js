@@ -11451,10 +11451,11 @@
   // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
   const NEPTUNE_BASE = {
     scroll: 40, tileRatio: 3762 / 836,
-    facility: { total: 50, hp: 600, w: 54, h: 54, every: 1500 },
-    robot: { total: 20, every: 3200, maxAlive: 6, enter: 120, hp: 2000, shield: 2000 },
-    missile: { w: 74, damage: 100, count: 2, interval: 2000 },
-    gun: { w: 92, damage: 10, interval: 100, idle: 1000 }
+    facility: { total: 100, hpMin: 10000, hpMax: 20000, w: 48, h: 48, every: 800 },
+    robot: { total: 80, every: 900, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
+    // 크기는 원래의 25%
+    missile: { w: 18.5, ratio: 445 / 360, damage: 100, count: 2, interval: 2000, hold: 1500, back: 16, minY: .11 },
+    gun: { w: 23, ratio: 458 / 340, damage: 10, interval: 100, idle: 1000, muzzleX: .24 }
   };
   const NEPTUNE_ROBOT_LANES = [.14, .32, .5, .68, .86];
   function isNeptuneBaseOperation(operation = state?.operation) {
@@ -11475,7 +11476,8 @@
     let x = .08 + Math.random() * .84;
     for (let attempt = 0; attempt < 6 && Math.abs(x - base.lastX) < .14; attempt += 1) x = .08 + Math.random() * .84;
     base.lastX = x;
-    const unit = { id: `neptune-facility-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', name: '시설 함선', hp: spec.hp, maxHp: spec.hp, x, y: -.06, concealed: false, dead: false, stun: 0, requiredForGate: false };
+    const unit = { id: `neptune-facility-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', name: '시설 함선', hp: 0, maxHp: 0, x, y: -.06, concealed: false, dead: false, stun: 0, requiredForGate: false };
+    unit.hp = unit.maxHp = Math.round((spec.hpMin + Math.random() * (spec.hpMax - spec.hpMin)) / 100) * 100;
     const element = document.createElement('div');
     element.className = 'nep-unit nep-facility';
     element.style.cssText = `width:${spec.w}px;height:${spec.h}px;margin:${-spec.h / 2}px 0 0 ${-spec.w / 2}px;left:${percent(x)};top:${percent(unit.y)}`;
@@ -11490,21 +11492,21 @@
     const base = state.neptuneBase, spec = NEPTUNE_BASE.robot;
     const missile = base.spawned % 2 === 0;
     const sprite = missile ? NEPTUNE_BASE.missile : NEPTUNE_BASE.gun;
-    const used = state.midBosses.filter(unit => unit.unitType && unit.unitType !== 'facility' && !unit.dead).map(unit => unit.lane);
-    const free = NEPTUNE_ROBOT_LANES.map((_, index) => index).filter(index => !used.includes(index));
-    const lanes = free.length ? free : NEPTUNE_ROBOT_LANES.map((_, index) => index);
-    const lane = lanes[Math.floor(Math.random() * lanes.length)];
-    const imgH = missile ? sprite.w * 445 / 360 : sprite.w * 177 / 320;
+    const others = state.midBosses.filter(unit => unit.unitType && unit.unitType !== 'facility' && !unit.dead);
+    const imgH = sprite.w * sprite.ratio;
+    const stopY = (missile ? .12 : .14) + Math.random() * .3;
+    let x = .06 + Math.random() * .88;
+    for (let attempt = 0; attempt < 10 && others.some(unit => Math.abs(unit.x - x) < .045 && Math.abs(unit.stopY - stopY) < .035); attempt += 1) x = .06 + Math.random() * .88;
     const unit = {
-      id: `neptune-robot-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: missile ? 'missile' : 'gun', lane,
+      id: `neptune-robot-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: missile ? 'missile' : 'gun',
       name: missile ? '미사일 로봇' : '기관총 로봇', hp: spec.hp, maxHp: spec.hp, enemyShield: spec.shield, enemyShieldMax: spec.shield,
-      x: NEPTUNE_ROBOT_LANES[lane], y: -.1, stopY: (missile ? .13 : .17) + Math.random() * .16, planted: false, nextShot: missile ? 700 : sprite.idle,
+      x, y: -.1, stopY, planted: false, holdTime: 0, nextShot: missile ? 700 : sprite.idle,
       concealed: false, dead: false, stun: 0, requiredForGate: false, target: null, targetTime: 0
     };
     const element = document.createElement('div');
     element.className = `nep-unit nep-robot nep-${unit.unitType}`;
     element.style.cssText = `width:${sprite.w}px;height:${imgH}px;margin:${-imgH / 2}px 0 0 ${-sprite.w / 2}px;left:${percent(unit.x)};top:${percent(unit.y)}`;
-    element.innerHTML = (missile ? '<i class="nu-thrust l"></i><i class="nu-thrust r"></i>' : '')
+    element.innerHTML = (missile ? '<i class="nu-thrust l"></i><i class="nu-thrust r"></i>' : '<i class="nu-muzzle"></i>')
       + `<img class="nu-sprite" src="neptune-robot-${unit.unitType}.png" alt="" />`
       + '<span class="nu-bars"><span class="nu-shield"><i></i></span><span class="nu-hp"><i></i></span></span>';
     unit.el = element;
@@ -11567,6 +11569,12 @@
       unit.nextShot -= dt;
       const source = { kind: 'boss', variant: 'neptune-unit', x: unit.x, y: unit.y };
       if (unit.unitType === 'missile') {
+        // 멈춰 서서 쏘다가, 잠시 뒤부터는 뒤로(위로) 호버링하며 계속 공격한다.
+        unit.holdTime += dt;
+        if (unit.holdTime > NEPTUNE_BASE.missile.hold && unit.y > NEPTUNE_BASE.missile.minY) {
+          unit.y = Math.max(NEPTUNE_BASE.missile.minY, unit.y - NEPTUNE_BASE.missile.back / fieldHeight * dt / 1000);
+          unit.el.style.top = percent(unit.y);
+        }
         if (unit.nextShot > 0) return;
         unit.nextShot = NEPTUNE_BASE.missile.interval;
         for (let index = 0; index < NEPTUNE_BASE.missile.count; index += 1) {
@@ -11581,7 +11589,8 @@
       unit.el.classList.toggle('firing', unit.nextShot <= 0);
       while (unit.nextShot <= 0) {
         unit.nextShot += NEPTUNE_BASE.gun.interval;
-        neptuneBullet(source, unit.target, NEPTUNE_BASE.gun.damage, { x: unit.x + (Math.random() - .5) * .02, y: unit.y + .02 });
+        const gunSpec = NEPTUNE_BASE.gun, fieldWidth = tapaoField().fieldWidth;
+        neptuneBullet(source, unit.target, gunSpec.damage, { x: unit.x + (gunSpec.muzzleX - .5) * gunSpec.w / fieldWidth, y: unit.y - gunSpec.w * gunSpec.ratio / 2 / fieldHeight });
       }
     });
     if (base.destroyed >= base.total && state.status === 'combat') {
