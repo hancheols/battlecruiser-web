@@ -550,6 +550,7 @@
       // 가로 비율이 넓은 배경은 화면 높이의 1.5배로 키워 위아래로 흐르게 한다.
       const tall = neptuneBackground && window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.tallBackgrounds?.includes(normalizedOperation.gate);
       refs.viewport.style.setProperty('--neptune-region-bg-size', tall ? 'auto 150%' : '100% auto');
+      refs.viewport.classList.toggle('neptune-scroll', !!neptuneBackground && isNeptuneBaseOperation(normalizedOperation));
     }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
@@ -568,7 +569,7 @@
     const fleet = resolveFleet();
     const blueExtraCount = magentaBlueBonusCount(normalizedOperation);
     const marsFirstGate = normalizedOperation.chapter === 1 && normalizedOperation.region === 'mars' && normalizedOperation.gate === 1;
-    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation) || isTapaoOperation(normalizedOperation)
+    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation) || isTapaoOperation(normalizedOperation) || isNeptuneBaseOperation(normalizedOperation)
       ? 0
       : marsFirstGate
       ? Math.round(ENEMY_WAVE.baseCount * .4)
@@ -646,6 +647,7 @@
       // 시작 화면이 비어 보이지 않게 서클·피라미드를 몇 개 미리 깔아 둔다.
       [.14, .4, .64, .88].forEach(y => spawnTapaoGateDecor(y));
     }
+    if (isNeptuneBaseOperation(normalizedOperation)) startNeptuneBase(normalizedOperation);
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
       state.bounty = { ...operation.bounty };
@@ -2133,7 +2135,7 @@
       spawnBlackbeard();
     } else {
       deployNormalEnemies();
-      if (!isKeplerOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
+      if (!isKeplerOperation() && !isNeptuneBaseOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
       scheduleMidMonsterArrival();
     }
     if (isKeplerSecretBaseOperation() || isTapaoOperation()) checkBossThreshold();
@@ -2337,6 +2339,7 @@
       }
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       if (state.tapaoGateMap) updateTapaoGateMap(dt);
+      if (state.neptuneBase) updateNeptuneBase(dt);
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
       updateAngelaSwords(dt);
@@ -3328,7 +3331,7 @@
   function updateBoss(dt) {
     const boss = state.boss;
     state.midBosses?.forEach(monster => {
-      if (monster.dead || monster.variant === 'tapao-turret') return;
+      if (monster.dead || monster.variant === 'tapao-turret' || monster.variant === 'neptune-unit') return;
       if (monster.entryTime > 0) {
         monster.entryTime = Math.max(0, monster.entryTime - dt);
         const progress = 1 - monster.entryTime / monster.entryDuration;
@@ -10876,7 +10879,7 @@
   }
 
   function isMidMonsterOperation() {
-    if (isTapaoOperation()) return false;
+    if (isTapaoOperation() || isNeptuneBaseOperation()) return false;
     const region = String(state?.operation?.region || '').toLowerCase();
     const gate = Number(state?.operation?.gate) || 0;
     if (isKeplerSecretBaseOperation()) return false;
@@ -11443,10 +11446,171 @@
     for (let slot = 0; slot < 10; slot += 1) schedule(() => launchKeplerPreludeFighter(slot, wave), slot * 40);
   }
 
+  // ── 수퍼 넵튠 넵튠 게이트 1·2관문 ──
+  // 1관문: 적 없이 기지 시설 함선 50기를 파괴한다(1기 2%). 2관문: 로봇 두 종(미사일형·기관총형)이 공중에 떠서 사격한다.
+  // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
+  const NEPTUNE_BASE = {
+    scroll: 40, tileRatio: 3762 / 836,
+    facility: { total: 50, hp: 600, w: 54, h: 54, every: 1500 },
+    robot: { total: 20, every: 3200, maxAlive: 6, enter: 120, hp: 2000, shield: 2000 },
+    missile: { w: 74, damage: 100, count: 2, interval: 2000 },
+    gun: { w: 92, damage: 10, interval: 100, idle: 1000 }
+  };
+  const NEPTUNE_ROBOT_LANES = [.14, .32, .5, .68, .86];
+  function isNeptuneBaseOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && [1, 2].includes(Number(operation?.gate));
+  }
+
+  function startNeptuneBase(operation) {
+    const gate = Number(operation.gate);
+    const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.robot.total;
+    state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
+    state.normalTotal = total;
+    state.kills = 0;
+    refs.viewport?.style.setProperty('--nep-y', '0px');
+  }
+
+  function spawnNeptuneFacility() {
+    const base = state.neptuneBase, spec = NEPTUNE_BASE.facility;
+    let x = .08 + Math.random() * .84;
+    for (let attempt = 0; attempt < 6 && Math.abs(x - base.lastX) < .14; attempt += 1) x = .08 + Math.random() * .84;
+    base.lastX = x;
+    const unit = { id: `neptune-facility-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: 'facility', name: '시설 함선', hp: spec.hp, maxHp: spec.hp, x, y: -.06, concealed: false, dead: false, stun: 0, requiredForGate: false };
+    const element = document.createElement('div');
+    element.className = 'nep-unit nep-facility';
+    element.style.cssText = `width:${spec.w}px;height:${spec.h}px;margin:${-spec.h / 2}px 0 0 ${-spec.w / 2}px;left:${percent(x)};top:${percent(unit.y)}`;
+    element.innerHTML = '<i class="nu-glow"></i><img class="nu-sprite" src="kepler-alien-escort.png" alt="" /><span class="nu-hp"><i></i></span>';
+    unit.el = element;
+    refs.enemyLayer.append(element);
+    state.midBosses.push(unit);
+    base.spawned += 1;
+  }
+
+  function spawnNeptuneRobot() {
+    const base = state.neptuneBase, spec = NEPTUNE_BASE.robot;
+    const missile = base.spawned % 2 === 0;
+    const sprite = missile ? NEPTUNE_BASE.missile : NEPTUNE_BASE.gun;
+    const used = state.midBosses.filter(unit => unit.unitType && unit.unitType !== 'facility' && !unit.dead).map(unit => unit.lane);
+    const free = NEPTUNE_ROBOT_LANES.map((_, index) => index).filter(index => !used.includes(index));
+    const lanes = free.length ? free : NEPTUNE_ROBOT_LANES.map((_, index) => index);
+    const lane = lanes[Math.floor(Math.random() * lanes.length)];
+    const imgH = missile ? sprite.w * 445 / 360 : sprite.w * 177 / 320;
+    const unit = {
+      id: `neptune-robot-${base.spawned + 1}`, kind: 'boss', variant: 'neptune-unit', unitType: missile ? 'missile' : 'gun', lane,
+      name: missile ? '미사일 로봇' : '기관총 로봇', hp: spec.hp, maxHp: spec.hp, enemyShield: spec.shield, enemyShieldMax: spec.shield,
+      x: NEPTUNE_ROBOT_LANES[lane], y: -.1, stopY: (missile ? .13 : .17) + Math.random() * .16, planted: false, nextShot: missile ? 700 : sprite.idle,
+      concealed: false, dead: false, stun: 0, requiredForGate: false, target: null, targetTime: 0
+    };
+    const element = document.createElement('div');
+    element.className = `nep-unit nep-robot nep-${unit.unitType}`;
+    element.style.cssText = `width:${sprite.w}px;height:${imgH}px;margin:${-imgH / 2}px 0 0 ${-sprite.w / 2}px;left:${percent(unit.x)};top:${percent(unit.y)}`;
+    element.innerHTML = (missile ? '<i class="nu-thrust l"></i><i class="nu-thrust r"></i>' : '')
+      + `<img class="nu-sprite" src="neptune-robot-${unit.unitType}.png" alt="" />`
+      + '<span class="nu-bars"><span class="nu-shield"><i></i></span><span class="nu-hp"><i></i></span></span>';
+    unit.el = element;
+    refs.enemyLayer.append(element);
+    state.midBosses.push(unit);
+    base.spawned += 1;
+  }
+
+  function neptuneBullet(source, target, damage, origin) {
+    const to = pointOf(target), projectile = document.createElement('i');
+    projectile.className = 'fx-enemy monster-spike neptune-bullet';
+    positionProjectile(projectile, origin, to);
+    projectile.style.animationDuration = '160ms';
+    refs.effects.append(projectile);
+    schedule(() => {
+      projectile.remove();
+      if (!state || state.status !== 'combat' || target.dead) return;
+      dealAllyDamage(target, damage, source);
+    }, 160);
+  }
+
+  function updateNeptuneBase(dt) {
+    const base = state.neptuneBase;
+    if (!base || state.status !== 'combat') return;
+    const { fieldHeight } = tapaoField();
+    const scroll = NEPTUNE_BASE.scroll * dt / 1000 / fieldHeight;
+    base.bgY = (base.bgY + NEPTUNE_BASE.scroll * dt / 1000) % base.tileH;
+    refs.viewport?.style.setProperty('--nep-y', `${base.bgY.toFixed(2)}px`);
+    base.wrecks = base.wrecks.filter(wreck => {
+      wreck.y += scroll;
+      wreck.el.style.top = percent(wreck.y);
+      if (wreck.y > 1.1) { wreck.el.remove(); return false; }
+      return true;
+    });
+    const units = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead);
+    base.timer -= dt;
+    if (base.timer <= 0 && base.spawned < base.total) {
+      if (base.gate === 1) { base.timer = NEPTUNE_BASE.facility.every; spawnNeptuneFacility(); }
+      else if (units.length < NEPTUNE_BASE.robot.maxAlive) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
+      else base.timer = 400;
+    }
+    const allies = state.allies.filter(ally => !ally.dead);
+    units.forEach(unit => {
+      if (unit.unitType === 'facility') {
+        // 시설 함선: 배경과 함께 내려온다. 격파하지 못하고 지나가면 다시 나온다.
+        unit.y += scroll;
+        unit.el.style.top = percent(unit.y);
+        unit.el.querySelector('.nu-hp i').style.width = `${Math.max(0, unit.hp / unit.maxHp * 100)}%`;
+        if (unit.y > 1.08) { unit.dead = true; unit.el.remove(); base.spawned -= 1; state.midBosses = state.midBosses.filter(item => item !== unit); }
+        return;
+      }
+      if (!unit.planted) {
+        unit.y += NEPTUNE_BASE.robot.enter / fieldHeight * dt / 1000;
+        unit.el.style.top = percent(unit.y);
+        if (unit.y >= unit.stopY) { unit.planted = true; unit.el.classList.add('planted'); }
+      }
+      unit.el.querySelector('.nu-hp i').style.width = `${Math.max(0, unit.hp / unit.maxHp * 100)}%`;
+      unit.el.querySelector('.nu-shield i').style.width = `${Math.max(0, (unit.enemyShield || 0) / unit.enemyShieldMax * 100)}%`;
+      if (!unit.planted || !allies.length || unit.y < .02) return;
+      unit.nextShot -= dt;
+      const source = { kind: 'boss', variant: 'neptune-unit', x: unit.x, y: unit.y };
+      if (unit.unitType === 'missile') {
+        if (unit.nextShot > 0) return;
+        unit.nextShot = NEPTUNE_BASE.missile.interval;
+        for (let index = 0; index < NEPTUNE_BASE.missile.count; index += 1) {
+          const target = allies[Math.floor(Math.random() * allies.length)];
+          const origin = { x: unit.x + (index ? .04 : -.04), y: unit.y - .03 };
+          schedule(() => { if (state?.status === 'combat' && !unit.dead && !target.dead) enemyProjectile(source, target, 'monster-spike', NEPTUNE_BASE.missile.damage, null, origin, 'neptune-missile'); }, index * 160);
+        }
+        return;
+      }
+      unit.targetTime -= dt;
+      if (!unit.target || unit.target.dead || unit.targetTime <= 0) { unit.target = allies[Math.floor(Math.random() * allies.length)]; unit.targetTime = 1500; }
+      unit.el.classList.toggle('firing', unit.nextShot <= 0);
+      while (unit.nextShot <= 0) {
+        unit.nextShot += NEPTUNE_BASE.gun.interval;
+        neptuneBullet(source, unit.target, NEPTUNE_BASE.gun.damage, { x: unit.x + (Math.random() - .5) * .02, y: unit.y + .02 });
+      }
+    });
+    if (base.destroyed >= base.total && state.status === 'combat') {
+      state.kills = base.destroyed;
+      finishBattle(true);
+    }
+  }
+
+  function destroyNeptuneUnit(unit) {
+    const base = state.neptuneBase;
+    unit.dead = true;
+    createExplosion(pointOf(unit), 'enemy');
+    if (unit.unitType !== 'facility') schedule(() => createExplosion({ x: unit.x + .02, y: unit.y - .02 }, 'enemy'), 160);
+    state.midBosses = state.midBosses.filter(item => item !== unit);
+    if (unit.unitType === 'facility' && unit.el) {
+      // 부서진 시설은 연기를 내며 배경과 함께 계속 흘러 내려간다.
+      unit.el.classList.add('wrecked');
+      unit.el.querySelector('.nu-hp')?.remove();
+      base?.wrecks.push({ el: unit.el, y: unit.y });
+    } else unit.el?.remove();
+    if (base) { base.destroyed += 1; state.kills = base.destroyed; }
+    updateHud();
+  }
+
   function destroyBoss(target = state.boss) {
     const boss = target;
     if (!boss || boss.dead) return;
     if (boss.variant === 'tapao-turret') { destroyTapaoTurret(boss); return; }
+    if (boss.variant === 'neptune-unit') { destroyNeptuneUnit(boss); return; }
     if (boss.variant === 'tas-long-arm') setTasSniperTarget(null);
     boss.toxicMouthGlow?.remove();
     boss.dead = true;
