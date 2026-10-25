@@ -522,7 +522,7 @@
     refs.battleMap.disabled = false;
     refs.field.classList.remove('combat-active');
     refs.viewport?.classList.remove('arena-battle');
-    if (refs.battleOperationLabel) refs.battleOperationLabel.textContent = isTapaoOperation(operation) ? 'CHAPTER 04 · TAPAO THONG' : isKeplerOperation(operation) ? 'CHAPTER 03 · KEPLER FRONTIER' : 'CHAPTER 1 · COMBAT ZONE';
+    if (refs.battleOperationLabel) refs.battleOperationLabel.textContent = Number(operation?.chapter) === 5 ? 'CHAPTER 05 · SUPER NEPTUNE' : isTapaoOperation(operation) ? 'CHAPTER 04 · TAPAO THONG' : isKeplerOperation(operation) ? 'CHAPTER 03 · KEPLER FRONTIER' : 'CHAPTER 1 · COMBAT ZONE';
     refs.battleClock.previousElementSibling.textContent = 'ELAPSED';
     if (refs.battleGateProgressHud) refs.battleGateProgressHud.hidden = false;
     if (refs.frigateSkill) refs.frigateSkill.hidden = false;
@@ -539,6 +539,15 @@
     };
     refs.viewport?.classList.toggle('oort-colony-gate', isOortColonyGate(normalizedOperation));
     refs.viewport?.classList.toggle('tapao-battle', isTapaoOperation(normalizedOperation));
+    // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
+    const neptuneBackground = normalizedOperation.chapter === 5 ? window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background : '';
+    refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
+    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground);
+    if (refs.viewport) {
+      if (neptuneBackground) refs.viewport.style.setProperty('--neptune-region-bg', `url("${neptuneBackground}")`);
+      else refs.viewport.style.removeProperty('--neptune-region-bg');
+      refs.viewport.dataset.region = normalizedOperation.region;
+    }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
     refs.viewport?.classList.toggle('tapao-gate-map', isTapaoGateFinal(normalizedOperation));

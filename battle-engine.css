@@ -917,3 +917,5 @@
 .lionheart-roar-shake{animation:lionheart-roar-shake .85s linear}
 @keyframes lionheart-roar-shake{0%,100%{transform:translate(0,0)}8%{transform:translate(-9px,5px)}16%{transform:translate(9px,-5px)}24%{transform:translate(-8px,-4px)}32%{transform:translate(8px,6px)}44%{transform:translate(-6px,3px)}56%{transform:translate(5px,-3px)}70%{transform:translate(-3px,2px)}85%{transform:translate(2px,-1px)}}
 .lionheart-roar-stunned{filter:brightness(1.7) saturate(.55) drop-shadow(0 0 10px #ffdf8a)}
+
+.battle-viewport.neptune-region-bg .battle-space-flow,.battle-viewport.neptune-region-bg .battle-nebula{display:none}.battle-viewport.neptune-region-bg{background:var(--neptune-region-bg) center/cover no-repeat #02040c}
