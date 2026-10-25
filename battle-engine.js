@@ -11942,9 +11942,14 @@
   }
   function playOrbit10Arrival() {
     const enemies = orbit10AlienFleet();
-    const xs = [.1, .3, .5, .7, .9], baseY = .47;
+    // 유키히사 함대는 아군 선봉 함선과 같은 높이의 가로줄에 나타난다(가운데 한 척만 선봉 바로 앞).
+    const xs = [.1, .3, .5, .7, .9];
+    const vanguard = (state.allies || []).find(ally => !ally.dead && ally.role === '선봉') || state.allies?.[0];
+    const lineY = Number(vanguard?.y) || .71;
+    const ys = xs.map(x => x === .5 ? lineY - .1 : lineY);
     state.tapaoStoryCruisers = [];
     xs.forEach((x, index) => schedule(() => {
+      const baseY = ys[index];
       if (!state) return;
       const el = document.createElement('div');
       el.className = 'tapao-story-cruiser';
@@ -11965,6 +11970,7 @@
     schedule(() => playPhotonChargeSound(), 1100);
     xs.forEach((x, index) => {
       if (!enemies.length) return;
+      const baseY = ys[index];
       const target = enemies[index % enemies.length];
       for (let shot = 0; shot < BATTLECRUISER_MAIN_BATTERY.empoweredShots; shot += 1) {
         schedule(() => {
