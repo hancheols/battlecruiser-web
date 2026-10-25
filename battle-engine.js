@@ -547,6 +547,9 @@
       if (neptuneBackground) refs.viewport.style.setProperty('--neptune-region-bg', `url("${neptuneBackground}")`);
       else refs.viewport.style.removeProperty('--neptune-region-bg');
       refs.viewport.dataset.region = normalizedOperation.region;
+      // 가로 비율이 넓은 배경은 화면 높이의 1.5배로 키워 위아래로 흐르게 한다.
+      const tall = neptuneBackground && window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.tallBackgrounds?.includes(normalizedOperation.gate);
+      refs.viewport.style.setProperty('--neptune-region-bg-size', tall ? 'auto 150%' : '100% auto');
     }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
