@@ -261,7 +261,7 @@
     try{audio.currentTime=0;audio.play().catch(()=>{});}catch{}
   }
   const TYPE_LABELS = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함', frigate: '프리깃' };
-  const ROLE_LABELS = ['선봉', '좌익', '우익'];
+  const ROLE_LABELS = ['선봉', '좌익', '우익', '후방'];
   const WEAPONS = {
     missile:  { label: '미사일',   hits: 2, interval: 200, travel: 420, fx: 'missile' },
     laser:    { label: '레이저',   hits: 2, interval: 120, travel: 90,  fx: 'laser' },
@@ -1153,8 +1153,39 @@
   // 게이트 10관문: 스타크루저 1척 → 10초 뒤 1척 추가(관문이 다가온다) → 관문 도착 시 호위함 1척 워프
   // → 15초 뒤 호위함 2척(0.5초 간격) 워프 → 15초 뒤 스타크루저 3척 → 15초 뒤 앙헬라 → 15초 뒤 호위함 2척 워프. 5웨이브 모두 격파하면 클리어.
   const TAPAO_GATE_FINAL_GAP = 15000;
+  // ── 타파오 게이트 10관문 첫 클리어 연출(전투 중 대화) ───────────────────────────────────
+  function isTapaoGateStory() {
+    return isTapaoGateFinal() && Boolean(window.isBattleGateFirstClear?.());
+  }
+  function startGateAct(act) {
+    if (!state || state.status !== 'combat') return;
+    state.paused = true;
+    window.dispatchEvent(new CustomEvent('tapao-gate10-act-start', { detail: { act } }));
+  }
+  window.addEventListener('tapao-gate10-act-end', () => { if (state && state.status === 'combat') window.setBattleHold?.(false); });
+  function tapaoGateIronfistArrival() {
+    if (!state || state.status !== 'combat' || state.tapaoGateIronfist) return;
+    state.tapaoGateIronfist = true;
+    createAlly({ type: 'battlecruiser', name: '아이언피스트', rarity: 'SSR', baseRarity: 'SSR', enhancementStars: 5 }, 3, false);
+    const ally = state.allies[state.allies.length - 1];
+    if (!ally) return;
+    ally.el.animate([{ opacity: 0, filter: 'brightness(5)' }, { opacity: 1, filter: 'brightness(1.6)', offset: .5 }, { opacity: 1, filter: 'none' }], { duration: 800, easing: 'ease-out' });
+    const flash = document.createElement('i');
+    flash.className = 'tapao-warp-flash big';
+    flash.style.left = percent(ally.x);
+    flash.style.top = percent(ally.y);
+    refs.effects.append(flash);
+    schedule(() => flash.remove(), 1100);
+    playHyperionWarpSound();
+    announce('한성민 제독 함대 합류 · 아이언피스트', 'friendly');
+    updateHud(true);
+    if (state.tapaoGateStory) startGateAct('b');
+  }
   function startTapaoGateFinal() {
     state.tapaoGateFinal = { done: false };
+    // 첫 클리어라면 도착 직후 대화(a)를 띄우고, 제독 함대가 합류할 때 대화(b)를 띄운다.
+    state.tapaoGateStory = isTapaoGateStory();
+    if (state.tapaoGateStory) schedule(() => startGateAct('a'), 1600);
     schedule(() => tapaoGateFleet(['starcruiser'], { xs: [.5], wave: 0, label: '외계 함대 제1웨이브 · 외계 스타크루저 접근' }), 600);
     schedule(() => {
       tapaoGateFleet(['starcruiser'], { xs: [.74], wave: 0, label: '외계 스타크루저 1척 추가 접근 · 전방에 관문 포착' });
@@ -1223,6 +1254,7 @@
     state.tapaoGateFinal.warpStarted = true;
     const gap = TAPAO_GATE_FINAL_GAP;
     warpTapaoShip('escort', .5, .34, 1, '외계 함대 제2웨이브 · 관문에서 외계 호위함 워프 아웃', 0);
+    schedule(() => tapaoGateIronfistArrival(), 4300);   // 2웨이브가 나온 뒤 한 제독의 함대(아이언피스트 5성)가 아군 후방에 합류한다.
     schedule(() => warpTapaoShip('escort', .28, .32, 2, '외계 함대 제3웨이브 · 외계 호위함 2척 워프 아웃', 0), gap);
     schedule(() => warpTapaoShip('escort', .72, .32, 2, null, 1), gap + 500);
     schedule(() => warpTapaoShip('starcruiser', .5, .36, 3, '외계 함대 제4웨이브 · 관문에서 외계 스타크루저 3척 워프 아웃', 0), gap * 2);
@@ -1288,7 +1320,7 @@
 
   function createAlly(ship, index, auto, side = 'friendly') {
     // 진영(side): 'enemy'면 상대 쪽(위쪽) 배치로 만들고 상대 목록(state.enemyAllies)에 넣는다.
-    const basePositions = [{ x: .5, y: .71 }, { x: .27, y: .87 }, { x: .73, y: .87 }];
+    const basePositions = [{ x: .5, y: .71 }, { x: .27, y: .87 }, { x: .73, y: .87 }, { x: .5, y: .94 }];   // 네 번째 자리(후방)는 전투 중 합류하는 지원 함선용
     const positions = side === 'enemy' ? basePositions.map(point => ({ x: point.x, y: 1 - point.y })) : basePositions;
     const isAssaultTurtle = ship.name === '돌격 거북선';
     const isTurtleShip = ship.type === 'battlecruiser' && ship.name === '거북선';
@@ -1462,7 +1494,7 @@
         .forEach(key => { ally[key] = Math.max(ally[key], 5); });
     }
     const element = document.createElement('div');
-    element.className = `ally-unit ally-${['front', 'left', 'right'][index]}${ship.type === 'battlecruiser' ? ' battlecruiser-unit' : ''}${isAssaultTurtle ? ' assault-turtle-unit' : ''}${isTurtleShip ? ' turtle-ship-unit' : ''}${isAtlas ? ' atlas-unit' : ''}${isIowa ? ' iowa-unit' : ''}${isHyperion ? ' hyperion-unit' : ''}${isLionheart ? ' lionheart-unit' : ''}${isApocalypse ? ' apocalypse-unit' : ''}${isNemesis ? ' nemesis-unit' : ''}${isAegis ? ' aegis-unit' : ''}${isColossus ? ' colossus-unit' : ''}${isBastion ? ' bastion-unit' : ''}${isHammer ? ' hammer-unit' : ''}${isNimitz ? ' nimitz-unit' : ''}${isAngela ? ' angela-unit' : ''}${isTank ? ' tank-unit' : ''}${isDozer ? ' dozer-unit' : ''}${isCarrier ? ' carrier-unit' : ''}${isDreadTurtle ? ' dread-turtle-unit' : ''}${isSuPanokseon ? ' supanokseon-unit' : ''}${isKddx ? ' kddx-unit' : ''}${isPegasus ? ' pegasus-unit' : ''}${isPlanetDestroyer ? ' planet-destroyer-unit' : ''}${isPandora ? ' pandora-unit' : ''}${isVaryag ? ' varyag-unit' : ''}${isGaruda ? ' garuda-unit' : ''}${isFury ? ' fury-unit' : ''}${isBrownBess ? ' brown-bess-unit' : ''}${isYamato ? ' yamato-unit' : ''}${isOmega ? ' omega-unit' : ''}${isDeimos ? ' deimos-unit' : ''}${isUranus ? ' uranus-unit' : ''}${isSpear ? ' spear-unit' : ''}${isBlade ? ' blade-unit' : ''}${isIronFist ? ' ironfist-unit' : ''}`;
+    element.className = `ally-unit ally-${['front', 'left', 'right', 'rear'][index]}${ship.type === 'battlecruiser' ? ' battlecruiser-unit' : ''}${isAssaultTurtle ? ' assault-turtle-unit' : ''}${isTurtleShip ? ' turtle-ship-unit' : ''}${isAtlas ? ' atlas-unit' : ''}${isIowa ? ' iowa-unit' : ''}${isHyperion ? ' hyperion-unit' : ''}${isLionheart ? ' lionheart-unit' : ''}${isApocalypse ? ' apocalypse-unit' : ''}${isNemesis ? ' nemesis-unit' : ''}${isAegis ? ' aegis-unit' : ''}${isColossus ? ' colossus-unit' : ''}${isBastion ? ' bastion-unit' : ''}${isHammer ? ' hammer-unit' : ''}${isNimitz ? ' nimitz-unit' : ''}${isAngela ? ' angela-unit' : ''}${isTank ? ' tank-unit' : ''}${isDozer ? ' dozer-unit' : ''}${isCarrier ? ' carrier-unit' : ''}${isDreadTurtle ? ' dread-turtle-unit' : ''}${isSuPanokseon ? ' supanokseon-unit' : ''}${isKddx ? ' kddx-unit' : ''}${isPegasus ? ' pegasus-unit' : ''}${isPlanetDestroyer ? ' planet-destroyer-unit' : ''}${isPandora ? ' pandora-unit' : ''}${isVaryag ? ' varyag-unit' : ''}${isGaruda ? ' garuda-unit' : ''}${isFury ? ' fury-unit' : ''}${isBrownBess ? ' brown-bess-unit' : ''}${isYamato ? ' yamato-unit' : ''}${isOmega ? ' omega-unit' : ''}${isDeimos ? ' deimos-unit' : ''}${isUranus ? ' uranus-unit' : ''}${isSpear ? ' spear-unit' : ''}${isBlade ? ' blade-unit' : ''}${isIronFist ? ' ironfist-unit' : ''}`;
     element.style.left = percent(ally.x);
     element.style.top = percent(ally.y);
     element.style.setProperty('--rarity-color', RARITY_COLORS[ship.rarity] || RARITY_COLORS.R);
