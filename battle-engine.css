@@ -960,5 +960,8 @@
 .nep-hotspot{border-radius:50%;border:1.5px solid #ffb04ae0;box-shadow:0 0 9px #ff7a2a99,inset 0 0 8px #ff7a2a55;background:radial-gradient(circle,#ff9a3c1c,transparent 72%);animation:nu-ring 1.4s ease-in-out infinite}
 .nep-hotspot.hit{background:radial-gradient(circle,#fff6,#ff9a3c33 60%,transparent 75%)}
 .nep-hotspot .nu-hp{left:-2px;right:-2px;bottom:-6px}
-.nep-scorch{position:absolute;border-radius:50%;background:radial-gradient(circle,#000d 0,#000a 38%,#1a0a0455 62%,transparent 74%);box-shadow:0 0 14px #ff6a2a55;animation:nu-scorch 2.4s ease-out forwards;pointer-events:none}
-@keyframes nu-scorch{0%{box-shadow:0 0 26px #ffa04aee;filter:brightness(2)}100%{box-shadow:0 0 6px #ff6a2a22;filter:brightness(1)}}
+.nep-scorch{position:absolute;border-radius:46%;pointer-events:none;filter:grayscale(.92) brightness(.3) contrast(1.5);-webkit-mask-image:radial-gradient(circle,#000 58%,transparent 78%);mask-image:radial-gradient(circle,#000 58%,transparent 78%);animation:nu-scorch 2.6s ease-out forwards}
+.nep-scorch::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 38% 42%,#000b 0,transparent 30%),radial-gradient(circle at 64% 60%,#000a 0,transparent 26%),repeating-linear-gradient(115deg,transparent 0 9px,#0009 9px 10px)}
+.nep-scorch::after{content:"";position:absolute;inset:18%;border-radius:50%;background:radial-gradient(circle,#ff7a2a99 0,#ff4a1a55 35%,transparent 70%);mix-blend-mode:screen;animation:nu-embers 1.1s ease-in-out infinite alternate}
+@keyframes nu-scorch{0%{filter:grayscale(0) brightness(2.4)}100%{filter:grayscale(.92) brightness(.3) contrast(1.5)}}
+@keyframes nu-embers{from{opacity:.25}to{opacity:.8}}

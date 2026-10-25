@@ -11450,7 +11450,7 @@
   // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
   const NEPTUNE_BASE = {
     scroll: 40, tileRatio: 1599 / 836,
-    facility: { total: 50, hpMin: 10000, hpMax: 20000 },
+    facility: { total: 50, hpMin: 5000, hpMax: 10000 },
     robot: { total: 80, every: 900, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
     // 크기는 원래의 25%
     missile: { w: 18.5, ratio: 445 / 360, damage: 100, count: 2, interval: 2000, hold: 1500, back: 16, minY: .11 },
@@ -11674,9 +11674,11 @@
     if (unit.hotspot && base?.map) {
       // 부서진 구조물: 배경 그림 위에 그을음·불씨가 남는다.
       const scorch = document.createElement('i');
-      const size = unit.rad * 2.6 * base.map.scale;
+      const size = unit.rad * 2.4 * base.map.scale;
+      const left = unit.fx * base.map.w - size / 2, top = unit.fy * base.map.h - size / 2;
+      // 파괴된 모습: 같은 자리의 배경 그림을 잘라 새까맣게 그을린 상태로 덮고, 균열 같은 어둠과 불씨를 얹는다.
       scorch.className = 'nep-scorch';
-      scorch.style.cssText = `left:${unit.fx * base.map.w - size / 2}px;top:${unit.fy * base.map.h - size / 2}px;width:${size}px;height:${size}px`;
+      scorch.style.cssText = `left:${left}px;top:${top}px;width:${size}px;height:${size}px;background-image:url(${NEPTUNE_MAP.src});background-size:${base.map.w}px ${base.map.h}px;background-position:${-left}px ${-top}px`;
       base.map.el.append(scorch);
       unit.el?.remove();
     } else unit.el?.remove();
