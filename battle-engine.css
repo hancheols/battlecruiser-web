@@ -997,7 +997,6 @@
 /* 궁니르 추진기 3개: 가운데 추진구는 엔진 통보다 더 뒤로 튀어나와 있어 맨 끝에 붙인다 */
 .gungnir-twin-thrusters .bc-thruster.center{left:50%;width:14px;height:20px;bottom:-20px}
 .battle-viewport.neptune-region-bg.neptune-bg-static{animation:none;background-position:var(--nep-bg-x,50%) 50%}
-/* 아스만 병참기지: 우주항모가 체력바 위로 잘려 나가지 않도록 작게 줄여 체력바 아래에 가운데 정렬한다(기준점이 함선 중심이다) */
-.battle-viewport[data-region="asman-supply"] .boss-unit.kepler-alien-vessel.kepler-alien-carrier{--carrier-w:clamp(360px,62vw,430px);--carrier-h:calc(var(--carrier-w) * 1.3333)}
-.battle-viewport[data-region="asman-supply"] .boss-unit.kepler-alien-vessel.kepler-alien-carrier,.battle-viewport[data-region="asman-supply"] .boss-unit.kepler-alien-vessel.kepler-alien-carrier.entered{top:calc(18px + var(--carrier-h) / 2)!important;left:50%!important}
 .battle-viewport[data-region="asman-supply"] .boss-unit.boss-four-wing{z-index:9}
+/* 아스만 병참기지: 우주항모 등 적 함선이 체력바·상단 메뉴 뒤까지 이어서 보이게(전장 위쪽 가장자리에서 자르지 않는다) */
+.battle-viewport[data-region="asman-supply"] .space-battlefield{overflow:visible}
