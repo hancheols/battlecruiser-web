@@ -9622,6 +9622,29 @@
     if (!shooter.isGungnir && performance.now() < Number(state.gungnirWrathUntil || 0)) bonus *= 1 + GUNGNIR_ODIN.wrathExtra;
     return bonus;
   }
+  // 전기보호막: 투명한 막 둘레에서 전기 불꽃이 튀는 모습(번개 세 묶음이 번갈아 번쩍인다).
+  function addGungnirSparkShield(unit) {
+    if (!unit.el || unit.el.querySelector('.gungnir-spark-shield')) return;
+    const rx = 44, ry = 62, cx = 50, cy = 68;
+    let svg = '';
+    for (let group = 0; group < 3; group += 1) {
+      let bolts = '';
+      for (let bolt = 0; bolt < 7; bolt += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const points = [];
+        for (let step = 0; step < 4; step += 1) {
+          const radius = .78 + step * .1 + (Math.random() - .5) * .06, a = angle + (Math.random() - .5) * .22;
+          points.push(`${(cx + Math.cos(a) * rx * radius).toFixed(1)},${(cy + Math.sin(a) * ry * radius).toFixed(1)}`);
+        }
+        bolts += `<polyline points="${points.join(' ')}"/>`;
+      }
+      svg += `<g class="gs-set s${group}">${bolts}</g>`;
+    }
+    const fx = document.createElement('i');
+    fx.className = 'gungnir-spark-shield';
+    fx.innerHTML = `<svg viewBox="0 0 100 136" aria-hidden="true"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" class="gs-rim"/>${svg}</svg>`;
+    unit.el.append(fx);
+  }
   function fireGungnirOdin(ally) {
     const targets = hostileTargetsFor(ally).filter(target => !target.dead);
     if (!targets.length) return false;
@@ -9659,7 +9682,12 @@
       unit.gungnirShieldWrath = wrath;
       unit.el?.classList.add('gungnir-shielded');
       unit.el?.classList.toggle('wrath', wrath);
-      schedule(() => { if (performance.now() >= Number(unit.gungnirShieldUntil || 0)) unit.el?.classList.remove('gungnir-shielded', 'wrath'); }, GUNGNIR_ODIN.shield + 60);
+      addGungnirSparkShield(unit);
+      schedule(() => {
+        if (performance.now() < Number(unit.gungnirShieldUntil || 0)) return;
+        unit.el?.classList.remove('gungnir-shielded', 'wrath');
+        unit.el?.querySelector('.gungnir-spark-shield')?.remove();
+      }, GUNGNIR_ODIN.shield + 60);
     });
     return true;
   }

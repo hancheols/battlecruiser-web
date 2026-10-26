@@ -974,11 +974,18 @@
 /* 궁니르: 황금 탑뷰(뾰족한 선수가 위를 향하도록 뒤집음) · 전기보호막 · 오딘의 가호 섬광 */
 .ship-topview.gungnir-topview{width:60px;height:107px;overflow:visible;filter:drop-shadow(0 7px 8px #000d) drop-shadow(0 0 8px #ffd56a77)}
 .ship-topview.gungnir-topview img{position:absolute;left:50%;top:50%;display:block;width:60px;height:107px;max-width:none;object-fit:contain;transform:translate(-50%,-50%) rotate(180deg);transform-origin:center}
-.ally-unit.gungnir-shielded .ally-facing-shell{filter:drop-shadow(0 0 6px #9fe3ff) drop-shadow(0 0 14px #5fb8ff)}
-.ally-unit.gungnir-shielded::after{content:"";position:absolute;left:50%;top:50%;width:92px;height:128px;margin:-64px 0 0 -46px;border-radius:50%;border:2px solid #bfeaff;background:radial-gradient(ellipse,rgba(120,200,255,.08) 40%,rgba(120,200,255,.42) 100%);box-shadow:0 0 16px #6fc8ff,inset 0 0 14px #9fe0ff;pointer-events:none;animation:gungnir-shield 1s ease-in-out infinite alternate}
-@keyframes gungnir-shield{from{opacity:.65;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
+.ally-unit.gungnir-shielded .ally-facing-shell{filter:drop-shadow(0 0 4px #9fe3ff88)}
 .gungnir-odin-flash{position:absolute;inset:0;z-index:21;pointer-events:none;background:radial-gradient(circle at 50% 60%,rgba(200,235,255,.75),rgba(110,180,255,.3) 45%,transparent 75%);mix-blend-mode:screen;animation:gungnir-flash .9s ease-out forwards}
 @keyframes gungnir-flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
 .gungnir-odin-flash.wrath{background:radial-gradient(circle at 50% 60%,rgba(255,225,170,.8),rgba(255,120,60,.35) 45%,transparent 75%)}
-.ally-unit.gungnir-shielded.wrath::after{border-color:#ffd9a0;background:radial-gradient(ellipse,rgba(255,150,70,.08) 40%,rgba(255,130,60,.42) 100%);box-shadow:0 0 16px #ff9a4a,inset 0 0 14px #ffb070}
-.ally-unit.gungnir-shielded.wrath .ally-facing-shell{filter:drop-shadow(0 0 6px #ffc890) drop-shadow(0 0 14px #ff8a3a)}
+.ally-unit.gungnir-shielded.wrath .ally-facing-shell{filter:drop-shadow(0 0 4px #ffc89088)}
+.gungnir-spark-shield{position:absolute;left:50%;top:50%;width:104px;height:142px;margin:-71px 0 0 -52px;pointer-events:none;color:#cdf1ff;z-index:6}
+.ally-unit.wrath .gungnir-spark-shield{color:#ffd29a}
+.gungnir-spark-shield svg{width:100%;height:100%;overflow:visible}
+.gungnir-spark-shield .gs-rim{fill:none;stroke:currentColor;stroke-width:.8;opacity:.22;stroke-dasharray:3 5;animation:gs-rim .9s linear infinite}
+.gungnir-spark-shield .gs-set polyline{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:bevel;stroke-linecap:round;filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px #6fc8ff)}
+.ally-unit.wrath .gungnir-spark-shield .gs-set polyline{filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px #ff9a4a)}
+.gungnir-spark-shield .gs-set{opacity:0;animation:gs-flicker .54s steps(1) infinite}
+.gungnir-spark-shield .gs-set.s1{animation-delay:.18s}.gungnir-spark-shield .gs-set.s2{animation-delay:.36s}
+@keyframes gs-flicker{0%{opacity:1}33%{opacity:0}100%{opacity:0}}
+@keyframes gs-rim{to{stroke-dashoffset:-16}}
