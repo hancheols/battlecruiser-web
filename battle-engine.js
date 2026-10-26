@@ -395,7 +395,7 @@
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
   // 궁니르(L급 중전함): 좌우 날개 전기 줄기 500 · 1초 간격 · 2회 전이 / 오딘의 가호: 적 전체 전기충격 500 + 1초 기절·기술차단, 아군 전체 5초 전기보호막
-  const GUNGNIR_ELECTRIC = { hits: 500, interval: 1000, travel: 100, chains: 2, jumpDelay: 90, wing: [27, 21] };
+  const GUNGNIR_ELECTRIC = { hits: 500, interval: 1000, travel: 100, chains: 2, jumpDelay: 90, wing: [31, 24] };
   const GUNGNIR_ODIN = { hits: 500, stun: 1000, shield: 5000, wrathMultiplier: 3, wrathExtra: .3 };
   const ATLAS_ELECTRIC = { hits: 90, interval: 2000, travel: 100, chains: 2 };
   const ATLAS_PLASMA = { hits: 300, shots: 2, enhancedHits: 400, enhancedShots: 4, interval: 170, travel: 330, radius: .03, buffDuration: 3000 };
@@ -13685,7 +13685,7 @@
       return `<div class="ship-topview turtle-ship-topview" style="--rarity-color:${color}"><img src="turtle-ship-battle-topview.png" alt="" />${turtleThrusterFx}</div>`;
     }
     if (ship?.name === '궁니르') {
-      return `<div class="ship-topview gungnir-topview" style="--rarity-color:${color}"><img src="gungnir-battle-topview.png" alt="" /></div>`;
+      return `<div class="ship-topview gungnir-topview" style="--rarity-color:${color}"><img src="gungnir-battle-topview.png" alt="" /><span class="battlecruiser-fx gungnir-twin-thrusters" aria-hidden="true"><i class="bc-thruster"></i><i class="bc-thruster"></i></span></div>`;
     }
     if (ship?.name === '아틀라스') {
       return `<div class="ship-topview atlas-topview" style="--rarity-color:${color}"><img src="atlas-battle-topview.png" alt="" /><span class="atlas-fx" aria-hidden="true"><i class="atlas-thruster"></i></span></div>`;
