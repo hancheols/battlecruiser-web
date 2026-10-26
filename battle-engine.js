@@ -13685,7 +13685,7 @@
       return `<div class="ship-topview turtle-ship-topview" style="--rarity-color:${color}"><img src="turtle-ship-battle-topview.png" alt="" />${turtleThrusterFx}</div>`;
     }
     if (ship?.name === '궁니르') {
-      return `<div class="ship-topview gungnir-topview" style="--rarity-color:${color}"><img src="gungnir-battle-topview.png" alt="" /><span class="battlecruiser-fx gungnir-twin-thrusters" aria-hidden="true"><i class="bc-thruster"></i><i class="bc-thruster"></i></span></div>`;
+      return `<div class="ship-topview gungnir-topview" style="--rarity-color:${color}"><img src="gungnir-battle-topview.png" alt="" /><span class="battlecruiser-fx gungnir-twin-thrusters" aria-hidden="true"><i class="bc-thruster"></i><i class="bc-thruster center"></i><i class="bc-thruster"></i></span></div>`;
     }
     if (ship?.name === '아틀라스') {
       return `<div class="ship-topview atlas-topview" style="--rarity-color:${color}"><img src="atlas-battle-topview.png" alt="" /><span class="atlas-fx" aria-hidden="true"><i class="atlas-thruster"></i></span></div>`;
