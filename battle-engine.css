@@ -992,3 +992,4 @@
 .gungnir-twin-thrusters .bc-thruster{width:13px;height:17px;bottom:-5px;z-index:0}
 .gungnir-twin-thrusters .bc-thruster:first-child{left:27%}
 .gungnir-twin-thrusters .bc-thruster:last-child{left:73%}
+.ship-topview.gungnir-topview::after{display:none}
