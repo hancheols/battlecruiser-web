@@ -396,7 +396,7 @@
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
   // 궁니르(L급 중전함): 좌우 날개 전기 줄기 500 · 1초 간격 · 2회 전이 / 오딘의 가호: 적 전체 전기충격 500 + 1초 기절·기술차단, 아군 전체 5초 전기보호막
   const GUNGNIR_ELECTRIC = { hits: 500, interval: 1000, travel: 100, chains: 2, jumpDelay: 90, wing: [27, 21] };
-  const GUNGNIR_ODIN = { hits: 500, stun: 1000, shield: 5000 };
+  const GUNGNIR_ODIN = { hits: 500, stun: 1000, shield: 5000, wrathMultiplier: 3, wrathExtra: .3 };
   const ATLAS_ELECTRIC = { hits: 90, interval: 2000, travel: 100, chains: 2 };
   const ATLAS_PLASMA = { hits: 300, shots: 2, enhancedHits: 400, enhancedShots: 4, interval: 170, travel: 330, radius: .03, buffDuration: 3000 };
   const FRIGATE_SKILLS = {
@@ -1432,6 +1432,7 @@
       turtleShipStars: isTurtleShip ? Math.max(ship.rarity === 'L' ? 5 : 0, Math.max(0, Math.floor(Number(ship.enhancementStars) || 0))) : 0,
       isAtlas,
       isGungnir,
+      gungnirStars: isGungnir ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       atlasStars: isAtlas ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isIowa,
       iowaStars: isIowa ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
@@ -9609,14 +9610,27 @@
       if (Number.isFinite(target[key]) && target[key] !== Infinity) target[key] += duration;
     });
   }
+  // 궁니르 보조기술 '천둥의 아버지'(3성): 아군의 모든 전기 공격력 +50%.
+  // 최종기술 '오딘의 분노'(5성) 발동 중에는 궁니르를 뺀 아군의 공격에 30%의 전기 피해가 더해진다.
+  const GUNGNIR_ELECTRIC_SHIPS = new Set(['아틀라스', '궁니르', 'KDDX', '탱크']);
+  function gungnirDamageBonus(source, attackType) {
+    const shooter = source?.owner || source;
+    if (!state || !shooter?.ship || shooter.isArenaShip || !state.allies?.includes(shooter)) return 1;
+    let bonus = 1;
+    const odin = state.allies.find(unit => unit.isGungnir && !unit.dead);
+    if (odin && odin.gungnirStars >= 3 && (attackType === 'electric' || GUNGNIR_ELECTRIC_SHIPS.has(shooter.ship.name))) bonus *= 1.5;
+    if (!shooter.isGungnir && performance.now() < Number(state.gungnirWrathUntil || 0)) bonus *= 1 + GUNGNIR_ODIN.wrathExtra;
+    return bonus;
+  }
   function fireGungnirOdin(ally) {
     const targets = hostileTargetsFor(ally).filter(target => !target.dead);
     if (!targets.length) return false;
-    announce(`${ally.ship.name} · 오딘의 가호`, 'friendly');
+    const wrath = ally.gungnirStars >= 5;
+    announce(`${ally.ship.name} · ${wrath ? '오딘의 분노' : '오딘의 가호'}`, 'friendly');
     playGungnirOdinSound();
     const origin = pointOf(ally);
     const flash = document.createElement('i');
-    flash.className = 'gungnir-odin-flash';
+    flash.className = `gungnir-odin-flash${wrath ? ' wrath' : ''}`;
     refs.effects.append(flash);
     schedule(() => flash.remove(), 900);
     targets.forEach((target, index) => {
@@ -9625,10 +9639,13 @@
         drawElectricStrike(origin, pointOf(target), Math.random() < .5 ? 1 : 2, 520);
         schedule(() => {
           if (target.dead) return;
-          shooterDamage(target, GUNGNIR_ODIN.hits, ally, 'electric');
+          shooterDamage(target, GUNGNIR_ODIN.hits * (wrath ? GUNGNIR_ODIN.wrathMultiplier : 1), ally, 'electric');
           if (target.dead) return;
-          applyTimedEnemyStun(target, GUNGNIR_ODIN.stun);
-          blockEnemySkills(target, GUNGNIR_ODIN.stun);
+          // 오딘의 분노(5성): 기절·기술차단 효과가 사라지는 대신 피해가 3배가 된다.
+          if (!wrath) {
+            applyTimedEnemyStun(target, GUNGNIR_ODIN.stun);
+            blockEnemySkills(target, GUNGNIR_ODIN.stun);
+          }
           target.el?.classList.add('atlas-electrified');
           schedule(() => target.el?.classList.remove('atlas-electrified'), GUNGNIR_ODIN.stun);
         }, GUNGNIR_ELECTRIC.travel);
@@ -9636,10 +9653,13 @@
     });
     // 모든 아군에게 전기보호막: 5초 동안 피해를 받지 않고, 보호막 대상을 공격한 적은 1초간 기절한다.
     const until = performance.now() + GUNGNIR_ODIN.shield;
+    if (wrath) state.gungnirWrathUntil = until;
     state.allies.filter(unit => !unit.dead).forEach(unit => {
       unit.gungnirShieldUntil = until;
+      unit.gungnirShieldWrath = wrath;
       unit.el?.classList.add('gungnir-shielded');
-      schedule(() => { if (performance.now() >= Number(unit.gungnirShieldUntil || 0)) unit.el?.classList.remove('gungnir-shielded'); }, GUNGNIR_ODIN.shield + 60);
+      unit.el?.classList.toggle('wrath', wrath);
+      schedule(() => { if (performance.now() >= Number(unit.gungnirShieldUntil || 0)) unit.el?.classList.remove('gungnir-shielded', 'wrath'); }, GUNGNIR_ODIN.shield + 60);
     });
     return true;
   }
@@ -10475,7 +10495,7 @@
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     // 함대 버프(공격력): 편성된 아군 함선의 공격에만 곱한다(고정 피해·파생 피해 제외).
     const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? 1 + (Number(state.fleetBuff?.damage) || 0) : 1;
-    const scaledPackets = basePackets * statFactor * fleetDamage * (1+researchDamage) + (source?.starDamageRemainder || 0);
+    const scaledPackets = basePackets * statFactor * fleetDamage * (1+researchDamage) * (fixedPackets ? 1 : gungnirDamageBonus(source, attackType)) + (source?.starDamageRemainder || 0);
     const roundedPackets = Math.round(scaledPackets);
     if (source && (statFactor !== 1 || researchDamage || fleetDamage !== 1)) source.starDamageRemainder = scaledPackets - roundedPackets;
     const boostedPackets = Math.max(1, roundedPackets);
@@ -10541,8 +10561,10 @@
       showUnitDamage(ally, '0');
       if (source && source !== ally && !source.isArenaShip && !source.dead && (state.enemies.includes(source) || source === state.boss || state.midBosses?.includes(source) || state.pirates?.includes(source))) {
         drawElectricStrike(pointOf(ally), pointOf(source), Math.random() < .5 ? 1 : 2, 260);
-        applyTimedEnemyStun(source, GUNGNIR_ODIN.stun);
-        blockEnemySkills(source, GUNGNIR_ODIN.stun);
+        if (!ally.gungnirShieldWrath) {
+          applyTimedEnemyStun(source, GUNGNIR_ODIN.stun);
+          blockEnemySkills(source, GUNGNIR_ODIN.stun);
+        }
       }
       return;
     }

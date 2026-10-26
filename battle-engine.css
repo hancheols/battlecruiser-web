@@ -979,3 +979,6 @@
 @keyframes gungnir-shield{from{opacity:.65;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
 .gungnir-odin-flash{position:absolute;inset:0;z-index:21;pointer-events:none;background:radial-gradient(circle at 50% 60%,rgba(200,235,255,.75),rgba(110,180,255,.3) 45%,transparent 75%);mix-blend-mode:screen;animation:gungnir-flash .9s ease-out forwards}
 @keyframes gungnir-flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+.gungnir-odin-flash.wrath{background:radial-gradient(circle at 50% 60%,rgba(255,225,170,.8),rgba(255,120,60,.35) 45%,transparent 75%)}
+.ally-unit.gungnir-shielded.wrath::after{border-color:#ffd9a0;background:radial-gradient(ellipse,rgba(255,150,70,.08) 40%,rgba(255,130,60,.42) 100%);box-shadow:0 0 16px #ff9a4a,inset 0 0 14px #ffb070}
+.ally-unit.gungnir-shielded.wrath .ally-facing-shell{filter:drop-shadow(0 0 6px #ffc890) drop-shadow(0 0 14px #ff8a3a)}

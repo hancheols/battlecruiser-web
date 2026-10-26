@@ -438,7 +438,7 @@ function initializeFleetFormation(){
   // DPS는 주포/광역 추가 대상/이동 시간을 제외한 일반공격의 이론상 초당 피해량이다.
   const combatProfiles={
     'dreadnought:아틀라스':[1300,'전기',45,'전기 90 · 2초 간격','플라즈마 4발 · 각 400'],
-    'dreadnought:궁니르':[12000,'전기',1000,'전기 500 · 1초 간격 · 좌우 날개 양쪽에서 방출 · 2회 전이','오딘의 가호 : 적 전체에 전기충격 500 · 1초 기절 및 기술차단 / 아군 전체 5초 전기보호막(공격한 적 1초 기절)'],
+    'dreadnought:궁니르':[12000,'전기',1000,'전기 500 · 1초 간격 · 좌우 날개 양쪽에서 방출 · 2회 전이','오딘의 가호 : 적 전체에 전기충격 및 아군 보호막'],
     'dreadnought:우주항모':[11000,'함재기',1000,'요격기 6기 · 각 55 / 0.33초','과부하 전개 · 보호막 회복'],
     'dreadnought:니미츠':[14000,'함재기',1500,'함재기 5기 · 각 300 / 1초','전면공세 · 함재기 25기'],
     'dreadnought:앙헬라':[12000,'함포',412,'함포 350 × 2발 · 1.5초 재장전','천사의 날개 : 아군 면역 1초 · 보호막 500 (강화 시 면역 2초 · 보호막 1000)'],
@@ -557,6 +557,7 @@ function initializeFleetFormation(){
     'battlecruiser:야마토':{aux:'미사일',ultimate:'최후의 저항'},
     'battlecruiser:히페리온':{aux:'최대출력'},
     'battlecruiser:라이온하트':{aux:'사자의 용맹',ultimate:'무리의 우두머리'},
+    'dreadnought:궁니르':{aux:'천둥의 아버지',ultimate:'오딘의 분노'},
     'battlecruiser:거북선':{aux:'확산탄',ultimate:'쾌속'},
     'battlecruiser:돌격 거북선':{aux:'일휘소탕',ultimate:'혈염산하'},
     'destroyer:블레이드':{aux:'보조레이저'},
@@ -591,6 +592,7 @@ function initializeFleetFormation(){
     'battlecruiser:아이언피스트':{aux:'철권TT : 주포 6연발, 발사 간격 0.5초',ultimate:'철방패 : 자신에게 최대 내구도 30% 보호막 (5초)'},
     'battlecruiser:야마토':{aux:'미사일 : 좌우 미사일 발사 추가',ultimate:'최후의 저항 : 치명적 피해를 입었을 때 전장에 10초간 남아서 공격.'},
     'battlecruiser:히페리온':{aux:'최대출력 : 집중 사격 지속시간 1.5배'},
+    'dreadnought:궁니르':{aux:'천둥의 아버지 : 아군의 모든 전기 공격력 50% 추가',ultimate:'오딘의 분노 : 가호가 분노로 바뀌어 기절효과가 사라지고 데미지 3배, 오딘을 제외한 아군 함선의 공격에 30% 추가 전기데미지 부여'},
     'battlecruiser:라이온하트':{aux:'사자의 용맹 : 포효의 효과 2초로 증가 및 데미지 1000 발생',ultimate:'무리의 우두머리 : 함대버프 효과가 2배로 적용'},
     'dreadnought:앙헬라':{aux:'천사의 날개 강화 : 아군 면역 2초 · 보호막 1000',ultimate:'징벌의 칼 : 날개 효과 동안 뱃머리에서 대검을 1초마다 발사, 관통한 적에게 1000 피해'},
     'dreadnought:니미츠':{aux:'전면공세 지원 : 발동 시 자신이 1초간 피해 면역',ultimate:'함재기 폭주 : 함재기 공격력 50% 증가'},
@@ -645,6 +647,8 @@ function initializeFleetFormation(){
     if(ship?.type==='battlecruiser'&&ship?.name==='스타 크루저'&&stars>=3)return '중광자포 · 범위 공격 1,000';
     if(ship?.type==='battlecruiser'&&ship?.name==='헬리오스'&&stars>=3)return '강화 굴절레이저 400 × 5발';
     if(ship?.type==='battlecruiser'&&ship?.name==='아포칼립스'&&stars>=3)return '강화 포격 330 × 8발';
+    if(ship?.type==='dreadnought'&&ship?.name==='궁니르'&&stars>=5)return '오딘의 분노 · 기절 없음 · 전기충격 1,500 · 아군 공격에 30% 추가 전기데미지 · 천둥의 아버지 · 전기 공격력 +50%';
+    if(ship?.type==='dreadnought'&&ship?.name==='궁니르'&&stars>=3)return '천둥의 아버지 · 아군의 모든 전기 공격력 +50%';
     if(ship?.type==='battlecruiser'&&ship?.name==='라이온하트'&&stars>=5)return '무리의 우두머리 · 함대버프 효과 2배 · 사자의 용맹 · 포효 작동불능 2초, 피해 1000';
     if(ship?.type==='battlecruiser'&&ship?.name==='라이온하트'&&stars>=3)return '사자의 용맹 · 포효 작동불능 2초 · 모든 적에게 피해 1000';
     if(ship?.type==='dreadnought'&&ship?.name==='탱크'&&stars>=3)return '암석화 · 2초 무적 → 3초 피해 60% 감소 · 5초 도발';
