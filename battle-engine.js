@@ -1084,10 +1084,24 @@
     const region = String(operation?.region || '').toLowerCase();
     return Number(operation?.chapter) === 5 && ((region === 'neptune-gate' && Number(operation?.gate) >= 3) || region === 'asman-supply');
   }
-  // 아스만 병참기지: 1관문은 우주항모+호위함, 2~10관문은 우주항모 + 수비 로봇 2종. 우주항모는 내구도가 30% 더 높고, 내구도 70%·30%에서 스타크루저를 한 척씩 부른다.
-  const ASMAN_CARRIER_HP_FACTOR = 1.3, ASMAN_ROBOTS = 16;
+  // 아스만 병참기지: 1관문은 우주항모+호위함, 2~10관문은 우주항모 + 4익마수 1기. 우주항모는 내구도가 30% 더 높고, 내구도 70%·30%에서 스타크루저를 한 척씩 부른다.
+  const ASMAN_CARRIER_HP_FACTOR = 1.3;
   function isAsmanOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'asman-supply';
+  }
+  // 4익마수 1기: 우주항모를 주력(boss)으로 둔 채 곁에 같이 등장시킨다.
+  function spawnAsmanFourWingBeast() {
+    state.asmanBeastSpawned = true;
+    const carrier = state.boss;
+    state.boss = null;
+    spawnBoss('four-wing-beast');
+    const beast = state.boss;
+    state.boss = carrier;
+    if (!beast) return;
+    beast.x = .27;
+    beast.el && (beast.el.style.left = percent(beast.x));
+    state.midBosses.push(beast);
+    announce('4익마수 출현', 'boss');
   }
   function updateAsmanCarrierCalls() {
     if (!state || state.status !== 'combat' || !isAsmanOperation()) return;
@@ -3409,6 +3423,7 @@
         return;
       }
       if (monster.variant?.startsWith('kepler-alien-')) updateKeplerAlienAttack(monster, dt);
+      else if (monster.variant === 'four-wing-beast') updateFourWingBeastAttack(monster, dt);
       else if (monster.variant === 'toxic-beast') updateToxicBeastAttack(monster, dt);
       else if (monster.variant === 'flame-beast') updateFlameBeastAttack(monster, dt);
       else updateRaptorUnit(monster, dt);
@@ -10935,12 +10950,13 @@
     }
     if (isTapaoOperation()) {
       const plan = tapaoWavePlan();
-      const alive = [state.boss, ...(state.midBosses || [])].filter(ship => ship?.variant?.startsWith('kepler-alien-') && !ship.dead);
+      const alive = [state.boss, ...(state.midBosses || [])].filter(ship => (ship?.variant?.startsWith('kepler-alien-') || (isAsmanOperation() && ship?.variant === 'four-wing-beast')) && !ship.dead);
       if (state.tapaoWavePending || state.tapaoStoryLock) return;
       if (state.tapaoStory === undefined) state.tapaoStory = isTapaoOrbit10Story();
       if (!state.keplerAlienFleetSpawned) {
         state.tapaoWaveIndex = state.tapaoWaveIndex ?? 0;
         spawnKeplerAlienFleet(plan[state.tapaoWaveIndex] || plan[0]);
+        if (isAsmanOperation() && Number(state.operation?.gate) >= 2 && !state.asmanBeastSpawned) spawnAsmanFourWingBeast();
         // 위성궤도 10관문 첫 클리어: 1웨이브 함대가 보이면 전투를 잠시 멈추고 대화를 띄운다.
         if (state.tapaoStory && !state.tapaoStoryStarted) { state.tapaoStoryStarted = true; schedule(() => startOrbit10Act('a'), 1300); }
         return;
@@ -11247,7 +11263,7 @@
     const machineBeast = requestedVariant === 'machine-beast' && isMachineBeastGate();
     const keplerMachineBeast = machineBeast && isKeplerOperation() && String(state.operation?.region || '').toLowerCase() === 'kepler-orbit';
     const keplerAtmosphereMachineBeast = machineBeast && isKeplerOperation() && String(state.operation?.region || '').toLowerCase() === 'kepler-atmosphere';
-    const fourWingBeast = requestedVariant === 'four-wing-beast' && isMagentaAtmosphereOperation() && gate === 5;
+    const fourWingBeast = requestedVariant === 'four-wing-beast' && ((isMagentaAtmosphereOperation() && gate === 5) || isAsmanOperation());
     const raptor = isMidMonsterOperation() && !oortRedOverlord && !greenOverlord && !tasArmsGate && !fourWingBeast && !machineBeast;
     const primitiveRaptor = raptor && (isMagentaAtmosphereOperation() || isKeplerOperation());
     const raptorGrowth = normalEnemyGrowth(state.operation).multiplier * (isKeplerOperation() ? 1.8 : 1);
@@ -11695,18 +11711,13 @@
   function isNeptuneMapOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && [1, 2].includes(Number(operation?.gate));
   }
-  // 로봇이 나오는 관문: 넵튠 게이트 1·2관문과 아스만 병참기지 2관문부터
+  // 로봇이 나오는 관문: 넵튠 게이트 1·2관문
   function isNeptuneBaseOperation(operation = state?.operation) {
-    return isNeptuneMapOperation(operation) || (isAsmanOperation(operation) && Number(operation?.gate) >= 2);
+    return isNeptuneMapOperation(operation);
   }
 
   function startNeptuneBase(operation) {
     const gate = Number(operation.gate);
-    if (isAsmanOperation(operation)) {
-      // 아스만: 수비 로봇만 배치한다(승패는 우주항모 격파로 정해진다).
-      state.neptuneBase = { gate, robotOnly: true, total: 0, robotTotal: ASMAN_ROBOTS, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, robotsKilled: 0, bgY: 0, tileH: 1, wrecks: [], lastX: .5 };
-      return;
-    }
     const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.gate2Targets.length;
     state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
     state.neptuneBase.robotsKilled = 0;
@@ -11845,8 +11856,7 @@
     const units = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead);
     if (base.map) positionNeptuneMap(base, state.elapsed);
     base.timer -= dt;
-    const robotTotal = base.robotTotal ?? NEPTUNE_BASE.robot.total;
-    if ((base.gate === 2 || base.robotOnly) && base.timer <= 0 && base.robotSpawned < robotTotal) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
+    if (base.gate === 2 && base.timer <= 0 && base.robotSpawned < NEPTUNE_BASE.robot.total) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
     const allies = state.allies.filter(ally => !ally.dead);
     units.forEach(unit => {
       if (unit.unitType === 'facility') {
@@ -11888,7 +11898,6 @@
         neptuneBullet(source, unit.target, gunSpec.damage, { x: unit.x + (gunSpec.muzzleX - .5) * gunSpec.w / fieldWidth, y: unit.y - gunSpec.w * gunSpec.ratio / 2 / fieldHeight });
       }
     });
-    if (base.robotOnly) return;
     const robotsDone = base.gate !== 2 || base.robotsKilled >= NEPTUNE_BASE.robot.total;
     if (base.destroyed >= base.total && robotsDone && state.status === 'combat') finishBattle(true);
   }
