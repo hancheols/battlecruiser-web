@@ -81,6 +81,21 @@
   const midBossKillAudio=window.createGameAudio('sound/boss_mid_kill.wav');midBossKillAudio.preload='auto';midBossKillAudio.volume=.72;
   const midBossKillVoices=Array.from({length:2},()=>midBossKillAudio.cloneNode());registerBattleAudioPool(midBossKillVoices,.72,3);
   let bossRoarVoiceIndex=0,bossKillVoiceIndex=0,midBossKillVoiceIndex=0,bossFireVoiceIndex=0,bossBladeVolleyVoiceIndex=0,poisonBombVoiceIndex=0;
+  // 궁니르 전용 오딘의 가호음: 7초짜리 효과음 중 앞 2초만 재생하고 마지막 0.4초는 서서히 줄인다.
+  const gungnirOdinAudio=window.createGameAudio('sound/odin-thunder-clap.mp3');gungnirOdinAudio.preload='auto';gungnirOdinAudio.volume=.8;
+  const gungnirOdinVoices=Array.from({length:2},()=>gungnirOdinAudio.cloneNode());registerBattleAudioPool(gungnirOdinVoices,.8,3);
+  let gungnirOdinVoiceIndex=0;
+  function playGungnirOdinSound(){
+    const audio=gungnirOdinVoices[gungnirOdinVoiceIndex++%gungnirOdinVoices.length];
+    try{audio.currentTime=0;audio.play().catch(()=>{});}catch{return;}
+    const base=audio.volume,fadeStart=1600,total=2000,begin=performance.now();
+    clearInterval(audio.odinFade);
+    audio.odinFade=setInterval(()=>{
+      const t=performance.now()-begin;
+      if(t>=total){clearInterval(audio.odinFade);audio.pause();audio.currentTime=0;audio.volume=base;return;}
+      if(t>fadeStart)audio.volume=Math.max(0,base*(1-(t-fadeStart)/(total-fadeStart)));
+    },40);
+  }
   // 라이온하트 전용 포효음(사자의 포효)
   const lionheartRoarAudio=window.createGameAudio('sound/lionheart_roar.mp3');lionheartRoarAudio.preload='auto';lionheartRoarAudio.volume=.85;
   const lionheartRoarVoices=Array.from({length:2},()=>lionheartRoarAudio.cloneNode());registerBattleAudioPool(lionheartRoarVoices,.85,3);
@@ -9598,6 +9613,7 @@
     const targets = hostileTargetsFor(ally).filter(target => !target.dead);
     if (!targets.length) return false;
     announce(`${ally.ship.name} · 오딘의 가호`, 'friendly');
+    playGungnirOdinSound();
     const origin = pointOf(ally);
     const flash = document.createElement('i');
     flash.className = 'gungnir-odin-flash';
