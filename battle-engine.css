@@ -995,4 +995,4 @@
 .ship-topview.gungnir-topview::after{display:none}
 .ship-topview.assault-turtle-topview img{z-index:1}
 /* 궁니르 추진기 3개: 가운데 추진구는 엔진 통보다 더 뒤로 튀어나와 있어 맨 끝에 붙인다 */
-.gungnir-twin-thrusters .bc-thruster.center{left:50%;width:11px;height:20px;bottom:-20px}
+.gungnir-twin-thrusters .bc-thruster.center{left:50%;width:14px;height:20px;bottom:-20px}
