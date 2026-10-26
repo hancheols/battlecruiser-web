@@ -979,13 +979,13 @@
 @keyframes gungnir-flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
 .gungnir-odin-flash.wrath{background:radial-gradient(circle at 50% 60%,rgba(255,225,170,.8),rgba(255,120,60,.35) 45%,transparent 75%)}
 .ally-unit.gungnir-shielded.wrath .ally-facing-shell{filter:drop-shadow(0 0 4px #ffc89088)}
-.gungnir-spark-shield{position:absolute;left:50%;top:50%;width:104px;height:142px;margin:-71px 0 0 -52px;pointer-events:none;color:#cdf1ff;z-index:6}
-.ally-unit.wrath .gungnir-spark-shield{color:#ffd29a}
-.gungnir-spark-shield svg{width:100%;height:100%;overflow:visible}
-.gungnir-spark-shield .gs-rim{fill:none;stroke:currentColor;stroke-width:.8;opacity:.22;stroke-dasharray:3 5;animation:gs-rim .9s linear infinite}
-.gungnir-spark-shield .gs-set polyline{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:bevel;stroke-linecap:round;filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px #6fc8ff)}
-.ally-unit.wrath .gungnir-spark-shield .gs-set polyline{filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px #ff9a4a)}
-.gungnir-spark-shield .gs-set{opacity:0;animation:gs-flicker .54s steps(1) infinite}
-.gungnir-spark-shield .gs-set.s1{animation-delay:.18s}.gungnir-spark-shield .gs-set.s2{animation-delay:.36s}
-@keyframes gs-flicker{0%{opacity:1}33%{opacity:0}100%{opacity:0}}
+.gungnir-spark-shield{position:absolute;left:50%;top:50%;width:104px;height:73px;margin:-66px 0 0 -52px;pointer-events:none;color:#aee3ff;z-index:6}
+.ally-unit.wrath .gungnir-spark-shield{color:#ffc88a}
+.gungnir-spark-shield svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gungnir-spark-shield .gs-rim{fill:none;stroke:currentColor;stroke-width:1.1;opacity:.55;filter:drop-shadow(0 0 3px currentColor)}
+.gungnir-spark-shield .gs-rim.inner{stroke-width:.6;opacity:.25;stroke-dasharray:3 5;animation:gs-rim .9s linear infinite}
+.gungnir-spark-shield.pulse .gs-rim:not(.inner){animation:gs-pulse .38s ease-out}
+.gungnir-spark-shield .gs-bolts{position:absolute;inset:0}
+.gungnir-spark-shield .gs-discharge polyline{fill:none;stroke:#fff;stroke-width:1.3;stroke-linejoin:bevel;stroke-linecap:round;filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px currentColor)}
 @keyframes gs-rim{to{stroke-dashoffset:-16}}
+@keyframes gs-pulse{0%{opacity:1;stroke-width:2.2}100%{opacity:.55;stroke-width:1.1}}

@@ -9622,28 +9622,35 @@
     if (!shooter.isGungnir && performance.now() < Number(state.gungnirWrathUntil || 0)) bonus *= 1 + GUNGNIR_ODIN.wrathExtra;
     return bonus;
   }
-  // 전기보호막: 투명한 막 둘레에서 전기 불꽃이 튀는 모습(번개 세 묶음이 번갈아 번쩍인다).
+  // 전기보호막: 함선 전방(위쪽)을 덮는 반투명 반구. 0.8초마다 표면에서 작은 전류가 튀어 나간다.
   function addGungnirSparkShield(unit) {
     if (!unit.el || unit.el.querySelector('.gungnir-spark-shield')) return;
-    const rx = 44, ry = 62, cx = 50, cy = 68;
-    let svg = '';
-    for (let group = 0; group < 3; group += 1) {
-      let bolts = '';
-      for (let bolt = 0; bolt < 7; bolt += 1) {
-        const angle = Math.random() * Math.PI * 2;
-        const points = [];
-        for (let step = 0; step < 4; step += 1) {
-          const radius = .78 + step * .1 + (Math.random() - .5) * .06, a = angle + (Math.random() - .5) * .22;
-          points.push(`${(cx + Math.cos(a) * rx * radius).toFixed(1)},${(cy + Math.sin(a) * ry * radius).toFixed(1)}`);
-        }
-        bolts += `<polyline points="${points.join(' ')}"/>`;
-      }
-      svg += `<g class="gs-set s${group}">${bolts}</g>`;
-    }
     const fx = document.createElement('i');
     fx.className = 'gungnir-spark-shield';
-    fx.innerHTML = `<svg viewBox="0 0 100 136" aria-hidden="true"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" class="gs-rim"/>${svg}</svg>`;
+    fx.innerHTML = '<svg viewBox="0 0 100 70" aria-hidden="true"><defs><radialGradient id="gsDome" cx="50%" cy="100%" r="100%"><stop offset="0" stop-color="currentColor" stop-opacity=".04"/><stop offset=".7" stop-color="currentColor" stop-opacity=".12"/><stop offset="1" stop-color="currentColor" stop-opacity=".34"/></radialGradient></defs><path class="gs-dome" d="M4,64 A46,60 0 0 1 96,64 Z" fill="url(#gsDome)"/><path class="gs-rim" d="M4,64 A46,60 0 0 1 96,64"/><path class="gs-rim inner" d="M14,64 A36,46 0 0 1 86,64"/></svg><b class="gs-bolts"></b>';
     unit.el.append(fx);
+    const bolts = fx.querySelector('.gs-bolts');
+    const discharge = () => {
+      if (!fx.isConnected) { clearInterval(fx.dischargeTimer); return; }
+      // 반구 표면의 한 지점에서 바깥쪽으로 짧은 전류가 번쩍 뻗는다.
+      const angle = Math.PI * (.08 + Math.random() * .84);
+      const px = 50 - Math.cos(angle) * 46, py = 64 - Math.sin(angle) * 60;
+      const dx = -Math.cos(angle), dy = -Math.sin(angle);
+      let points = [[px, py]];
+      for (let step = 1; step <= 4; step += 1) {
+        const len = step * 4.2, jitter = (Math.random() - .5) * 5;
+        points.push([px + dx * len - dy * jitter, py + dy * len + dx * jitter]);
+      }
+      const bolt = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      bolt.setAttribute('viewBox', '0 0 100 70');
+      bolt.setAttribute('class', 'gs-discharge');
+      bolt.innerHTML = '<polyline points="' + points.map(point => point.map(value => value.toFixed(1)).join(',')).join(' ') + '"/>';
+      bolts.append(bolt);
+      fx.classList.remove('pulse'); void fx.offsetWidth; fx.classList.add('pulse');
+      bolt.animate([{ opacity: 1 }, { opacity: 1, offset: .35 }, { opacity: 0 }], { duration: 380, easing: 'steps(4)' }).finished.then(() => bolt.remove(), () => bolt.remove());
+    };
+    discharge();
+    fx.dischargeTimer = setInterval(discharge, 800);
   }
   function fireGungnirOdin(ally) {
     const targets = hostileTargetsFor(ally).filter(target => !target.dead);
