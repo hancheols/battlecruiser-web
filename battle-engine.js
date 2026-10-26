@@ -379,6 +379,9 @@
   const ASSAULT_TURTLE_CHARGE = { travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
+  // 궁니르(L급 중전함): 좌우 날개 전기 줄기 500 · 1초 간격 · 2회 전이 / 오딘의 가호: 적 전체 전기충격 500 + 1초 기절·기술차단, 아군 전체 5초 전기보호막
+  const GUNGNIR_ELECTRIC = { hits: 500, interval: 1000, travel: 100, chains: 2, jumpDelay: 90, wing: [27, 21] };
+  const GUNGNIR_ODIN = { hits: 500, stun: 1000, shield: 5000 };
   const ATLAS_ELECTRIC = { hits: 90, interval: 2000, travel: 100, chains: 2 };
   const ATLAS_PLASMA = { hits: 300, shots: 2, enhancedHits: 400, enhancedShots: 4, interval: 170, travel: 330, radius: .03, buffDuration: 3000 };
   const FRIGATE_SKILLS = {
@@ -1349,6 +1352,7 @@
     const isAssaultTurtle = ship.name === '돌격 거북선';
     const isTurtleShip = ship.type === 'battlecruiser' && ship.name === '거북선';
     const isAtlas = ship.name === '아틀라스';
+    const isGungnir = ship.name === '궁니르';
     const isIowa = ship.name === '아이오와';
     const isHelios = ship.name === '헬리오스';
     const isHyperion = ship.name === '히페리온';
@@ -1383,8 +1387,8 @@
     const isBrownBess = ship.name === '브라운베스';
     const isYamato = ship.name === '야마토';
     const isStarCruiser = ship.name === '스타 크루저';
-    const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
-    const fallbackHp = isGaruda ? 1000 : isAngela ? 7900 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 8000 : isCarrier ? 3500 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
+    const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isGungnir || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
+    const fallbackHp = isGaruda ? 1000 : isAngela ? 7900 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 8000 : isCarrier ? 3500 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isHyperion || isLionheart || isGungnir ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
     const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
@@ -1412,6 +1416,7 @@
       isTurtleShip,
       turtleShipStars: isTurtleShip ? Math.max(ship.rarity === 'L' ? 5 : 0, Math.max(0, Math.floor(Number(ship.enhancementStars) || 0))) : 0,
       isAtlas,
+      isGungnir,
       atlasStars: isAtlas ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       isIowa,
       iowaStars: isIowa ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
@@ -2533,7 +2538,7 @@
         updateCarrierInterceptor(ally, dt);
         continue;
       }
-      if (ally.ship.type === 'battlecruiser' || ally.isAtlas || ally.isNemesis || ally.isAegis || ally.isColossus || ally.isBastion || ally.isHammer || ally.isNimitz || ally.isAngela || ally.isTank || ally.isDozer || ally.isDreadTurtle || ally.isSuPanokseon || ally.isKddx || ally.isPegasus || ally.isPlanetDestroyer || ally.isPandora || ally.isVaryag || ally.isGaruda || ally.isOmega || ally.isDeimos || ally.isUranus || ally.isSpear || ally.isBlade || ally.isIronFist) {
+      if (ally.ship.type === 'battlecruiser' || ally.isAtlas || ally.isNemesis || ally.isAegis || ally.isColossus || ally.isBastion || ally.isHammer || ally.isNimitz || ally.isAngela || ally.isTank || ally.isDozer || ally.isDreadTurtle || ally.isSuPanokseon || ally.isKddx || ally.isPegasus || ally.isPlanetDestroyer || ally.isPandora || ally.isVaryag || ally.isGaruda || ally.isOmega || ally.isDeimos || ally.isUranus || ally.isSpear || ally.isBlade || ally.isIronFist || ally.isGungnir) {
         if (ally.isDreadTurtle && !ally.dreadTurtleDeployed && !ally.charging) {
           fireDreadTurtleCharge(ally);
           continue;
@@ -2544,7 +2549,7 @@
           if (!energyRechargeLocked && !ally.rechargePause && (!ally.charging || brownBessRechargesWhileSniping)) ally.energy = Math.min(ally.maxEnergy, ally.energy + dt * attackSpeedRatio / 100);
           updateBattlecruiserEnergy(ally);
           if (ally.energy >= ally.maxEnergy) {
-            const triggerMainBattery = ally.isLionheart ? fireLionheartRoar(ally) : ally.isAngela ? fireAngelaWings(ally) : ally.isTank ? fireTankPetrification(ally) : ally.isDozer ? fireDozerEvasiveManeuver(ally) : ally.isIronFist ? fireIronFistMainBattery(ally) : ally.isBlade ? fireBladePiercingVolley(ally) : ally.isOmega ? fireOmegaFocusStrike(ally) : ally.isDeimos ? fireDeimosShotgun(ally) : ally.isUranus ? fireUranusFocusBarrage(ally) : ally.isSpear ? fireSpearLaserVolley(ally) : ally.isVaryag ? fireVaryagSuicideDrones(ally) : ally.isGaruda ? fireGarudaGuardian(ally) : ally.isPandora ? firePandoraTorpedoes(ally) : ally.isPlanetDestroyer ? firePlanetDestroyerSupernova(ally) : ally.isPegasus ? firePegasusAnnihilation(ally) : ally.isKddx ? fireKddxChainLightning(ally) : ally.isSuPanokseon ? fireSuPanokseonMainBattery(ally) : ally.isAtlas ? fireAtlasMainBattery(ally) : ally.isNemesis ? fireNemesisElectricNet(ally) : ally.isAegis ? fireAegisRepair(ally) : ally.isColossus ? fireColossusMainShield(ally) : ally.isBastion ? fireBastionMainBattery(ally) : ally.isHammer ? fireHammerDrones(ally) : ally.isNimitz ? fireNimitzTotalOffensive(ally) : ally.isDreadTurtle ? fireDreadTurtleGwimyeonShield(ally) : ally.isAssaultTurtle ? fireAssaultTurtleCharge(ally) : ally.isTurtleShip ? fireTurtleShipBombardment(ally) : ally.isIowa ? fireIowaTomahawk(ally) : ally.isHelios ? fireHeliosMainBattery(ally) : ally.isHyperion ? fireHyperionJump(ally) : ally.isApocalypse ? fireApocalypseMainBattery(ally) : ally.isMagellan ? fireMagellanMainBattery(ally) : ally.isYamato ? fireYamatoFullBarrage(ally) : ally.isBrownBess ? fireBrownBessSniper(ally) : ally.isFury ? fireFuryBarrage(ally) : fireBattlecruiserMainBattery(ally);
+            const triggerMainBattery = ally.isGungnir ? fireGungnirOdin(ally) : ally.isLionheart ? fireLionheartRoar(ally) : ally.isAngela ? fireAngelaWings(ally) : ally.isTank ? fireTankPetrification(ally) : ally.isDozer ? fireDozerEvasiveManeuver(ally) : ally.isIronFist ? fireIronFistMainBattery(ally) : ally.isBlade ? fireBladePiercingVolley(ally) : ally.isOmega ? fireOmegaFocusStrike(ally) : ally.isDeimos ? fireDeimosShotgun(ally) : ally.isUranus ? fireUranusFocusBarrage(ally) : ally.isSpear ? fireSpearLaserVolley(ally) : ally.isVaryag ? fireVaryagSuicideDrones(ally) : ally.isGaruda ? fireGarudaGuardian(ally) : ally.isPandora ? firePandoraTorpedoes(ally) : ally.isPlanetDestroyer ? firePlanetDestroyerSupernova(ally) : ally.isPegasus ? firePegasusAnnihilation(ally) : ally.isKddx ? fireKddxChainLightning(ally) : ally.isSuPanokseon ? fireSuPanokseonMainBattery(ally) : ally.isAtlas ? fireAtlasMainBattery(ally) : ally.isNemesis ? fireNemesisElectricNet(ally) : ally.isAegis ? fireAegisRepair(ally) : ally.isColossus ? fireColossusMainShield(ally) : ally.isBastion ? fireBastionMainBattery(ally) : ally.isHammer ? fireHammerDrones(ally) : ally.isNimitz ? fireNimitzTotalOffensive(ally) : ally.isDreadTurtle ? fireDreadTurtleGwimyeonShield(ally) : ally.isAssaultTurtle ? fireAssaultTurtleCharge(ally) : ally.isTurtleShip ? fireTurtleShipBombardment(ally) : ally.isIowa ? fireIowaTomahawk(ally) : ally.isHelios ? fireHeliosMainBattery(ally) : ally.isHyperion ? fireHyperionJump(ally) : ally.isApocalypse ? fireApocalypseMainBattery(ally) : ally.isMagellan ? fireMagellanMainBattery(ally) : ally.isYamato ? fireYamatoFullBarrage(ally) : ally.isBrownBess ? fireBrownBessSniper(ally) : ally.isFury ? fireFuryBarrage(ally) : fireBattlecruiserMainBattery(ally);
             if (triggerMainBattery) {
               if (!ally.isBrownBess) focusBattleAudio('core');
               ally.energy = 0;
@@ -2661,6 +2666,14 @@
           if (ally.nextShot <= 0) {
             ally.nextShot = SUPANOKSEON_CANNON.interval;
             fireSuPanokseonCannon(ally);
+          }
+          continue;
+        }
+        if (ally.isGungnir) {
+          ally.nextShot -= dt;
+          if (ally.nextShot <= 0) {
+            ally.nextShot = GUNGNIR_ELECTRIC.interval;
+            fireGungnirElectric(ally);
           }
           continue;
         }
@@ -9538,6 +9551,83 @@
     return orientedAllyPoint(ally, port.x + sweep, port.y);
   }
 
+  // ── 궁니르(L급 중전함): 전기 · 좌우 날개에서 1초마다 줄기 방출(500, 2회 전이) / 핵심기술 '오딘의 가호' ──
+  function gungnirWingPoints(ally) {
+    const rect = refs.field?.getBoundingClientRect(), width = rect?.width || 480, height = rect?.height || 720;
+    return [-1, 1].map(side => orientedAllyPoint(ally, side * GUNGNIR_ELECTRIC.wing[0] / width, GUNGNIR_ELECTRIC.wing[1] / height));
+  }
+  function fireGungnirElectric(ally) {
+    const first = shooterTargetFor(ally);
+    if (!first) return false;
+    const pool = inRangeTargetsFor(ally);
+    const wings = gungnirWingPoints(ally);
+    const second = pool.filter(target => target !== first).sort((a, b) => Math.hypot(a.x - first.x, a.y - first.y) - Math.hypot(b.x - first.x, b.y - first.y))[0] || first;
+    [first, second].forEach((primary, wing) => {
+      const sequence = [primary];
+      let source = primary;
+      for (let chain = 0; chain < GUNGNIR_ELECTRIC.chains; chain += 1) {
+        const next = pool.filter(target => !sequence.includes(target) && !target.dead)
+          .sort((a, b) => Math.hypot(a.x - source.x, a.y - source.y) - Math.hypot(b.x - source.x, b.y - source.y))[0];
+        if (!next) break;
+        sequence.push(next);
+        source = next;
+      }
+      sequence.forEach((target, index) => {
+        const from = index === 0 ? wings[wing] : pointOf(sequence[index - 1]);
+        schedule(() => {
+          if (!state || state.status !== 'combat') return;
+          drawElectricStrike(from, pointOf(target), Math.random() < .5 ? 1 : 2, 360);
+          schedule(() => {
+            if (target.dead) return;
+            shooterDamage(target, GUNGNIR_ELECTRIC.hits, ally, 'electric');
+            target.el?.classList.add('atlas-electrified');
+            schedule(() => target.el?.classList.remove('atlas-electrified'), 420);
+          }, GUNGNIR_ELECTRIC.travel);
+        }, index * GUNGNIR_ELECTRIC.jumpDelay);
+      });
+    });
+    return true;
+  }
+  // 기술차단: 기절하는 동안 적의 특수 기술 준비 시간도 같은 만큼 뒤로 밀린다.
+  function blockEnemySkills(target, duration) {
+    ['nextFighterLaunch', 'nextShieldbreaker', 'nextShieldSkill', 'nextBladeLaser', 'nextBladeVolley', 'nextPhotonBattery', 'nextAttack'].forEach(key => {
+      if (Number.isFinite(target[key]) && target[key] !== Infinity) target[key] += duration;
+    });
+  }
+  function fireGungnirOdin(ally) {
+    const targets = hostileTargetsFor(ally).filter(target => !target.dead);
+    if (!targets.length) return false;
+    announce(`${ally.ship.name} · 오딘의 가호`, 'friendly');
+    const origin = pointOf(ally);
+    const flash = document.createElement('i');
+    flash.className = 'gungnir-odin-flash';
+    refs.effects.append(flash);
+    schedule(() => flash.remove(), 900);
+    targets.forEach((target, index) => {
+      schedule(() => {
+        if (!state || state.status !== 'combat' || target.dead) return;
+        drawElectricStrike(origin, pointOf(target), Math.random() < .5 ? 1 : 2, 520);
+        schedule(() => {
+          if (target.dead) return;
+          shooterDamage(target, GUNGNIR_ODIN.hits, ally, 'electric');
+          if (target.dead) return;
+          applyTimedEnemyStun(target, GUNGNIR_ODIN.stun);
+          blockEnemySkills(target, GUNGNIR_ODIN.stun);
+          target.el?.classList.add('atlas-electrified');
+          schedule(() => target.el?.classList.remove('atlas-electrified'), GUNGNIR_ODIN.stun);
+        }, GUNGNIR_ELECTRIC.travel);
+      }, index * 40);
+    });
+    // 모든 아군에게 전기보호막: 5초 동안 피해를 받지 않고, 보호막 대상을 공격한 적은 1초간 기절한다.
+    const until = performance.now() + GUNGNIR_ODIN.shield;
+    state.allies.filter(unit => !unit.dead).forEach(unit => {
+      unit.gungnirShieldUntil = until;
+      unit.el?.classList.add('gungnir-shielded');
+      schedule(() => { if (performance.now() >= Number(unit.gungnirShieldUntil || 0)) unit.el?.classList.remove('gungnir-shielded'); }, GUNGNIR_ODIN.shield + 60);
+    });
+    return true;
+  }
+
   function fireAtlasElectric(ally) {
     const primary = shooterTargetFor(ally);
     if (!primary) return false;
@@ -10428,6 +10518,16 @@
     const now = performance.now();
     if (ally.isVaryag && ally.varyagLastStandUntil > now) {
       showUnitDamage(ally, '0');
+      return;
+    }
+    if (Number(ally.gungnirShieldUntil || 0) > now) {
+      // 전기보호막: 피해를 막고, 공격한 적을 1초 기절시킨다.
+      showUnitDamage(ally, '0');
+      if (source && source !== ally && !source.isArenaShip && !source.dead && (state.enemies.includes(source) || source === state.boss || state.midBosses?.includes(source) || state.pirates?.includes(source))) {
+        drawElectricStrike(pointOf(ally), pointOf(source), Math.random() < .5 ? 1 : 2, 260);
+        applyTimedEnemyStun(source, GUNGNIR_ODIN.stun);
+        blockEnemySkills(source, GUNGNIR_ODIN.stun);
+      }
       return;
     }
     if (Number(ally.tankImmuneUntil || 0) > now || Number(ally.angelaImmuneUntil || 0) > now || Number(ally.nimitzImmuneUntil || 0) > now || Number(ally.yamatoImmuneUntil || 0) > now) {
@@ -13510,6 +13610,9 @@
     }
     if (ship?.type === 'battlecruiser' && ship?.name === '거북선') {
       return `<div class="ship-topview turtle-ship-topview" style="--rarity-color:${color}"><img src="turtle-ship-battle-topview.png" alt="" />${turtleThrusterFx}</div>`;
+    }
+    if (ship?.name === '궁니르') {
+      return `<div class="ship-topview gungnir-topview" style="--rarity-color:${color}"><img src="gungnir-battle-topview.png" alt="" /></div>`;
     }
     if (ship?.name === '아틀라스') {
       return `<div class="ship-topview atlas-topview" style="--rarity-color:${color}"><img src="atlas-battle-topview.png" alt="" /><span class="atlas-fx" aria-hidden="true"><i class="atlas-thruster"></i></span></div>`;

@@ -383,6 +383,7 @@ function initializeFleetFormation(){
   const fleetShips={
     dreadnought:[
       ['아틀라스','대형 함포 · 방어 980','dreadnought-codex.png','R'],
+      ['궁니르','오딘의 가호 · 내구 9,000','gungnir-codex.png','L'],
       ['우주항모','주포 4문 · 방어 860','carrier-codex.png','L'],
       ['니미츠','함재기 전개 · 내구 8,000','dreadnought-nimitz-codex.png','L'],
       ['앙헬라','천사의 날개 · 내구 7,900','dreadnought-angela-codex.png','L'],
@@ -437,6 +438,7 @@ function initializeFleetFormation(){
   // DPS는 주포/광역 추가 대상/이동 시간을 제외한 일반공격의 이론상 초당 피해량이다.
   const combatProfiles={
     'dreadnought:아틀라스':[1300,'전기',45,'전기 90 · 2초 간격','플라즈마 4발 · 각 400'],
+    'dreadnought:궁니르':[9000,'전기',1000,'전기 500 · 1초 간격 · 좌우 날개 양쪽에서 방출 · 2회 전이','오딘의 가호 : 적 전체에 전기충격 500 · 1초 기절 및 기술차단 / 아군 전체 5초 전기보호막(공격한 적 1초 기절)'],
     'dreadnought:우주항모':[4500,'함재기',1000,'요격기 6기 · 각 55 / 0.33초','과부하 전개 · 보호막 회복'],
     'dreadnought:니미츠':[8000,'함재기',1500,'함재기 5기 · 각 300 / 1초','전면공세 · 함재기 25기'],
     'dreadnought:앙헬라':[7900,'함포',412,'함포 350 × 2발 · 1.5초 재장전','천사의 날개 : 아군 면역 1초 · 보호막 500 (강화 시 면역 2초 · 보호막 1000)'],
