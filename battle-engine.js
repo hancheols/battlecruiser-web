@@ -560,14 +560,17 @@
     // 수퍼 넵튠(챕터 5): 지역별 전투 배경. NEPTUNE_REGIONS[지역].background에 이미지를 넣으면 적용되고, 비어 있으면 화성과 같은 기본 배경을 쓴다.
     const neptuneBackground = normalizedOperation.chapter === 5 ? (window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgrounds?.[normalizedOperation.gate] || window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.background) : '';
     refs.viewport?.classList.toggle('neptune-battle', normalizedOperation.chapter === 5);
-    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground && !isNeptuneBaseOperation(normalizedOperation));
+    refs.viewport?.classList.toggle('neptune-region-bg', !!neptuneBackground && !isNeptuneMapOperation(normalizedOperation));
     if (refs.viewport) {
       if (neptuneBackground) refs.viewport.style.setProperty('--neptune-region-bg', `url("${neptuneBackground}")`);
       else refs.viewport.style.removeProperty('--neptune-region-bg');
       refs.viewport.dataset.region = normalizedOperation.region;
       // 가로 비율이 넓은 배경은 화면 높이의 1.5배로 키워 위아래로 흐르게 한다.
       const tall = neptuneBackground && window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.tallBackgrounds?.includes(normalizedOperation.gate);
-      refs.viewport.style.setProperty('--neptune-region-bg-size', tall ? 'auto 150%' : '100% auto');
+      const bgStyle = window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgroundStyle?.[normalizedOperation.gate];
+      refs.viewport.style.setProperty('--neptune-region-bg-size', bgStyle?.size || (tall ? 'auto 150%' : '100% auto'));
+      refs.viewport.style.setProperty('--nep-bg-x', bgStyle?.x || 'center');
+      refs.viewport.classList.toggle('neptune-bg-static', !!neptuneBackground && bgStyle?.scroll === false);
     }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
@@ -1056,7 +1059,7 @@
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
   // 지역별 외계 함선 강화(체력·공격력): 행성인근·위성궤도 +10%, 콜로니 +15%, 게이트 +20%.
-  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2 };
+  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2, 'asman-supply': 1.2 };
   const tapaoAlienScale = (operation = state?.operation) => TAPAO_ALIEN_SCALES[String(operation?.region || '').toLowerCase()] || 1.1;
   // 함종 상성(타파오 통부터, 아군이 외계 함선을 칠 때만): 중전함 > 구축함 > 순양함 > 중전함. 유리하면 피해 +10%, 불리하면 -10%.
   // 외계 함선의 공격에는 적용하지 않는다. 함재기·포탑처럼 함종이 없는 대상은 상성이 없다.
@@ -1078,7 +1081,27 @@
   // 넵튠 게이트 3~5관문: 타파오와 같은 외계 함대 웨이브 전투(외계 함선 내구도만 20% 더 높다).
   const NEPTUNE_ALIEN_HP_FACTOR = 1.2;
   function isNeptuneAlienOperation(operation = state?.operation) {
-    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && Number(operation?.gate) >= 3;
+    const region = String(operation?.region || '').toLowerCase();
+    return Number(operation?.chapter) === 5 && ((region === 'neptune-gate' && Number(operation?.gate) >= 3) || region === 'asman-supply');
+  }
+  // 아스만 병참기지: 1관문은 우주항모+호위함, 2~10관문은 우주항모 + 수비 로봇 2종. 우주항모는 내구도가 30% 더 높고, 내구도 70%·30%에서 스타크루저를 한 척씩 부른다.
+  const ASMAN_CARRIER_HP_FACTOR = 1.3, ASMAN_ROBOTS = 16;
+  function isAsmanOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'asman-supply';
+  }
+  function updateAsmanCarrierCalls() {
+    if (!state || state.status !== 'combat' || !isAsmanOperation()) return;
+    const carrier = [state.boss, ...(state.midBosses || [])].find(unit => unit?.variant === 'kepler-alien-carrier' && !unit.dead);
+    if (!carrier) return;
+    const ratio = carrier.hp / Math.max(1, carrier.maxHp);
+    const call = (index, x) => {
+      state.asmanCalls = index;
+      announce('우주항모 · 스타크루저 호출', 'boss');
+      state.keplerAlienFleetSpawned = false;
+      spawnKeplerAlienFleet(['starcruiser'], { append: true, xs: [x], idSuffix: `call${index}-` });
+    };
+    if (ratio <= .7 && !(state.asmanCalls >= 1)) call(1, .25);
+    if (ratio <= .3 && !(state.asmanCalls >= 2)) call(2, .45);
   }
 
   // 지역·관문별 외계 함대 웨이브. 한 웨이브를 모두 격파하면 다음 웨이브가 나온다.
@@ -1096,6 +1119,7 @@
       if (gate === 4) return [['escort', 'escort', 'escort', 'escort', 'escort'], ['starcruiser', 'starcruiser'], ['starcruiser', 'escort', 'escort']];
       return [['carrier']];
     }
+    if (region === 'asman-supply') return gate === 1 ? [Object.assign(['carrier', 'escort', 'escort'], { xs: [.67, .4, .15] })] : [['carrier']];
     if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
     if (region === 'tapao-orbit') return gate === 10 ? [flagship, flagship] : [cruisers];
     return [cruisers];
@@ -2371,6 +2395,7 @@
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       if (state.tapaoGateMap) updateTapaoGateMap(dt);
       if (state.neptuneBase) updateNeptuneBase(dt);
+      updateAsmanCarrierCalls();
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
       updateAngelaSwords(dt);
@@ -11097,7 +11122,7 @@
     const total = lineup.length;
     const alienScale = isTapaoOperation() ? tapaoAlienScale() : 1;
     const hpFactor = isNeptuneAlienOperation() ? NEPTUNE_ALIEN_HP_FACTOR : 1;
-    const spreadXs = options.xs || ({ 1: [.5], 2: [.34, .66], 3: [.5, .24, .76], 5: [.5, .3, .7, .12, .88] }[total] || [.5, .24, .76]);
+    const spreadXs = options.xs || lineup.xs || ({ 1: [.5], 2: [.34, .66], 3: [.5, .24, .76], 5: [.5, .3, .7, .12, .88] }[total] || [.5, .24, .76]);
     state.keplerAlienFleetSize = total;
     const fleet = [];
     for (let index = 0; index < total; index += 1) {
@@ -11111,7 +11136,7 @@
         ? { name: '스타 크루저', type: 'battlecruiser', rarity: 'SSR', enhancementStars: 3 }
         : carrier ? { name: '외계 우주항모', type: 'carrier', rarity: 'L', enhancementStars: 5 }
           : { name: '블레이드', type: 'destroyer', rarity: 'SR', enhancementStars: 0 };
-      const hp = Math.round(hpFactor * alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
+      const hp = Math.round(hpFactor * (carrier && region === 'asman-supply' ? ASMAN_CARRIER_HP_FACTOR : 1) * alienScale * (carrier ? 200000 : angela ? Math.floor(7900 * combatStatFactor(sourceShip) * 3) : starcruiser ? Math.floor(25000 * combatStatFactor(sourceShip)) : 25000));
       const ship = {
         id: angela ? 'kepler-alien-angela' : `${carrier ? 'kepler-alien-carrier' : starcruiser ? 'kepler-alien-starcruiser' : 'kepler-alien-escort'}-${options.wave !== undefined ? `w${options.wave}-` : ''}${options.idSuffix ?? ''}${index}${options.xs ? `-${Math.round(options.xs[index] * 100)}` : ''}`,
         kind: 'boss',
@@ -11666,12 +11691,22 @@
     [235, 1010, 50], [600, 1030, 40], [740, 1140, 55], [415, 1110, 35],
     [415, 1400, 70], [205, 1440, 45], [620, 1440, 45], [415, 1250, 40], [415, 1600, 40]
   ];
-  function isNeptuneBaseOperation(operation = state?.operation) {
+  // 시설을 부수는 맵 층을 쓰는 관문(넵튠 게이트 1·2관문)
+  function isNeptuneMapOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'neptune-gate' && [1, 2].includes(Number(operation?.gate));
+  }
+  // 로봇이 나오는 관문: 넵튠 게이트 1·2관문과 아스만 병참기지 2관문부터
+  function isNeptuneBaseOperation(operation = state?.operation) {
+    return isNeptuneMapOperation(operation) || (isAsmanOperation(operation) && Number(operation?.gate) >= 2);
   }
 
   function startNeptuneBase(operation) {
     const gate = Number(operation.gate);
+    if (isAsmanOperation(operation)) {
+      // 아스만: 수비 로봇만 배치한다(승패는 우주항모 격파로 정해진다).
+      state.neptuneBase = { gate, robotOnly: true, total: 0, robotTotal: ASMAN_ROBOTS, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, robotsKilled: 0, bgY: 0, tileH: 1, wrecks: [], lastX: .5 };
+      return;
+    }
     const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.gate2Targets.length;
     state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
     state.neptuneBase.robotsKilled = 0;
@@ -11808,9 +11843,10 @@
       return true;
     });
     const units = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead);
-    positionNeptuneMap(base, state.elapsed);
+    if (base.map) positionNeptuneMap(base, state.elapsed);
     base.timer -= dt;
-    if (base.gate === 2 && base.timer <= 0 && base.robotSpawned < NEPTUNE_BASE.robot.total) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
+    const robotTotal = base.robotTotal ?? NEPTUNE_BASE.robot.total;
+    if ((base.gate === 2 || base.robotOnly) && base.timer <= 0 && base.robotSpawned < robotTotal) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
     const allies = state.allies.filter(ally => !ally.dead);
     units.forEach(unit => {
       if (unit.unitType === 'facility') {
@@ -11852,6 +11888,7 @@
         neptuneBullet(source, unit.target, gunSpec.damage, { x: unit.x + (gunSpec.muzzleX - .5) * gunSpec.w / fieldWidth, y: unit.y - gunSpec.w * gunSpec.ratio / 2 / fieldHeight });
       }
     });
+    if (base.robotOnly) return;
     const robotsDone = base.gate !== 2 || base.robotsKilled >= NEPTUNE_BASE.robot.total;
     if (base.destroyed >= base.total && robotsDone && state.status === 'combat') finishBattle(true);
   }
