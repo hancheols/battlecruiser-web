@@ -83,9 +83,8 @@
     const current=mine(state).tier;
     state.tierRewards=state.tierRewards||{};
     const labels=[];
-    // 이 기능이 생기기 전에 이미 지나온 단계는 소급해서 지급하지 않는다(처음 한 번만 기록).
+    // 이미 지나온 단계도 아직 받지 않았다면 소급해서 지급한다(단계마다 한 번).
     state.stepRewards=state.stepRewards||{};
-    if(!state.stepRewardsReady){state.stepRewardsReady=true;for(const t of C.TIERS){if(t.index>current.index)break;if(isStepUp(t))state.stepRewards[t.label]=true;}}
     for(const t of C.TIERS){
       if(t.index>current.index)break;
       if(isStepUp(t)&&!state.stepRewards[t.label]){

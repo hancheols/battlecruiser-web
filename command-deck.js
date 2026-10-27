@@ -1310,7 +1310,10 @@ function initializeFleetFormation(){
     explorationPool.querySelector(':scope > b')?.remove();
     explorationPool.querySelector(':scope > small')?.remove();
     explorationPool.querySelectorAll('.ship-exploration-coming-soon,.research-coming-soon').forEach(message=>message.remove());
-    explorationPool.querySelectorAll('.summon-actions .summon-action:not(.precision-search)').forEach((button)=>{const amount=button.classList.contains('ten')?10:1;const cost=button.querySelector('em');if(cost){cost.classList.add('scout-drone-cost');cost.innerHTML=`<img src="icons/scout-drone.png?v=20260929-2" alt="탐색드론"/>${button.classList.contains('ten')||!freeSearchAvailable(1)?amount:'무료'}`;}});
+    // 탐색 버튼의 비용 표시: 오늘 무료 1회를 쓰기 전에만 '무료', 쓴 뒤에는 탐색드론 1개로 바꾼다(탐색 직후·화면을 다시 열 때·날짜가 바뀔 때 다시 맞춘다).
+    window.syncExplorationCostLabels=()=>explorationPool.querySelectorAll('.summon-actions .summon-action:not(.precision-search)').forEach((button)=>{const amount=button.classList.contains('ten')?10:1;const cost=button.querySelector('em');if(cost){cost.classList.add('scout-drone-cost');cost.innerHTML=`<img src="icons/scout-drone.png?v=20260929-2" alt="탐색드론"/>${button.classList.contains('ten')||!freeSearchAvailable(1)?amount:'무료'}`;}});
+    window.syncExplorationCostLabels();
+    window.addEventListener('game-screen-changed',event=>{if(event.detail?.screen==='summon')window.syncExplorationCostLabels();});
     ssrGuaranteePanel=document.createElement('section');ssrGuaranteePanel.className='ssr-guarantee-panel';
     explorationPool.querySelector('.summon-actions')?.insertAdjacentElement('afterend',ssrGuaranteePanel);
     renderSsrGuaranteePanel();
@@ -1376,7 +1379,7 @@ function initializeFleetFormation(){
       return false;
     }
     removeShipExploreOverlay();
-    if(freeUsed)markFreeSearchUsed();
+    if(freeUsed){markFreeSearchUsed();window.syncExplorationCostLabels?.();}
     const draws=Array.from({length:count},()=>{
       const guaranteed=ssrGuaranteeState.draws===49;
       const draw=guaranteed?{kind:'ship',ship:selectedSsrGuaranteeShip(),guaranteed:true}:drawExplorationReward();
