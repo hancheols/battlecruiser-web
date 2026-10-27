@@ -2952,9 +2952,10 @@
       ? BATTLECRUISER_LASER.starCruiserHits * combatStatFactor(ship.damageSource)
       : BLADE_LASER.hits * combatStatFactor(ship.damageSource));
     const shots = ship.variant === 'kepler-alien-angela' ? 2 : 1;
+    const epoch = ship.castEpoch || 0;
     for (let shot = 0; shot < shots; shot += 1) {
       schedule(() => {
-        if (!state || state.status !== 'combat' || ship.dead || target.dead) return;
+        if (!state || state.status !== 'combat' || ship.dead || target.dead || (ship.castEpoch || 0) !== epoch) return;
         const from = alienCenterPoint(ship);
         const to = pointOf(target);
         const beam = document.createElement('i');
@@ -2963,7 +2964,7 @@
         refs.effects.append(beam);
         schedule(() => beam.remove(), 300);
         schedule(() => {
-          if (state?.status !== 'combat' || ship.dead || target.dead) return;
+          if (state?.status !== 'combat' || ship.dead || target.dead || (ship.castEpoch || 0) !== epoch) return;
           dealAllyDamage(target, damage, ship);
           createExplosion(to, 'enemy');
         }, 220);
@@ -3333,9 +3334,11 @@
       beam.className = 'fx-line kepler-blade-piercing-laser';
       positionLine(beam, from, to);
       refs.effects.append(beam);
+      (ship.castFx ||= []).push(beam);
+      const epoch = ship.castEpoch || 0;
       for (let elapsed = 0; elapsed < BLADE_MAIN.duration; elapsed += BLADE_MAIN.tick) {
         schedule(() => {
-          if (state?.status !== 'combat' || ship.dead) return;
+          if (state?.status !== 'combat' || ship.dead || (ship.castEpoch || 0) !== epoch) return;
           [...(state.allies || []), ...(state.garudaWingmen || [])].forEach(ally => {
             if (!ally.dead && distanceToBeam(pointOf(ally), from, to) <= BLADE_MAIN.width) {
               dealAllyDamage(ally, BLADE_MAIN.hits * combatStatFactor(ship.damageSource), ship);
@@ -3372,9 +3375,11 @@
     beam.className = 'fx-line kepler-blade-piercing-laser';
     positionLine(beam, from, to);
     refs.effects.append(beam);
+    (ship.castFx ||= []).push(beam);
+    const epoch = ship.castEpoch || 0;
     for (let elapsed = 0; elapsed < BLADE_LASER.duration; elapsed += BLADE_LASER.tick) {
       schedule(() => {
-        if (state?.status !== 'combat' || ship.dead) return;
+        if (state?.status !== 'combat' || ship.dead || (ship.castEpoch || 0) !== epoch) return;
         [...(state.allies || []), ...(state.garudaWingmen || [])].forEach(ally => {
           if (!ally.dead && distanceToBeam(pointOf(ally), from, to) <= BLADE_LASER.width) {
             dealAllyDamage(ally, BLADE_LASER.hits * combatStatFactor(ship.damageSource), ship);
@@ -3398,12 +3403,14 @@
     charge.style.left = percent(from.x);
     charge.style.top = percent(from.y);
     refs.effects.append(charge);
+    (ship.castFx ||= []).push(charge);
+    const epoch = ship.castEpoch || 0;
     schedule(() => charge.remove(), BATTLECRUISER_MAIN_BATTERY.charge + 40);
     schedule(() => {
-      if (state?.status !== 'combat' || ship.dead) return;
+      if (state?.status !== 'combat' || ship.dead || (ship.castEpoch || 0) !== epoch) return;
       launchPhotonShell(from, targetPoint);
       schedule(() => {
-        if (state?.status !== 'combat' || ship.dead) return;
+        if (state?.status !== 'combat' || ship.dead || (ship.castEpoch || 0) !== epoch) return;
         const impactPoint = pointOf(target);
         const field = refs.field?.getBoundingClientRect();
         if (!target.dead) dealAllyDamage(target, BATTLECRUISER_MAIN_BATTERY.hits * factor, ship);
@@ -10087,11 +10094,26 @@
     }
   }
 
+  // 시전 중인 공격과 기술을 끊는다: 이미 예약된 발사·피해 판정을 취소하고, 레이저·충전 효과를 지우며, 다음 기술 준비도 기절 시간만큼 미룬다.
+  function interruptEnemyCasts(target, duration) {
+    if (!target || target.dead) return;
+    target.castEpoch = (target.castEpoch || 0) + 1;
+    (target.castFx || []).forEach(element => element.remove());
+    target.castFx = [];
+    blockEnemySkills(target, duration);
+    if (target.variant === 'four-wing-beast') {
+      target.fourWingChargeTimer = 0;
+      target.fourWingVolleyRemaining = 0;
+      target.el?.classList.remove('four-wing-charging', 'four-wing-volley');
+    }
+  }
+
   function applyAssaultTurtleRamStun(target) {
     if (isChargeImmune(target)) return;
     target.stun = Math.max(Number(target.stun) || 0, ASSAULT_TURTLE_CHARGE.ramStun);
     target.assaultTurtleStunnedUntil = performance.now() + ASSAULT_TURTLE_CHARGE.ramStun;
     target.el?.classList.add('assault-turtle-stunned');
+    interruptEnemyCasts(target, ASSAULT_TURTLE_CHARGE.ramStun);
     schedule(() => {
       if (performance.now() >= Number(target.assaultTurtleStunnedUntil || 0)) target.el?.classList.remove('assault-turtle-stunned');
     }, ASSAULT_TURTLE_CHARGE.ramStun + 40);
