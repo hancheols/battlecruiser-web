@@ -390,7 +390,7 @@
   const MAGELLAN_CANNON = { hits: 100, interval: 500 };
   const MAGELLAN_MAIN = { hits: 500, enhancedHits: 700, duration: 3000, radius: .2, stun: 2000, fleetSpeedBonus: .5, fleetSpeedDuration: 3000 };
   const ASSAULT_TURTLE_MISSILE = { hits: 400, interval: 330, travel: 420, fx: 'missile', splashRadius: 56, enhancedRadiusRatio: 1.3 };
-  const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, duration: 2000, travel: 360 };
+  const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, duration: 2000, travel: 180 };   // 난사 미사일 비행 시간(이전 360ms의 절반 = 속도 2배)
   const ASSAULT_TURTLE_CHARGE = { stopShort: .17, stopShortBoss: .24, travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
@@ -9924,7 +9924,8 @@
     missile.className = 'fx-missile assault-turtle-missile';
     positionProjectile(missile, from, to);
     refs.effects.append(missile);
-    curveAssaultTurtleMissile(missile, from, to, travel);
+    // 일반 공격은 직선, 돌격 뒤 미사일 난사(barrage)만 곡선으로 날아간다.
+    if (barrage) curveAssaultTurtleMissile(missile, from, to, travel);
     schedule(() => missile.remove(), travel + 150);
     schedule(() => {
       if (!state || state.status !== 'combat') return;
