@@ -184,10 +184,13 @@
   };
   document.addEventListener('pointerdown', unlockAudio, true);
 
-  overlay.querySelector('.intro-skip').addEventListener('click', event => {
-    event.stopPropagation();
+  // 튜토리얼 안내(파라·EVA-9 등)는 문서 단계에서 허용되지 않은 클릭을 모두 막는다. 건너뛰기는 그보다 먼저(창 단계) 받아 처리한다.
+  window.addEventListener('click', event => {
+    if (!event.target.closest?.('#intro-video .intro-skip')) return;
+    event.stopImmediatePropagation();
+    event.preventDefault();
     finish();
-  });
+  }, true);
   overlay.addEventListener('click', event => { if (!event.target.closest('.intro-skip')) { event.stopPropagation(); } }, true);
   video.addEventListener('ended', () => setTimeout(finish, TITLE_HOLD));
   video.addEventListener('error', finish);
