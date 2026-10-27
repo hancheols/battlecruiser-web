@@ -12167,8 +12167,8 @@
     const enemies = orbit10AlienFleet();
     // 유키히사 함대 4척은 아군 선봉 함선과 같은 높이의 가로줄에서 선봉의 좌우 두 척씩 나타난다.
     const xs = [.14, .32, .68, .86];
-    const vanguard = (state.allies || []).find(ally => !ally.dead && ally.role === '선봉') || state.allies?.[0];
-    const lineY = Number(vanguard?.y) || .71;
+    // 선봉 함선의 기본 자리 높이(createAlly의 basePositions[0].y). 라이온하트 포효·히페리온 도약 등으로 선봉이 잠시 다른 곳에 있어도 같은 줄에 선다.
+    const lineY = .71;
     const ys = xs.map(() => lineY);
     state.tapaoStoryCruisers = [];
     xs.forEach((x, index) => schedule(() => {
