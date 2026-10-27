@@ -347,7 +347,7 @@
       const mission = state.active;
       if (mission.status === 'pending') {
         const pay = mission.payout;
-        return back + info + panel('귀환 보고', `<ul class="cmd-facts"><li><span>토륨</span><b>${pay.thorium}</b></li><li><span>골드</span><b>${pay.gold.toLocaleString('ko-KR')}</b></li><li><span>함선골조</span><b>${pay.frame ? '1개' : '없음'}</b></li></ul><button type="button" class="fac-btn cmd-action" data-cmd="claim">보상 받기</button>`);
+        return back + info + panel('귀환 보고', `<ul class="cmd-facts"><li><span>토륨</span><b>${pay.thorium}</b></li><li><span>골드</span><b>${pay.gold.toLocaleString('ko-KR')}</b></li><li><span>함선골조</span><b>${pay.frame ? '1개' : '없음'}</b></li></ul><button type="button" class="fac-btn cmd-action" data-cmd="claim">보상 받기</button><button type="button" class="fac-btn cmd-action" data-cmd="claim-repeat">보상 및 재파견</button>`);
       }
       const elapsed = Math.min(DURATION, now() - mission.startedAt);
       const ratio = elapsed / DURATION;
@@ -581,6 +581,23 @@
     } else if (act === 'recall') {
       const result = recall();
       ui.notice = result.message;
+    } else if (act === 'claim-repeat') {
+      // 보상을 받은 뒤, 같은 지역에 지난 편성 그대로 곧바로 다시 파견한다. 쓸 수 없는 함선이 있으면 보상만 받고 편성 화면에서 채우게 한다.
+      const missionRegion = regionById(settle(read()).active?.regionId);
+      const result = claim();
+      if (!result.ok || !missionRegion) { ui.notice = result.message; }
+      else {
+        const again = repeatLast(missionRegion);
+        ui.regionId = missionRegion.id;
+        if (again.ok && !again.missing.length && passes(checklist(missionRegion, again.keys))) {
+          const sent = dispatch(missionRegion.id, again.keys);
+          ui.notice = `${result.message} · ${sent.message}`;
+          ui.sub = 'region'; ui.slots = [null, null, null]; ui.picking = false; ui.sheetNote = '';
+        } else {
+          ui.sub = 'region'; ui.slots = again.ok ? again.keys : [null, null, null]; ui.picking = false; ui.sheetNote = '';
+          ui.notice = `${result.message} · 재파견은 하지 못했습니다. ${again.ok && again.missing.length ? `쓸 수 없는 함선: ${again.missing.join(', ')}. 빈 칸을 채워 주세요.` : '편성을 확인해 주세요.'}`;
+        }
+      }
     } else if (act === 'claim') {
       const result = claim();
       ui.notice = result.message;
