@@ -9925,7 +9925,7 @@
     }
     missile.style.animation = 'none';
     missile.animate(frames, { duration: travel, easing: 'linear', fill: 'forwards' });
-    samples.filter((_, index) => index > 0 && index < steps && index % 2 === 0).forEach(point => schedule(() => {
+    samples.filter((_, index) => index > 0 && index < steps && index % 4 === 0).forEach(point => schedule(() => {
       if (!refs.effects) return;
       const puff = document.createElement('i');
       puff.className = 'fx-missile-puff';
@@ -9944,7 +9944,7 @@
     positionProjectile(missile, from, to);
     refs.effects.append(missile);
     // 일반 공격은 직선, 돌격 뒤 미사일 난사(barrage)만 곡선으로 날아간다.
-    if (barrage) curveAssaultTurtleMissile(missile, from, to, travel);
+    if (barrage) { missile.classList.add('barrage'); curveAssaultTurtleMissile(missile, from, to, travel); }
     schedule(() => missile.remove(), travel + 150);
     schedule(() => {
       if (!state || state.status !== 'combat') return;
@@ -9958,7 +9958,7 @@
         shooterDamage(candidate, damage, null, 'missile');
         if (barrage) ally.assaultTurtleBarrageDamage += Math.max(0, before - candidate.hp);
       });
-      createExplosion(impact, 'missile');
+      createExplosion(impact, barrage ? 'missile-light' : 'missile');
     }, travel);
   }
 
@@ -13644,6 +13644,8 @@
     const effect = document.createElement('i');
     const missileCinematic = kind === 'missile' || kind === 'pojakseon';
     if(kind==='missile')playMissileImpactSound();
+    // 난사 미사일처럼 짧은 시간에 수십 발이 터지는 경우: 효과음은 일정 간격으로만 내고, 가벼운 단일 이미지 폭발을 쓴다.
+    if(kind==='missile-light'){const now=performance.now();if(now-(state.lightBlastSoundAt||0)>90){state.lightBlastSoundAt=now;playMissileImpactSound();}}
     const cannonImpact = kind === 'cannon';
     effect.className = `fx-explosion ${kind}${missileCinematic ? ' missile-cinematic' : ''}${cannonImpact ? ' cannon-impact' : ''}`;
     if (missileCinematic) effect.innerHTML = '<i></i><i></i><i></i>';

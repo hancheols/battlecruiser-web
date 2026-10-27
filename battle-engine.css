@@ -1006,3 +1006,7 @@
 /* 돌격 거북선 미사일 곡선 궤적의 연기 꼬리 */
 .fx-missile-puff{position:absolute;z-index:19;width:9px;height:9px;margin:-4px 0 0 -4px;border-radius:50%;background:radial-gradient(circle,#ffe9b0 0,#ff9a4a 38%,#9a5a3a66 62%,transparent 74%);pointer-events:none;animation:fx-puff .5s ease-out forwards}
 @keyframes fx-puff{from{opacity:.85;transform:scale(.6)}to{opacity:0;transform:scale(2.1)}}
+/* 돌격 거북선 미사일 난사: 50발이 동시에 터져도 화면이 깨지지 않도록 필터·블렌딩 없는 가벼운 폭발을 쓴다 */
+.fx-explosion.missile-light{z-index:38;width:60px;height:60px;margin:-30px;border-radius:50%;border:0;background:url("missile-explosion-2.png") center/contain no-repeat;box-shadow:none;filter:none;mix-blend-mode:normal;animation:missile-light-pop .38s ease-out forwards;pointer-events:none;will-change:transform,opacity}
+@keyframes missile-light-pop{from{opacity:1;transform:scale(.45)}to{opacity:0;transform:scale(1.25)}}
+.fx-missile.assault-turtle-missile.barrage{filter:none;box-shadow:0 0 6px #ffb347}
