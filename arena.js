@@ -75,13 +75,29 @@
     'HERO 1':'히어로 1!!! 최고의 영웅 바로 앞이다. 사령부 전원이 기립 박수를 보낸다!!!!',
     LEGEND:'레전드 달성!!!!! 전설이 되었다. 이 순간을 영원히 기억하겠다. 진심으로, 정말로 축하한다!!!!!'
   };
+  // 등급 안에서 단계가 오를 때(예: 브론즈 3→2→1)도 해당 등급 축하 토륨의 10%를 단계마다 한 번씩 지급한다. 등급에 처음 들어갈 때는 위의 전액 보상만 준다.
+  const STEP_RATE=.1;
+  const isStepUp=t=>t.group!=='HERO'&&t.group!=='LEGEND'&&(t.group in TIER_THORIUM)&&C.TIERS.find(x=>x.group===t.group).index!==t.index;
   // 처음 도달한 등급마다 축전(보상 우편)을 한 번만 보낸다. 중간 등급을 건너뛰면 지나친 등급도 모두 보낸다.
   function tierRewardGrant(state){
     const current=mine(state).tier;
     state.tierRewards=state.tierRewards||{};
     const labels=[];
+    // 이 기능이 생기기 전에 이미 지나온 단계는 소급해서 지급하지 않는다(처음 한 번만 기록).
+    state.stepRewards=state.stepRewards||{};
+    if(!state.stepRewardsReady){state.stepRewardsReady=true;for(const t of C.TIERS){if(t.index>current.index)break;if(isStepUp(t))state.stepRewards[t.label]=true;}}
     for(const t of C.TIERS){
       if(t.index>current.index)break;
+      if(isStepUp(t)&&!state.stepRewards[t.label]){
+        state.stepRewards[t.label]=true;
+        window.deliverCaptainMail?.({
+          id:`tier-step-${t.label.replace(/\s+/g,'')}`,
+          title:`등급 단계 상승 · ${t.label} 달성`,
+          sender:'연합 사령부 · 축전',
+          body:`${t.group} 등급 안에서 한 단계 더 올랐습니다. 꾸준한 승리를 축하하며 ${t.group} 등급 축하 토륨의 10%를 보냅니다.`,
+          rewards:{thorium:Math.round(TIER_THORIUM[t.group]*STEP_RATE)}
+        });
+      }
       const key=t.group==='HERO'?`HERO ${t.division}`:t.group;
       if(!(key in TIER_THORIUM)||state.tierRewards[key])continue;
       state.tierRewards[key]=true;labels.push(key);
