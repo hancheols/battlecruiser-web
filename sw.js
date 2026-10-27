@@ -1,6 +1,6 @@
 // 전투 순양함 서비스 워커 — 네트워크 우선(항상 최신 파일), 실패 시 캐시로 대체.
 // 파일을 크게 바꿨는데 옛 화면이 보이면 아래 버전 숫자를 올리세요.
-const CACHE = 'battlecruiser-v3';
+const CACHE = 'battlecruiser-v4';
 const CORE = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', event => {
