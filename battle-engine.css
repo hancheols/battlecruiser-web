@@ -889,7 +889,7 @@
 @keyframes tapao-story-retreat-sprite{0%{filter:none}40%{filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
 .boss-unit.kepler-alien-starcruiser.tapao-story-retreat .boss-sprite{animation:tapao-story-retreat-sprite-sc 1.4s ease-in forwards}
 @keyframes tapao-story-retreat-sprite-sc{0%{transform:rotate(180deg);filter:none}40%{transform:rotate(180deg);filter:brightness(3) drop-shadow(0 0 16px #9fe3ff)}100%{transform:rotate(180deg) scale(.08,2.2);filter:brightness(5) drop-shadow(0 0 22px #9fe3ff)}}
-.lionheart-quad-thrusters .bc-thruster{width:6px;height:11px;bottom:-1px;box-shadow:0 1px 5px #48dfff55,0 3px 11px #207fbd38}
+.lionheart-quad-thrusters .bc-thruster{width:8px;height:11px;bottom:-1px;box-shadow:0 1px 5px #48dfff55,0 3px 11px #207fbd38}
 .lionheart-quad-thrusters .bc-thruster:nth-child(1){left:calc(50% - 14.5px)}.lionheart-quad-thrusters .bc-thruster:nth-child(2){left:calc(50% - 5px)}.lionheart-quad-thrusters .bc-thruster:nth-child(3){left:calc(50% + 6px)}.lionheart-quad-thrusters .bc-thruster:nth-child(4){left:calc(50% + 13px)}
 /* 사자의 포효: 충전 → 사자 형상 포효 → 충격파·빛살·화면 번쩍임 → 적 작동불능 */
 .lionheart-roar-dim{position:absolute;inset:0;z-index:18;pointer-events:none;background:radial-gradient(circle at var(--cx,50%) var(--cy,50%),rgba(255,190,80,0) 0,rgba(14,8,2,.38) 38%,rgba(6,3,0,.72) 100%);animation:lionheart-dim 2.4s ease-in-out forwards}
