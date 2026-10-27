@@ -457,9 +457,9 @@
 @keyframes assault-turtle-return-blast{from{opacity:1;transform:scale(.18)}to{opacity:0;transform:scale(1)}}
 .ship-topview.assault-turtle-topview::after{display:none}
 .ship-topview.assault-turtle-topview .turtle-twin-thrusters{z-index:0}
-.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster{width:12px;height:20px;bottom:0;background:radial-gradient(ellipse at 50% 8%,#fff 0 8%,#c9fbff 20%,#73e8ff 43%,#329ddd88 68%,transparent 100%);box-shadow:0 0 6px #7ceaff;filter:blur(.25px);animation:assault-turtle-engine-pulse .48s ease-in-out infinite alternate;transform-origin:50% 0}
-.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster:first-child{left:calc(50% - 11px);animation-delay:0s}
-.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster:last-child{left:calc(50% + 11px);animation-delay:0s}
+.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster{width:10.8px;height:20px;bottom:0;background:radial-gradient(ellipse at 50% 8%,#fff 0 8%,#c9fbff 20%,#73e8ff 43%,#329ddd88 68%,transparent 100%);box-shadow:0 0 6px #7ceaff;filter:blur(.25px);animation:assault-turtle-engine-pulse .48s ease-in-out infinite alternate;transform-origin:50% 0}
+.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster:first-child{left:calc(50% - 8.4px);animation-delay:0s}
+.ship-topview.assault-turtle-topview .turtle-twin-thrusters .bc-thruster:last-child{left:calc(50% + 8.4px);animation-delay:0s}
 .assault-turtle-charge-silhouette .assault-turtle-topview{transform:rotate(var(--charge-facing-angle));transform-origin:center}
 .assault-turtle-ram-silhouette{transform:rotate(var(--ram-angle))}
 .assault-turtle-ram-silhouette .assault-turtle-topview{transform:rotate(var(--ram-facing-angle));transform-origin:center}
