@@ -116,3 +116,5 @@
 .mission-claim-total .mission-resource-icon{width:22px;height:22px}
 .mission-claim-total .mission-item-icon{width:24px;height:24px}
 .mission-claim-card button{min-width:120px;padding:9px 18px;border:1px solid #ffd27a;border-radius:8px;background:#2a2108;color:#ffe2a6;font-family:var(--font-body);font-size:14px;cursor:pointer}
+.mission-claim.mission-go{border-color:#6bc4ee;background:linear-gradient(180deg,#1e5f86,#123a55);color:#e4f7ff;cursor:pointer;box-shadow:0 0 10px #4cb4e644}
+.mission-claim.mission-go:hover{filter:brightness(1.18)}

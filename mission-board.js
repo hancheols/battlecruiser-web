@@ -183,6 +183,16 @@
     syncMissionAlert();
   };
 
+  // 일일명령: 진행 중인 항목의 버튼은 '이동'이 되어, 누르면 그 명령을 수행하는 메뉴로 보내 준다.
+  const DAILY_MOVES = {
+    research: () => { window.openResearchLab?.(); window.summonTab?.('weapon'); },
+    patrol: () => window.show?.('map'),
+    sweep: () => window.show?.('map'),
+    resource: () => window.show?.('map'),
+    scan: () => { window.openResearchLab?.(); window.summonTab?.('ship'); },
+    sortie: () => window.show?.('collection'),
+    'arena-join': () => { window.show?.('home'); window.openArena?.(); }
+  };
   const missionMarkup = (mission, category) => {
     const tier = currentTier(category, mission);
     const count = claimedCount(category, mission);
@@ -192,7 +202,8 @@
     const complete = !!tier && progressOf(category, mission) >= tier.goal;
     const done = !tier;
     const percent = done ? 100 : Math.min(100, Math.round((progressOf(category, mission) / shown.goal) * 100));
-    const buttonLabel = done ? '완료' : complete ? '보상 수령' : '진행 중';
+    const canMove = category.id === 'daily' && !done && !complete && !!DAILY_MOVES[mission.id];
+    const buttonLabel = done ? '완료' : complete ? '보상 수령' : canMove ? '이동' : '진행 중';
     return `<article class="mission-item${complete ? ' is-complete' : ''}${done ? ' is-claimed' : ''}">
       <span class="mission-symbol" aria-hidden="true">${mission.icon}</span>
       <div class="mission-info">
@@ -200,7 +211,7 @@
         <div class="mission-progress" aria-label="진행률 ${percent}%"><i style="width:${percent}%"></i></div>
         <div class="mission-reward"><small>COMPLETION REWARD</small>${rewardMarkup(shown.reward)}</div>
       </div>
-      <button class="mission-claim" type="button" data-mission-claim="${mission.id}" ${complete ? '' : 'disabled'}>${buttonLabel}</button>
+      <button class="mission-claim${canMove ? ' mission-go' : ''}" type="button" ${canMove ? `data-mission-go="${mission.id}"` : `data-mission-claim="${mission.id}" ${complete ? '' : 'disabled'}`}>${buttonLabel}</button>
     </article>`;
   };
 
@@ -262,6 +273,13 @@
       // 모두 받기는 현재 탭의 보상만 받는다.
       if (event.target.closest('[data-mission-claim-all]')) {
         claimAllIn(category);
+        return;
+      }
+      const goButton = event.target.closest('[data-mission-go]');
+      if (goButton) {
+        const move = DAILY_MOVES[goButton.dataset.missionGo];
+        closeMissionBoard();
+        move?.();
         return;
       }
       const missionButton = event.target.closest('[data-mission-claim]');
