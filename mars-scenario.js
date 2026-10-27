@@ -1022,7 +1022,7 @@
   // 출격 직후 대화 단계(새로고침하면 준비된 전투가 사라지므로 다음 출격 때 다시 보여줌). 오르트 20관문은 보호막 함선 권고에 따라 편성을 바꿀 수 있게 [전투 개시]를 기다립니다.
   const PREBATTLE_STAGES=[...AUTO_START_STAGES,'oort20'];
   // 대사 중간에 보상을 주는 지점: 해당 줄에서 [계속]을 누르면 지급 + 물자창고 이송 연출 후 다음 줄로 넘어갑니다.
-  const REWARD_ICON={gold:['골드','gold-resource-icon.svg'],precisionScout:['정밀탐색드론','icons/precision-scout-drone.webp'],ssrShipTicket:['SSR 함선 선택 교환권','icons/ssr-ship-ticket.svg?v=3'],frameTicket:['함선골조 교환권','icons/frame-ticket.svg?v=2'],frameCannon:['함포 골조','icons/ship-frame.png'],frameMissile:['미사일 골조','icons/ship-frame.png'],frameLaser:['레이저포 골조','icons/ship-frame.png'],framePiercing:['관통레이저 골조','icons/ship-frame.png'],frameCarrier:['함재기 골조','icons/ship-frame.png'],goldVault:['금고','icons/vault.png'],thoriumBox:['토륨 상자','icons/thorium-box.png'],thorium:['토륨','thorium-crystal-icon.png'],scoutTron:['탐사드론','icons/scout-drone.png'],researchStaff:['연구인력','icons/research-personnel-20261002.png'],journal:['연구일지','icons/research-journal.png'],core:['범용연구코어','icons/research-core.png']};
+  const REWARD_ICON={gold:['골드','gold-resource-icon.svg'],precisionScout:['정밀탐색드론','icons/precision-scout-drone.webp'],ssrShipTicket:['SSR 함선 선택 교환권','icons/ssr-ship-ticket.svg?v=3'],frameTicket:['함선골조 교환권','icons/frame-ticket.svg?v=2'],frameCannon:['함포 골조','icons/ship-frame.png'],frameMissile:['미사일 골조','icons/ship-frame.png'],frameLaser:['레이저포 골조','icons/ship-frame.png'],framePiercing:['관통레이저 골조','icons/ship-frame.png'],frameCarrier:['함재기 골조','icons/ship-frame.png'],frameElectric:['전기무기 골조','icons/ship-frame.png'],goldVault:['금고','icons/vault.png'],thoriumBox:['토륨 상자','icons/thorium-box.png'],thorium:['토륨','thorium-crystal-icon.png'],scoutTron:['탐사드론','icons/scout-drone.png'],researchStaff:['연구인력','icons/research-personnel-20261002.png'],journal:['연구일지','icons/research-journal.png'],core:['범용연구코어','icons/research-core.png']};
   const rewardSteps={
     'nep-g5-bridge':{index:3,flag:'nepG5RewardGranted',kicker:'HEADQUARTERS · MERIT SUPPLIES',title:'사령부 공적 치하 물자',rewards:{precisionScout:20,scoutTron:20,researchStaff:20,gold:200000}},
     'tapao-g10-lab':{index:4,flag:'tapaoG10LabRewardGranted',kicker:'EVA-9 · DEPARTURE SUPPLIES',title:'관문 돌입 대비 물자',rewards:{precisionScout:20,researchStaff:20}},
@@ -1259,7 +1259,7 @@
     const count=value=>Math.max(0,Math.floor(Number(value)||0));
     const loot=read(LOOT_KEY)||{},research=read(RESEARCH_KEY)||{};
     const balances={gold:0,thorium:0,...(read(RESOURCE_KEY)||{}),...(window.gameResources||{})};
-    for(const key of ['scoutTron','precisionScout','researchStaff','goldVault','thoriumBox','ssrShipTicket','frameTicket','frameCannon','frameMissile','frameLaser','framePiercing','frameCarrier'])if(step.rewards[key])loot[key]=count(loot[key])+step.rewards[key];
+    for(const key of ['scoutTron','precisionScout','researchStaff','goldVault','thoriumBox','ssrShipTicket','frameTicket','frameCannon','frameMissile','frameLaser','framePiercing','frameCarrier','frameElectric'])if(step.rewards[key])loot[key]=count(loot[key])+step.rewards[key];
     if(step.rewards.journal)research.researchJournal=count(research.researchJournal)+step.rewards.journal;
     if(step.rewards.core)research.researchCore=count(research.researchCore)+step.rewards.core;
     for(const key of ['gold','thorium'])if(step.rewards[key])balances[key]=count(balances[key])+step.rewards[key];

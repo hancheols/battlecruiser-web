@@ -1,7 +1,7 @@
 const explorationLootCatalog={
   ssrShipTicket:{name:'SSR 함선 선택 교환권',icon:'🎫',image:'icons/ssr-ship-ticket.svg?v=3',category:'resource',detail:'원하는 SSR 등급 함선 1척과 교환할 수 있는 교환권'},
   goldVault:{name:'금고',icon:'▣',image:'icons/vault.png',category:'resource',detail:'사용하면 확률에 따라 골드를 획득합니다'},
-  frameTicket:{name:'함선골조 교환권',icon:'🎟',image:'icons/frame-ticket.svg',category:'resource',detail:'함선 골조 5종 중 하나를 골라 획득하는 보급권'},
+  frameTicket:{name:'함선골조 교환권',icon:'🎟',image:'icons/frame-ticket.svg',category:'resource',detail:'함선 골조 6종 중 하나를 골라 획득하는 보급권'},
   thoriumBox:{name:'토륨 상자',icon:'🔷',image:'icons/thorium-box.png',category:'resource',detail:'사용하면 확률에 따라 토륨을 획득합니다'},
   researchBag:{name:'연구자료 가방',icon:'▤',image:'icons/research-data-bag.png',category:'resource',detail:'사용하면 연구일지 1~5개와 10% 확률로 분야가 지정된 전용 연구코어 1개를 획득합니다. 연구일지는 수량이 많을수록 확률이 낮습니다'},
   scoutTron:{name:'탐색드론',icon:'◉',image:'icons/scout-drone.png?v=20260929-2',category:'resource',detail:'탐색 보조 장비'},
@@ -12,7 +12,8 @@ const explorationLootCatalog={
   frameMissile:{name:'미사일 골조',weapon:'미사일',icon:'🚀',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 미사일'},
   frameLaser:{name:'레이저포 골조',weapon:'레이저포',icon:'⌁',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 레이저포'},
   framePiercing:{name:'관통레이저 골조',weapon:'관통레이저',icon:'╫',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 관통레이저'},
-  frameCarrier:{name:'함재기 골조',weapon:'함재기',icon:'✈️',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 함재기'}
+  frameCarrier:{name:'함재기 골조',weapon:'함재기',icon:'✈️',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 함재기'},
+  frameElectric:{name:'전기무기 골조',weapon:'전기',icon:'⚡',image:'icons/ship-frame.png',category:'frame',detail:'무기종류: 전기'}
 };
 const explorationLootStorageKey='starfleet-exploration-loot-v1';
 const gameResourceStorageKey='starfleet-game-resources-v1';
@@ -229,8 +230,8 @@ window.addEventListener('DOMContentLoaded', () => {
       };
     };
     // SSR 함선 선택 교환권: 함선도감처럼 SSR 함선 목록을 띄우고, 고른 뒤 하단 [선택] → 확인 → 교환.
-    // 함선골조 교환권: 골조 5종 중 하나를 고르면 보급권 1개를 소모하고 그 골조를 1개 획득한다.
-    const FRAME_CHOICES=['frameCannon','frameMissile','frameLaser','framePiercing','frameCarrier'];
+    // 함선골조 교환권: 골조 6종 중 하나를 고르면 보급권 1개를 소모하고 그 골조를 1개 획득한다.
+    const FRAME_CHOICES=['frameCannon','frameMissile','frameLaser','framePiercing','frameCarrier','frameElectric'];
     const openFrameTicketPicker=(item,onDone)=>{
       const popup=document.createElement('div');popup.className='inventory-item-modal-overlay inventory-ticket-overlay';
       popup.innerHTML=`<section class="inventory-ticket-codex" role="dialog" aria-modal="true" aria-label="함선골조 교환권">
@@ -877,7 +878,9 @@ function initializeFleetFormation(){
   const materialOptions=(target,currentStars,nextStars,targetRarity=target.rarity)=>{
     const requiredStars=materialStarRequirement(nextStars,targetRarity,currentStars);
     const weapons=weaponTypesFor(target);
-    const frameOptions=['R','SR','SSR'].includes(targetRarity)?Object.entries(window.getExplorationLootInventory?.()||{}).flatMap(([itemId,count])=>{
+    // 별 1성으로 올리는 강화(0→1)는 반드시 동일 함선만 재료로 쓴다.
+    const identicalOnly=nextStars===1;
+    const frameOptions=!identicalOnly&&['R','SR','SSR'].includes(targetRarity)?Object.entries(window.getExplorationLootInventory?.()||{}).flatMap(([itemId,count])=>{
       const item=explorationLootCatalog[itemId],amount=Math.max(0,Math.floor(Number(count)||0));
       if(!item||item.category!=='frame'||!amount||!weapons.includes(String(item.weapon||'').replace(/\s/g,'')))return [];
       return [{ship:{name:item.name,frameLabel:`무기종류: ${item.weapon} · 함선골조`,type:target.type,frameId:itemId,isFrame:true,rarity:targetRarity,image:item.image,profile:[null,item.weapon]},stars:requiredStars,copies:amount,rarity:targetRarity,inventoryItemId:itemId}];
@@ -885,7 +888,7 @@ function initializeFleetFormation(){
     return [...ownedCatalogShips.flatMap(candidate=>{
       const frameCandidate=candidate.isFrame&&compatibleFrame(target,candidate);
       const pandoraPair=(target.name==='판도라'||candidate.name==='판도라')&&!candidate.isFrame&&candidate.name!==target.name&&sharesWeaponType(target,candidate);
-      const allowed=targetRarity==='R'?(sameShip(target,candidate)||frameCandidate):(sameShip(target,candidate)||compatibleSameTierShip(target,candidate,targetRarity,nextStars)||pandoraPair||frameCandidate);
+      const allowed=identicalOnly?sameShip(target,candidate):targetRarity==='R'?(sameShip(target,candidate)||frameCandidate):(sameShip(target,candidate)||compatibleSameTierShip(target,candidate,targetRarity,nextStars)||pandoraPair||frameCandidate);
       if(!allowed)return [];
       const entry=shipVariants(candidate).find(item=>item.stars===requiredStars&&item.rarity===targetRarity);if(!entry)return [];
       const isCurrentVariant=shipKey(candidate)===shipKey(target)&&requiredStars===currentStars;
@@ -1275,7 +1278,7 @@ function initializeFleetFormation(){
     overlay.addEventListener('keydown',event=>{if(event.key==='Escape')close();});
     overlay.querySelector('.ssr-guarantee-picker-close').focus();
   };
-  const frameRewardIds=['frameCarrier','frameCannon','frameMissile','frameLaser','framePiercing'];
+  const frameRewardIds=['frameCarrier','frameCannon','frameMissile','frameLaser','framePiercing','frameElectric'];
   const ownedCatalogShips=[...availableFleetShips];
   // 정밀탐색: L 2%, SSR 7%, SR 35%, R 45%, 함선골조 10%, 태양티끌 1% = 총 100%. 함선·함선골조·태양티끌만 나온다.
   const drawPrecisionReward=()=>{
