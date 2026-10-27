@@ -1003,3 +1003,6 @@
 /* 아스만 병참기지: 우주항모 등 적 함선이 체력바·상단 메뉴 뒤까지 이어서 보이게(전장 위쪽 가장자리에서 자르지 않는다) */
 .battle-viewport[data-region="asman-supply"] .space-battlefield{overflow:visible}
 .lionheart-quad-thrusters .bc-thruster:nth-child(1),.lionheart-quad-thrusters .bc-thruster:nth-child(4){width:10px}
+/* 돌격 거북선 미사일 곡선 궤적의 연기 꼬리 */
+.fx-missile-puff{position:absolute;z-index:19;width:9px;height:9px;margin:-4px 0 0 -4px;border-radius:50%;background:radial-gradient(circle,#ffe9b0 0,#ff9a4a 38%,#9a5a3a66 62%,transparent 74%);pointer-events:none;animation:fx-puff .5s ease-out forwards}
+@keyframes fx-puff{from{opacity:.85;transform:scale(.6)}to{opacity:0;transform:scale(2.1)}}

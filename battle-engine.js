@@ -391,7 +391,7 @@
   const MAGELLAN_MAIN = { hits: 500, enhancedHits: 700, duration: 3000, radius: .2, stun: 2000, fleetSpeedBonus: .5, fleetSpeedDuration: 3000 };
   const ASSAULT_TURTLE_MISSILE = { hits: 400, interval: 330, travel: 420, fx: 'missile', splashRadius: 56, enhancedRadiusRatio: 1.3 };
   const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, duration: 2000, travel: 360 };
-  const ASSAULT_TURTLE_CHARGE = { travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
+  const ASSAULT_TURTLE_CHARGE = { stopShort: .17, stopShortBoss: .24, travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
   // 궁니르(L급 중전함): 좌우 날개 전기 줄기 500 · 1초 간격 · 2회 전이 / 오딘의 가호: 적 전체 전기충격 500 + 1초 기절·기술차단, 아군 전체 5초 전기보호막
@@ -9863,8 +9863,9 @@
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
     const distance = Math.hypot(dx, dy) || 1;
-    const stop = bossCharge ? .022 : .045;
-    const travel = Math.max(ASSAULT_TURTLE_CHARGE.minTravel, distance - stop);
+    // 돌격은 적 목표물에 닿지 않는 곳(함체 길이만큼 앞)에서 멈춘다. 충돌 피해는 멈춘 자리에서 뻗는 충격파가 준다.
+    const stop = bossCharge ? ASSAULT_TURTLE_CHARGE.stopShortBoss : ASSAULT_TURTLE_CHARGE.stopShort;
+    const travel = Math.max(.04, distance - stop);
     // 아레나 상대 돌격 거북선은 세로 범위를 진영 대칭으로 쓴다(아군 .14~.76, 상대 .24~.86).
     const minY = mirrored ? .24 : .14;
     const maxY = mirrored ? .86 : .76;
@@ -9887,6 +9888,35 @@
     }
   }
 
+  // 돌격 거북선 미사일: 직선이 아니라 한쪽으로 휘어 날아가 목표로 꺾여 들어가는 곡선 궤적(2차 곡선)과 연기 꼬리.
+  function curveAssaultTurtleMissile(missile, from, to, travel) {
+    const rect = refs.field.getBoundingClientRect();
+    const dx = (to.x - from.x) * rect.width, dy = (to.y - from.y) * rect.height;
+    const distance = Math.hypot(dx, dy) || 1;
+    const side = Math.random() < .5 ? -1 : 1;
+    const bend = distance * (.26 + Math.random() * .12) * side;
+    const control = { x: dx / 2 + (-dy / distance) * bend, y: dy / 2 + (dx / distance) * bend };
+    const steps = 14, frames = [], samples = [];
+    for (let index = 0; index <= steps; index += 1) {
+      const t = index / steps, u = Math.pow(t, 1.25);
+      const x = 2 * (1 - u) * u * control.x + u * u * dx, y = 2 * (1 - u) * u * control.y + u * u * dy;
+      const tx = 2 * (1 - u) * control.x + 2 * u * (dx - control.x), ty = 2 * (1 - u) * control.y + 2 * u * (dy - control.y);
+      frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${(Math.atan2(ty, tx) + Math.PI / 2).toFixed(3)}rad)`, opacity: index === steps ? .25 : 1, offset: t });
+      samples.push({ x: from.x + x / rect.width, y: from.y + y / rect.height, at: t });
+    }
+    missile.style.animation = 'none';
+    missile.animate(frames, { duration: travel, easing: 'linear', fill: 'forwards' });
+    samples.filter((_, index) => index > 0 && index < steps && index % 2 === 0).forEach(point => schedule(() => {
+      if (!refs.effects) return;
+      const puff = document.createElement('i');
+      puff.className = 'fx-missile-puff';
+      puff.style.left = percent(point.x);
+      puff.style.top = percent(point.y);
+      refs.effects.append(puff);
+      schedule(() => puff.remove(), 520);
+    }, point.at * travel));
+  }
+
   function launchAssaultTurtleMissile(ally, from, target, damage, travel, barrage = false) {
     if (!target || target.dead) return;
     const to = pointOf(target);
@@ -9894,6 +9924,7 @@
     missile.className = 'fx-missile assault-turtle-missile';
     positionProjectile(missile, from, to);
     refs.effects.append(missile);
+    curveAssaultTurtleMissile(missile, from, to, travel);
     schedule(() => missile.remove(), travel + 150);
     schedule(() => {
       if (!state || state.status !== 'combat') return;
