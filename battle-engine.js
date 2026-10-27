@@ -2191,6 +2191,9 @@
     state.paused = false;
     state.elapsed = 0;
     state.lastFrame = performance.now();
+    // 전투를 개시하는 순간의 선봉 함선 자리(이후 기술로 옮겨 다녀도 이 높이를 기준으로 연출한다).
+    const startFront = state.allies.find(ally => ally.role === '선봉') || state.allies[0];
+    state.vanguardLine = startFront ? { x: Number(startFront.x), y: Number(startFront.y) } : null;
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
     refs.battleStart.hidden = true;
     refs.battleSkip.hidden = Boolean(state.arenaMatch || state.bounty);
@@ -12167,8 +12170,8 @@
     const enemies = orbit10AlienFleet();
     // 유키히사 함대 4척은 아군 선봉 함선과 같은 높이의 가로줄에서 선봉의 좌우 두 척씩 나타난다.
     const xs = [.14, .32, .68, .86];
-    // 선봉 함선의 기본 자리 높이(createAlly의 basePositions[0].y). 라이온하트 포효·히페리온 도약 등으로 선봉이 잠시 다른 곳에 있어도 같은 줄에 선다.
-    const lineY = .71;
+    // 전투 개시 때 기록한 선봉 함선의 높이. 라이온하트 포효·히페리온 도약 등으로 선봉이 잠시 다른 곳에 있어도 같은 줄에 선다.
+    const lineY = Number(state.vanguardLine?.y) || .71;
     const ys = xs.map(() => lineY);
     state.tapaoStoryCruisers = [];
     xs.forEach((x, index) => schedule(() => {
