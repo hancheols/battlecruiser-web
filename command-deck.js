@@ -1637,7 +1637,7 @@ function initializePlanetCampaign() {
     'asman-supply':{name:'아스만 병참기지',en:'ASMAN SUPPLY BASE',count:10,image:'super-neptune-planet-map.png',background:'asman-supply-bg.jpg',
       // 1관문은 그림 가운데를 고정 맵으로, 2~10관문은 확대한 그림 위를 관문마다 다른 가로 위치에서 위아래로 천천히 이동한다.
       gateBackgroundStyle:{1:{size:'auto 100%',x:'50%',scroll:false},2:{size:'auto 230%',x:'20%'},3:{size:'auto 230%',x:'80%'},4:{size:'auto 230%',x:'45%'},5:{size:'auto 230%',x:'65%'},6:{size:'auto 230%',x:'10%'},7:{size:'auto 230%',x:'90%'},8:{size:'auto 230%',x:'30%'},9:{size:'auto 230%',x:'70%'},10:{size:'auto 230%',x:'50%'}}},
-    'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:''},
+    'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:'asman-hq-bg.webp'},
     'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:''}
   };
   window.NEPTUNE_REGIONS = neptuneRegions;
