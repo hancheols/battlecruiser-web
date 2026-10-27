@@ -390,7 +390,7 @@
   const MAGELLAN_CANNON = { hits: 100, interval: 500 };
   const MAGELLAN_MAIN = { hits: 500, enhancedHits: 700, duration: 3000, radius: .2, stun: 2000, fleetSpeedBonus: .5, fleetSpeedDuration: 3000 };
   const ASSAULT_TURTLE_MISSILE = { hits: 400, interval: 330, travel: 420, fx: 'missile', splashRadius: 56, enhancedRadiusRatio: 1.3 };
-  const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, duration: 2000, travel: 180 };   // 난사 미사일 비행 시간(이전 360ms의 절반 = 속도 2배)
+  const ASSAULT_TURTLE_BARRAGE = { hits: 200, shots: 25, perShot: 2, duration: 2000, travel: 180 };   // 난사 미사일 비행 시간(이전 360ms의 절반 = 속도 2배)
   const ASSAULT_TURTLE_CHARGE = { stopShort: .17, stopShortBoss: .24, travel: 525, returnDelay: 2000, shieldDuration: 2000, minTravel: .16, ramDamage: 1000, ramLength: .30, ramAngle: Math.PI / 2, ramStun: 3000, returnBlastRadius: 112, returnBlastRatio: .5, pathRadius: 40 };
   const TURTLE_SHIP_MISSILE = { hits: 250, interval: 330, travel: 360, splashRadius: 56, splashRatio: .5 };
   const TURTLE_SHIP_BOMBARDMENT = { hits: 250, salvos: 9, missilesPerSalvo: 5, interval: 250, turnDuration: 2000, travel: 360 };
@@ -2955,7 +2955,7 @@
     for (let shot = 0; shot < shots; shot += 1) {
       schedule(() => {
         if (!state || state.status !== 'combat' || ship.dead || target.dead) return;
-        const from = { x: ship.x + (shot % 2 ? .035 : -.035), y: ship.y + .13 };
+        const from = alienCenterPoint(ship);
         const to = pointOf(target);
         const beam = document.createElement('i');
         beam.className = `fx-line ${ship.variant === 'kepler-alien-starcruiser' ? 'battlecruiser-laser' : 'kepler-alien-laser'}`;
@@ -3234,7 +3234,7 @@
   }
 
   function fireKeplerShieldbreakerAt(carrier, target) {
-    const from = { x: Math.min(.96, carrier.x + .09), y: carrier.y + .12 };
+    const from = alienCenterPoint(carrier);
     const to = pointOf(target);
     const beam = document.createElement('i');
     beam.className = 'fx-line kepler-carrier-shieldbreaker';
@@ -3327,7 +3327,7 @@
     if (!targets.length) return false;
     targets.forEach((target, index) => {
       const lane = index - (targets.length - 1) / 2;
-      const from = { x: ship.x + lane * .023, y: ship.y + .13 };
+      const center = alienCenterPoint(ship), from = { x: center.x + lane * .023, y: center.y };
       const to = bladeBeamEnd(from, target);
       const beam = document.createElement('i');
       beam.className = 'fx-line kepler-blade-piercing-laser';
@@ -3349,6 +3349,15 @@
     return true;
   }
 
+  // 외계 함선 레이저의 발사 지점: 함선 그림의 정중앙.
+  function alienCenterPoint(ship) {
+    const sprite = ship?.el?.querySelector('.boss-sprite');
+    const field = refs.field?.getBoundingClientRect();
+    if (!sprite || !field?.width) return { x: ship.x, y: ship.y };
+    const rect = sprite.getBoundingClientRect();
+    return { x: (rect.left + rect.width / 2 - field.left) / field.width, y: (rect.top + rect.height / 2 - field.top) / field.height };
+  }
+
   function fireKeplerBladeLaser(ship) {
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
@@ -3357,7 +3366,7 @@
       .filter(ally => !ally.dead)
       .sort((a, b) => Math.hypot((a.x - ship.x) * width, (a.y - ship.y) * height) - Math.hypot((b.x - ship.x) * width, (b.y - ship.y) * height))[0];
     if (!target) return false;
-    const from = { x: ship.x, y: ship.y + .13 };
+    const from = alienCenterPoint(ship);
     const to = bladeBeamEnd(from, target);
     const beam = document.createElement('i');
     beam.className = 'fx-line kepler-blade-piercing-laser';
@@ -9882,8 +9891,11 @@
         if (!state || state.status !== 'combat' || ally.dead) return;
         const targets = shooterTargetsFor(ally);
         if (!targets.length) return;
-        const target = targets[index % targets.length];
-        launchAssaultTurtleMissile(ally, assaultTurtleBarrageMuzzle(ally, index), target, ASSAULT_TURTLE_BARRAGE.hits, ASSAULT_TURTLE_BARRAGE.travel, true);
+        // 한 번 쏠 때마다 미사일 2발(서로 다른 포문·다른 목표)이 나간다.
+        for (let pair = 0; pair < ASSAULT_TURTLE_BARRAGE.perShot; pair += 1) {
+          const target = targets[(index + pair) % targets.length];
+          launchAssaultTurtleMissile(ally, assaultTurtleBarrageMuzzle(ally, index * ASSAULT_TURTLE_BARRAGE.perShot + pair), target, ASSAULT_TURTLE_BARRAGE.hits, ASSAULT_TURTLE_BARRAGE.travel, true);
+        }
       }, Math.round(index * step));
     }
   }
