@@ -1002,3 +1002,4 @@
 .battle-viewport[data-region="asman-supply"] .boss-unit.boss-four-wing{z-index:9}
 /* 아스만 병참기지: 우주항모 등 적 함선이 체력바·상단 메뉴 뒤까지 이어서 보이게(전장 위쪽 가장자리에서 자르지 않는다) */
 .battle-viewport[data-region="asman-supply"] .space-battlefield{overflow:visible}
+.lionheart-quad-thrusters .bc-thruster:nth-child(1),.lionheart-quad-thrusters .bc-thruster:nth-child(4){width:10px}
