@@ -160,7 +160,7 @@
   const stageSpecs = (names, hps, rewards, golds = [0, 0, 0, 0]) => names.map((name, index) => ({ stage: index + 1, name, hp: hps[index], limit: index === 3 ? 60 : 90, reward: rewards[index], gold: golds[index] }));
   const PIRATES = [
     { id: 'black', title: '우주해적 검은수염', image: 'blackbeard.webp', key: 'starfleet-union-bounty-v1', days: [1, 3, 5, 0], dayText: '월·수·금·일', stages: stageSpecs(['검은수염 해적선', '검은수염 대장선', '검은수염 에드', '전설의 검은수염'], [10000, 100000, 1000000, 5000000], [50, 250, 500, 1000]) },
-    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard-top.webp', heroImage: 'redbeard-side.webp', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['발바롯사 함선', '발바롯사 하이레딘', '하이레딘 파샤', '발바롯사 파즐 하이레딘'], [10000, 100000, 500000, 1000000], [50, 250, 500, 1000], [5000, 25000, 30000, 50000]) }
+    { id: 'red', title: '우주해적 붉은수염', image: 'redbeard-top.webp', heroImage: 'redbeard-side.webp?v=2', key: 'starfleet-union-bounty-red-v1', days: [2, 4, 6, 0], dayText: '화·목·토·일', stages: stageSpecs(['발바롯사 함선', '발바롯사 하이레딘', '하이레딘 파샤', '발바롯사 파즐 하이레딘'], [10000, 100000, 500000, 1000000], [50, 250, 500, 1000], [5000, 25000, 30000, 50000]) }
   ];
   const pirateById = id => PIRATES.find(pirate => pirate.id === id);
   const piratesToday = () => PIRATES.filter(pirate => pirate.days.includes(new Date().getDay()));
