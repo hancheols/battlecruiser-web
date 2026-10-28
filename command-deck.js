@@ -1656,7 +1656,13 @@ function initializePlanetCampaign() {
       gateBackgroundStyle:Object.fromEntries(Array.from({length:15},(_,i)=>[i+1,{size:'115% auto',x:'50%',y:i===14?'70px':((14-i)/14*100).toFixed(1)+'%',scroll:false}]))},
     'golden-spire':{name:'황금첨탑',en:'GOLDEN SPIRE',count:5,image:'super-neptune-planet-map.png',background:'golden-spire-bg.webp',
       // 고정 맵: 1관문은 그림 맨 아래 구름바다, 5관문은 맨 위(첨탑 꼭대기, 상단 메뉴에 가리지 않게 70px 내려서)를 보여 주고, 관문마다 조금씩 위로 올라간다.
-      gateBackgroundStyle:Object.fromEntries(Array.from({length:5},(_,i)=>[i+1,{size:'auto 130%',x:'50%',y:i===4?'70px':((4-i)/4*100).toFixed(1)+'%',scroll:false}]))}
+      gateBackgroundStyle:Object.fromEntries(Array.from({length:5},(_,i)=>[i+1,{size:'auto 130%',x:'50%',y:i===4?'70px':((4-i)/4*100).toFixed(1)+'%',scroll:false}])),
+      // 첨탑 방어체계: 관문마다 무기 한 종류가 첨탑에 주는 피해가 50% 줄어든다(1 미사일 · 2 함포 · 3 레이저 · 4 함재기 · 5 전기). 전투 엔진이 같은 표를 읽는다.
+      rules:{1:{weapons:{"미사일":-0.5},ships:{}},
+        2:{weapons:{"함포":-0.5},ships:{}},
+        3:{weapons:{"레이저포":-0.5,"관통레이저":-0.5},ships:{}},
+        4:{weapons:{"함재기":-0.5},ships:{}},
+        5:{weapons:{"전기":-0.5},ships:{}}}}
   };
   window.NEPTUNE_REGIONS = neptuneRegions;
   let neptuneProgress = {'neptune-gate':0,'asman-supply':0,'asman-hq':0,'golden-road':0,'golden-spire':0};

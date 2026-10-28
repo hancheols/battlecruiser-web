@@ -573,6 +573,7 @@
       refs.viewport.style.setProperty('--nep-bg-y', bgStyle?.y || '50%');
       refs.viewport.classList.toggle('neptune-bg-static', !!neptuneBackground && bgStyle?.scroll === false);
       updateAsmanHqPulse(normalizedOperation, bgStyle);
+      updateSpirePulse(normalizedOperation);
     }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
@@ -591,7 +592,7 @@
     const fleet = resolveFleet();
     const blueExtraCount = magentaBlueBonusCount(normalizedOperation);
     const marsFirstGate = normalizedOperation.chapter === 1 && normalizedOperation.region === 'mars' && normalizedOperation.gate === 1;
-    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation) || isTapaoOperation(normalizedOperation) || isNeptuneBaseOperation(normalizedOperation)
+    const enemyTotal = operation.bounty || isKeplerSecretBaseOperation(normalizedOperation) || isTapaoOperation(normalizedOperation) || isNeptuneBaseOperation(normalizedOperation) || isGoldenSpireOperation(normalizedOperation)
       ? 0
       : marsFirstGate
       ? Math.round(ENEMY_WAVE.baseCount * .4)
@@ -670,6 +671,7 @@
       [.14, .4, .64, .88].forEach(y => spawnTapaoGateDecor(y));
     }
     if (isNeptuneBaseOperation(normalizedOperation)) startNeptuneBase(normalizedOperation);
+    if (isGoldenSpireOperation(normalizedOperation)) startGoldenSpire();
     if (operation.bounty) {
       // 현상수배: 일반 적 없이 보스 한 척과 제한시간 안에 싸운다.
       state.bounty = { ...operation.bounty };
@@ -1148,6 +1150,160 @@
     ];
     return parts.join(' · ');
   };
+  // ── 황금첨탑(챕터 5) ────────────────────────────────────────────────────────────────
+  // 배경(고정 맵)의 큰 첨탑 1기(내구 100000)와 작은 첨탑(내구 70000)이 아군을 1초마다 레이저(100 피해)로 쏜다. 다른 적은 없고, 화면에 보이는 첨탑을 모두 부수면 클리어한다.
+  // 관문마다 무기 한 종류가 주는 피해가 줄어든다(NEPTUNE_REGIONS['golden-spire'].rules). 좌표는 배경 그림(1086×1448) 기준 px다.
+  const SPIRE_IMAGE = { w: 1086, h: 1448 };
+  const SPIRE_LASER = { damage: 100, interval: 1000 };
+  const SPIRE_TOWERS = [
+    { id: 'main', name: '황금첨탑', big: true, hp: 100000, x: 532, y: 600, tip: 300, glow: 26, delay: 0 },
+    { id: 'ul', name: '작은 첨탑', hp: 70000, x: 302, y: 585, tip: 505, glow: 13, delay: .5 },
+    { id: 'ur', name: '작은 첨탑', hp: 70000, x: 761, y: 585, tip: 505, glow: 13, delay: .5 },
+    { id: 'l', name: '작은 첨탑', hp: 70000, x: 138, y: 765, tip: 665, glow: 13, delay: .9 },
+    { id: 'r', name: '작은 첨탑', hp: 70000, x: 926, y: 765, tip: 665, glow: 13, delay: .9 },
+    { id: 'll', name: '작은 첨탑', hp: 70000, x: 299, y: 933, tip: 855, glow: 13, delay: 1.3 },
+    { id: 'lr', name: '작은 첨탑', hp: 70000, x: 780, y: 933, tip: 855, glow: 13, delay: 1.3 }
+  ];
+  // 중앙 빛줄기(아래로 흐름)와 작은 첨탑 아래로 떨어지는 빛줄기: [x, 시작 y, 끝 y, 늦춤(초)]
+  const SPIRE_BEAMS = [[532, 740, 870, .3], [532, 870, 1010, .6], [532, 1010, 1160, .9], [532, 1160, 1320, 1.2], [299, 1000, 1210, 1.3], [299, 1210, 1448, 1.7], [780, 1000, 1210, 1.3], [780, 1210, 1448, 1.7]];
+  const SPIRE_ATTACK_WEAPON = Object.assign({}, WEAPON_BY_ATTACK, { 'cannon-splash': '함포', melt: '레이저포' });
+  function isGoldenSpireOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'golden-spire';
+  }
+  function goldenSpireRule(operation = state?.operation) {
+    return window.NEPTUNE_REGIONS?.['golden-spire']?.rules?.[Number(operation?.gate)] || null;
+  }
+  // 첨탑이 받는 피해 배율: 관문 규칙의 무기종류(공격 종류가 따로 안 오면 함선의 무기종류, 복수면 평균)에 따라 줄어든다.
+  function spireTowerMultiplier(source, target, attackType) {
+    if (target?.variant !== 'spire-tower') return 1;
+    const rule = goldenSpireRule();
+    if (!rule) return 1;
+    const hitWeapon = SPIRE_ATTACK_WEAPON[attackType];
+    if (hitWeapon) return 1 + (Number(rule.weapons?.[hitWeapon]) || 0);
+    const ship = (source?.owner || source)?.ship;
+    if (!ship) return 1;
+    const kinds = String(ship.profile?.[1] || '').split('·').map(value => value.trim()).filter(Boolean);
+    return kinds.length ? kinds.reduce((sum, kind) => sum + 1 + (Number(rule.weapons?.[kind]) || 0), 0) / kinds.length : 1;
+  }
+  // 배경 그림이 전투 화면 어디에 놓였는지(고정 맵 배경 크기·위치와 같은 계산)와, 그 위 그림 좌표를 전장 비율로 바꾸는 함수
+  function spireGeometry() {
+    if (!refs.viewport || !refs.field) return null;
+    const vr = refs.viewport.getBoundingClientRect(), fr = refs.field.getBoundingClientRect();
+    if (!vr.width || !fr.width || !fr.height) return null;
+    const style = window.NEPTUNE_REGIONS?.['golden-spire']?.gateBackgroundStyle?.[Number(state?.operation?.gate)] || {};
+    const factor = (parseFloat(String(style.size || '').match(/auto\s+([\d.]+)%/)?.[1]) || 130) / 100;
+    const imgH = vr.height * factor, scale = imgH / SPIRE_IMAGE.h, imgW = SPIRE_IMAGE.w * scale;
+    const yText = String(style.y ?? '50%');
+    const offY = yText.endsWith('px') ? parseFloat(yText) : (vr.height - imgH) * (parseFloat(yText) || 0) / 100;
+    const offX = (vr.width - imgW) * (parseFloat(String(style.x ?? '50%')) || 50) / 100;
+    return { vr, fr, scale, imgW, imgH, offX, offY, key: [vr.width, vr.height, fr.left - vr.left, fr.top - vr.top, fr.width, fr.height].map(value => Math.round(value)).join(',') };
+  }
+  const spirePoint = (g, ix, iy) => ({ x: (g.vr.left - g.fr.left + g.offX + ix * g.scale) / g.fr.width, y: (g.vr.top - g.fr.top + g.offY + iy * g.scale) / g.fr.height });
+  function updateSpirePulse(operation) {
+    refs.viewport?.querySelectorAll('.sp-layer').forEach(layer => layer.remove());
+    if (!refs.viewport || !isGoldenSpireOperation(operation)) return;
+    // 에너지 흐름: 큰 첨탑 → 작은 첨탑 → 아래 빛줄기 순으로 늦춤을 두어, 중앙에서 바깥·아래로 퍼지는 방향이 느껴진다(5초 주기). 원형 파장은 7초 주기.
+    const pct = (value, total) => (value / total * 100).toFixed(2);
+    const glows = SPIRE_TOWERS.map(tower => `<i class="sp-glow${tower.big ? ' big' : ''}" data-tower="${tower.id}" style="left:${pct(tower.x, SPIRE_IMAGE.w)}%;top:${pct(tower.big ? 400 : tower.y - 40, SPIRE_IMAGE.h)}%;width:${tower.glow}%;animation-delay:${tower.delay}s"></i>`).join('');
+    const beams = SPIRE_BEAMS.map(([x, from, to, delay]) => `<i class="sp-beam" style="left:${pct(x, SPIRE_IMAGE.w)}%;top:${pct(from, SPIRE_IMAGE.h)}%;height:${pct(to - from, SPIRE_IMAGE.h)}%;animation-delay:${delay}s"></i>`).join('');
+    const layer = document.createElement('div');
+    layer.className = 'sp-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.innerHTML = `<i class="sp-wave" style="left:${pct(532, SPIRE_IMAGE.w)}%;top:${pct(714, SPIRE_IMAGE.h)}%"></i>${glows}${beams}`;
+    refs.viewport.insertBefore(layer, refs.viewport.firstChild);
+  }
+  function startGoldenSpire() {
+    const spire = state.goldenSpire = { towers: [], built: false, geoKey: '', total: 0 };
+    const generation = state;
+    let attempts = 0;
+    const build = () => {
+      if (state !== generation || spire.built) return;
+      const g = spireGeometry();
+      if (!g) { if (attempts++ < 60) requestAnimationFrame(build); return; }
+      spire.built = true;
+      SPIRE_TOWERS.forEach(spec => {
+        const point = spirePoint(g, spec.x, spec.y);
+        // 큰 첨탑은 항상 있고, 작은 첨탑은 이 관문의 화면 안에 들어오는 것만 선다(화면 가로가 좁은 기기는 가장자리 첨탑이 잘려 나간다).
+        if (!spec.big && (point.x < .06 || point.x > .94 || point.y < .13 || point.y > .82)) return;
+        const tower = {
+          id: `spire-${spec.id}`, kind: 'boss', variant: 'spire-tower', name: spec.name, big: !!spec.big, spec,
+          hp: spec.hp, maxHp: spec.hp, x: point.x, y: point.y, tipY: point.y, concealed: false, dead: false, stun: 0,
+          nextShot: 700 + spire.towers.length * 260, cursor: spire.towers.length, requiredForGate: false
+        };
+        const element = document.createElement('div');
+        element.className = `spire-tower ${spec.big ? 'big' : 'small'}`;
+        element.innerHTML = '<span class="st-hp"><i></i></span>';
+        tower.el = element;
+        refs.enemyLayer.append(element);
+        state.midBosses.push(tower);
+        spire.towers.push(tower);
+        spire.total += spec.hp;
+      });
+      state.normalTotal = spire.total;
+      state.kills = 0;
+      layoutGoldenSpire(g);
+      updateHud(true);
+    };
+    build();
+  }
+  function layoutGoldenSpire(g) {
+    const spire = state.goldenSpire;
+    spire.geoKey = g.key;
+    const layer = refs.viewport?.querySelector('.sp-layer');
+    if (layer) layer.style.cssText = `left:${g.offX.toFixed(1)}px;top:${g.offY.toFixed(1)}px;width:${g.imgW.toFixed(1)}px;height:${g.imgH.toFixed(1)}px`;
+    spire.towers.forEach(tower => {
+      const point = spirePoint(g, tower.spec.x, tower.spec.y);
+      tower.x = point.x; tower.y = point.y;
+      tower.tipY = Math.max(.07, spirePoint(g, tower.spec.x, tower.spec.tip).y);
+      const size = (tower.big ? 150 : 74) * (g.scale / .754);
+      if (tower.el) tower.el.style.cssText = `left:${percent(tower.x)};top:${percent(tower.y)};width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px`;
+    });
+  }
+  function updateGoldenSpire(dt) {
+    const spire = state.goldenSpire;
+    if (!spire?.built || state.status !== 'combat') return;
+    const g = spireGeometry();
+    if (g && g.key !== spire.geoKey) layoutGoldenSpire(g);
+    const allies = state.allies.filter(ally => !ally.dead);
+    let remaining = 0;
+    spire.towers.forEach(tower => {
+      if (tower.dead) return;
+      remaining += Math.max(0, tower.hp);
+      const fill = tower.el?.querySelector('.st-hp i');
+      if (fill) fill.style.width = `${Math.max(0, tower.hp / tower.maxHp * 100)}%`;
+      tower.nextShot -= dt;
+      if (tower.nextShot > 0 || !allies.length) return;
+      tower.nextShot = Math.max(tower.nextShot + SPIRE_LASER.interval, 200);
+      const target = allies[tower.cursor++ % allies.length];
+      tower.el?.classList.add('firing');
+      schedule(() => tower.el?.classList.remove('firing'), 140);
+      enemyProjectile({ kind: 'turret', variant: 'spire-tower', x: tower.x, y: tower.y }, target, 'monster-spike', SPIRE_LASER.damage, null, { x: tower.x, y: tower.tipY }, 'tapao-laser');
+    });
+    // 진행도는 첨탑 내구도를 깎은 만큼 차오른다.
+    state.kills = Math.max(0, spire.total - remaining);
+    if (!remaining && spire.towers.length && state.status === 'combat') finishBattle(true);
+  }
+  function destroySpireTower(tower) {
+    tower.dead = true;
+    const point = pointOf(tower);
+    createExplosion(point, 'enemy');
+    [[-.03, -.03], [.03, -.01], [0, .035], [-.02, .02]].forEach(([dx, dy], index) => schedule(() => createExplosion({ x: point.x + dx * (tower.big ? 1.6 : 1), y: point.y + dy * (tower.big ? 1.6 : 1) }, 'enemy'), 120 + index * 150));
+    state.midBosses = state.midBosses.filter(unit => unit !== tower);
+    tower.el?.classList.add('wrecked');
+    schedule(() => tower.el?.remove(), 900);
+    // 배경 위: 에너지 맥동이 꺼지고 그을린 연기가 남는다.
+    const layer = refs.viewport?.querySelector('.sp-layer');
+    layer?.querySelector(`.sp-glow[data-tower="${tower.spec.id}"]`)?.classList.add('off');
+    if (layer) {
+      const wreck = document.createElement('i');
+      wreck.className = `sp-wreck${tower.big ? ' big' : ''}`;
+      wreck.style.cssText = `left:${(tower.spec.x / SPIRE_IMAGE.w * 100).toFixed(2)}%;top:${((tower.big ? 400 : tower.spec.y - 40) / SPIRE_IMAGE.h * 100).toFixed(2)}%;width:${tower.spec.glow}%`;
+      layer.append(wreck);
+    }
+    announce(tower.big ? '황금첨탑 붕괴' : '작은 첨탑 파괴', 'boss');
+    updateHud();
+  }
+
   // 아스만 병참기지: 1관문은 우주항모+호위함, 2~10관문은 우주항모 + 4익마수 1기. 우주항모는 내구도가 30% 더 높고, 내구도 70%·30%에서 스타크루저를 한 척씩 부른다.
   const ASMAN_CARRIER_HP_FACTOR = 1.3;
   function isAsmanOperation(operation = state?.operation) {
@@ -2276,6 +2432,7 @@
     state.vanguardLine = startFront ? { x: Number(startFront.x), y: Number(startFront.y) } : null;
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
     if (isAsmanHqOperation() && asmanHqRule()) schedule(() => announce(`작전 규칙 · ${window.describeNeptuneRule(asmanHqRule())}`, 'boss'), 1400);
+    if (isGoldenSpireOperation() && goldenSpireRule()) schedule(() => announce(`첨탑 방어체계 · ${window.describeNeptuneRule(goldenSpireRule())}`, 'boss'), 1400);
     refs.battleStart.hidden = true;
     refs.battleSkip.hidden = Boolean(state.arenaMatch || state.bounty);
     syncBattleSpeed();
@@ -2288,7 +2445,7 @@
       spawnBlackbeard();
     } else {
       deployNormalEnemies();
-      if (!isKeplerOperation() && !isNeptuneBaseOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
+      if (!isKeplerOperation() && !isNeptuneBaseOperation() && !isGoldenSpireOperation()) schedule(spawnPiratesIfLucky, 10000 + Math.random() * 5000);
       scheduleMidMonsterArrival();
     }
     if (isKeplerSecretBaseOperation() || isTapaoOperation()) checkBossThreshold();
@@ -2493,6 +2650,7 @@
       if (state.tapaoColony) updateTapaoColonyTurrets(dt);
       if (state.tapaoGateMap) updateTapaoGateMap(dt);
       if (state.neptuneBase) updateNeptuneBase(dt);
+      if (state.goldenSpire) updateGoldenSpire(dt);
       updateAsmanCarrierCalls();
       updateToxicPoison(dt);
       updateColossusShieldThrows(dt);
@@ -3509,7 +3667,7 @@
   function updateBoss(dt) {
     const boss = state.boss;
     state.midBosses?.forEach(monster => {
-      if (monster.dead || monster.variant === 'tapao-turret' || monster.variant === 'neptune-unit') return;
+      if (monster.dead || monster.variant === 'tapao-turret' || monster.variant === 'neptune-unit' || monster.variant === 'spire-tower') return;
       if (monster.entryTime > 0) {
         monster.entryTime = Math.max(0, monster.entryTime - dt);
         const progress = 1 - monster.entryTime / monster.entryDuration;
@@ -6810,7 +6968,7 @@
   function bladeBeamEnd(from, target) {
     const targetPoint = pointOf(target);
     // 타파오 콜로니 포탑이 대상이면 관통레이저가 포탑에서 멈춘다(뒤쪽 적에게 이어지지 않는다).
-    if (target?.variant === 'tapao-turret') return targetPoint;
+    if (target?.variant === 'tapao-turret' || target?.variant === 'spire-tower') return targetPoint;
     const dx = targetPoint.x - from.x;
     const dy = targetPoint.y - from.y;
     if (Math.abs(dx) < .0001 && Math.abs(dy) < .0001) return targetPoint;
@@ -10714,7 +10872,7 @@
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
     // 타파오 통 함종 상성: 우위(+10%)·열세(-10%)는 피해 숫자의 색으로 구분해 보여준다.
-    const tapaoMatchup = tapaoMatchupMultiplier(source, target) * (fixedPackets ? 1 : asmanHqMultiplier(source, target, attackType));
+    const tapaoMatchup = tapaoMatchupMultiplier(source, target) * (fixedPackets ? 1 : asmanHqMultiplier(source, target, attackType)) * spireTowerMultiplier(source, target, attackType);
     const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchup;
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
@@ -11257,7 +11415,7 @@
   }
 
   function isMidMonsterOperation() {
-    if (isTapaoOperation() || isNeptuneBaseOperation()) return false;
+    if (isTapaoOperation() || isNeptuneBaseOperation() || isGoldenSpireOperation()) return false;
     const region = String(state?.operation?.region || '').toLowerCase();
     const gate = Number(state?.operation?.gate) || 0;
     if (isKeplerSecretBaseOperation()) return false;
@@ -11387,6 +11545,7 @@
   }
 
   function isBossGate() {
+    if (isGoldenSpireOperation()) return false;
     const tasAncientBeastGate = isMagentaTasOperation() && Number(state?.operation?.gate) === 5;
     return tasAncientBeastGate || (!isMagentaNearOperation() && !isMagentaTasOperation() && Math.max(1, Number(state?.operation?.gate) || 1) % 5 === 0);
   }
@@ -12155,6 +12314,7 @@
     if (!boss || boss.dead) return;
     if (boss.variant === 'tapao-turret') { destroyTapaoTurret(boss); return; }
     if (boss.variant === 'neptune-unit') { destroyNeptuneUnit(boss); return; }
+    if (boss.variant === 'spire-tower') { destroySpireTower(boss); return; }
     if (boss.variant === 'tas-long-arm') setTasSniperTarget(null);
     boss.toxicMouthGlow?.remove();
     boss.dead = true;

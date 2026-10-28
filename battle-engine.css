@@ -1026,3 +1026,22 @@
 .hq-beam{position:absolute;left:49.8%;width:5%;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(140,205,255,.9) 0,rgba(70,150,255,.45) 42%,transparent 74%);mix-blend-mode:screen;opacity:.12;animation:hq-beam 5s ease-in-out infinite}
 @keyframes hq-beam{0%,100%{opacity:.12}35%{opacity:.5}}
 .hq-beam.diag{width:4.5%;transform:translate(-50%,-50%) rotate(var(--rot,0deg))}
+
+/* 황금첨탑: 배경 첨탑의 에너지 맥동(큰 첨탑에서 작은 첨탑·아래 빛줄기로 번지는 5초 주기, 원형 파장 7초)과 첨탑 목표 */
+.sp-layer{position:absolute;z-index:0;pointer-events:none}
+.sp-glow{position:absolute;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(150,215,255,.95) 0,rgba(70,150,255,.5) 34%,transparent 70%);mix-blend-mode:screen;opacity:.1;animation:hq-pulse 5s ease-in-out infinite}
+.sp-glow.big{aspect-ratio:1/2.2}
+.sp-glow.off{animation:none;opacity:0}
+.sp-beam{position:absolute;width:4.5%;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(140,205,255,.9) 0,rgba(70,150,255,.45) 42%,transparent 74%);mix-blend-mode:screen;opacity:.12;animation:hq-beam 5s ease-in-out infinite}
+.sp-wave{position:absolute;width:44%;aspect-ratio:2/1;border-radius:50%;transform:translate(-50%,-50%);border:3px solid rgba(160,220,255,.75);box-shadow:0 0 12px rgba(90,170,255,.7);opacity:0;animation:hq-wave 7s ease-out infinite}
+.sp-wreck{position:absolute;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(8,8,12,.55) 0,rgba(34,28,26,.3) 40%,transparent 66%);animation:sp-smoke 3.6s ease-in-out infinite alternate}
+.sp-wreck.big{aspect-ratio:1/2.2}
+@keyframes sp-smoke{from{opacity:.45;transform:translate(-50%,-50%) scale(.94)}to{opacity:.8;transform:translate(-50%,-50%) scale(1.06)}}
+.spire-tower{position:absolute;z-index:6;pointer-events:none;border-radius:50%;transition:opacity .8s ease}
+.spire-tower::before{content:"";position:absolute;inset:20%;border:1px dashed rgba(170,225,255,.4);border-radius:50%}
+.spire-tower .st-hp{position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:60px;height:5px;background:rgba(5,12,28,.78);border:1px solid rgba(190,225,255,.85);border-radius:3px;overflow:hidden}
+.spire-tower.big .st-hp{width:104px;height:6px;top:-8px}
+.spire-tower .st-hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#fff2a8,#ffc94a,#ff9a30)}
+.spire-tower.hit::before{border-color:rgba(255,255,255,.9);box-shadow:0 0 14px rgba(190,230,255,.7)}
+.spire-tower.firing::after{content:"";position:absolute;left:50%;top:-6%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0,rgba(150,215,255,.8) 40%,transparent 72%)}
+.spire-tower.wrecked{opacity:0}
