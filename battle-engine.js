@@ -1155,6 +1155,8 @@
   // 관문마다 무기 한 종류가 주는 피해가 줄어든다(NEPTUNE_REGIONS['golden-spire'].rules). 좌표는 배경 그림(1086×1448) 기준 px다.
   const SPIRE_IMAGE = { w: 1086, h: 1448 };
   const SPIRE_LASER = { damage: 100, interval: 1000 };
+  const SPIRE_BIG_HP = { base: 100000, baseSmall: 4, perTower: 70000, min: 30000 };
+  const SPIRE_DISSOLVE_MS = 3000;
   const SPIRE_TOWERS = [
     { id: 'main', name: '황금첨탑', big: true, hp: 100000, x: 532, y: 600, tip: 300, glow: 26, delay: 0 },
     { id: 'ul', name: '작은 첨탑', hp: 70000, x: 302, y: 585, tip: 505, glow: 13, delay: .5 },
@@ -1209,7 +1211,8 @@
     const layer = document.createElement('div');
     layer.className = 'sp-layer';
     layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = `<i class="sp-wave" style="left:${pct(532, SPIRE_IMAGE.w)}%;top:${pct(714, SPIRE_IMAGE.h)}%"></i>${glows}${beams}`;
+    // 돔 보호막이 없는 같은 그림을 맨 아래에 깔아 두고(처음엔 가려 둠), 모든 첨탑이 부서지면 아래에서 위로 드러내 돔이 사라지는 것처럼 보이게 한다.
+    layer.innerHTML = `<img class="sp-nodome" src="golden-spire-nodome.webp" alt="" /><i class="sp-wave" style="left:${pct(532, SPIRE_IMAGE.w)}%;top:${pct(714, SPIRE_IMAGE.h)}%"></i>${glows}${beams}<i class="sp-front"></i>`;
     refs.viewport.insertBefore(layer, refs.viewport.firstChild);
   }
   function startGoldenSpire() {
@@ -1221,13 +1224,18 @@
       const g = spireGeometry();
       if (!g) { if (attempts++ < 60) requestAnimationFrame(build); return; }
       spire.built = true;
-      SPIRE_TOWERS.forEach(spec => {
-        const point = spirePoint(g, spec.x, spec.y);
-        // 큰 첨탑은 항상 있고, 작은 첨탑은 이 관문의 화면 안에 들어오는 것만 선다(화면 가로가 좁은 기기는 가장자리 첨탑이 잘려 나간다).
-        if (!spec.big && (point.x < .06 || point.x > .94 || point.y < .13 || point.y > .82)) return;
+      // 큰 첨탑은 항상 있고, 작은 첨탑은 이 관문의 화면 안에 들어오는 것만 선다(화면 가로가 좁은 기기는 가장자리 첨탑이 잘려 나간다).
+      const placed = SPIRE_TOWERS.map(spec => ({ spec, point: spirePoint(g, spec.x, spec.y) }))
+        .filter(({ spec, point }) => spec.big || !(point.x < .06 || point.x > .94 || point.y < .13 || point.y > .82));
+      // 큰 첨탑 내구도·레이저 피해는 작은 첨탑 4개 기준(100000 · 피해 100)이고, 작은 첨탑이 하나 적을수록 70000씩 늘며 피해도 같은 비율로 는다.
+      const smallCount = placed.filter(({ spec }) => !spec.big).length;
+      const bigHp = Math.max(SPIRE_BIG_HP.min, SPIRE_BIG_HP.base + (SPIRE_BIG_HP.baseSmall - smallCount) * SPIRE_BIG_HP.perTower);
+      placed.forEach(({ spec, point }) => {
+        const hp = spec.big ? bigHp : spec.hp;
         const tower = {
           id: `spire-${spec.id}`, kind: 'boss', variant: 'spire-tower', name: spec.name, big: !!spec.big, spec,
-          hp: spec.hp, maxHp: spec.hp, x: point.x, y: point.y, tipY: point.y, concealed: false, dead: false, stun: 0,
+          hp, maxHp: hp, laserDamage: spec.big ? Math.round(SPIRE_LASER.damage * hp / SPIRE_BIG_HP.base) : SPIRE_LASER.damage,
+          x: point.x, y: point.y, tipY: point.y, concealed: false, dead: false, stun: 0,
           nextShot: 700 + spire.towers.length * 260, cursor: spire.towers.length, requiredForGate: false
         };
         const element = document.createElement('div');
@@ -1237,7 +1245,7 @@
         refs.enemyLayer.append(element);
         state.midBosses.push(tower);
         spire.towers.push(tower);
-        spire.total += spec.hp;
+        spire.total += hp;
       });
       state.normalTotal = spire.total;
       state.kills = 0;
@@ -1277,11 +1285,48 @@
       const target = allies[tower.cursor++ % allies.length];
       tower.el?.classList.add('firing');
       schedule(() => tower.el?.classList.remove('firing'), 140);
-      enemyProjectile({ kind: 'turret', variant: 'spire-tower', x: tower.x, y: tower.y }, target, 'monster-spike', SPIRE_LASER.damage, null, { x: tower.x, y: tower.tipY }, 'tapao-laser');
+      enemyProjectile({ kind: 'turret', variant: 'spire-tower', x: tower.x, y: tower.y }, target, 'monster-spike', tower.laserDamage, null, { x: tower.x, y: tower.tipY }, 'tapao-laser');
     });
     // 진행도는 첨탑 내구도를 깎은 만큼 차오른다.
     state.kills = Math.max(0, spire.total - remaining);
-    if (!remaining && spire.towers.length && state.status === 'combat') finishBattle(true);
+    if (!remaining && spire.towers.length && !spire.cleared) clearGoldenSpire();
+  }
+  // 모든 첨탑 파괴: 돔 보호막이 아래에서 위로 서서히 사라지고, 다 사라지면 클리어한다.
+  function clearGoldenSpire() {
+    const spire = state.goldenSpire;
+    spire.cleared = true;
+    const layer = refs.viewport?.querySelector('.sp-layer');
+    layer?.querySelectorAll('.sp-wave').forEach(wave => wave.remove());
+    layer?.classList.add('dissolving');
+    announce('돔 보호막 소멸', 'friendly');
+    schedule(() => { if (state?.status === 'combat') finishBattle(true); }, SPIRE_DISSOLVE_MS + 400);
+  }
+  // 4익마수: 전투 시작 직후 1기, 이후 30초마다 2기씩 나온다(첨탑을 모두 부수면 멈춘다).
+  const SPIRE_BEASTS = { first: 600, interval: 30000, pair: 2, gap: 700, xs: [.5, .25, .75, .38, .62, .14, .86] };
+  function spawnSpireBeast() {
+    const spire = state?.goldenSpire;
+    if (!spire || state.status !== 'combat' || spire.cleared) return;
+    // 이미 주력(boss) 자리가 차 있어도 겹치지 않게, 나온 4익마수는 곁다리(midBosses)로 옮긴다.
+    const carrier = state.boss;
+    state.boss = null;
+    spawnBoss('four-wing-beast');
+    const beast = state.boss;
+    state.boss = carrier;
+    if (!beast) return;
+    spire.beasts = (spire.beasts || 0) + 1;
+    beast.x = SPIRE_BEASTS.xs[(spire.beasts - 1) % SPIRE_BEASTS.xs.length];
+    beast.el && (beast.el.style.left = percent(beast.x));
+    state.midBosses.push(beast);
+    announce('4익마수 출현', 'boss');
+  }
+  function scheduleSpireBeasts() {
+    schedule(spawnSpireBeast, SPIRE_BEASTS.first);
+    const wave = () => {
+      if (!state || state.status !== 'combat' || state.goldenSpire?.cleared) return;
+      for (let index = 0; index < SPIRE_BEASTS.pair; index += 1) schedule(spawnSpireBeast, index * SPIRE_BEASTS.gap);
+      schedule(wave, SPIRE_BEASTS.interval);
+    };
+    schedule(wave, SPIRE_BEASTS.interval);
   }
   function destroySpireTower(tower) {
     tower.dead = true;
@@ -2433,6 +2478,7 @@
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
     if (isAsmanHqOperation() && asmanHqRule()) schedule(() => announce(`작전 규칙 · ${window.describeNeptuneRule(asmanHqRule())}`, 'boss'), 1400);
     if (isGoldenSpireOperation() && goldenSpireRule()) schedule(() => announce(`첨탑 방어체계 · ${window.describeNeptuneRule(goldenSpireRule())}`, 'boss'), 1400);
+    if (isGoldenSpireOperation()) scheduleSpireBeasts();
     refs.battleStart.hidden = true;
     refs.battleSkip.hidden = Boolean(state.arenaMatch || state.bounty);
     syncBattleSpeed();
@@ -11235,6 +11281,8 @@
 
   function checkBossThreshold() {
     if (!state || state.status !== 'combat') return;
+    // 황금첨탑: 승리는 첨탑을 모두 부술 때만 정해지고(updateGoldenSpire), 4익마수 격파·진행도는 승패나 보스 등장에 영향이 없다.
+    if (isGoldenSpireOperation()) return;
     if (isTapaoColonyOperation()) {
       if (!state.tapaoColonyWaveStarted) {
         state.tapaoColonyWaveStarted = true;
@@ -11572,7 +11620,7 @@
     const machineBeast = requestedVariant === 'machine-beast' && isMachineBeastGate();
     const keplerMachineBeast = machineBeast && isKeplerOperation() && String(state.operation?.region || '').toLowerCase() === 'kepler-orbit';
     const keplerAtmosphereMachineBeast = machineBeast && isKeplerOperation() && String(state.operation?.region || '').toLowerCase() === 'kepler-atmosphere';
-    const fourWingBeast = requestedVariant === 'four-wing-beast' && ((isMagentaAtmosphereOperation() && gate === 5) || isAsmanOperation());
+    const fourWingBeast = requestedVariant === 'four-wing-beast' && ((isMagentaAtmosphereOperation() && gate === 5) || isAsmanOperation() || isGoldenSpireOperation());
     const raptor = isMidMonsterOperation() && !oortRedOverlord && !greenOverlord && !tasArmsGate && !fourWingBeast && !machineBeast;
     const primitiveRaptor = raptor && (isMagentaAtmosphereOperation() || isKeplerOperation());
     const raptorGrowth = normalEnemyGrowth(state.operation).multiplier * (isKeplerOperation() ? 1.8 : 1);
@@ -12393,7 +12441,7 @@
       boss.el.classList.add('destroyed');
       if (!playDeathFx(boss, 'large')) createExplosion(pointOf(boss), 'boss');
       schedule(() => boss.el?.remove(), 420);
-      announce(boss.variant === 'green-overlord' ? '초록대군주 격파 · 남은 몬스터를 섬멸하십시오' : boss.variant === 'four-wing-beast' ? '4익마수 격파 · 관문 통과' : boss.variant === 'primitive-raptor' ? '원시랩터 격파' : '중형 몬스터 격파', 'friendly');
+      announce(boss.variant === 'green-overlord' ? '초록대군주 격파 · 남은 몬스터를 섬멸하십시오' : boss.variant === 'four-wing-beast' ? (isGoldenSpireOperation() ? '4익마수 격파' : '4익마수 격파 · 관문 통과') : boss.variant === 'primitive-raptor' ? '원시랩터 격파' : '중형 몬스터 격파', 'friendly');
       updateHud(true);
       checkBossThreshold();
       return;
@@ -13730,6 +13778,7 @@
 
 
   function updateBossHud(target = state?.boss) {
+    if (target?.variant === 'spire-tower') return;
     const active = [state?.boss, ...(state?.midBosses || [])].filter(boss => boss && !boss.dead && boss.requiredForGate);
     const displayBoss = boss => {
       const ratio = Math.max(0, boss.hp / Math.max(1, boss.maxHp) * 100);
