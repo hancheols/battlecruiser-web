@@ -1059,7 +1059,7 @@
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
   // 지역별 외계 함선 강화(체력·공격력): 행성인근·위성궤도 +10%, 콜로니 +15%, 게이트 +20%.
-  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2, 'asman-supply': 1.2 };
+  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2, 'asman-supply': 1.2, 'asman-hq': 1.4 };
   const tapaoAlienScale = (operation = state?.operation) => TAPAO_ALIEN_SCALES[String(operation?.region || '').toLowerCase()] || 1.1;
   // 함종 상성(타파오 통부터, 아군이 외계 함선을 칠 때만): 중전함 > 구축함 > 순양함 > 중전함. 유리하면 피해 +10%, 불리하면 -10%.
   // 외계 함선의 공격에는 적용하지 않는다. 함재기·포탑처럼 함종이 없는 대상은 상성이 없다.
@@ -1082,8 +1082,43 @@
   const NEPTUNE_ALIEN_HP_FACTOR = 1.2;
   function isNeptuneAlienOperation(operation = state?.operation) {
     const region = String(operation?.region || '').toLowerCase();
-    return Number(operation?.chapter) === 5 && ((region === 'neptune-gate' && Number(operation?.gate) >= 3) || region === 'asman-supply');
+    return Number(operation?.chapter) === 5 && ((region === 'neptune-gate' && Number(operation?.gate) >= 3) || region === 'asman-supply' || region === 'asman-hq');
   }
+
+  // 아스만 사령부: 관문마다 작전 규칙이 있어, 외계 함선이 무기종류·함종에 따라 받는 피해가 달라진다.
+  // 규칙 표는 command-deck.js의 NEPTUNE_REGIONS['asman-hq'].rules 를 읽는다. 값 +0.2 는 20% 더 받음, -0.2 는 20% 덜 받음.
+  const WEAPON_BY_ATTACK = { cannon: '함포', missile: '미사일', laser: '레이저포', piercing: '관통레이저', electric: '전기', thunder: '전기' };
+  const SHIP_TYPE_LABEL = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함' };
+  function isAsmanHqOperation(operation = state?.operation) {
+    return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'asman-hq';
+  }
+  function asmanHqRule(operation = state?.operation) {
+    return window.NEPTUNE_REGIONS?.['asman-hq']?.rules?.[Number(operation?.gate)] || null;
+  }
+  function asmanHqMultiplier(source, target, attackType) {
+    if (!isAsmanHqOperation() || !target?.variant?.startsWith('kepler-alien-')) return 1;
+    const rule = asmanHqRule();
+    const ship = (source?.owner || source)?.ship;
+    if (!rule || !ship) return 1;
+    let weaponFactor = 1;
+    const hitWeapon = WEAPON_BY_ATTACK[attackType];
+    if (hitWeapon) weaponFactor = 1 + (Number(rule.weapons?.[hitWeapon]) || 0);
+    else {
+      // 공격 종류가 따로 오지 않으면 함선의 무기종류(복수면 평균)로 계산한다.
+      const kinds = String(ship.profile?.[1] || '').split('·').map(value => value.replace(/s/g, '')).filter(Boolean);
+      if (kinds.length) weaponFactor = kinds.reduce((sum, kind) => sum + 1 + (Number(rule.weapons?.[kind]) || 0), 0) / kinds.length;
+    }
+    return weaponFactor * (1 + (Number(rule.ships?.[ship.type]) || 0));
+  }
+  // 출격 화면과 전투 시작 안내에 쓰는 규칙 문구
+  window.describeNeptuneRule = rule => {
+    const sign = value => `${value > 0 ? '+' : '−'}${Math.round(Math.abs(value) * 100)}%`;
+    const parts = [
+      ...Object.entries(rule?.weapons || {}).map(([name, value]) => `${name} ${sign(value)}`),
+      ...Object.entries(rule?.ships || {}).map(([type, value]) => `${SHIP_TYPE_LABEL[type] || type} ${sign(value)}`)
+    ];
+    return parts.join(' · ');
+  };
   // 아스만 병참기지: 1관문은 우주항모+호위함, 2~10관문은 우주항모 + 4익마수 1기. 우주항모는 내구도가 30% 더 높고, 내구도 70%·30%에서 스타크루저를 한 척씩 부른다.
   const ASMAN_CARRIER_HP_FACTOR = 1.3;
   function isAsmanOperation(operation = state?.operation) {
@@ -1132,6 +1167,22 @@
       if (gate === 3) return [['escort', 'escort', 'starcruiser'], ['starcruiser', 'starcruiser']];
       if (gate === 4) return [['escort', 'escort', 'escort', 'escort', 'escort'], ['starcruiser', 'starcruiser'], ['starcruiser', 'escort', 'escort']];
       return [['carrier']];
+    }
+    if (region === 'asman-hq') {
+      const esc = 'escort', sc = 'starcruiser', an = 'angela';
+      const flag = Object.assign(['carrier', esc, esc], { xs: [.67, .4, .15] });
+      return [
+        [[esc, esc, esc, esc], [sc, sc]],
+        [[sc, sc, sc], [an, esc, esc]],
+        [[esc, esc, esc, esc, esc], [sc, sc, sc], [an, sc, sc]],
+        [[an, sc, sc], [esc, esc, esc, esc, esc], [sc, sc, sc]],
+        [flag, [an, sc, sc]],
+        [[sc, sc, sc], [an, esc, esc], [an, sc, sc]],
+        [[esc, esc, esc, esc, esc], [an, sc, sc], [an, an, sc]],
+        [[an, an, sc], [sc, sc, sc], [esc, esc, esc, esc, esc]],
+        [[an, an, an], [sc, sc, sc], [an, sc, sc]],
+        [flag, [an, an, sc], [an, an, an]]
+      ][Math.min(10, Math.max(1, gate)) - 1];
     }
     if (region === 'asman-supply') return gate === 1 ? [Object.assign(['carrier', 'escort', 'escort'], { xs: [.67, .4, .15] })] : [['carrier']];
     if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
@@ -2195,6 +2246,7 @@
     const startFront = state.allies.find(ally => ally.role === '선봉') || state.allies[0];
     state.vanguardLine = startFront ? { x: Number(startFront.x), y: Number(startFront.y) } : null;
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
+    if (isAsmanHqOperation() && asmanHqRule()) schedule(() => announce(`작전 규칙 · ${window.describeNeptuneRule(asmanHqRule())}`, 'boss'), 1400);
     refs.battleStart.hidden = true;
     refs.battleSkip.hidden = Boolean(state.arenaMatch || state.bounty);
     syncBattleSpeed();
@@ -10633,7 +10685,7 @@
     // 폭렬탄 스플래시(cannon-splash)는 이미 계산이 끝난 피해의 50%라서 배율·연구 보너스를 다시 곱하지 않는다.
     const fixedPackets = attackType === 'shield' || attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder';
     // 타파오 통 함종 상성: 우위(+10%)·열세(-10%)는 피해 숫자의 색으로 구분해 보여준다.
-    const tapaoMatchup = tapaoMatchupMultiplier(source, target);
+    const tapaoMatchup = tapaoMatchupMultiplier(source, target) * (fixedPackets ? 1 : asmanHqMultiplier(source, target, attackType));
     const basePackets = (fixedPackets ? packets : packets * weaknessMultiplier * plasmaBugMissileMultiplier * pandoraDespairMultiplier * (state.damageBoost > 0 ? 1.1 : 1)) * tapaoTurretMultiplier * tapaoMatchup;
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
@@ -11207,7 +11259,7 @@
     const total = lineup.length;
     const alienScale = isTapaoOperation() ? tapaoAlienScale() : 1;
     const hpFactor = isNeptuneAlienOperation() ? NEPTUNE_ALIEN_HP_FACTOR : 1;
-    const spreadXs = options.xs || lineup.xs || ({ 1: [.5], 2: [.34, .66], 3: [.5, .24, .76], 5: [.5, .3, .7, .12, .88] }[total] || [.5, .24, .76]);
+    const spreadXs = options.xs || lineup.xs || ({ 1: [.5], 2: [.34, .66], 3: [.5, .24, .76], 4: [.34, .66, .14, .86], 5: [.5, .3, .7, .12, .88] }[total] || [.5, .24, .76]);
     state.keplerAlienFleetSize = total;
     const fleet = [];
     for (let index = 0; index < total; index += 1) {

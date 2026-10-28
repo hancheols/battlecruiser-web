@@ -1637,7 +1637,18 @@ function initializePlanetCampaign() {
     'asman-supply':{name:'아스만 병참기지',en:'ASMAN SUPPLY BASE',count:10,image:'super-neptune-planet-map.png',background:'asman-supply-bg.jpg',
       // 1관문은 그림 가운데를 고정 맵으로, 2~10관문은 확대한 그림 위를 관문마다 다른 가로 위치에서 위아래로 천천히 이동한다.
       gateBackgroundStyle:{1:{size:'auto 100%',x:'50%',scroll:false},2:{size:'auto 230%',x:'20%'},3:{size:'auto 230%',x:'80%'},4:{size:'auto 230%',x:'45%'},5:{size:'auto 230%',x:'65%'},6:{size:'auto 230%',x:'10%'},7:{size:'auto 230%',x:'90%'},8:{size:'auto 230%',x:'30%'},9:{size:'auto 230%',x:'70%'},10:{size:'auto 230%',x:'50%'}}},
-    'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:'asman-hq-bg.webp'},
+    'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:'asman-hq-bg.webp',
+      // 관문별 작전 규칙: 외계 함선이 무기종류·함종에 따라 받는 피해가 달라진다(+는 더 받고 -는 덜 받는다). 전투 엔진이 같은 표를 읽는다.
+      rules:{1:{weapons:{"함포":-0.2,"미사일":0.2},ships:{}},
+        2:{weapons:{"레이저포":-0.2,"전기":0.2},ships:{}},
+        3:{weapons:{"미사일":-0.3,"관통레이저":0.3},ships:{}},
+        4:{weapons:{"전기":-0.3,"함포":0.3},ships:{"dreadnought":-0.15}},
+        5:{weapons:{"관통레이저":-0.3,"레이저포":0.3},ships:{"battlecruiser":0.15}},
+        6:{weapons:{"레이저포":-0.4,"미사일":0.4},ships:{"destroyer":-0.15}},
+        7:{weapons:{"함포":-0.4,"전기":0.4},ships:{"battlecruiser":-0.2}},
+        8:{weapons:{"관통레이저":-0.4,"함포":0.4},ships:{"dreadnought":0.15}},
+        9:{weapons:{"미사일":-0.4,"관통레이저":0.4},ships:{"destroyer":0.2,"dreadnought":-0.2}},
+        10:{weapons:{"레이저포":-0.5,"함포":0.5,"미사일":-0.25,"관통레이저":0.25},ships:{"dreadnought":-0.2,"battlecruiser":0.2}}}},
     'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:''}
   };
   window.NEPTUNE_REGIONS = neptuneRegions;
@@ -1812,6 +1823,7 @@ function initializePlanetCampaign() {
       </div>
       <div class="magenta-route-panel tapao-route-panel"><div class="magenta-route-heading"><span><small>선택 작전지역 · ${selected.en}</small><b>${selected.name}</b></span><strong>${cleared} <small>/ ${count} 완료</small></strong></div>
         <div class="magenta-route tapao-route neptune-route" style="grid-template-columns:repeat(${columns},minmax(0,1fr))" aria-label="${selected.name} 관문 선택">${Array.from({length:count},(_,i)=>{const n=i+1,locked=n>cleared+1,stars=Math.max(0,Math.min(3,Number(neptuneRatings[neptuneRegion+'-'+n])||0));return `<button type="button" data-neptune-gate="${n}" class="magenta-gate${n===neptuneGate&&!locked?' selected':''}${n<=cleared?' cleared':''}" ${locked?'disabled':''} aria-label="${selected.name} ${n}관문 ${locked?'잠김':n<=cleared?'완료':'도전 가능'}" aria-pressed="${n===neptuneGate&&!locked}"><span>${String(n).padStart(2,'0')}</span><small>${locked?'잠김':n<=cleared?(stars?'★'.repeat(stars):'완료'):'도전'}</small></button>`;}).join('')}</div>
+        ${selected.rules?.[neptuneGate]?`<p class="neptune-rule"><b>작전 규칙</b>${window.describeNeptuneRule?.(selected.rules[neptuneGate])||''}</p>`:''}
         <div class="magenta-route-footer">${starRewardButton(totalStars,count)}<button type="button" class="magenta-deploy tapao-deploy neptune-deploy">전선 출격</button></div>
       </div>
     </div>`;
