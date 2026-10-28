@@ -1099,7 +1099,9 @@
     const layer = document.createElement('div');
     layer.className = 'hq-pulse-layer';
     layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>';
+    // 에너지 흐름: 사령부 건물에서 아래 비행선 착륙장까지 이어진 빛줄기를 따라 작은 픽셀이 5초 주기로 흘러내린다.
+    const flow = Array.from({ length: 8 }, (_, index) => `<i class="hq-flow" style="animation-delay:${(-index * 5 / 8).toFixed(3)}s;margin-left:${[-3, 2, -1, 3][index % 4]}px"></i>`).join('');
+    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>' + flow;
     refs.viewport.insertBefore(layer, refs.viewport.firstChild);
     const start = () => {
       const rect = refs.viewport.getBoundingClientRect();

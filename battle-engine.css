@@ -1020,6 +1020,8 @@
 .hq-pulse.ring{left:49.8%;top:42%;width:26%}
 .hq-pulse{background:radial-gradient(circle,rgba(150,215,255,.95) 0,rgba(70,150,255,.5) 34%,transparent 70%);mix-blend-mode:screen;opacity:.1;animation:hq-pulse 2.6s ease-in-out infinite}
 .hq-pulse.ring{animation-delay:.9s}
-.hq-pulse-wave{left:49.8%;top:42%;width:24%;border:3px solid rgba(160,220,255,.75);box-shadow:0 0 12px rgba(90,170,255,.7);opacity:0;animation:hq-wave 2.6s ease-out infinite .9s}
+.hq-pulse-wave{left:49.8%;top:42%;width:24%;border:3px solid rgba(160,220,255,.75);box-shadow:0 0 12px rgba(90,170,255,.7);opacity:0;animation:hq-wave 7s ease-out infinite}
 @keyframes hq-pulse{0%,100%{opacity:.08;transform:translate(-50%,-50%) scale(.85)}50%{opacity:.62;transform:translate(-50%,-50%) scale(1.08)}}
 @keyframes hq-wave{0%{opacity:.8;transform:translate(-50%,-50%) scale(.55)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+.hq-flow{position:absolute;left:49.8%;top:17%;width:3px;height:3px;background:#c8ecff;box-shadow:0 0 4px #5ab4ff,0 0 8px #2f8cff;opacity:0;animation:hq-flow 5s linear infinite}
+@keyframes hq-flow{0%{top:17%;opacity:0}10%{opacity:.95}90%{opacity:.95}100%{top:70%;opacity:0}}
