@@ -1023,5 +1023,5 @@
 .hq-pulse-wave{left:49.8%;top:42%;width:24%;border:3px solid rgba(160,220,255,.75);box-shadow:0 0 12px rgba(90,170,255,.7);opacity:0;animation:hq-wave 7s ease-out infinite}
 @keyframes hq-pulse{0%,100%{opacity:.08;transform:translate(-50%,-50%) scale(.85)}50%{opacity:.62;transform:translate(-50%,-50%) scale(1.08)}}
 @keyframes hq-wave{0%{opacity:.8;transform:translate(-50%,-50%) scale(.55)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
-.hq-flow{position:absolute;left:49.8%;top:17%;width:3px;height:3px;background:#c8ecff;box-shadow:0 0 4px #5ab4ff,0 0 8px #2f8cff;opacity:0;animation:hq-flow 5s linear infinite}
-@keyframes hq-flow{0%{top:17%;opacity:0}10%{opacity:.95}90%{opacity:.95}100%{top:70%;opacity:0}}
+.hq-beam{position:absolute;left:49.8%;width:5%;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(140,205,255,.9) 0,rgba(70,150,255,.45) 42%,transparent 74%);mix-blend-mode:screen;opacity:.12;animation:hq-beam 5s ease-in-out infinite}
+@keyframes hq-beam{0%,100%{opacity:.12}35%{opacity:.5}}

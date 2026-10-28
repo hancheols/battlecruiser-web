@@ -1099,9 +1099,11 @@
     const layer = document.createElement('div');
     layer.className = 'hq-pulse-layer';
     layer.setAttribute('aria-hidden', 'true');
-    // 에너지 흐름: 사령부 건물에서 아래 비행선 착륙장까지 이어진 빛줄기를 따라 작은 픽셀이 5초 주기로 흘러내린다.
-    const flow = Array.from({ length: 8 }, (_, index) => `<i class="hq-flow" style="animation-delay:${(-index * 5 / 8).toFixed(3)}s;margin-left:${[-3, 2, -1, 3][index % 4]}px"></i>`).join('');
-    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>' + flow;
+    // 빛줄기 맥동: 사령부 건물 → 원형 시설 → 착륙장으로 이어진 중앙 빛줄기 구간마다 은은한 빛 띠를 얹고, 위에서 아래로 0.35초씩 늦게 켜져 방향이 느껴진다(5초 주기).
+    // 구간은 그림(937×1678) 기준 y 좌표다: [시작, 끝, 늦춤(초)]
+    const beamSegments = [[330, 480, 0], [480, 595, .35], [830, 940, 1.05], [940, 1060, 1.4], [1060, 1150, 1.75]];
+    const beams = beamSegments.map(([from, to, delay]) => `<i class="hq-beam" style="top:${(from / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;height:${((to - from) / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;animation-delay:${delay}s"></i>`).join('');
+    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>' + beams;
     refs.viewport.insertBefore(layer, refs.viewport.firstChild);
     const start = () => {
       const rect = refs.viewport.getBoundingClientRect();
