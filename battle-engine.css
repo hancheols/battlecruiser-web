@@ -1025,3 +1025,4 @@
 @keyframes hq-wave{0%{opacity:.8;transform:translate(-50%,-50%) scale(.55)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
 .hq-beam{position:absolute;left:49.8%;width:5%;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(140,205,255,.9) 0,rgba(70,150,255,.45) 42%,transparent 74%);mix-blend-mode:screen;opacity:.12;animation:hq-beam 5s ease-in-out infinite}
 @keyframes hq-beam{0%,100%{opacity:.12}35%{opacity:.5}}
+.hq-beam.diag{width:4.5%;transform:translate(-50%,-50%) rotate(var(--rot,0deg))}

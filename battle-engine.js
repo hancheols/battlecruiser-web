@@ -1103,7 +1103,10 @@
     // 구간은 그림(937×1678) 기준 y 좌표다: [시작, 끝, 늦춤(초)]
     const beamSegments = [[330, 480, 0], [480, 595, .35], [830, 940, 1.05], [940, 1060, 1.4], [1060, 1150, 1.75]];
     const beams = beamSegments.map(([from, to, delay]) => `<i class="hq-beam" style="top:${(from / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;height:${((to - from) / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;animation-delay:${delay}s"></i>`).join('');
-    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>' + beams;
+    // 원형 시설에서 좌우 아래로 뻗은 사선 관: [가운데 x, 가운데 y, 길이, 기울기(도), 늦춤(초)]. 왼쪽·오른쪽은 같은 시점에 켜진다.
+    const diagonals = [[371, 832, 80, 46, .9], [314, 887, 80, 46, 1.25], [567, 832, 80, -46, .9], [624, 887, 80, -46, 1.25]];
+    const arms = diagonals.map(([cx, cy, length, rotation, delay]) => `<i class="hq-beam diag" style="left:${(cx / ASMAN_HQ_IMAGE.w * 100).toFixed(2)}%;top:${(cy / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;height:${(length / ASMAN_HQ_IMAGE.h * 100).toFixed(2)}%;--rot:${rotation}deg;animation-delay:${delay}s"></i>`).join('');
+    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>' + beams + arms;
     refs.viewport.insertBefore(layer, refs.viewport.firstChild);
     const start = () => {
       const rect = refs.viewport.getBoundingClientRect();
