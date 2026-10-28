@@ -1155,6 +1155,8 @@
   // 관문마다 무기 한 종류가 주는 피해가 줄어든다(NEPTUNE_REGIONS['golden-spire'].rules). 좌표는 배경 그림(1086×1448) 기준 px다.
   const SPIRE_IMAGE = { w: 1086, h: 1448 };
   const SPIRE_LASER = { damage: 100, interval: 1000 };
+  // 큰 첨탑 타격 지점 2곳(그림 좌표): 왼쪽 위 · 오른쪽 아래
+  const SPIRE_BIG_POINTS = [[450, 440], [615, 670]];
   const SPIRE_BIG_HP = { base: 100000, baseSmall: 4, perTower: 70000, min: 30000 };
   const SPIRE_DISSOLVE_MS = 3000;
   const SPIRE_TOWERS = [
@@ -1216,7 +1218,7 @@
     refs.viewport.insertBefore(layer, refs.viewport.firstChild);
   }
   function startGoldenSpire() {
-    const spire = state.goldenSpire = { towers: [], built: false, geoKey: '', total: 0 };
+    const spire = state.goldenSpire = { towers: [], hitPoints: [], built: false, geoKey: '', total: 0 };
     const generation = state;
     let attempts = 0;
     const build = () => {
@@ -1235,7 +1237,7 @@
         const tower = {
           id: `spire-${spec.id}`, kind: 'boss', variant: 'spire-tower', name: spec.name, big: !!spec.big, spec,
           hp, maxHp: hp, laserDamage: spec.big ? Math.round(SPIRE_LASER.damage * hp / SPIRE_BIG_HP.base) : SPIRE_LASER.damage,
-          x: point.x, y: point.y, tipY: point.y, concealed: false, dead: false, stun: 0,
+          x: point.x, y: point.y, tipY: point.y, concealed: !!spec.big, dead: false, stun: 0,
           nextShot: 700 + spire.towers.length * 260, cursor: spire.towers.length, requiredForGate: false
         };
         const element = document.createElement('div');
@@ -1246,6 +1248,13 @@
         state.midBosses.push(tower);
         spire.towers.push(tower);
         spire.total += hp;
+        // 큰 첨탑은 내구도 하나를 나눠 쓰는 타격 지점 2개를 서로 멀리 둔다(본체는 막대·레이저 발사점만 맡고 표적이 되지 않는다).
+        if (spec.big) SPIRE_BIG_POINTS.forEach(([ix, iy], index) => {
+          const hit = { id: `${tower.id}-hit${index + 1}`, kind: 'boss', variant: 'spire-tower', name: tower.name, big: true, proxyOf: tower, spec: { x: ix, y: iy }, x: point.x, y: point.y, concealed: false, stun: 0, requiredForGate: false };
+          ['hp', 'maxHp', 'dead'].forEach(key => Object.defineProperty(hit, key, { get: () => tower[key], set: value => { tower[key] = value; }, enumerable: true }));
+          state.midBosses.push(hit);
+          spire.hitPoints.push(hit);
+        });
       });
       state.normalTotal = spire.total;
       state.kills = 0;
@@ -1259,6 +1268,7 @@
     spire.geoKey = g.key;
     const layer = refs.viewport?.querySelector('.sp-layer');
     if (layer) layer.style.cssText = `left:${g.offX.toFixed(1)}px;top:${g.offY.toFixed(1)}px;width:${g.imgW.toFixed(1)}px;height:${g.imgH.toFixed(1)}px`;
+    spire.hitPoints.forEach(hit => { const point = spirePoint(g, hit.spec.x, hit.spec.y); hit.x = point.x; hit.y = point.y; });
     spire.towers.forEach(tower => {
       const point = spirePoint(g, tower.spec.x, tower.spec.y);
       tower.x = point.x; tower.y = point.y;
@@ -1302,7 +1312,7 @@
     schedule(() => { if (state?.status === 'combat') finishBattle(true); }, SPIRE_DISSOLVE_MS + 400);
   }
   // 4익마수: 전투 시작 직후 1기, 이후 30초마다 2기씩 나온다(첨탑을 모두 부수면 멈춘다).
-  const SPIRE_BEASTS = { first: 600, interval: 30000, pair: 2, gap: 700, xs: [.5, .25, .75, .38, .62, .14, .86] };
+  const SPIRE_BEASTS = { first: 600, interval: 30000, pair: 2, gap: 700, xs: [.5, .25, .75, .38, .62, .14, .86], ys: [.46, .4, .5] };
   function spawnSpireBeast() {
     const spire = state?.goldenSpire;
     if (!spire || state.status !== 'combat' || spire.cleared) return;
@@ -1315,6 +1325,8 @@
     if (!beast) return;
     spire.beasts = (spire.beasts || 0) + 1;
     beast.x = SPIRE_BEASTS.xs[(spire.beasts - 1) % SPIRE_BEASTS.xs.length];
+    // 화면 위쪽이 아니라 가운데(첨탑 높이)까지 내려와 자리 잡는다.
+    beast.entryTargetY = SPIRE_BEASTS.ys[(spire.beasts - 1) % SPIRE_BEASTS.ys.length];
     beast.el && (beast.el.style.left = percent(beast.x));
     state.midBosses.push(beast);
     announce('4익마수 출현', 'boss');
@@ -1333,7 +1345,7 @@
     const point = pointOf(tower);
     createExplosion(point, 'enemy');
     [[-.03, -.03], [.03, -.01], [0, .035], [-.02, .02]].forEach(([dx, dy], index) => schedule(() => createExplosion({ x: point.x + dx * (tower.big ? 1.6 : 1), y: point.y + dy * (tower.big ? 1.6 : 1) }, 'enemy'), 120 + index * 150));
-    state.midBosses = state.midBosses.filter(unit => unit !== tower);
+    state.midBosses = state.midBosses.filter(unit => unit !== tower && unit.proxyOf !== tower);
     tower.el?.classList.add('wrecked');
     schedule(() => tower.el?.remove(), 900);
     // 배경 위: 에너지 맥동이 꺼지고 그을린 연기가 남는다.
@@ -12362,7 +12374,7 @@
     if (!boss || boss.dead) return;
     if (boss.variant === 'tapao-turret') { destroyTapaoTurret(boss); return; }
     if (boss.variant === 'neptune-unit') { destroyNeptuneUnit(boss); return; }
-    if (boss.variant === 'spire-tower') { destroySpireTower(boss); return; }
+    if (boss.variant === 'spire-tower') { destroySpireTower(boss.proxyOf || boss); return; }
     if (boss.variant === 'tas-long-arm') setTasSniperTarget(null);
     boss.toxicMouthGlow?.remove();
     boss.dead = true;

@@ -1038,11 +1038,9 @@
 .sp-wreck.big{aspect-ratio:1/2.2}
 @keyframes sp-smoke{from{opacity:.45;transform:translate(-50%,-50%) scale(.94)}to{opacity:.8;transform:translate(-50%,-50%) scale(1.06)}}
 .spire-tower{position:absolute;z-index:6;pointer-events:none;border-radius:50%;transition:opacity .8s ease}
-.spire-tower::before{content:"";position:absolute;inset:20%;border:1px dashed rgba(170,225,255,.4);border-radius:50%}
 .spire-tower .st-hp{position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:60px;height:5px;background:rgba(5,12,28,.78);border:1px solid rgba(190,225,255,.85);border-radius:3px;overflow:hidden}
 .spire-tower.big .st-hp{width:104px;height:6px;top:-8px}
 .spire-tower .st-hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#fff2a8,#ffc94a,#ff9a30)}
-.spire-tower.hit::before{border-color:rgba(255,255,255,.9);box-shadow:0 0 14px rgba(190,230,255,.7)}
 .spire-tower.firing::after{content:"";position:absolute;left:50%;top:-6%;width:26%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0,rgba(150,215,255,.8) 40%,transparent 72%)}
 .spire-tower.wrecked{opacity:0}
 /* 황금첨탑 클리어: 돔 없는 그림이 아래에서 위로 드러나며 돔 보호막이 사라진다(밝은 띠가 경계를 따라 올라간다). */
