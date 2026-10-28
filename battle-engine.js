@@ -571,6 +571,7 @@
       refs.viewport.style.setProperty('--neptune-region-bg-size', bgStyle?.size || (tall ? 'auto 150%' : '100% auto'));
       refs.viewport.style.setProperty('--nep-bg-x', bgStyle?.x || 'center');
       refs.viewport.classList.toggle('neptune-bg-static', !!neptuneBackground && bgStyle?.scroll === false);
+      updateAsmanHqPulse(normalizedOperation, bgStyle);
     }
     refs.viewport?.classList.toggle('tapao-colony-map', isTapaoColonyMap(normalizedOperation) || isTapaoGateFinal(normalizedOperation));
     refs.viewport?.classList.remove('tapao-scroll-stopped');
@@ -1089,6 +1090,26 @@
   // 규칙 표는 command-deck.js의 NEPTUNE_REGIONS['asman-hq'].rules 를 읽는다. 값 +0.2 는 20% 더 받음, -0.2 는 20% 덜 받음.
   const WEAPON_BY_ATTACK = { cannon: '함포', missile: '미사일', laser: '레이저포', piercing: '관통레이저', electric: '전기', thunder: '전기' };
   const SHIP_TYPE_LABEL = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함' };
+  // 아스만 사령부 배경: 사령부 건물과 앞쪽 원형 시설물이 주기적으로 맥동한다. 배경 그림 좌표에 붙은 작은 빛 두 개(투명도·크기만 변함)가
+  // 배경과 같은 속도로 함께 흐른다. 배경 흐름은 CSS 애니메이션(60초, 하단→상단)이라 같은 길이·같은 방향으로 맞춰 움직인다.
+  const ASMAN_HQ_IMAGE = { w: 937, h: 1678 };
+  function updateAsmanHqPulse(operation, bgStyle) {
+    refs.viewport?.querySelectorAll('.hq-pulse-layer').forEach(layer => { layer.getAnimations().forEach(animation => animation.cancel()); layer.remove(); });
+    if (!refs.viewport || Number(operation?.chapter) !== 5 || String(operation?.region || '').toLowerCase() !== 'asman-hq' || bgStyle?.scroll === false) return;
+    const layer = document.createElement('div');
+    layer.className = 'hq-pulse-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.innerHTML = '<i class="hq-pulse castle"></i><i class="hq-pulse ring"></i><i class="hq-pulse-wave ring"></i>';
+    refs.viewport.insertBefore(layer, refs.viewport.firstChild);
+    const start = () => {
+      const rect = refs.viewport.getBoundingClientRect();
+      if (!rect.width) { requestAnimationFrame(start); return; }
+      const imageHeight = rect.width * 2 * ASMAN_HQ_IMAGE.h / ASMAN_HQ_IMAGE.w;
+      const travel = Math.max(0, imageHeight - rect.height);
+      layer.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${travel.toFixed(1)}px)` }], { duration: 60000, easing: 'linear', fill: 'forwards' });
+    };
+    requestAnimationFrame(start);
+  }
   function isAsmanHqOperation(operation = state?.operation) {
     return Number(operation?.chapter) === 5 && String(operation?.region || '').toLowerCase() === 'asman-hq';
   }

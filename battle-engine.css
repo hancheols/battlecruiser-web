@@ -1013,3 +1013,13 @@
 .neptune-rule{margin:6px 0 0;padding:7px 10px;border:1px solid rgba(120,200,255,.35);border-radius:8px;background:rgba(10,30,60,.55);font-size:12px;line-height:1.5;color:#cfe8ff}.neptune-rule b{margin-right:8px;color:#ffd27a;font-weight:700}
 /* 큰 적 함선(항모·보스 등)이 전장 위쪽 가장자리에서 잘려 체력바·상단 메뉴 사이가 비지 않도록, 보스가 있는 전투는 전장을 자르지 않는다. 지역마다 따로 고치지 않아도 된다. */
 .battle-viewport:has(.boss-unit) .space-battlefield{overflow:visible}
+/* 아스만 사령부 배경 맥동: 사령부 건물·원형 시설물 위치(그림 937×1678 기준 비율)에 파란 빛이 숨 쉬듯 켜졌다 꺼진다 */
+.hq-pulse-layer{position:absolute;left:-50%;bottom:0;z-index:0;width:200%;aspect-ratio:937/1678;pointer-events:none;will-change:transform}
+.hq-pulse,.hq-pulse-wave{position:absolute;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%)}
+.hq-pulse.castle{left:49.8%;top:14.6%;width:30%}
+.hq-pulse.ring{left:49.8%;top:42%;width:26%}
+.hq-pulse{background:radial-gradient(circle,rgba(150,215,255,.95) 0,rgba(70,150,255,.5) 34%,transparent 70%);mix-blend-mode:screen;opacity:.1;animation:hq-pulse 2.6s ease-in-out infinite}
+.hq-pulse.ring{animation-delay:.9s}
+.hq-pulse-wave{left:49.8%;top:42%;width:24%;border:3px solid rgba(160,220,255,.75);box-shadow:0 0 12px rgba(90,170,255,.7);opacity:0;animation:hq-wave 2.6s ease-out infinite .9s}
+@keyframes hq-pulse{0%,100%{opacity:.08;transform:translate(-50%,-50%) scale(.85)}50%{opacity:.62;transform:translate(-50%,-50%) scale(1.08)}}
+@keyframes hq-wave{0%{opacity:.8;transform:translate(-50%,-50%) scale(.55)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
