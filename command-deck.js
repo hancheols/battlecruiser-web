@@ -1651,7 +1651,9 @@ function initializePlanetCampaign() {
         8:{weapons:{"관통레이저":-0.4,"함포":0.4},ships:{"dreadnought":0.15}},
         9:{weapons:{"미사일":-0.4,"관통레이저":0.4},ships:{"destroyer":0.2,"dreadnought":-0.2}},
         10:{weapons:{"레이저포":-0.5,"함포":0.5,"미사일":-0.25,"관통레이저":0.25},ships:{"dreadnought":-0.2,"battlecruiser":0.2}}}},
-    'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:''}
+    'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:'golden-road-bg.webp',
+      // 고정 맵: 1관문은 그림 맨 아래, 15관문은 맨 위(왕궁 앞 수정 구조물)를 보여 주고(상단 메뉴·체력바에 가리지 않게 70px 내려서), 관문마다 조금씩 위로 올라간다. 그림은 15% 확대해 쓴다.
+      gateBackgroundStyle:Object.fromEntries(Array.from({length:15},(_,i)=>[i+1,{size:'115% auto',x:'50%',y:i===14?'70px':((14-i)/14*100).toFixed(1)+'%',scroll:false}]))}
   };
   window.NEPTUNE_REGIONS = neptuneRegions;
   let neptuneProgress = {'neptune-gate':0,'asman-supply':0,'asman-hq':0,'golden-road':0};

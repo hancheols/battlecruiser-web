@@ -570,6 +570,7 @@
       const bgStyle = window.NEPTUNE_REGIONS?.[normalizedOperation.region]?.gateBackgroundStyle?.[normalizedOperation.gate];
       refs.viewport.style.setProperty('--neptune-region-bg-size', bgStyle?.size || (tall ? 'auto 150%' : '100% auto'));
       refs.viewport.style.setProperty('--nep-bg-x', bgStyle?.x || 'center');
+      refs.viewport.style.setProperty('--nep-bg-y', bgStyle?.y || '50%');
       refs.viewport.classList.toggle('neptune-bg-static', !!neptuneBackground && bgStyle?.scroll === false);
       updateAsmanHqPulse(normalizedOperation, bgStyle);
     }
