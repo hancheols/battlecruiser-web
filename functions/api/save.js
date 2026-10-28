@@ -1,7 +1,10 @@
 // GET /api/save — 저장 데이터를 돌려준다. PUT /api/save — 저장한다.
 // 저장 본문: { baseRevision, schemaVersion, data } · data 는 { 저장키: 문자열값 } 객체.
 // 동시 저장 충돌을 막으려고, 기준 리비전(baseRevision)이 서버 리비전과 다르면 409 로 거절한다.
-import { json, authenticate } from '../_lib/util.js';
+import { json, authenticate, allow, tooMany } from '../_lib/util.js';
+
+// 계정당 1분에 저장 20번·불러오기 20번까지(정상 사용은 15초에 한 번 저장).
+const PER_USER = { limit: 20, windowMs: 60000 };
 
 const MAX_BYTES = 800 * 1024;
 const MAX_KEYS = 200;
@@ -11,6 +14,7 @@ export async function onRequestGet({ request, env }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
   const user = await authenticate(request, env);
   if (!user) return json({ error: 'unauthorized' }, 401);
+  if (!(await allow(env, `load:${user.id}`, PER_USER.limit, PER_USER.windowMs))) return tooMany();
   const row = await env.DB.prepare('SELECT revision, schema_version, data, updated_at FROM saves WHERE user_id = ?1').bind(user.id).first();
   if (!row) return json({ empty: true, revision: 0 });
   return json({ revision: row.revision, schemaVersion: row.schema_version, updatedAt: row.updated_at, data: JSON.parse(row.data) });
@@ -20,6 +24,7 @@ export async function onRequestPut({ request, env }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
   const user = await authenticate(request, env);
   if (!user) return json({ error: 'unauthorized' }, 401);
+  if (!(await allow(env, `save:${user.id}`, PER_USER.limit, PER_USER.windowMs))) return tooMany();
   const text = await request.text();
   if (text.length > MAX_BYTES) return json({ error: 'too-large' }, 413);
   let body;

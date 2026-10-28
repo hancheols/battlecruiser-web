@@ -12,6 +12,32 @@ export async function sha256Hex(text) {
   return toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))));
 }
 
+// 요청 횟수 제한: bucket(용도+대상 해시)마다 windowMs 동안 limit 번까지 허용한다. 허용이면 true.
+// 표가 아직 없는 등 제한 장치 자체가 고장 나면 서비스를 막지 않고 통과시킨다(이때는 제한이 꺼진 상태이므로 마이그레이션 0002 를 적용해야 한다).
+export async function allow(env, bucket, limit, windowMs) {
+  const now = Date.now();
+  try {
+    const row = await env.DB.prepare(
+      `INSERT INTO rate_limits (bucket, window_start, count) VALUES (?1, ?2, 1)
+       ON CONFLICT(bucket) DO UPDATE SET
+         count = CASE WHEN window_start <= ?2 - ?3 THEN 1 ELSE count + 1 END,
+         window_start = CASE WHEN window_start <= ?2 - ?3 THEN ?2 ELSE window_start END
+       RETURNING count`
+    ).bind(bucket, now, windowMs).first();
+    // 가끔 오래된 칸을 정리한다.
+    if (Math.random() < .01) await env.DB.prepare('DELETE FROM rate_limits WHERE window_start < ?1').bind(now - 86400000).run();
+    return Number(row?.count) <= limit;
+  } catch (_) { return true; }
+}
+
+export const tooMany = () => json({ error: 'rate-limited' }, 429);
+
+// 접속자 식별(IP)을 해시로 바꿔 제한 칸의 이름으로 쓴다. 원문 IP 는 저장하지 않는다.
+export async function clientKey(request) {
+  const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  return (await sha256Hex(`bc-rate:${ip}`)).slice(0, 24);
+}
+
 // 길이가 같은 문자열을 시간 차이 없이 비교한다.
 function safeEqual(a, b) {
   if (a.length !== b.length) return false;
