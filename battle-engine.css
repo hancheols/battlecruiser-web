@@ -1011,3 +1011,5 @@
 @keyframes missile-light-pop{from{opacity:1;transform:scale(.45)}to{opacity:0;transform:scale(1.25)}}
 .fx-missile.assault-turtle-missile.barrage{filter:none;box-shadow:0 0 6px #ffb347}
 .neptune-rule{margin:6px 0 0;padding:7px 10px;border:1px solid rgba(120,200,255,.35);border-radius:8px;background:rgba(10,30,60,.55);font-size:12px;line-height:1.5;color:#cfe8ff}.neptune-rule b{margin-right:8px;color:#ffd27a;font-weight:700}
+/* 큰 적 함선(항모·보스 등)이 전장 위쪽 가장자리에서 잘려 체력바·상단 메뉴 사이가 비지 않도록, 보스가 있는 전투는 전장을 자르지 않는다. 지역마다 따로 고치지 않아도 된다. */
+.battle-viewport:has(.boss-unit) .space-battlefield{overflow:visible}

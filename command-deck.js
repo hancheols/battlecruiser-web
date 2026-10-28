@@ -1638,6 +1638,8 @@ function initializePlanetCampaign() {
       // 1관문은 그림 가운데를 고정 맵으로, 2~10관문은 확대한 그림 위를 관문마다 다른 가로 위치에서 위아래로 천천히 이동한다.
       gateBackgroundStyle:{1:{size:'auto 100%',x:'50%',scroll:false},2:{size:'auto 230%',x:'20%'},3:{size:'auto 230%',x:'80%'},4:{size:'auto 230%',x:'45%'},5:{size:'auto 230%',x:'65%'},6:{size:'auto 230%',x:'10%'},7:{size:'auto 230%',x:'90%'},8:{size:'auto 230%',x:'30%'},9:{size:'auto 230%',x:'70%'},10:{size:'auto 230%',x:'50%'}}},
     'asman-hq':{name:'아스만 사령부',en:'ASMAN COMMAND',count:10,image:'super-neptune-planet-map.png',background:'asman-hq-bg.webp',
+      // 배경은 화면 너비의 2배로 키워, 하단에서 상단까지 천천히 흐른다.
+      gateBackgroundStyle:Object.fromEntries(Array.from({length:10},(_,i)=>[i+1,{size:'200% auto',x:'50%'}])),
       // 관문별 작전 규칙: 외계 함선이 무기종류·함종에 따라 받는 피해가 달라진다(+는 더 받고 -는 덜 받는다). 전투 엔진이 같은 표를 읽는다.
       rules:{1:{weapons:{"함포":-0.2,"미사일":0.2},ships:{}},
         2:{weapons:{"레이저포":-0.2,"전기":0.2},ships:{}},
