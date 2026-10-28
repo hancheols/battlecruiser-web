@@ -13990,10 +13990,16 @@
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
     const height = field?.height || 720;
-    return livingEnemyTargets().filter(target => {
+    const inRange = livingEnemyTargets().filter(target => {
       if (!(target.kind === 'boss' || target.deployed)) return false;
       return Math.hypot((target.x - origin.x) * width / height, target.y - origin.y) <= ALLY_ATTACK_RANGE_RATIO;
     });
+    // 황금첨탑: 4익마수가 사거리 안에 있으면 첨탑보다 먼저 공격한다(사거리 밖이면 첨탑을 쏜다).
+    if (isGoldenSpireOperation()) {
+      const beasts = inRange.filter(target => target.variant === 'four-wing-beast');
+      if (beasts.length) return beasts;
+    }
+    return inRange;
   }
 
   // 쏘는 쪽 기준 사거리 안 목표: 아군은 적(몬스터), 아레나 상대 함선은 아군을 고른다.
