@@ -11754,7 +11754,7 @@
     if (!state.arenaMatch && !isKeplerOperation() && Number(state.operation?.gate) > 0 && Number(state.operation.gate) % 10 === 0) window.setBattleBossMusic?.(true);
     focusBattleAudio('boss');
     if(isOortColonyGate())playBossRoarSound();
-    announce(tasRightArm ? '마젠타 위성 타스 · 오른팔 출현' : tasLongArm ? '마젠타 위성 타스 · 긴팔 출현' : greenOverlord ? '마젠타 위성 타스 · 초록대군주 출현' : machineBeast ? (keplerMachineBeast ? '케플러 행성권 5관문 · 기계마수 출현' : '마젠타 대기권 10관문 · 기계마수 출현') : fourWingBeast ? '마젠타 대기권 5관문 · 4익마수 출현' : magentaPair ? '마젠타 관문 10 · 화염마수와 독성마수 동시 출현' : toxicBeast ? '마젠타 인근 · 독성마수 출현' : oortFinalBoss ? '오르트구름 최종 보스 출현' : ancientBeast ? '고대 괴수 출현' : primitiveRaptor ? '원시랩터 출현' : raptor ? '중형 몬스터 출현' : flameBeast ? '화염마수 출현' : redOverlord ? '붉은 대군주 출현' : giantGasimon ? '거대 가시몬 출현' : giantDokchimmon ? '거대 독침몬 출현' : 'BOSS SIGNAL DETECTED', 'boss');
+    announce(tasRightArm ? '마젠타 위성 타스 · 오른팔 출현' : tasLongArm ? '마젠타 위성 타스 · 긴팔 출현' : greenOverlord ? '마젠타 위성 타스 · 초록대군주 출현' : machineBeast ? (keplerMachineBeast ? '케플러 행성권 5관문 · 기계마수 출현' : '마젠타 대기권 10관문 · 기계마수 출현') : fourWingBeast ? (isGoldenSpireOperation() ? '황금첨탑 · 4익마수 출현' : '마젠타 대기권 5관문 · 4익마수 출현') : magentaPair ? '마젠타 관문 10 · 화염마수와 독성마수 동시 출현' : toxicBeast ? '마젠타 인근 · 독성마수 출현' : oortFinalBoss ? '오르트구름 최종 보스 출현' : ancientBeast ? '고대 괴수 출현' : primitiveRaptor ? '원시랩터 출현' : raptor ? '중형 몬스터 출현' : flameBeast ? '화염마수 출현' : redOverlord ? '붉은 대군주 출현' : giantGasimon ? '거대 가시몬 출현' : giantDokchimmon ? '거대 독침몬 출현' : 'BOSS SIGNAL DETECTED', 'boss');
     showBossWarning(refs.battleAnnouncement?.textContent || "");
   }
 
