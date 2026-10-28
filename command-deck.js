@@ -1653,10 +1653,13 @@ function initializePlanetCampaign() {
         10:{weapons:{"레이저포":-0.5,"함포":0.5,"미사일":-0.25,"관통레이저":0.25},ships:{"dreadnought":-0.2,"battlecruiser":0.2}}}},
     'golden-road':{name:'황금길',en:'GOLDEN ROAD',count:15,image:'super-neptune-planet-map.png',background:'golden-road-bg.webp',
       // 고정 맵: 1관문은 그림 맨 아래, 15관문은 맨 위(왕궁 앞 수정 구조물)를 보여 주고(상단 메뉴·체력바에 가리지 않게 70px 내려서), 관문마다 조금씩 위로 올라간다. 그림은 15% 확대해 쓴다.
-      gateBackgroundStyle:Object.fromEntries(Array.from({length:15},(_,i)=>[i+1,{size:'115% auto',x:'50%',y:i===14?'70px':((14-i)/14*100).toFixed(1)+'%',scroll:false}]))}
+      gateBackgroundStyle:Object.fromEntries(Array.from({length:15},(_,i)=>[i+1,{size:'115% auto',x:'50%',y:i===14?'70px':((14-i)/14*100).toFixed(1)+'%',scroll:false}]))},
+    'golden-spire':{name:'황금첨탑',en:'GOLDEN SPIRE',count:5,image:'super-neptune-planet-map.png',background:'golden-spire-bg.webp',
+      // 고정 맵: 1관문은 그림 맨 아래 구름바다, 5관문은 맨 위(첨탑 꼭대기, 상단 메뉴에 가리지 않게 70px 내려서)를 보여 주고, 관문마다 조금씩 위로 올라간다.
+      gateBackgroundStyle:Object.fromEntries(Array.from({length:5},(_,i)=>[i+1,{size:'auto 130%',x:'50%',y:i===4?'70px':((4-i)/4*100).toFixed(1)+'%',scroll:false}]))}
   };
   window.NEPTUNE_REGIONS = neptuneRegions;
-  let neptuneProgress = {'neptune-gate':0,'asman-supply':0,'asman-hq':0,'golden-road':0};
+  let neptuneProgress = {'neptune-gate':0,'asman-supply':0,'asman-hq':0,'golden-road':0,'golden-spire':0};
   let neptuneRatings = {};
   try {
     const saved=JSON.parse(localStorage.getItem('neptune-campaign-v1')||'null');
@@ -1880,7 +1883,7 @@ function initializePlanetCampaign() {
     if(kind==='solar'){renderSolar();return;}
     if(kind==='galaxy'){renderMagenta();return;}
     if(kind==='kepler'){const next=Object.keys(keplerRegions).find(key=>keplerProgress[key]<10);keplerRegion=next||'kepler-base';keplerGate=Math.min(keplerProgress[keplerRegion]+1,10);renderKepler();return;}
-    if(kind==='neptune'){const next=Object.keys(neptuneRegions).find(key=>neptuneProgress[key]<neptuneRegions[key].count);neptuneRegion=next||'golden-road';neptuneGate=Math.min(neptuneProgress[neptuneRegion]+1,neptuneRegions[neptuneRegion].count);renderNeptune();return;}
+    if(kind==='neptune'){const next=Object.keys(neptuneRegions).find(key=>neptuneProgress[key]<neptuneRegions[key].count);neptuneRegion=next||'golden-spire';neptuneGate=Math.min(neptuneProgress[neptuneRegion]+1,neptuneRegions[neptuneRegion].count);renderNeptune();return;}
     if(kind==='tapao'){const next=Object.keys(tapaoRegions).find(key=>tapaoProgress[key]<10);tapaoRegion=next||'tapao-gate';tapaoGate=Math.min(tapaoProgress[tapaoRegion]+1,10);renderTapao();return;}
     if(['galaxy','kepler','tapao','neptune'].includes(kind)){
       const name=kind==='galaxy'?'마젠타 행성':kind==='kepler'?'케플러 행성':kind==='tapao'?'타파오 통 행성':'수퍼 넵튠 행성',image=kind==='galaxy'?'magenta-planet.jpg':kind==='kepler'?'kepler-planet.jpg':kind==='tapao'?'tapao-thong-planet.jpg':'super-neptune-planet.png';
