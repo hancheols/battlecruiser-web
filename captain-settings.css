@@ -79,3 +79,9 @@
 .captain-google-button{display:flex;justify-content:center;margin-top:14px;min-height:44px}
 .captain-google-choices{display:grid;gap:8px;margin-top:14px}
 .captain-google-choices button:not(.captain-save){min-height:42px;border:1px solid rgba(160,200,255,.35);border-radius:12px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+
+/* 계정연동: 지금 쓰는 계정 방식 칸 강조, 게스트 칸 엠블럼은 GUEST 글자 */
+.captain-setting-row.is-active{border-color:#e6c36f;background:linear-gradient(110deg,#4a3d1c99,#17130a);box-shadow:inset 0 0 0 1px #e6c36f55,0 0 14px #e6c36f2e}
+.captain-setting-row.is-active>i{border-color:#e6c36f99;background:#3a2f12;color:#ffe29a}
+.captain-setting-row.is-active small{color:#e8d49a}
+.captain-guest-emblem{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.04em;line-height:1}

@@ -15,6 +15,12 @@
     // 서버에 구글 계정이 연결돼 있으면 계정연동 항목들의 "게스트" 문구를 연결 상태로 바꿔 보여 준다(한 번 조회한 결과는 재사용).
     let linkedGoogle;
     const applyAccountState=()=>{
+      if(linkedGoogle===undefined)return;
+      // 계정연동 화면 아래 세 칸(구글·Apple·게스트) 중 지금 쓰는 방식을 강조한다. 구글이 연결돼 있으면 구글, 아니면 게스트.
+      host.querySelector('[data-settings-view="google"]')?.classList.toggle('is-active',!!linkedGoogle);
+      host.querySelector('[data-settings-view="guest"]')?.classList.toggle('is-active',!linkedGoogle);
+      const guestRow=host.querySelector('[data-settings-view="guest"] small');
+      if(guestRow)guestRow.textContent=linkedGoogle?t('연결 전 사용하던 방식','Used before linking'):t('현재 사용 중','In use');
       if(!linkedGoogle)return;
       const email=linkedGoogle.email||'';
       const summary=host.querySelector('[data-settings-view="account"] small');
@@ -31,7 +37,7 @@
       }
       applyAccountState();
     }
-    const row=(view,name,description,symbol=view)=>`<button type="button" class="captain-setting-row" data-settings-view="${view}"><i>${icon(symbol)}</i><span><b>${name}</b><small>${description}</small></span><em aria-hidden="true">›</em></button>`;
+    const row=(view,name,description,symbol=view)=>`<button type="button" class="captain-setting-row" data-settings-view="${view}"><i${view==='guest'?' class="captain-guest-emblem"':''}>${view==='guest'?'GUEST':icon(symbol)}</i><span><b>${name}</b><small>${description}</small></span><em aria-hidden="true">›</em></button>`;
     const status=message=>{const node=host.querySelector('.captain-setting-status');if(node)node.textContent=message;};
     const save=patch=>{const persisted=api.update(patch);if(!persisted)status(t('이번 실행에 적용했습니다. 기기 저장 공간을 사용할 수 없습니다.','Applied for this session. Device storage is unavailable.'));return persisted;};
     function mount(view='settings'){
