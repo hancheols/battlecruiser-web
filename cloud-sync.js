@@ -108,6 +108,68 @@
     window.addEventListener('pagehide', () => { push(true); });
   }
 
+  // ── 구글 연동 ───────────────────────────────────────────────────────────────
+  // 설정 화면(captain-settings.js)이 쓰는 도구. 구글 로그인 버튼(GIS)이 돌려준 ID 토큰(credential)을 서버로 보내 계정을 연결하거나 전환한다.
+  let configPromise = null;
+  const config = () => (configPromise ||= request('/config').then(response => response.ok ? response.json() : { googleClientId: null }).catch(() => ({ googleClientId: null })));
+
+  async function accountInfo() {
+    if (!meta.id) return { identities: [] };
+    try {
+      const response = await request('/account', { headers: authHeaders() });
+      return response.ok ? await response.json() : { identities: [] };
+    } catch (_) { return { identities: [] }; }
+  }
+
+  async function postAccount(action, credential) {
+    try {
+      const response = await request('/account', { method: 'POST', headers: meta.id ? authHeaders() : { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, credential }) });
+      return { ...(await response.json().catch(() => ({}))), httpStatus: response.status };
+    } catch (error) { return { status: 'error', error: String(error?.message || error) }; }
+  }
+
+  // 전환: 서버에 있던 그 계정의 저장을 이 기기로 내려받아 기기 저장을 대체한다. 끝나면 호출한 쪽이 화면을 새로 불러온다.
+  async function switchTo(credential) {
+    const result = await postAccount('switch', credential);
+    if (result.status !== 'switched') return result;
+    clearInterval(timer);
+    busy = true;
+    const previous = meta;
+    meta = { id: result.id, secret: result.secret, revision: 0 };
+    try {
+      const response = await request('/save', { headers: authHeaders() });
+      if (!response.ok) throw new Error(`load ${response.status}`);
+      const server = await response.json();
+      if (!server.empty) {
+        const stale = [];
+        for (let index = 0; index < localStorage.length; index += 1) { const key = localStorage.key(index); if (key && BACKUP_KEY.test(key) && !SKIP_KEY.test(key)) stale.push(key); }
+        stale.forEach(key => localStorage.removeItem(key));
+        Object.entries(server.data || {}).forEach(([key, value]) => { if (BACKUP_KEY.test(key) && !SKIP_KEY.test(key)) localStorage.setItem(key, value); });
+        meta.revision = server.revision;
+      }
+      writeMeta();
+      conflict = false;
+      lastPushed = JSON.stringify(snapshot());
+      return { status: 'switched', email: result.email, reload: true };
+    } catch (error) {
+      meta = previous;
+      writeMeta();
+      return { status: 'error', error: String(error?.message || error) };
+    } finally { busy = false; }
+  }
+
+  let gsiPromise = null;
+  const loadGsi = () => (window.google?.accounts?.id ? Promise.resolve(window.google) : (gsiPromise ||= new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => resolve(window.google);
+    script.onerror = () => { gsiPromise = null; reject(new Error('gsi-load-failed')); };
+    document.head.append(script);
+  })));
+
+  window.cloudAccount = { config, info: accountInfo, link: credential => postAccount('link', credential), switchTo, loadGsi };
+
   window.cloudSync = {
     status: () => ({ guestId: meta.id || null, revision: meta.revision || 0, conflict, disabled, busy, lastError }),
     pushNow: () => push(),

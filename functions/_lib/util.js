@@ -53,5 +53,11 @@ export async function authenticate(request, env) {
   if (!/^[0-9a-f]{24}$/.test(id) || !/^[0-9a-f]{64}$/.test(secret)) return null;
   const row = await env.DB.prepare('SELECT id, secret_hash FROM users WHERE id = ?1').bind(id).first();
   if (!row) return null;
-  return safeEqual(row.secret_hash, await sha256Hex(secret)) ? { id: row.id } : null;
+  const hash = await sha256Hex(secret);
+  // 구글 연동으로 다른 기기에서 받은 세션 비밀값(표가 아직 없으면 건너뛴다)
+  try {
+    const session = await env.DB.prepare('SELECT user_id FROM sessions WHERE token_hash = ?1').bind(hash).first();
+    if (session && session.user_id === id) return { id };
+  } catch (_) {}
+  return safeEqual(row.secret_hash, hash) ? { id: row.id } : null;
 }

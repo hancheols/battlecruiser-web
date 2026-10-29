@@ -25,7 +25,9 @@
         const audioControl=(key,label)=>`<div class="captain-audio-row"><span>${label}</span><label class="captain-audio-toggle" aria-label="${label} ${t('켜기 또는 끄기','on or off')}"><input type="checkbox" role="switch" data-audio-enabled="${key}" ${state[key].enabled?'checked':''}/><i aria-hidden="true"></i><b data-audio-state="${key}">${state[key].enabled?'ON':'OFF'}</b></label></div>`;
         content=`<div class="captain-audio-list">${audioControl('music',t('배경음악','Background music'))}${audioControl('effects',t('효과음','Sound effects'))}</div>`;
       }else if(view==='account'){
-        content=`<div class="captain-account-state"><span class="captain-status-dot"></span><b>${t('게스트로 플레이 중','Playing as guest')}</b></div><p class="captain-setting-note">${t('진행 정보는 현재 브라우저에 저장됩니다. 계정연동 서비스는 준비 중이며, 아래에서 사용할 계정 방식을 미리 선택할 수 있습니다.','Progress is stored in this browser. Account linking is not available yet; you can select your preferred sign-in method below.')}</p><div class="captain-settings-list">${['google','apple','guest'].map(provider=>row(provider,titles[provider],state.accountProvider===provider?t('선택한 계정 방식','Preferred method'):t('계정 방식 보기','View sign-in method'),'account')).join('')}</div>`;
+        content=`<div class="captain-account-state"><span class="captain-status-dot"></span><b>${t('게스트로 플레이 중','Playing as guest')}</b></div><p class="captain-setting-note">${t('진행 정보는 이 브라우저에 저장되고 서버에도 자동으로 백업됩니다. 구글 계정을 연결하면 기기를 바꿔도 이어서 플레이할 수 있습니다. Apple 연동은 준비 중입니다.','Progress is saved in this browser and backed up to the server automatically. Link a Google account to continue on another device. Apple linking is coming soon.')}</p><div class="captain-settings-list">${['google','apple','guest'].map(provider=>row(provider,titles[provider],state.accountProvider===provider?t('선택한 계정 방식','Preferred method'):t('계정 방식 보기','View sign-in method'),'account')).join('')}</div>`;
+      }else if(view==='google'){
+        content=`<div class="captain-setting-hero"><i>${icon('account')}</i><span>Google</span></div><div class="captain-google-slot" data-google-slot><p class="captain-setting-note">${t('불러오는 중...','Loading...')}</p></div>`;
       }else if(['google','apple','guest'].includes(view)){
         content=`<div class="captain-setting-hero"><i>${icon('account')}</i><span>${titles[view]}</span></div><p class="captain-setting-note">${view==='guest'?t('현재 기기에 진행 정보를 저장합니다. 브라우저 데이터를 삭제하면 진행 정보를 잃을 수 있습니다.','Progress is stored on this device. Clearing browser data can remove your progress.'):t(`${titles[view]} 계정연동은 아직 제공되지 않습니다. 이 선택은 선호 방식만 저장하며 로그인이나 클라우드 저장을 수행하지 않습니다.`,`${titles[view]} linking is not available yet. This saves your preference only; it does not sign you in or enable cloud saves.`)}</p><button type="button" class="captain-save" data-account-choice="${view}">${t('이 계정 방식 선택','Choose this method')}</button>`;
       }else if(view==='language'){
@@ -59,7 +61,47 @@
         try{await navigator.clipboard.writeText(api.playerId);status(t('플레이어 ID를 복사했습니다.','Player ID copied.'));}
         catch{const input=host.querySelector('#captain-player-id');if(input){input.focus();input.select();status(t('선택된 ID를 복사해주세요.','Copy the selected ID.'));}}
       });
+      if(view==='google')setupGoogle();
       host.querySelector('[data-captain-close]').focus();
+    }
+    // 구글 연동: 버튼(GIS)이 준 토큰을 서버로 보내 지금 게스트 계정에 연결한다. 이미 다른 계정에 연결된 구글 계정이면 전환할지 묻는다.
+    async function setupGoogle(){
+      const slot=host.querySelector('[data-google-slot]');
+      if(!slot)return;
+      const note=text=>`<p class="captain-setting-note">${text}</p>`;
+      const account=window.cloudAccount;
+      if(!account){slot.innerHTML=note(t('이 환경에서는 계정 연동을 사용할 수 없습니다.','Account linking is unavailable here.'));return;}
+      const [cfg,info]=await Promise.all([account.config(),account.info()]);
+      if(!host.contains(slot))return;
+      const linked=(info.identities||[]).find(item=>item.provider==='google');
+      if(linked){
+        slot.innerHTML=`<div class="captain-account-state"><span class="captain-status-dot"></span><b>${t('구글 계정 연결됨','Google account linked')}</b></div>${note(`${linked.email} · ${t('진행 정보가 이 계정에 자동으로 백업됩니다. 다른 기기에서 같은 구글 계정으로 연결하면 이어서 플레이할 수 있습니다.','Your progress is backed up to this account. Link the same Google account on another device to continue.')}`)}`;
+        return;
+      }
+      if(!cfg.googleClientId){slot.innerHTML=note(t('구글 계정 연동은 준비 중입니다.','Google linking is coming soon.'));return;}
+      slot.innerHTML=note(t('구글 계정을 연결하면 기기를 바꾸거나 브라우저 데이터를 지워도 진행 정보를 되찾을 수 있습니다.','Link a Google account to recover your progress after switching devices or clearing browser data.'))+'<div class="captain-google-button" data-google-button></div>';
+      const onCredential=async credential=>{
+        status(t('확인하는 중입니다...','Checking...'));
+        const result=await account.link(credential);
+        if(result.status==='linked'||result.status==='already'){mount('google');status(t('구글 계정을 연결했습니다.','Google account linked.'));return;}
+        if(result.status==='exists'){
+          slot.innerHTML=note(`${result.email||''} · ${t('이 구글 계정에는 이미 저장된 진행 정보가 있습니다. 전환하면 이 기기의 현재 진행 정보는 저장된 정보로 대체됩니다.','This Google account already has saved progress. Switching replaces the progress on this device with the saved progress.')}`)+`<div class="captain-google-choices"><button type="button" class="captain-save" data-google-switch>${t('저장된 계정으로 전환','Switch to saved account')}</button><button type="button" data-google-cancel>${t('취소','Cancel')}</button></div>`;
+          slot.querySelector('[data-google-cancel]').onclick=()=>mount('google');
+          slot.querySelector('[data-google-switch]').onclick=async()=>{
+            status(t('전환하는 중입니다...','Switching...'));
+            const done=await account.switchTo(credential);
+            if(done.status==='switched')location.reload();
+            else status(t('전환하지 못했습니다. 잠시 뒤 다시 시도해 주세요.','Could not switch. Please try again later.'));
+          };
+          return;
+        }
+        status(result.httpStatus===429?t('요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.','Too many requests. Please try again later.'):t('연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.','Could not link. Please try again later.'));
+      };
+      try{
+        const google=await account.loadGsi();
+        google.accounts.id.initialize({client_id:cfg.googleClientId,callback:response=>onCredential(response.credential)});
+        google.accounts.id.renderButton(slot.querySelector('[data-google-button]'),{theme:'outline',size:'large',text:'continue_with',shape:'pill',locale:api.get().language==='en'?'en':'ko'});
+      }catch(error){status(t('구글 로그인 도구를 불러오지 못했습니다. 네트워크를 확인해 주세요.','Could not load Google sign-in. Check your network.'));}
     }
     mount();
   };

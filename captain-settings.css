@@ -75,3 +75,7 @@
 .captain-player-record button{border:1px solid #7caaad66;border-radius:5px;background:#203648;padding:7px;color:#bde9ed;font-size:10px}.captain-player-record small{grid-column:1/-1;font-size:9px;line-height:1.5;color:#728a9d}
 .captain-version{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0 24px;font-size:11px;color:#a1b3c2}.captain-version b{font-size:10px;font-weight:500;text-align:right;color:#e3cf9f}
 @media(max-width:380px){.captain-select-overlay{padding:12px}.captain-select-overlay .captain-select-dialog{padding:18px;max-height:calc(100dvh - 24px)}.captain-profile-summary{gap:12px;padding:12px}.captain-profile-summary>.captain-portrait{width:72px;height:96px}.captain-edit-name strong{font-size:16px}.captain-profile-actions button>b{font-size:10px}.captain-setting-row{padding:11px;gap:10px}}
+
+.captain-google-button{display:flex;justify-content:center;margin-top:14px;min-height:44px}
+.captain-google-choices{display:grid;gap:8px;margin-top:14px}
+.captain-google-choices button:not(.captain-save){min-height:42px;border:1px solid rgba(160,200,255,.35);border-radius:12px;background:transparent;color:inherit;font:inherit;cursor:pointer}
