@@ -7,7 +7,7 @@ const GLOBAL = { limit: 5000, windowMs: 3600000 };
 
 export async function onRequestPost({ request, env }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
-  if (!(await allow(env, `guest:${await clientKey(request)}`, PER_IP.limit, PER_IP.windowMs))) return tooMany();
+  if (!(await allow(env, `guest:${await clientKey(request, env)}`, PER_IP.limit, PER_IP.windowMs))) return tooMany();
   if (!(await allow(env, 'guest:all', GLOBAL.limit, GLOBAL.windowMs))) return tooMany();
   const id = randomToken(12);
   const secret = randomToken(32);

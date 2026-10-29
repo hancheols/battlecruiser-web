@@ -39,7 +39,7 @@ export async function onRequestDelete({ request, env }) {
 export async function onRequestPost({ request, env, verifyOptions }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
   if (!env.GOOGLE_CLIENT_ID) return json({ error: 'google-not-configured' }, 503);
-  if (!(await allow(env, `account:${await clientKey(request)}`, 30, 3600000))) return tooMany();
+  if (!(await allow(env, `account:${await clientKey(request, env)}`, 30, 3600000))) return tooMany();
   let body;
   try { body = await request.json(); } catch (_) { return json({ error: 'bad-json' }, 400); }
   const action = body?.action;

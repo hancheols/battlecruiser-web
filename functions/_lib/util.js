@@ -33,9 +33,10 @@ export async function allow(env, bucket, limit, windowMs) {
 export const tooMany = () => json({ error: 'rate-limited' }, 429);
 
 // 접속자 식별(IP)을 해시로 바꿔 제한 칸의 이름으로 쓴다. 원문 IP 는 저장하지 않는다.
-export async function clientKey(request) {
+// 서버 비밀값 RATE_SALT 를 환경 변수로 설정하면 해시에 섞어 IP 대입 복원을 어렵게 한다(없으면 고정 문자열만 쓴다).
+export async function clientKey(request, env = {}) {
   const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-  return (await sha256Hex(`bc-rate:${ip}`)).slice(0, 24);
+  return (await sha256Hex(`bc-rate:${env.RATE_SALT || ''}:${ip}`)).slice(0, 24);
 }
 
 // 길이가 같은 문자열을 시간 차이 없이 비교한다.
