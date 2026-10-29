@@ -12,6 +12,25 @@
     const api=window.gamePreferences;
     const t=(ko,en)=>api.get().language==='en'?en:ko;
     const viewStack=['settings'];
+    // 서버에 구글 계정이 연결돼 있으면 계정연동 항목들의 "게스트" 문구를 연결 상태로 바꿔 보여 준다(한 번 조회한 결과는 재사용).
+    let linkedGoogle;
+    const applyAccountState=()=>{
+      if(!linkedGoogle)return;
+      const email=linkedGoogle.email||'';
+      const summary=host.querySelector('[data-settings-view="account"] small');
+      if(summary)summary.textContent=`${t('구글 계정 연결됨','Google linked')}${email?' · '+email:''}`;
+      const stateLabel=host.querySelector('.captain-account-state b');
+      if(stateLabel)stateLabel.textContent=t('구글 계정으로 연결됨','Linked with Google');
+      const googleRow=host.querySelector('[data-settings-view="google"] small');
+      if(googleRow)googleRow.textContent=`${t('연결됨','Linked')}${email?' · '+email:''}`;
+    };
+    async function refreshAccountState(){
+      if(linkedGoogle===undefined){
+        try{const info=await window.cloudAccount?.info();linkedGoogle=(info?.identities||[]).find(item=>item.provider==='google')||null;}
+        catch(_){linkedGoogle=null;}
+      }
+      applyAccountState();
+    }
     const row=(view,name,description,symbol=view)=>`<button type="button" class="captain-setting-row" data-settings-view="${view}"><i>${icon(symbol)}</i><span><b>${name}</b><small>${description}</small></span><em aria-hidden="true">›</em></button>`;
     const status=message=>{const node=host.querySelector('.captain-setting-status');if(node)node.textContent=message;};
     const save=patch=>{const persisted=api.update(patch);if(!persisted)status(t('이번 실행에 적용했습니다. 기기 저장 공간을 사용할 수 없습니다.','Applied for this session. Device storage is unavailable.'));return persisted;};
@@ -62,6 +81,7 @@
         catch{const input=host.querySelector('#captain-player-id');if(input){input.focus();input.select();status(t('선택된 ID를 복사해주세요.','Copy the selected ID.'));}}
       });
       if(view==='google')setupGoogle();
+      else if(view==='settings'||view==='account'){applyAccountState();refreshAccountState();}
       host.querySelector('[data-captain-close]').focus();
     }
     // 구글 연동: 버튼(GIS)이 준 토큰을 서버로 보내 지금 게스트 계정에 연결한다. 이미 다른 계정에 연결된 구글 계정이면 전환할지 묻는다.
@@ -83,7 +103,7 @@
       const onCredential=async credential=>{
         status(t('확인하는 중입니다...','Checking...'));
         const result=await account.link(credential);
-        if(result.status==='linked'||result.status==='already'){mount('google');status(t('구글 계정을 연결했습니다.','Google account linked.'));return;}
+        if(result.status==='linked'||result.status==='already'){linkedGoogle=undefined;mount('google');status(t('구글 계정을 연결했습니다.','Google account linked.'));return;}
         if(result.status==='exists'){
           slot.innerHTML=note(`${result.email||''} · ${t('이 구글 계정에는 이미 저장된 진행 정보가 있습니다. 전환하면 이 기기의 현재 진행 정보는 저장된 정보로 대체됩니다.','This Google account already has saved progress. Switching replaces the progress on this device with the saved progress.')}`)+`<div class="captain-google-choices"><button type="button" class="captain-save" data-google-switch>${t('저장된 계정으로 전환','Switch to saved account')}</button><button type="button" data-google-cancel>${t('취소','Cancel')}</button></div>`;
           slot.querySelector('[data-google-cancel]').onclick=()=>mount('google');
