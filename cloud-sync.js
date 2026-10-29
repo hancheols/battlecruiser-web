@@ -158,6 +158,32 @@
     } finally { busy = false; }
   }
 
+  // 계정 삭제: 서버의 계정·저장·연결 정보를 지우고, 이 기기의 게임 진행 정보와 로그인 정보도 지운다. 끝나면 호출한 쪽이 화면을 새로 불러온다.
+  async function deleteAccount() {
+    clearInterval(timer);
+    busy = true;
+    try {
+      if (meta.id) {
+        const response = await request('/account', { method: 'DELETE', headers: authHeaders(), body: JSON.stringify({ confirm: 'delete' }) });
+        // 서버가 이미 이 계정을 모르면(401) 기기 쪽만 지우면 된다.
+        if (!response.ok && response.status !== 401) {
+          timer = setInterval(() => { push(); }, CHECK_EVERY);
+          return { status: 'error', httpStatus: response.status };
+        }
+      }
+    } catch (error) {
+      timer = setInterval(() => { push(); }, CHECK_EVERY);
+      return { status: 'error', error: String(error?.message || error) };
+    } finally { busy = false; }
+    disabled = true;
+    const doomed = [];
+    for (let index = 0; index < localStorage.length; index += 1) { const key = localStorage.key(index); if (key && ((BACKUP_KEY.test(key) && !SKIP_KEY.test(key)) || key === META_KEY)) doomed.push(key); }
+    doomed.forEach(key => localStorage.removeItem(key));
+    meta = {};
+    lastPushed = null;
+    return { status: 'deleted', reload: true };
+  }
+
   let gsiPromise = null;
   const loadGsi = () => (window.google?.accounts?.id ? Promise.resolve(window.google) : (gsiPromise ||= new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -168,7 +194,7 @@
     document.head.append(script);
   })));
 
-  window.cloudAccount = { config, info: accountInfo, link: credential => postAccount('link', credential), switchTo, loadGsi };
+  window.cloudAccount = { config, info: accountInfo, link: credential => postAccount('link', credential), switchTo, deleteAccount, loadGsi };
 
   window.cloudSync = {
     status: () => ({ guestId: meta.id || null, revision: meta.revision || 0, conflict, disabled, busy, lastError }),

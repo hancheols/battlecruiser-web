@@ -14,6 +14,28 @@ export async function onRequestGet({ request, env }) {
   return json({ identities: rows.map(row => ({ provider: row.provider, email: row.email_masked || '' })) });
 }
 
+// DELETE /api/account — 계정 삭제: 이 계정의 저장·연결된 외부 계정·세션·계정 자체를 지운다. 본문 { confirm: 'delete' } 가 있어야 한다.
+// 같은 이용자의 다른 기기 세션도 함께 사라진다. 지운 뒤에는 되돌릴 수 없다.
+export async function onRequestDelete({ request, env }) {
+  if (!env.DB) return json({ error: 'db-unavailable' }, 503);
+  const user = await authenticate(request, env);
+  if (!user) return json({ error: 'unauthorized' }, 401);
+  if (!(await allow(env, `delete:${user.id}`, 5, 3600000))) return tooMany();
+  const body = await request.json().catch(() => null);
+  if (body?.confirm !== 'delete') return json({ error: 'confirm-required' }, 400);
+  // 자식 표부터 지우고 계정 행을 마지막에 지운다(중간에 실패하면 다시 시도할 수 있다).
+  for (const sql of [
+    'DELETE FROM saves WHERE user_id = ?1',
+    'DELETE FROM identities WHERE user_id = ?1',
+    'DELETE FROM sessions WHERE user_id = ?1'
+  ]) {
+    try { await env.DB.prepare(sql).bind(user.id).run(); } catch (_) { /* 표가 아직 없으면 건너뛴다 */ }
+  }
+  try { await env.DB.prepare('DELETE FROM rate_limits WHERE bucket IN (?1, ?2, ?3)').bind(`load:${user.id}`, `save:${user.id}`, `delete:${user.id}`).run(); } catch (_) {}
+  await env.DB.prepare('DELETE FROM users WHERE id = ?1').bind(user.id).run();
+  return json({ status: 'deleted' });
+}
+
 export async function onRequestPost({ request, env, verifyOptions }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
   if (!env.GOOGLE_CLIENT_ID) return json({ error: 'google-not-configured' }, 503);

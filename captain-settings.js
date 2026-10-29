@@ -42,7 +42,7 @@
     const save=patch=>{const persisted=api.update(patch);if(!persisted)status(t('이번 실행에 적용했습니다. 기기 저장 공간을 사용할 수 없습니다.','Applied for this session. Device storage is unavailable.'));return persisted;};
     function mount(view='settings'){
       const state=api.get();
-      const titles={settings:t('설정','Settings'),sound:t('소리','Sound'),account:t('계정연동','Account linking'),language:t('언어선택','Language'),info:t('정보','Information'),privacy:t('개인정보 처리방침','Privacy policy'),terms:t('서비스 이용약관','Terms of service'),google:'Google',apple:'Apple',guest:t('게스트 계정','Guest account')};
+      const titles={settings:t('설정','Settings'),sound:t('소리','Sound'),account:t('계정연동','Account linking'),language:t('언어선택','Language'),info:t('정보','Information'),privacy:t('개인정보 처리방침','Privacy policy'),terms:t('서비스 이용약관','Terms of service'),google:'Google',apple:'Apple',guest:t('게스트 계정','Guest account'),delete:t('계정 삭제','Delete account')};
       let content='';
       if(view==='settings'){
         content=`<p class="captain-setting-intro">${t('함장의 플레이 환경을 설정하세요.','Customize your command experience.')}</p><div class="captain-settings-list">${row('sound',titles.sound,`${t('배경음악','Music')} ${state.music.enabled?'ON':'OFF'} · ${Math.round(state.music.volume*100)}% / ${t('효과음','Effects')} ${state.effects.enabled?'ON':'OFF'} · ${Math.round(state.effects.volume*100)}%`)}${row('account',titles.account,t('현재 기기 · 게스트 플레이','This device · Guest play'))}${row('language',titles.language,state.language==='ko'?'한국어':'English')}${row('info',titles.info,t('플레이어 ID · 버전 · 정책 및 약관','Player ID · Version · Policies'))}</div>`;
@@ -50,7 +50,10 @@
         const audioControl=(key,label)=>`<div class="captain-audio-row"><span>${label}</span><label class="captain-audio-toggle" aria-label="${label} ${t('켜기 또는 끄기','on or off')}"><input type="checkbox" role="switch" data-audio-enabled="${key}" ${state[key].enabled?'checked':''}/><i aria-hidden="true"></i><b data-audio-state="${key}">${state[key].enabled?'ON':'OFF'}</b></label></div>`;
         content=`<div class="captain-audio-list">${audioControl('music',t('배경음악','Background music'))}${audioControl('effects',t('효과음','Sound effects'))}</div>`;
       }else if(view==='account'){
-        content=`<div class="captain-account-state"><span class="captain-status-dot"></span><b>${t('게스트로 플레이 중','Playing as guest')}</b></div><p class="captain-setting-note">${t('진행 정보는 이 브라우저에 저장되고 서버에도 자동으로 백업됩니다. 구글 계정을 연결하면 기기를 바꿔도 이어서 플레이할 수 있습니다. Apple 연동은 준비 중입니다.','Progress is saved in this browser and backed up to the server automatically. Link a Google account to continue on another device. Apple linking is coming soon.')}</p><div class="captain-settings-list">${['google','apple','guest'].map(provider=>row(provider,titles[provider],state.accountProvider===provider?t('선택한 계정 방식','Preferred method'):t('계정 방식 보기','View sign-in method'),'account')).join('')}</div>`;
+        content=`<div class="captain-account-state"><span class="captain-status-dot"></span><b>${t('게스트로 플레이 중','Playing as guest')}</b></div><p class="captain-setting-note">${t('진행 정보는 이 브라우저에 저장되고 서버에도 자동으로 백업됩니다. 구글 계정을 연결하면 기기를 바꿔도 이어서 플레이할 수 있습니다. Apple 연동은 준비 중입니다.','Progress is saved in this browser and backed up to the server automatically. Link a Google account to continue on another device. Apple linking is coming soon.')}</p><div class="captain-settings-list">${['google','apple','guest'].map(provider=>row(provider,titles[provider],state.accountProvider===provider?t('선택한 계정 방식','Preferred method'):t('계정 방식 보기','View sign-in method'),'account')).join('')}</div><button type="button" class="captain-danger-link" data-settings-view="delete">${t('계정 삭제','Delete account')}</button>`;
+      }else if(view==='delete'){
+        const word=t('삭제','DELETE');
+        content=`<div class="captain-setting-hero captain-danger-hero"><i>${icon('info')}</i><span>${titles.delete}</span></div><ul class="captain-delete-list"><li>${t('이 계정의 게임 진행 정보(함선, 재화, 클리어 기록 등)가 서버와 이 기기에서 모두 삭제됩니다.','All progress (ships, resources, clear records, etc.) will be deleted from the server and this device.')}</li><li>${t('연결된 구글 계정 정보도 함께 삭제되며, 삭제한 계정은 되돌릴 수 없습니다.','Any linked Google account data is removed too. A deleted account cannot be restored.')}</li><li>${t('삭제 뒤에는 새 게스트 계정으로 처음부터 시작합니다.','Afterwards you will start over with a new guest account.')}</li></ul><label class="captain-delete-label" for="captain-delete-confirm">${t(`계속하려면 아래에 "${word}"를 입력하세요.`,`To continue, type "${word}" below.`)}</label><input id="captain-delete-confirm" class="captain-delete-input" autocomplete="off" autocapitalize="off" spellcheck="false"/><button type="button" class="captain-danger-button" data-delete-confirm disabled>${t('계정 삭제하기','Delete my account')}</button>`;
       }else if(view==='google'){
         content=`<div class="captain-setting-hero"><i>${icon('account')}</i><span>Google</span></div><div class="captain-google-slot" data-google-slot><p class="captain-setting-note">${t('불러오는 중...','Loading...')}</p></div>`;
       }else if(['google','apple','guest'].includes(view)){
@@ -58,9 +61,10 @@
       }else if(view==='language'){
         content=`<div class="captain-language-options" role="radiogroup" aria-label="${titles.language}">${[['ko','한국어','KOREAN'],['en','English','ENGLISH']].map(([code,label,subtitle])=>`<label class="captain-language-choice"><input type="radio" name="captain-language" value="${code}" ${state.language===code?'checked':''}/><span><b>${label}</b><small>${subtitle}</small></span></label>`).join('')}</div><p class="captain-setting-note">${t('설정 메뉴 언어가 즉시 변경됩니다. 현재 게임 본문은 한국어로 제공됩니다.','The settings menu language changes immediately. Game content is currently available in Korean.')}</p>`;
       }else if(view==='info'){
-        content=`<div class="captain-player-record"><label for="captain-player-id">${t('플레이어 ID','Player ID')}</label><input id="captain-player-id" readonly value="${api.playerId}"/><button type="button" data-copy-player>${t('ID 복사','Copy ID')}</button><small>${t('현재 브라우저에서 생성된 기기 ID입니다.','A local player ID generated in this browser.')}</small></div><div class="captain-version"><span>${t('버전','Version')}</span><b>${api.version}</b></div><div class="captain-settings-list">${row('privacy',titles.privacy,t('문서 상태 보기','View document status'),'info')}${row('terms',titles.terms,t('문서 상태 보기','View document status'),'info')}</div>`;
+        content=`<div class="captain-player-record"><label for="captain-player-id">${t('플레이어 ID','Player ID')}</label><input id="captain-player-id" readonly value="${api.playerId}"/><button type="button" data-copy-player>${t('ID 복사','Copy ID')}</button><small>${t('현재 브라우저에서 생성된 기기 ID입니다.','A local player ID generated in this browser.')}</small></div><div class="captain-version"><span>${t('버전','Version')}</span><b>${api.version}</b></div><div class="captain-settings-list">${row('privacy',titles.privacy,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}${row('terms',titles.terms,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}</div>`;
       }else{
-        content=`<div class="captain-setting-hero"><i>${icon('info')}</i><span>${t('공식 문서 준비 중','DOCUMENT PENDING')}</span></div><p class="captain-setting-note">${t(`${titles[view]} 공식 문서는 아직 등록되지 않았습니다. 게시된 문서가 준비되면 이 메뉴에서 확인할 수 있습니다.`, `The official ${view==='privacy'?'privacy policy':'terms of service'} has not been published yet. It will be available here when provided.`)}</p>`;
+        const page=view==='privacy'?'privacy.html':'terms.html';
+        content=`<div class="captain-setting-hero"><i>${icon('info')}</i><span>${titles[view]}</span></div><p class="captain-setting-note">${t('시행일 2026년 10월 31일. 문서는 새 창에서 열립니다.','Effective October 31, 2026. The document opens in a new tab.')}</p><a class="captain-save captain-doc-link" href="${page}" target="_blank" rel="noopener">${t('문서 열기','Open document')}</a>`;
       }
       const goBack=()=>{if(viewStack.length>1){viewStack.pop();mount(viewStack[viewStack.length-1]);}else onBack();};
       host.dataset.settingsActive='true';
@@ -86,9 +90,31 @@
         try{await navigator.clipboard.writeText(api.playerId);status(t('플레이어 ID를 복사했습니다.','Player ID copied.'));}
         catch{const input=host.querySelector('#captain-player-id');if(input){input.focus();input.select();status(t('선택된 ID를 복사해주세요.','Copy the selected ID.'));}}
       });
+      if(view==='delete')setupDelete();
       if(view==='google')setupGoogle();
       else if(view==='settings'||view==='account'){applyAccountState();refreshAccountState();}
       host.querySelector('[data-captain-close]').focus();
+    }
+    // 계정 삭제: 확인 글자를 입력해야 버튼이 켜지고, 서버 삭제가 성공한 뒤에만 기기 데이터를 지우고 화면을 새로 불러온다.
+    function setupDelete(){
+      const input=host.querySelector('#captain-delete-confirm'),button=host.querySelector('[data-delete-confirm]');
+      if(!input||!button)return;
+      const word=t('삭제','DELETE');
+      input.addEventListener('input',()=>{button.disabled=input.value.trim()!==word;});
+      button.addEventListener('click',async()=>{
+        if(input.value.trim()!==word)return;
+        button.disabled=true;input.disabled=true;
+        status(t('삭제하는 중입니다...','Deleting...'));
+        const account=window.cloudAccount;
+        const result=account?await account.deleteAccount():{status:'error'};
+        if(result.status==='deleted'){
+          status(t('계정을 삭제했습니다. 잠시 뒤 처음 화면으로 돌아갑니다.','Account deleted. Returning to the start screen.'));
+          setTimeout(()=>location.reload(),900);
+        }else{
+          input.disabled=false;button.disabled=false;
+          status(result.httpStatus===429?t('요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.','Too many requests. Please try again later.'):t('삭제하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.','Could not delete. Check your network and try again.'));
+        }
+      });
     }
     // 구글 연동: 버튼(GIS)이 준 토큰을 서버로 보내 지금 게스트 계정에 연결한다. 이미 다른 계정에 연결된 구글 계정이면 전환할지 묻는다.
     async function setupGoogle(){
