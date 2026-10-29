@@ -61,7 +61,8 @@
       }else if(view==='language'){
         content=`<div class="captain-language-options" role="radiogroup" aria-label="${titles.language}">${[['ko','한국어','KOREAN'],['en','English','ENGLISH']].map(([code,label,subtitle])=>`<label class="captain-language-choice"><input type="radio" name="captain-language" value="${code}" ${state.language===code?'checked':''}/><span><b>${label}</b><small>${subtitle}</small></span></label>`).join('')}</div><p class="captain-setting-note">${t('설정 메뉴 언어가 즉시 변경됩니다. 현재 게임 본문은 한국어로 제공됩니다.','The settings menu language changes immediately. Game content is currently available in Korean.')}</p>`;
       }else if(view==='info'){
-        content=`<div class="captain-player-record"><label for="captain-player-id">${t('플레이어 ID','Player ID')}</label><input id="captain-player-id" readonly value="${api.playerId}"/><button type="button" data-copy-player>${t('ID 복사','Copy ID')}</button><small>${t('현재 브라우저에서 생성된 기기 ID입니다.','A local player ID generated in this browser.')}</small></div><div class="captain-version"><span>${t('버전','Version')}</span><b>${api.version}</b></div><div class="captain-settings-list">${row('privacy',titles.privacy,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}${row('terms',titles.terms,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}</div>`;
+        const accountId=window.cloudSync?.status?.().guestId||'';
+        content=`<div class="captain-player-record"><label for="captain-player-id">${t('플레이어 ID','Player ID')}</label><input id="captain-player-id" readonly value="${api.playerId}"/><button type="button" data-copy-player>${t('ID 복사','Copy ID')}</button><small>${t('현재 브라우저에서 생성된 기기 ID입니다.','A local player ID generated in this browser.')}</small></div>${accountId?`<div class="captain-player-record"><label for="captain-account-id">${t('계정 번호','Account number')}</label><input id="captain-account-id" readonly value="${accountId}"/><button type="button" data-copy-account>${t('번호 복사','Copy number')}</button><small>${t('계정 삭제를 이메일로 요청할 때 이 번호가 필요합니다. 다른 사람에게 알리지 마세요.','You need this number to request account deletion by email. Do not share it.')}</small></div>`:''}<div class="captain-version"><span>${t('버전','Version')}</span><b>${api.version}</b></div><div class="captain-settings-list">${row('privacy',titles.privacy,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}${row('terms',titles.terms,t('문서 열기 · 시행 2026.10.31','Open document · effective 2026-10-31'),'info')}</div>`;
       }else{
         const page=view==='privacy'?'privacy.html':'terms.html';
         content=`<div class="captain-setting-hero"><i>${icon('info')}</i><span>${titles[view]}</span></div><p class="captain-setting-note">${t('시행일 2026년 10월 31일. 문서는 새 창에서 열립니다.','Effective October 31, 2026. The document opens in a new tab.')}</p><a class="captain-save captain-doc-link" href="${page}" target="_blank" rel="noopener">${t('문서 열기','Open document')}</a>`;
@@ -86,6 +87,11 @@
         const persisted=save({language:input.value});mount('language');host.querySelector('[name="captain-language"]:checked')?.focus();
         if(!persisted)status(t('이번 실행에만 적용되었습니다.','Applied for this session only.'));
       }));
+      host.querySelector('[data-copy-account]')?.addEventListener('click',async()=>{
+        const input=host.querySelector('#captain-account-id');
+        try{await navigator.clipboard.writeText(input.value);status(t('계정 번호를 복사했습니다.','Account number copied.'));}
+        catch{input.focus();input.select();status(t('선택된 번호를 복사해주세요.','Copy the selected number.'));}
+      });
       host.querySelector('[data-copy-player]')?.addEventListener('click',async()=>{
         try{await navigator.clipboard.writeText(api.playerId);status(t('플레이어 ID를 복사했습니다.','Player ID copied.'));}
         catch{const input=host.querySelector('#captain-player-id');if(input){input.focus();input.select();status(t('선택된 ID를 복사해주세요.','Copy the selected ID.'));}}
