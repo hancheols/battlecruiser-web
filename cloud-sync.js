@@ -7,7 +7,7 @@
   const META_KEY = 'starfleet-cloud-v1';           // { id, secret, revision } — 이 기기의 게스트 계정
   const SCHEMA_VERSION = 1;
   const BACKUP_KEY = /^(starfleet-|planet-|neptune-|magenta-|kepler-|tapao-)[a-z0-9-]*$/;
-  const SKIP_KEY = /^starfleet-cloud-/;
+  const SKIP_KEY = /^starfleet-(cloud|age)-/;   // 클라우드 계정 정보와 만 14세 확인은 이 기기에만 둔다(백업·복원 대상 아님)
   const CHECK_EVERY = 15000;
   const REQUEST_TIMEOUT = 8000;
 
@@ -201,5 +201,7 @@
     pushNow: () => push(),
     stop: () => { disabled = true; clearInterval(timer); }
   };
-  start();
+  // 만 14세 이상 확인(age-gate.js) 전에는 서버에 계정을 만들지 않는다.
+  if (typeof window.isAgeConfirmed === 'function' && !window.isAgeConfirmed()) window.addEventListener('age-confirmed', () => { start(); }, { once: true });
+  else start();
 })();
