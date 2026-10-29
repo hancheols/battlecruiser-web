@@ -1,0 +1,307 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   함교 지휘 콘솔 스킨 — 함장 프로필(설정·메일·Membership 포함)과 지구연합(가입·창설·시설) 화면의 공통 디자인.
+   기존 레이아웃(크기·배치)은 그대로 두고 표면(테두리·배경·빛·글자)만 바꾼다. 다른 스타일 파일 뒤에 불러온다.
+   모양 규칙
+   - 큰 틀(대화상자·영웅 배너): 모서리를 깎은 홀로그램 콘솔 패널 + 모서리 브래킷 + 위쪽 빛줄기
+   - 카드·행·버튼: 그라데이션 테두리(padding-box/border-box 겹치기) + 마우스를 올리면 빛이 스치는 효과
+   - 색: 청록(정보·선택), 금색(주요 행동·보상), 시설별 강조색은 기존 --acc/--acc2 를 그대로 쓴다
+   글꼴은 game-fonts.css 의 변수(--font-display/body/num)만 쓴다.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root{
+  --sk-ink:#040c18;
+  --sk-panel:#0a1829;
+  --sk-panel-2:#0f2338;
+  --sk-line:rgba(140,205,255,.2);
+  --sk-line-hi:rgba(160,225,255,.6);
+  --sk-cyan:#7fe3ff;
+  --sk-cyan-deep:#1d9bd6;
+  --sk-gold:#f2d087;
+  --sk-gold-deep:#a67c35;
+  --sk-text:#eaf4ff;
+  --sk-mute:#8da7c2;
+  --sk-cut:16px;
+}
+@keyframes sk-sweep{0%{background-position:-120% 0}100%{background-position:220% 0}}
+@keyframes sk-blink{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes sk-scan{0%{transform:translateY(-100%)}100%{transform:translateY(260%)}}
+@keyframes sk-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes sk-ring{to{transform:rotate(360deg)}}
+
+/* ===== 1. 함장 프로필 계열 대화상자 ===== */
+.captain-select-overlay{background:radial-gradient(ellipse at 50% 28%,rgba(25,70,120,.55),rgba(1,5,13,.94) 70%),repeating-linear-gradient(0deg,rgba(127,227,255,.025) 0 1px,transparent 1px 3px);backdrop-filter:blur(10px) saturate(1.2)}
+.captain-select-overlay .captain-select-dialog{
+  position:relative;isolation:isolate;border:0;border-radius:0;
+  clip-path:polygon(var(--sk-cut) 0,100% 0,100% calc(100% - var(--sk-cut)),calc(100% - var(--sk-cut)) 100%,0 100%,0 var(--sk-cut));
+  background:
+    /* 깎인 모서리의 대각선 테두리 */
+    linear-gradient(135deg,transparent calc(50% - .8px),var(--sk-line-hi) calc(50% - .8px) calc(50% + .8px),transparent calc(50% + .8px)) top left/var(--sk-cut) var(--sk-cut) no-repeat,
+    linear-gradient(135deg,transparent calc(50% - .8px),var(--sk-line-hi) calc(50% - .8px) calc(50% + .8px),transparent calc(50% + .8px)) bottom right/var(--sk-cut) var(--sk-cut) no-repeat,
+    /* 모서리 브래킷(왼쪽 아래). 오른쪽 위는 닫기 버튼 자리라 비운다 */
+    linear-gradient(var(--sk-cyan),var(--sk-cyan)) bottom 7px left 7px/16px 2px no-repeat,
+    linear-gradient(var(--sk-cyan),var(--sk-cyan)) bottom 7px left 7px/2px 16px no-repeat,
+    /* 위쪽 광원·미세 격자·바탕 */
+    radial-gradient(ellipse 90% 45% at 50% 0,rgba(64,150,230,.32),transparent 70%),
+    linear-gradient(rgba(127,227,255,.035) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,rgba(127,227,255,.03) 1px,transparent 1px) 0 0/22px 100%,
+    linear-gradient(160deg,#13263d 0%,#0a1727 55%,#060f1c 100%);
+  box-shadow:inset 0 0 0 1px var(--sk-line),inset 0 1px 0 rgba(255,255,255,.12),inset 0 0 60px rgba(30,110,200,.12);
+  color:var(--sk-text);animation:sk-rise .28s ease-out both;
+}
+.captain-select-overlay .captain-select-dialog::before{
+  left:var(--sk-cut);right:46px;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--sk-gold) 20%,#fff 50%,var(--sk-cyan) 80%,transparent) 0 0/45% 100% no-repeat,linear-gradient(90deg,rgba(242,208,135,.35),rgba(127,227,255,.35));
+  animation:sk-sweep 5.5s linear infinite;
+}
+.captain-select-overlay .captain-select-dialog>header{border-bottom:0;padding-bottom:14px;margin-bottom:10px;background:linear-gradient(90deg,var(--sk-line-hi),rgba(140,205,255,.12) 45%,transparent) bottom left/100% 1px no-repeat}
+.captain-select-overlay .captain-select-dialog>header small{display:inline-flex;align-items:center;gap:7px;color:var(--sk-gold);font-family:var(--font-num);font-size:10px;font-weight:700;letter-spacing:.28em}
+.captain-select-overlay .captain-select-dialog>header small::before{content:"";width:6px;height:6px;border-radius:50%;background:#5cf2bd;box-shadow:0 0 8px #5cf2bd;animation:sk-blink 2.4s ease-in-out infinite}
+.captain-select-overlay .captain-select-dialog>header h2{font-family:var(--font-display);font-size:25px;letter-spacing:.04em;background:linear-gradient(95deg,#ffffff 0%,#cfeaff 55%,var(--sk-gold) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(110,190,255,.28))}
+.captain-select-overlay .captain-select-dialog>header button{
+  width:36px;height:36px;border:0;border-radius:0;
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  background:linear-gradient(160deg,#2b4561,#0d1a2b);color:#d7ecfb;font-size:16px;
+  box-shadow:inset 0 0 0 1px var(--sk-line-hi);
+}
+.captain-select-overlay .captain-select-dialog>header button:hover{background:linear-gradient(160deg,#3d6488,#132840);color:#fff}
+
+/* 함장 신분 패널 */
+.captain-select-overlay .captain-profile-summary{
+  border:1px solid transparent;border-radius:3px 18px 3px 18px;overflow:hidden;
+  background:
+    radial-gradient(ellipse 70% 120% at 0 0,rgba(242,208,135,.16),transparent 60%) padding-box,
+    repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px) padding-box,
+    linear-gradient(118deg,#1d3550,#0b1828 70%) padding-box,
+    linear-gradient(120deg,var(--sk-gold),rgba(242,208,135,.15) 35%,rgba(127,227,255,.2) 70%,var(--sk-cyan)) border-box;
+  box-shadow:0 10px 26px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.captain-select-overlay .captain-profile-summary>.captain-portrait{
+  border:0;border-radius:0;box-shadow:none;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+  background:linear-gradient(150deg,var(--sk-gold),#5a4520 40%,#173049 60%,var(--sk-cyan));
+}
+.captain-select-overlay .captain-profile-summary>.captain-portrait img{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px)}
+.captain-select-overlay .captain-profile-summary>.captain-portrait::after{content:"";position:absolute;left:2px;right:2px;top:0;height:40%;background:linear-gradient(180deg,transparent,rgba(127,227,255,.22),transparent);animation:sk-scan 4.2s linear infinite;pointer-events:none}
+.captain-select-overlay .captain-profile-summary small{font-family:var(--font-num);letter-spacing:.24em;color:var(--sk-gold)}
+.captain-select-overlay .captain-edit-name strong{font-family:var(--font-display);font-size:21px;color:#fff;text-shadow:0 0 14px rgba(127,227,255,.35)}
+.captain-select-overlay .captain-pencil{border-radius:50%;border:1px solid rgba(242,208,135,.7);background:radial-gradient(circle at 35% 30%,#6b5426,#2a2112)}
+.captain-select-overlay .captain-clearance{display:inline-block;padding:3px 9px;border:1px solid rgba(127,227,255,.45);border-radius:2px 8px 2px 8px;background:rgba(18,60,96,.45);font-family:var(--font-num);font-style:normal;font-size:10px;letter-spacing:.2em;color:var(--sk-cyan)}
+
+/* 계기판 수치 */
+.captain-select-overlay .captain-profile-stats{gap:8px;border:0;background:none;overflow:visible}
+.captain-select-overlay .captain-profile-stats>div{
+  position:relative;border:1px solid transparent;border-radius:3px 12px 3px 12px;
+  background:linear-gradient(170deg,#112741,#081422) padding-box,linear-gradient(140deg,rgba(127,227,255,.55),rgba(127,227,255,.08) 55%,rgba(242,208,135,.4)) border-box;
+}
+.captain-select-overlay .captain-profile-stats>div::after{content:"";position:absolute;left:14px;right:40%;bottom:8px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--sk-cyan),transparent);opacity:.7}
+.captain-select-overlay .captain-profile-stats small{font-size:11px;letter-spacing:.06em;color:var(--sk-mute)}
+.captain-select-overlay .captain-profile-stats b{font-family:var(--font-num);font-size:30px;line-height:1;color:#fff;text-shadow:0 0 16px rgba(127,227,255,.45)}
+.captain-select-overlay .captain-profile-stats em{font-style:normal;color:var(--sk-gold)}
+
+/* 메뉴 타일(설정·메일·Membership) */
+.captain-select-overlay .captain-profile-actions button{
+  position:relative;overflow:hidden;border:1px solid transparent;border-radius:3px 16px 3px 16px;
+  background:
+    linear-gradient(110deg,transparent 35%,rgba(255,255,255,.12) 50%,transparent 65%) -200% 0/220% 100% no-repeat padding-box,
+    radial-gradient(ellipse 80% 60% at 50% 0,rgba(64,150,230,.28),transparent 70%) padding-box,
+    linear-gradient(175deg,#16314d,#0a1626) padding-box,
+    linear-gradient(150deg,rgba(127,227,255,.6),rgba(127,227,255,.06) 50%,rgba(127,227,255,.3)) border-box;
+  box-shadow:0 8px 18px rgba(0,0,0,.35);
+  transition:transform .18s ease,background-position .6s ease,box-shadow .2s ease;
+}
+.captain-select-overlay .captain-profile-actions button:hover{transform:translateY(-2px);background-position:200% 0,0 0,0 0,0 0;box-shadow:0 12px 24px rgba(0,0,0,.45),0 0 18px rgba(127,227,255,.18)}
+.captain-select-overlay .captain-profile-actions button>span{
+  width:48px;height:48px;display:grid;place-items:center;border-radius:50%;font-size:24px;
+  border:1px solid rgba(127,227,255,.45);
+  background:radial-gradient(circle at 50% 35%,rgba(127,227,255,.25),rgba(10,30,52,.9) 70%);
+  box-shadow:0 0 16px rgba(127,227,255,.25),inset 0 0 10px rgba(127,227,255,.2);
+}
+.captain-select-overlay .captain-profile-actions button b{font-family:var(--font-display);font-size:15px;font-weight:400;letter-spacing:.04em}
+.captain-select-overlay .captain-profile-actions button small{font-family:var(--font-num);letter-spacing:.2em;color:var(--sk-mute)}
+.captain-select-overlay .captain-profile-actions button:last-child{
+  background:
+    linear-gradient(110deg,transparent 35%,rgba(255,255,255,.14) 50%,transparent 65%) -200% 0/220% 100% no-repeat padding-box,
+    radial-gradient(ellipse 80% 60% at 50% 0,rgba(242,208,135,.28),transparent 70%) padding-box,
+    linear-gradient(175deg,#2d2716,#100d07) padding-box,
+    linear-gradient(150deg,var(--sk-gold),rgba(242,208,135,.08) 50%,rgba(242,208,135,.45)) border-box;
+}
+.captain-select-overlay .captain-profile-actions button:last-child>span{border-color:rgba(242,208,135,.6);color:var(--sk-gold);background:radial-gradient(circle at 50% 35%,rgba(242,208,135,.3),rgba(40,30,10,.9) 70%);box-shadow:0 0 16px rgba(242,208,135,.3)}
+.captain-select-overlay .captain-profile-mail-alert{animation:sk-blink 1.6s ease-in-out infinite}
+
+/* 주요 행동 버튼(저장·수령·연결 등) */
+.captain-select-overlay .captain-select-dialog .captain-save{
+  position:relative;overflow:hidden;border:1px solid transparent;border-radius:3px 14px 3px 14px;
+  background:
+    linear-gradient(110deg,transparent 35%,rgba(255,255,255,.25) 50%,transparent 65%) -200% 0/220% 100% no-repeat padding-box,
+    linear-gradient(180deg,#c9a24f,#8a6426 55%,#5a3f15) padding-box,
+    linear-gradient(180deg,#fff0c2,#a67c35) border-box;
+  color:#fff7e3;font-family:var(--font-display);font-size:15px;font-weight:400;letter-spacing:.06em;text-shadow:0 1px 2px rgba(0,0,0,.5);
+  box-shadow:0 6px 16px rgba(166,124,53,.35),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:background-position .7s ease,filter .2s ease;
+}
+.captain-select-overlay .captain-select-dialog .captain-save:hover{background-position:200% 0,0 0,0 0;filter:brightness(1.08)}
+.captain-select-overlay .captain-select-dialog .captain-save:disabled{filter:grayscale(.6) brightness(.8)}
+
+/* 설정 행·메일 행 */
+.captain-select-overlay .captain-setting-row,
+.captain-select-overlay .captain-mail-row{
+  position:relative;border:1px solid transparent;border-radius:3px 14px 3px 14px;
+  background:
+    linear-gradient(110deg,transparent 35%,rgba(255,255,255,.08) 50%,transparent 65%) -200% 0/220% 100% no-repeat padding-box,
+    linear-gradient(100deg,#15304b,#0a1727 75%) padding-box,
+    linear-gradient(100deg,rgba(127,227,255,.5),rgba(127,227,255,.05) 45%,rgba(127,227,255,.18)) border-box;
+  box-shadow:inset 3px 0 0 rgba(127,227,255,.55),0 4px 12px rgba(0,0,0,.28);
+  transition:background-position .6s ease,transform .16s ease;
+}
+.captain-select-overlay .captain-setting-row:hover,
+.captain-select-overlay .captain-mail-row:hover{background-position:200% 0,0 0,0 0;transform:translateX(2px)}
+.captain-select-overlay .captain-setting-row>i,
+.captain-select-overlay .captain-mail-row-icon{border-radius:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);border:0;background:radial-gradient(circle,rgba(127,227,255,.35),#0d2a44 70%);color:var(--sk-cyan)}
+.captain-select-overlay .captain-setting-row>i svg{width:18px;height:18px}
+.captain-select-overlay .captain-setting-row b,
+.captain-select-overlay .captain-mail-row-top b{font-family:var(--font-display);font-weight:400;font-size:15px;letter-spacing:.02em}
+.captain-select-overlay .captain-setting-row em{color:var(--sk-gold)}
+.captain-select-overlay .captain-mail-row.unread{background:
+    linear-gradient(110deg,transparent 35%,rgba(255,255,255,.1) 50%,transparent 65%) -200% 0/220% 100% no-repeat padding-box,
+    linear-gradient(100deg,#2b2a1c,#0e1520 75%) padding-box,
+    linear-gradient(100deg,var(--sk-gold),rgba(242,208,135,.08) 50%,rgba(242,208,135,.35)) border-box;
+  box-shadow:inset 3px 0 0 var(--sk-gold),0 0 18px rgba(242,208,135,.12)}
+/* 계정연동 등에서 "현재 쓰는 방식" 강조(금색) */
+.captain-select-overlay .captain-setting-row.is-active{background:
+    linear-gradient(100deg,#3a3016,#120f07 75%) padding-box,
+    linear-gradient(100deg,var(--sk-gold),rgba(242,208,135,.12) 50%,rgba(242,208,135,.5)) border-box;
+  box-shadow:inset 3px 0 0 var(--sk-gold),0 0 16px rgba(242,208,135,.18)}
+.captain-select-overlay .captain-setting-row.is-active>i{background:radial-gradient(circle,rgba(242,208,135,.45),#3a2c10 70%);color:#ffe6a6}
+
+/* 설정 상세 화면의 큰 아이콘·입력칸·스위치 */
+.captain-select-overlay .captain-setting-hero>i{border-radius:0;border:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:radial-gradient(circle,rgba(127,227,255,.4),#0d2a44 70%);box-shadow:none}
+.captain-select-overlay .captain-player-record input,
+.captain-select-overlay .captain-delete-input{border:1px solid rgba(127,227,255,.35);border-radius:2px 10px 2px 10px;background:#06111f;color:#fff;font-family:var(--font-num);letter-spacing:.05em}
+.captain-select-overlay .captain-audio-toggle input:checked+i{background:linear-gradient(90deg,var(--sk-cyan-deep),var(--sk-cyan));box-shadow:0 0 10px rgba(127,227,255,.5)}
+.captain-select-overlay .captain-setting-intro,
+.captain-select-overlay .captain-select-dialog .captain-setting-note{color:#b7cbe0}
+
+/* 메일 상세·보상 */
+.captain-select-overlay .captain-mail-letter-head{border-bottom:1px solid var(--sk-line)}
+.captain-select-overlay .captain-mail-letter-head h3{font-family:var(--font-display);font-weight:400;font-size:19px;color:#fff}
+.captain-select-overlay .captain-mail-reward-panel{border:1px solid transparent;border-radius:3px 14px 3px 14px;background:linear-gradient(170deg,#1c2a3a,#0b1420) padding-box,linear-gradient(140deg,var(--sk-gold),rgba(242,208,135,.1) 50%,rgba(127,227,255,.3)) border-box}
+.captain-select-overlay .captain-mail-reward{border-radius:3px 10px 3px 10px}
+.captain-select-overlay .captain-mail-reward-copy strong{font-family:var(--font-num);font-size:20px;color:var(--sk-gold)}
+
+/* ===== 2. 지구연합 (가입·창설·시설) ===== */
+#earth-union .union-panel.union-live{color:var(--sk-text)}
+
+/* 화면 머리(연합 가입/창설) */
+#earth-union .join-head{
+  position:relative;overflow:hidden;border:0;border-radius:0;padding:20px 18px 16px;
+  clip-path:polygon(var(--sk-cut) 0,100% 0,100% calc(100% - var(--sk-cut)),calc(100% - var(--sk-cut)) 100%,0 100%,0 var(--sk-cut));
+  background:
+    linear-gradient(135deg,transparent calc(50% - .8px),var(--sk-line-hi) calc(50% - .8px) calc(50% + .8px),transparent calc(50% + .8px)) top left/var(--sk-cut) var(--sk-cut) no-repeat,
+    linear-gradient(135deg,transparent calc(50% - .8px),var(--sk-line-hi) calc(50% - .8px) calc(50% + .8px),transparent calc(50% + .8px)) bottom right/var(--sk-cut) var(--sk-cut) no-repeat,
+    linear-gradient(var(--sk-gold),var(--sk-gold)) top 7px right 7px/16px 2px no-repeat,
+    linear-gradient(var(--sk-gold),var(--sk-gold)) top 7px right 7px/2px 16px no-repeat,
+    radial-gradient(ellipse 80% 120% at 100% 0,rgba(64,150,230,.35),transparent 60%),
+    linear-gradient(rgba(127,227,255,.04) 1px,transparent 1px) 0 0/100% 18px,
+    linear-gradient(125deg,#16355c,#081631 70%);
+  box-shadow:inset 0 0 0 1px var(--sk-line),inset 0 1px 0 rgba(255,255,255,.12);
+}
+#earth-union .join-head small{font-family:var(--font-num);font-weight:700;letter-spacing:.28em;color:var(--sk-gold)}
+#earth-union .join-head h2{font-size:24px;background:linear-gradient(95deg,#fff,#cfeaff 60%,var(--sk-gold));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(110,190,255,.3))}
+
+/* 시설 영웅 배너(그림은 그대로, 틀만) */
+#earth-union .fac-hero{clip-path:polygon(0 0,calc(100% - var(--sk-cut)) 0,100% var(--sk-cut),100% 100%,var(--sk-cut) 100%,0 calc(100% - var(--sk-cut)));box-shadow:inset 0 0 0 1px var(--sk-line),inset 0 -40px 60px rgba(2,8,20,.65)}
+#earth-union .fac-hero-text h2{text-shadow:0 0 18px var(--acc2,#1fa2ff),0 2px 4px rgba(0,0,0,.6)}
+#earth-union .fac-back{border:1px solid rgba(127,227,255,.5);border-radius:2px 10px 2px 10px;background:rgba(6,18,36,.75);backdrop-filter:blur(6px);font-family:var(--font-display);letter-spacing:.03em}
+
+/* 탭(연합 가입·창설 / 함대 명단·입대 신청 등): 분할 스위치 */
+#earth-union .union-tabs,
+#earth-union .fac-tabs{gap:4px;padding:4px;border:1px solid var(--sk-line);border-radius:3px 14px 3px 14px;background:linear-gradient(180deg,rgba(6,16,34,.9),rgba(10,24,46,.9));box-shadow:inset 0 2px 8px rgba(0,0,0,.4)}
+#earth-union .union-tabs button,
+#earth-union .fac-tabs button{min-height:40px;border:0;border-radius:2px 11px 2px 11px;background:transparent;color:var(--sk-mute);font-family:var(--font-display);font-size:14px;letter-spacing:.03em;transition:color .2s,background .2s}
+#earth-union .union-tabs button[aria-selected="true"],
+#earth-union .fac-tabs button[aria-selected="true"]{color:#fff;background:linear-gradient(180deg,rgba(64,160,240,.38),rgba(20,70,130,.55));box-shadow:inset 0 0 0 1px rgba(127,227,255,.55),0 0 14px rgba(64,160,240,.3);text-shadow:0 0 10px rgba(127,227,255,.6)}
+#earth-union .fac-tabs button::after{display:none}
+
+/* 패널·카드 공통: 그라데이션 테두리 유리판 */
+#earth-union .fac-panel,
+#earth-union .union-card,
+#earth-union .union-form{
+  border:1px solid transparent;border-radius:3px 16px 3px 16px;
+  background:
+    radial-gradient(ellipse 90% 60% at 0 0,color-mix(in srgb,var(--acc,#7fd0ff) 14%,transparent),transparent 65%) padding-box,
+    linear-gradient(170deg,rgba(14,32,56,.92),rgba(6,14,30,.94)) padding-box,
+    linear-gradient(140deg,color-mix(in srgb,var(--acc,#7fd0ff) 70%,transparent),rgba(127,227,255,.06) 50%,color-mix(in srgb,var(--acc,#7fd0ff) 30%,transparent)) border-box;
+  box-shadow:0 10px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+}
+#earth-union .fac-panel h3{font-size:16px;letter-spacing:.03em}
+#earth-union .fac-panel h3 small,#earth-union .fac-panel h3 em{font-family:var(--font-num);letter-spacing:.2em}
+
+/* 가입 목록 카드 */
+#earth-union .union-card{position:relative;padding:12px;transition:transform .16s ease,box-shadow .2s ease}
+#earth-union .union-card:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(0,0,0,.42),0 0 16px rgba(127,227,255,.14)}
+#earth-union .union-card-main b{font-family:var(--font-display);font-weight:400;font-size:17px;letter-spacing:.02em;color:#fff}
+#earth-union .union-card .card-crest{filter:drop-shadow(0 0 8px rgba(127,227,255,.4))}
+
+/* 입력칸·검색 */
+#earth-union .union-field input,#earth-union .union-field textarea,#earth-union .union-field select,
+#earth-union .union-search input,#earth-union .union-row select{
+  border:1px solid rgba(127,227,255,.3);border-radius:2px 11px 2px 11px;background:linear-gradient(180deg,#050d1a,#08152a);
+  color:#fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.45);transition:border-color .2s,box-shadow .2s;
+}
+#earth-union .union-field input:focus,#earth-union .union-field textarea:focus,#earth-union .union-search input:focus{outline:0;border-color:var(--sk-cyan);box-shadow:inset 0 2px 6px rgba(0,0,0,.45),0 0 0 3px rgba(127,227,255,.15)}
+#earth-union .union-field{color:var(--sk-mute);font-size:12px;letter-spacing:.03em}
+
+/* 엠블럼 설계기 */
+#earth-union .create-preview{filter:drop-shadow(0 0 18px rgba(80,170,255,.55)) drop-shadow(0 0 40px rgba(242,208,135,.15))}
+#earth-union .em-opt{border-radius:2px 10px 2px 10px;border-color:rgba(127,227,255,.18);background:linear-gradient(170deg,rgba(14,32,56,.9),rgba(5,12,26,.95));transition:border-color .2s,transform .15s}
+#earth-union .em-opt:hover{transform:translateY(-1px);border-color:rgba(127,227,255,.6)}
+#earth-union .em-opt[aria-pressed="true"]{border-color:var(--sk-gold);background:linear-gradient(170deg,rgba(60,48,20,.9),rgba(16,12,4,.95));box-shadow:0 0 14px rgba(242,208,135,.35),inset 0 0 12px rgba(242,208,135,.15)}
+#earth-union .em-opt[aria-pressed="true"] small{color:var(--sk-gold)}
+#earth-union .em-swatch{box-shadow:0 0 0 1px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.5)}
+#earth-union .em-random{border-radius:2px 10px 2px 10px}
+
+/* 버튼 */
+#earth-union .fac-btn,#earth-union .union-btn{position:relative;overflow:hidden;font-family:var(--font-display);letter-spacing:.04em;transition:filter .2s,transform .15s,background-position .6s}
+#earth-union .fac-btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%) -200% 0/220% 100% no-repeat;transition:background-position .7s ease;pointer-events:none}
+#earth-union .fac-btn:not(:disabled):hover::after{background-position:200% 0}
+#earth-union .union-btn{border:1px solid transparent;border-radius:2px 11px 2px 11px;background:linear-gradient(180deg,#2a5aa8,#163467) padding-box,linear-gradient(180deg,#9fd4ff,#2a5aa8) border-box;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+#earth-union .union-btn.danger{background:linear-gradient(180deg,#6a2230,#38111a) padding-box,linear-gradient(180deg,#ff9aa8,#6a2230) border-box;color:#ffdbe0}
+
+/* 회의장 명단·브리핑·통계 */
+#earth-union .hall-stats div{border:1px solid transparent;border-radius:3px 11px 3px 11px;background:linear-gradient(170deg,#102642,#071224) padding-box,linear-gradient(140deg,rgba(127,227,255,.5),rgba(127,227,255,.06) 55%,rgba(242,208,135,.35)) border-box}
+#earth-union .hall-stats b{font-family:var(--font-num);font-size:22px;text-shadow:0 0 12px rgba(127,227,255,.4)}
+#earth-union .brief-text,#earth-union .brief{border-radius:2px 11px 2px 11px}
+#earth-union .roster-row{border-radius:2px 11px 2px 11px!important;transition:transform .15s}
+#earth-union .roster-row:hover{transform:translateX(2px)}
+#earth-union .roster-row.self{box-shadow:inset 3px 0 0 var(--sk-gold),0 0 14px rgba(242,208,135,.15)}
+
+/* 연합사령부 메뉴 칸 */
+#earth-union .cmd-cell{border:1px solid transparent;border-radius:3px 16px 3px 16px;background:linear-gradient(100deg,rgba(40,32,64,.95),rgba(10,18,44,.95)) padding-box,linear-gradient(110deg,var(--sk-gold),rgba(242,208,135,.1) 50%,rgba(127,227,255,.35)) border-box;box-shadow:0 10px 22px rgba(0,0,0,.35)}
+#earth-union .cmd-cell:not(.cmd-soon):hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,.45),0 0 18px rgba(242,208,135,.2)}
+
+/* 시설(토륨 분배기·기술협력소·R&D·기록관) 세부 카드 */
+#earth-union .fac-card,#earth-union .fac-op{border-radius:2px 12px 2px 12px}
+#earth-union .fac-gauge .g-track{border-radius:2px;box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+#earth-union .fac-gauge .g-fill{box-shadow:0 0 12px var(--acc2,#1fa2ff)}
+#earth-union .fac-stats b,#earth-union .mono{font-family:var(--font-num)}
+
+/* 움직임을 줄이라는 설정이면 장식 애니메이션을 끈다 */
+@media (prefers-reduced-motion:reduce){
+  .captain-select-overlay .captain-select-dialog,
+  .captain-select-overlay .captain-select-dialog::before,
+  .captain-select-overlay .captain-select-dialog>header small::before,
+  .captain-select-overlay .captain-profile-summary>.captain-portrait::after,
+  .captain-select-overlay .captain-profile-mail-alert{animation:none}
+}
+
+/* 가입 목록 카드(기존 규칙이 !important 라서 같은 강도로 덮는다) */
+#earth-union .union-card.fac-union-card{
+  border:1px solid transparent!important;border-radius:3px 16px 3px 16px!important;
+  background:
+    radial-gradient(ellipse 70% 90% at 0 50%,rgba(127,208,255,.16),transparent 65%) padding-box,
+    linear-gradient(100deg,rgba(16,38,70,.95),rgba(5,12,28,.95)) padding-box,
+    linear-gradient(110deg,rgba(127,208,255,.7),rgba(127,208,255,.06) 50%,rgba(242,208,135,.4)) border-box!important;
+}
+#earth-union .roster-row.self{border-color:rgba(242,208,135,.6)!important}
+
+/* 연합 창설 확정 버튼: 화면의 주 행동이라 넓고 금색으로 */
+#earth-union .union-form button[type="submit"].fac-btn{--acc:#f6d68f;--acc2:#c48a2a;--glow:rgba(242,208,135,.45);display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin:8px 0 0;font-size:17px;color:#2a1a04;text-shadow:0 1px 0 rgba(255,255,255,.35)}
