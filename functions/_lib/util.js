@@ -4,6 +4,17 @@ export const json = (body, status = 200) => new Response(JSON.stringify(body), {
   headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
 });
 
+// 홈페이지(timeswitch.co.kr) 상점이 게임 서버 API 를 부를 수 있게, 그 출처에만 CORS 를 허용한다.
+const HOME_ORIGINS = ['https://timeswitch.co.kr', 'https://www.timeswitch.co.kr'];
+export function withHomeCors(response, request) {
+  const origin = request.headers.get('Origin');
+  if (HOME_ORIGINS.includes(origin)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Vary', 'Origin');
+  }
+  return response;
+}
+
 const toHex = bytes => [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('');
 
 export const randomToken = byteLength => toHex(crypto.getRandomValues(new Uint8Array(byteLength)));
