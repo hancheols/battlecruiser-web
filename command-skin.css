@@ -305,3 +305,6 @@
 
 /* 연합 창설 확정 버튼: 화면의 주 행동이라 넓고 금색으로 */
 #earth-union .union-form button[type="submit"].fac-btn{--acc:#f6d68f;--acc2:#c48a2a;--glow:rgba(242,208,135,.45);display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin:8px 0 0;font-size:17px;color:#2a1a04;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+
+/* 메일 보상 묶음: 테두리 안쪽 여백 */
+.captain-select-overlay .captain-mail-reward-panel{padding:12px}
