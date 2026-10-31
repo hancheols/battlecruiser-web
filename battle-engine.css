@@ -824,8 +824,9 @@
 .fx-enemy.tapao-laser{width:44px;height:3px;margin:-1.5px 0 0 -22px;border-radius:2px;clip-path:none;animation-name:tapao-laser-fly;animation-timing-function:linear;transform:rotate(var(--ang,0rad));background:linear-gradient(90deg,rgba(80,170,255,0),#b8ecff 45%,#fff);box-shadow:0 0 6px #fff,0 0 14px #4ab8ff,0 0 26px #2f7dff}
 
 /* 타파오 게이트 10관문: 관문에서 워프해 나오는 외계 함선 */
-.boss-unit.tapao-warp-in .boss-sprite{animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) both}
-@keyframes tapao-warp-in{0%{transform:scale(.08,1.8);opacity:0;filter:brightness(4) drop-shadow(0 0 18px #9fe3ff)}35%{transform:scale(.5,1.25);opacity:1;filter:brightness(2.4) drop-shadow(0 0 14px #9fe3ff)}100%{transform:scale(1);opacity:1;filter:none}}
+/* transform 대신 scale 속성을 써서 스타크루저의 rotate(180deg)(아래를 보게 뒤집기)를 덮어쓰지 않고, 끝난 뒤에는 원래 모습(빛 테두리 포함)으로 돌아간다. */
+.boss-unit.tapao-warp-in .boss-sprite{animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) backwards}
+@keyframes tapao-warp-in{0%{scale:.08 1.8;opacity:0;filter:brightness(4) drop-shadow(0 0 18px #9fe3ff)}35%{scale:.5 1.25;opacity:1;filter:brightness(2.4) drop-shadow(0 0 14px #9fe3ff)}100%{scale:1;opacity:1}}
 .tapao-warp-flash{position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;z-index:20;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(160,225,255,.75) 22%,rgba(80,160,255,.25) 50%,rgba(80,160,255,0) 70%);mix-blend-mode:screen;animation:tapao-warp-flash .9s ease-out forwards}
 @keyframes tapao-warp-flash{0%{transform:scale(.2);opacity:0}20%{transform:scale(1.1);opacity:1}100%{transform:scale(1.9,.5);opacity:0}}
 .tapao-warp-flash.big{width:260px;height:260px;margin:-130px 0 0 -130px}
@@ -879,7 +880,7 @@
 /* 위성궤도 10관문 첫 클리어 연출: 순간이동해 온 L급 스타크루저와 퇴각하는 외계 함대 */
 .tapao-story-cruiser{position:absolute;width:58px;height:112px;margin:-60px 0 0 -29px;z-index:19;pointer-events:none;transition:opacity .5s}
 .tapao-story-cruiser.leaving{opacity:0}
-.tapao-story-cruiser>img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 10px #ff526dcc) drop-shadow(0 6px 6px #000b);animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) both}
+.tapao-story-cruiser>img{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 10px #ff526dcc) drop-shadow(0 6px 6px #000b);animation:tapao-warp-in .9s cubic-bezier(.2,.8,.3,1) backwards}
 .tapao-story-cruiser>.tsc-halo{position:absolute;left:50%;top:50%;width:92px;height:150px;margin:-75px 0 0 -46px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,82,109,.38),rgba(255,82,109,0) 70%);animation:tsc-halo 1.2s ease-in-out infinite alternate}
 .tapao-story-cruiser>b{position:absolute;z-index:2;left:50%;bottom:-4px;transform:translateX(-50%);padding:0 6px;border-radius:7px;background:#ff526d;color:#fff;font:700 11px/16px var(--font-num,sans-serif);box-shadow:0 0 8px #ff526d}
 @keyframes tsc-halo{from{opacity:.55;transform:scale(.94)}to{opacity:1;transform:scale(1.06)}}
