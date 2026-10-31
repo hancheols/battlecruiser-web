@@ -26,6 +26,7 @@ export async function onRequestDelete({ request, env }) {
   // 자식 표부터 지우고 계정 행을 마지막에 지운다(중간에 실패하면 다시 시도할 수 있다).
   for (const sql of [
     'DELETE FROM saves WHERE user_id = ?1',
+    'DELETE FROM grants WHERE user_id = ?1',
     'DELETE FROM identities WHERE user_id = ?1',
     'DELETE FROM sessions WHERE user_id = ?1'
   ]) {

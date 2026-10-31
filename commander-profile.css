@@ -71,7 +71,7 @@
 .captain-mail-letter-head small{display:block;color:#b0c5d8;font-size:10px}
 .captain-mail-letter-head h3{margin:5px 0 0;color:#fff1cd;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
 .captain-mail-letter-body{padding:17px 15px 16px;border:1px solid #728ca866;border-top:0;border-radius:0 0 11px 11px;background:linear-gradient(145deg,#152c42,#0c1a2d)}
-.captain-mail-letter-body p{min-height:0;margin:0;color:#d9e8f4;font-size:12px;line-height:1.75}
+.captain-mail-letter-body p{min-height:0;margin:0;color:#d9e8f4;font-size:12px;line-height:1.75;white-space:pre-line}
 .captain-mail-reward-panel{margin:16px 0 12px}
 .captain-mail-section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#ffe6af;font-size:12px;font-weight:800}
 .captain-mail-section-heading small{color:#a9c6d2;font-size:10px;font-weight:600}

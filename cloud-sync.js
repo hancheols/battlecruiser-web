@@ -90,6 +90,49 @@
     window.dispatchEvent(new CustomEvent('cloud-sync-conflict', { detail: { serverRevision: server?.revision ?? null, localRevision: meta.revision } }));
   }
 
+  // ── 지급함 ─────────────────────────────────────────────────────────────────
+  // 웹 상점 구매·운영팀 보상을 서버에서 받아 우편함(commander-profile.js)에 넣는다.
+  // 우편이 클라우드 저장에 올라간 것을 확인한 뒤에만 서버에 "전달됨"을 알린다. 그 전에 끊기면 다음 확인 때 다시 받고,
+  // 우편함은 같은 id 를 두 번 넣지 않으므로 중복 지급되지 않는다.
+  const MAIL_KEY = 'starfleet-captain-mail-v1';
+  const GRANT_CHECK_EVERY = 180000;   // 플레이 중 3분마다
+  const GRANT_MIN_GAP = 10000;        // 다른 탭(웹 상점)에서 돌아왔을 때는 10초만 지나면 바로
+  let lastGrantCheck = 0;
+  let grantBusy = false;
+  const hasMail = id => { try { return (JSON.parse(localStorage.getItem(MAIL_KEY) || '[]') || []).some(mail => mail?.id === id); } catch (_) { return false; } };
+
+  async function checkGrants(minGap = GRANT_CHECK_EVERY) {
+    if (grantBusy || conflict || disabled || !meta.id || typeof window.deliverCaptainMail !== 'function') return 0;
+    if (Date.now() - lastGrantCheck < minGap) return 0;
+    lastGrantCheck = Date.now();
+    grantBusy = true;
+    try {
+      const response = await request('/grants', { headers: authHeaders() });
+      if (!response.ok) return 0;
+      const { grants = [] } = await response.json();
+      const ready = [];
+      let arrived = 0;
+      for (const grant of grants) {
+        const id = `grant-${grant.id}`;
+        if (window.deliverCaptainMail({ id, sender: grant.sender, title: grant.title, body: grant.body, createdAt: grant.createdAt, rewards: grant.items })) arrived += 1;
+        if (hasMail(id)) ready.push(grant.id);
+      }
+      if (!ready.length) return 0;
+      await push();
+      if (JSON.stringify(snapshot()) !== lastPushed) return arrived;   // 아직 서버 저장에 안 올라갔다 → 확인은 다음 번에
+      const ack = await request('/grants', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ ids: ready }) });
+      if (!ack.ok) lastError = `grants ${ack.status}`;
+      if (arrived) {
+        window.notice?.('우편함에 새 보급품이 도착했습니다.');
+        window.dispatchEvent(new CustomEvent('cloud-grants-arrived', { detail: { count: arrived } }));
+      }
+      return arrived;
+    } catch (error) {
+      lastError = String(error?.message || error);
+      return 0;
+    } finally { grantBusy = false; }
+  }
+
   async function start() {
     try {
       if (!(await ensureGuest())) return;
@@ -100,11 +143,15 @@
       const server = await response.json();
       if (!server.empty && server.revision !== meta.revision) { markConflict(server); return; }
       await push();   // 서버에 저장이 없으면 기기 데이터를 처음 한 번 올린다(기존 사용자 이전)
+      await checkGrants(0);
     } catch (error) {
       lastError = String(error?.message || error);
     }
-    timer = setInterval(() => { push(); }, CHECK_EVERY);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') push(true); });
+    timer = setInterval(() => { push().then(() => checkGrants()); }, CHECK_EVERY);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') push(true);
+      else checkGrants(GRANT_MIN_GAP);
+    });
     window.addEventListener('pagehide', () => { push(true); });
   }
 
@@ -199,6 +246,7 @@
   window.cloudSync = {
     status: () => ({ guestId: meta.id || null, revision: meta.revision || 0, conflict, disabled, busy, lastError }),
     pushNow: () => push(),
+    checkGrants: () => checkGrants(0),
     stop: () => { disabled = true; clearInterval(timer); }
   };
   // 만 14세 이상 확인(age-gate.js) 전에는 서버에 계정을 만들지 않는다.
