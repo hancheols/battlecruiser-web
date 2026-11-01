@@ -1536,10 +1536,16 @@
     window.dispatchEvent(new CustomEvent('tapao-gate10-act-start', { detail: { act } }));
   }
   window.addEventListener('tapao-gate10-act-end', () => { if (state && state.status === 'combat') window.setBattleHold?.(false); });
-  function tapaoGateIronfistArrival() {
-    if (!state || state.status !== 'combat' || state.tapaoGateIronfist) return;
-    state.tapaoGateIronfist = true;
-    createAlly({ type: 'battlecruiser', name: '아이언피스트', rarity: 'SSR', baseRarity: 'SSR', enhancementStars: 5 }, 3, false);
+  function tapaoGateLionheartArrival() {
+    if (!state || state.status !== 'combat' || state.tapaoGateLionheart) return;
+    state.tapaoGateLionheart = true;
+    // 라이온하트 5성: 함대버프(공격력)와 최종기술 '무리의 우두머리'(함대버프 2배)가 합류 시점부터 함대 전체에 적용된다.
+    const lionheart = { type: 'battlecruiser', name: '라이온하트', rarity: 'L', baseRarity: 'L', enhancementStars: 5 };
+    const previousHpBuff = Number(state.fleetBuff?.hp) || 0;
+    state.fleetBuff = window.computeFleetBuff?.([...state.allies.map(entry => entry.ship), lionheart]) || state.fleetBuff;
+    const hpRatio = (1 + (Number(state.fleetBuff?.hp) || 0)) / (1 + previousHpBuff);
+    state.allies.forEach(entry => { entry.maxHp = Math.floor(entry.maxHp * hpRatio); if (!entry.dead) entry.hp = Math.floor(entry.hp * hpRatio); });
+    createAlly(lionheart, 3, false);
     const ally = state.allies[state.allies.length - 1];
     if (!ally) return;
     ally.el.animate([{ opacity: 0, filter: 'brightness(5)' }, { opacity: 1, filter: 'brightness(1.6)', offset: .5 }, { opacity: 1, filter: 'none' }], { duration: 800, easing: 'ease-out' });
@@ -1550,7 +1556,7 @@
     refs.effects.append(flash);
     schedule(() => flash.remove(), 1100);
     playHyperionWarpSound();
-    announce('한성민 제독 함대 합류 · 아이언피스트', 'friendly');
+    announce('한성민 제독 함대 합류 · 라이온하트', 'friendly');
     updateHud(true);
     if (state.tapaoGateStory) startGateAct('b');
   }
@@ -1627,7 +1633,7 @@
     state.tapaoGateFinal.warpStarted = true;
     const gap = TAPAO_GATE_FINAL_GAP;
     warpTapaoShip('escort', .5, .34, 1, '외계 함대 제2웨이브 · 관문에서 외계 호위함 워프 아웃', 0);
-    schedule(() => tapaoGateIronfistArrival(), 4300);   // 2웨이브가 나온 뒤 한 제독의 함대(아이언피스트 5성)가 아군 후방에 합류한다.
+    schedule(() => tapaoGateLionheartArrival(), 4300);   // 2웨이브가 나온 뒤 한 제독의 함대(라이온하트 5성)가 아군 후방에 합류한다.
     schedule(() => warpTapaoShip('escort', .28, .32, 2, '외계 함대 제3웨이브 · 외계 호위함 2척 워프 아웃', 0), gap);
     schedule(() => warpTapaoShip('escort', .72, .32, 2, null, 1), gap + 500);
     schedule(() => warpTapaoShip('starcruiser', .5, .36, 3, '외계 함대 제4웨이브 · 관문에서 외계 스타크루저 3척 워프 아웃', 0), gap * 2);
