@@ -1,23 +1,23 @@
 // 함선 랭킹 도구: 게임이 보고한 함종별 최고 함선을 검사해 순위 기록으로 저장한다.
-import { SHIPS, RARITY_RANK, maxStars } from './ships.js';
+import { SHIPS, RARITY_RANK, SHIP_GRADE, maxStars } from './ships.js';
 
 export const SHIP_CATEGORIES = ['dreadnought', 'battlecruiser', 'destroyer'];
 export const MAX_DEV = 1800;   // 연구 트리 전체 개발 횟수(1,762)를 넘지 않는 상한
 
-// 비교 순서(희귀도 → 성급 → 개발 레벨)를 숫자 하나로 합친다. 종합은 세 척의 합으로 같은 순서를 쓴다.
-export const rankKey = (rarity, stars, dev) => rarity * 1e10 + stars * 1e8 + dev;
-const gradeOf = (rarity, stars) => rarity * 10 + stars;
+// 함선 등급(희귀도 점수 + 성급)이 먼저, 같으면 무기 개발 레벨. 종합은 세 척을 더한 값으로 같은 순서를 쓴다.
+export const gradeOf = (rarity, stars) => SHIP_GRADE[rarity] + stars;
+export const rankKey = (grade, dev) => grade * 1e8 + dev;
 
 // 잘못된 값은 그 함종을 없는 것으로 친다.
 function cleanShip(type, ship) {
   if (!ship || typeof ship !== 'object') return null;
   const base = Object.hasOwn(SHIPS[type], ship.name) ? SHIPS[type][ship.name] : null;
-  const rarity = Object.hasOwn(RARITY_RANK, ship.rarity) ? RARITY_RANK[ship.rarity] : 0;
+  const rank = Object.hasOwn(RARITY_RANK, ship.rarity) ? RARITY_RANK[ship.rarity] : 0;
   const stars = Number(ship.stars), dev = Number(ship.dev);
-  if (!base || rarity < RARITY_RANK[base]) return null;
+  if (!base || rank < RARITY_RANK[base]) return null;
   if (!Number.isInteger(stars) || stars < 0 || stars > maxStars(base, ship.rarity)) return null;
   if (!Number.isInteger(dev) || dev < 0 || dev > MAX_DEV) return null;
-  return { ship: ship.name, rarity: ship.rarity, stars, dev, rank: rarity };
+  return { ship: ship.name, rarity: ship.rarity, stars, dev };
 }
 
 export function buildEntries(fleet) {
@@ -26,16 +26,16 @@ export function buildEntries(fleet) {
   for (const type of SHIP_CATEGORIES) {
     const ship = cleanShip(type, fleet?.[type]);
     if (!ship) continue;
-    const { rank, ...detail } = ship;
-    ships.push({ type, ...ship });
-    entries.set(type, { rankKey: rankKey(rank, ship.stars, ship.dev), grade: gradeOf(rank, ship.stars), detail: JSON.stringify(detail) });
+    const grade = gradeOf(ship.rarity, ship.stars);
+    ships.push({ type, ...ship, grade });
+    entries.set(type, { rankKey: rankKey(grade, ship.dev), grade, detail: JSON.stringify(ship) });
   }
   if (ships.length) {
-    const sum = pick => ships.reduce((total, ship) => total + pick(ship), 0);
-    const dev = sum(ship => ship.dev);
+    const dev = ships.reduce((total, ship) => total + ship.dev, 0);
+    const grade = ships.reduce((total, ship) => total + ship.grade, 0);
     entries.set('total', {
-      rankKey: rankKey(sum(ship => ship.rank), sum(ship => ship.stars), dev),
-      grade: sum(ship => gradeOf(ship.rank, ship.stars)),
+      rankKey: rankKey(grade, dev),
+      grade,
       detail: JSON.stringify({ ships: ships.map(({ type, ship, rarity, stars, dev: level }) => ({ type, ship, rarity, stars, dev: level })), dev })
     });
   }

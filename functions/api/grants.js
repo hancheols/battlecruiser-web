@@ -12,8 +12,8 @@ export async function onRequestGet({ request, env }) {
   try {
     rows = (await env.DB.prepare('SELECT id, order_id, title, body, items, created_at FROM grants WHERE user_id = ?1 AND delivered_at IS NULL AND revoked_at IS NULL ORDER BY created_at LIMIT 50').bind(user.id).all()).results || [];
   } catch (_) { return json({ grants: [] }); }   // 표(마이그레이션 0004)가 아직 없으면 빈 목록
-  // 보낸 곳: 아레나 보상은 아레나 사령부, 결제 주문이면 웹 상점, 아니면 운영팀 보상.
-  const senderOf = orderId => orderId?.startsWith('arena-tier-') ? '연합 사령부 · 축전' : orderId?.startsWith('arena-') ? '아레나 사령부' : orderId ? '공식 웹 상점' : 'TimesWitch 운영팀';
+  // 보낸 곳: 시즌 랭킹 보상은 함대 사령부, 아레나 보상은 아레나 사령부, 결제 주문이면 웹 상점, 아니면 운영팀 보상.
+  const senderOf = orderId => orderId?.startsWith('arena-tier-') ? '연합 사령부 · 축전' : orderId?.startsWith('arena-') ? '아레나 사령부' : orderId?.startsWith('season-') ? '함대 사령부 · 시즌 정산' : orderId ? '공식 웹 상점' : 'TimesWitch 운영팀';
   return json({ grants: rows.map(row => ({ id: row.id, sender: senderOf(row.order_id), title: row.title, body: row.body, items: JSON.parse(row.items), createdAt: row.created_at })) });
 }
 

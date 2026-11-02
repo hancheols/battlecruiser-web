@@ -36,6 +36,14 @@ export function rewards(index, weekly = false) {
   return { gold: row[2] * multiplier, thorium: row[3] * multiplier };
 }
 
+// 아레나 시즌 보상. outputs/arena-core.js seasonRewards 와 같다. 다이아 이상, 시즌 중 주간 보상을 놓치지 않은 경우만.
+export function seasonRewards(index, state = {}) {
+  if (index < 14 || state.seasonWeekMissed) return null;
+  const daily = rewards(index);
+  return { gold: daily.gold * 3, thorium: daily.thorium * 3, ssrShipTicket: index >= 19 ? 1 : 0, lionToken: index === 29 ? 3 : index >= 24 ? 1 : 0 };
+}
+export const tierMinScore = index => index < TIER_STARTS.length ? TIER_STARTS[index] : index === 29 ? LEGEND_MIN : HERO_MIN + 200 * (index - TIER_STARTS.length);
+
 export const deckPower = deck => deck.slice(0, 3).reduce((sum, ship) => sum + (Number(ship?.hp) || 0) * (Number(ship?.dps) || 0), 0) || 1;
 
 // 등급 상승 축전. arena.js 의 TIER_THORIUM·TIER_CONGRATS 와 같은 값이다.

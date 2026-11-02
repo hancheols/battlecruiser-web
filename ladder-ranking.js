@@ -5,15 +5,8 @@
     { id: 'dreadnought', label: '중전함', code: 'DREADNOUGHT', metric: '최고 함선' },
     { id: 'battlecruiser', label: '배틀크루저', code: 'BATTLECRUISER', metric: '최고 함선' },
     { id: 'destroyer', label: '구축함', code: 'DESTROYER', metric: '최고 함선' },
-    { id: 'alliance', label: '연합', code: 'ALLIANCE', metric: '함선 등급 합' },
+    { id: 'alliance', label: '연합', code: 'ALLIANCE', metric: '연합 점수' },
     { id: 'arena', label: '아레나', code: 'ARENA', metric: '시즌 점수' }
-  ];
-
-  const rewardTiers = [
-    { max: 1, label: '1위', tier: '챔피언', gold: 30000, thorium: 120 },
-    { max: 10, label: '2–10위', tier: '마스터', gold: 20000, thorium: 80 },
-    { max: 100, label: '11–100위', tier: '엘리트', gold: 10000, thorium: 40 },
-    { max: 500, label: '101–500위', tier: '베테랑', gold: 5000, thorium: 15 }
   ];
 
   let activeCategory = 'total';
@@ -22,7 +15,6 @@
   const balances = window.gameResources || (window.gameResources = { gold: 0, thorium: 0 });
   const format = value => Number(value).toLocaleString('ko-KR');
   const esc = text => String(text ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-  const rewardFor = rank => rewardTiers.find(tier => rank <= tier.max) || { label: '참가', tier: '도전자', gold: 2000, thorium: 5 };
 
   const updateResourceHud = () => {
     document.querySelectorAll('.fixed-top .resources').forEach(resources => {
@@ -43,7 +35,7 @@
     return shipLine(entry);
   };
   const entryScore = (entry, category) => category.id === 'alliance'
-    ? `<b>${format(entry.value)}</b><small>함선 등급 합</small>`
+    ? `<b>${format(entry.value)}</b><small>연합 점수</small>`
     : `<b>Lv.${format(entry.dev)}</b><small>${category.id === 'total' ? '개발 합계' : '무기 개발'}</small>`;
 
   const rowMarkup = (rank, name, entry, category, isSelf = false) => {
@@ -65,8 +57,8 @@
       <div class="ladder-backdrop"></div>
       <article class="ladder-panel" role="dialog" aria-modal="true" aria-labelledby="ladder-title">
         <header class="ladder-header">
-          <div><small>PRE-SEASON · SOL FRONT</small><h2 id="ladder-title">LADDER</h2></div>
-          <div class="ladder-season"><span>시즌 일정</span><b>준비 중</b></div>
+          <div><small data-ladder-season>SOL FRONT</small><h2 id="ladder-title">LADDER</h2></div>
+          <div class="ladder-season"><span data-ladder-season-label>시즌</span><b data-ladder-season-days>—</b></div>
           <button class="ladder-close" type="button" aria-label="Ladder 닫기">×</button>
         </header>
         <div class="ladder-tabs" role="tablist" aria-label="랭킹 분야"></div>
@@ -98,10 +90,11 @@
 
   const message = text => `<p class="ladder-message">${esc(text)}</p>`;
 
-  // 보상표는 안내만 한다. 시즌 정산이 생기면 순위 보상을 우편으로 보낸다.
-  const rewardsMarkup = rank => {
-    const reward = rank ? rewardFor(rank) : null;
-    return `<div class="ladder-reward-head"><div><small>SEASON REWARD</small><b>${reward ? `${reward.tier} 보상` : '시즌 보상'}</b></div><span>${reward ? reward.label : '순위 없음'}</span></div><div class="ladder-reward-track">${rewardTiers.map(tier => `<div class="${tier === reward ? 'current-tier' : ''}"><b>${tier.label}</b><span><i class="ladder-resource-icon gold"></i>${format(tier.gold)}</span><span><i class="ladder-resource-icon thorium"></i>${tier.thorium}</span></div>`).join('')}</div><button class="ladder-claim" type="button" disabled>시즌 시작 후 우편으로 지급</button>`;
+  // 시즌 보상표: 서버가 정한 표를 그대로 보여 준다. 보상은 시즌이 끝나면 우편으로 온다.
+  const rewardsMarkup = (rank, tiers = []) => {
+    if (!tiers.length) return '';
+    const reward = rank ? tiers.find(tier => rank <= tier.max) : null;
+    return `<div class="ladder-reward-head"><div><small>SEASON REWARD</small><b>시즌 보상</b></div><span>${reward ? reward.label : '보상 순위 밖'}</span></div><div class="ladder-reward-track">${tiers.map(tier => `<div class="${tier === reward ? 'current-tier' : ''}"><b>${tier.label}</b>${tier.gold ? `<span><i class="ladder-resource-icon gold"></i>${format(tier.gold)}</span>` : ''}<span><i class="ladder-resource-icon thorium"></i>${format(tier.thorium)}</span></div>`).join('')}</div><button class="ladder-claim" type="button" disabled>시즌 종료 후 우편으로 지급</button>`;
   };
 
   const renderLadder = async () => {
@@ -113,7 +106,7 @@
     modal.querySelector('.ladder-tabs').innerHTML = categories.map(item => `<button type="button" role="tab" data-ladder-category="${item.id}" aria-selected="${item.id === category.id}" class="${item.id === category.id ? 'selected' : ''}">${item.label}</button>`).join('');
     summary.innerHTML = `<div><small>${category.code}</small><b>내 순위 <em>—</em></b></div><div><small>${category.metric}</small><strong>—</strong></div>`;
     board.innerHTML = message('순위표를 불러오는 중입니다.');
-    rewards.innerHTML = rewardsMarkup(null);
+    rewards.innerHTML = '';
 
     let data = null, failure = '';
     try {
@@ -133,7 +126,11 @@
     const selfRow = me?.rank && !inList ? `<div class="ladder-separator"><span>•••</span></div>${rowMarkup(me.rank, selfName, me.entry, category, true)}` : '';
     const emptyText = category.id === 'alliance' ? '아직 순위에 오른 연합이 없습니다.' : '아직 순위에 오른 함장이 없습니다.';
     board.innerHTML = rows || selfRow ? `<div class="ladder-columns"><span>RANK</span><span>PLAYER</span><span>SCORE</span></div>${rows}${selfRow}` : message(emptyText);
-    rewards.innerHTML = rewardsMarkup(me?.rank || null);
+    rewards.innerHTML = rewardsMarkup(me?.rank || null, data.rewards);
+    const season = data.season;
+    modal.querySelector('[data-ladder-season]').textContent = `SEASON ${String(season.number).padStart(2, '0')} · SOL FRONT`;
+    modal.querySelector('[data-ladder-season-label]').textContent = season.started ? '종료까지' : '시작까지';
+    modal.querySelector('[data-ladder-season-days]').textContent = `${season.daysLeft}일`;
   };
 
   function closeLadder() {

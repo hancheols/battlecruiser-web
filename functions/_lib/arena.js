@@ -4,6 +4,7 @@ import { randomToken } from './util.js';
 import { createGrant } from './grants.js';
 import { ensurePlayer } from './players.js';
 import { TIERS, day, isWednesday, tierIndex, delta, rewards, deckPower, tierMail } from './arena-rules.js';
+import { currentSeason, seasonOfWeek } from './seasons.js';
 
 export const FREE_PER_DAY = 5;
 export const MATCHES_PER_DAY = 200;   // 티켓은 게임 저장에 있어 서버가 셀 수 없으므로 하루 총 대전 수에 상한을 둔다
@@ -71,6 +72,8 @@ export async function settle(env, row, now = Date.now()) {
   if (today > next.free_day) { next.free_day = today; next.free_used = 0; }
   if (today > next.settled_day) {
     const battleDays = new Set(JSON.parse(next.battle_days || '[]'));
+    const season = await currentSeason(env, now);
+    const missed = new Set(JSON.parse(next.missed_seasons || '[]'));
     const index = tierIndex(next.score), label = TIERS[index].label;
     const daily = rewards(index), weekly = rewards(index, true);
     let dailyCount = 0;
@@ -85,7 +88,10 @@ export async function settle(env, row, now = Date.now()) {
             body: `${label} 등급으로 한 주를 함께 달려 주셨습니다. 일일 보상을 5회 이상 받으신 꾸준함에 대한 주간 보상입니다.${top ? ' 주간 상위 7위 안에 드신 것을 진심으로 축하드리며, SSR 함선 선택 교환권 1장을 추가로 드립니다.' : ''} 지휘관님의 노고에 감사드립니다.`,
             items: { ...weekly, ...(top ? { ssrShipTicket: 1 } : {}) }
           });
-        } else next.season_week_missed = 1;
+        } else {
+          const weekSeason = seasonOfWeek(season, d + 1);
+          if (weekSeason > 0) missed.add(weekSeason);
+        }
         next.week_days = 0;
       }
     }
@@ -97,11 +103,12 @@ export async function settle(env, row, now = Date.now()) {
       });
     }
     next.settled_day = today;
+    next.missed_seasons = JSON.stringify([...missed].slice(-6));
     next.battle_days = JSON.stringify([...battleDays].filter(d => d >= today - 40));
   }
   if (next.free_day !== row.free_day || next.settled_day !== row.settled_day) {
-    await env.DB.prepare('UPDATE arena_players SET free_day = ?1, free_used = ?2, settled_day = ?3, battle_days = ?4, week_days = ?5, season_week_missed = ?6 WHERE user_id = ?7')
-      .bind(next.free_day, next.free_used, next.settled_day, next.battle_days, next.week_days, next.season_week_missed, row.user_id).run();
+    await env.DB.prepare('UPDATE arena_players SET free_day = ?1, free_used = ?2, settled_day = ?3, battle_days = ?4, week_days = ?5, missed_seasons = ?6 WHERE user_id = ?7')
+      .bind(next.free_day, next.free_used, next.settled_day, next.battle_days, next.week_days, next.missed_seasons, row.user_id).run();
   }
   return next;
 }

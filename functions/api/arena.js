@@ -9,6 +9,7 @@ import { json, authenticate, allow, tooMany } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable } from '../_lib/players.js';
 import { loadArena, settle, closePending, findOpponent, finishMatch, newMatch, cleanDeck, deckPower, FREE_PER_DAY, MATCHES_PER_DAY } from '../_lib/arena.js';
 import { day, DAY, claimedTierIndex } from '../_lib/arena-rules.js';
+import { rollSeason, seasonView, deliverSeasonRewards } from '../_lib/seasons.js';
 
 const LIMIT = 50;
 
@@ -21,7 +22,8 @@ async function view(env, user, player, row) {
     top: top.map(item => ({ id: item.public_id, name: item.name, score: item.score })),
     // 방어 기록: 상대가 이기면(outcome 1) 내가 진 것이다. 점수 변화는 상대 점수의 반대다.
     defenses: defenses.map(item => ({ at: item.finished_at, attacker: item.name, win: item.outcome === null ? null : item.outcome === 0, delta: -item.delta })),
-    freePerDay: FREE_PER_DAY
+    freePerDay: FREE_PER_DAY,
+    season: seasonView(await rollSeason(env))
   };
 }
 
@@ -33,7 +35,9 @@ export async function onRequestGet({ request, env }) {
   try {
     const player = await ensurePlayer(env, user.id);
     await touchPlayer(env, player);
+    await rollSeason(env);
     const row = await settle(env, await loadArena(env, user.id));
+    await deliverSeasonRewards(env, user.id, { includeArena: true });
     return json(await view(env, user, player, row));
   } catch (error) {
     if (isMissingTable(error)) return notReady();
@@ -57,7 +61,9 @@ const ACTIONS = {
       const best = claimedTierIndex(body.claimed.slice(0, 60));
       if (best > row.best_tier) await env.DB.prepare('UPDATE arena_players SET best_tier = ?1 WHERE user_id = ?2').bind(best, user.id).run();
     }
+    await rollSeason(env);
     const fresh = await settle(env, await loadArena(env, user.id));
+    await deliverSeasonRewards(env, user.id, { includeArena: true });
     return json(await view(env, user, player, fresh));
   },
 
@@ -76,6 +82,7 @@ const ACTIONS = {
   },
 
   async start({ env, user, body, player }) {
+    await rollSeason(env);
     let row = await settle(env, await closePending(env, await loadArena(env, user.id)));
     if (!(row.defense_power > 0)) return fail('방어 함대를 먼저 등록해주세요.', 409, 'no-defense');
     const now = Date.now();

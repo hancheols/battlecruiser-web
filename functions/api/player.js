@@ -4,14 +4,15 @@
 import { json, authenticate, allow, tooMany } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, isMissingTable } from '../_lib/players.js';
 import { saveFleet } from '../_lib/ranking.js';
+import { rollSeason, deliverSeasonRewards } from '../_lib/seasons.js';
 
 export async function onRequestGet({ request, env }) {
   if (!env.DB) return json({ error: 'db-unavailable' }, 503);
   const user = await authenticate(request, env);
   if (!user) return json({ error: 'unauthorized' }, 401);
   try {
-    // rank_entries 까지 확인해 마이그레이션 0005·0006 이 모두 적용됐을 때만 서버 모드로 넘어간다.
-    await env.DB.prepare('SELECT 1 FROM rank_entries LIMIT 1').bind().first();
+    // 마지막에 만들어지는 표까지 확인해, 마이그레이션 0005 가 모두 적용됐을 때만 서버 모드로 넘어간다.
+    await env.DB.prepare('SELECT 1 FROM season_rewards LIMIT 1').bind().first();
     const row = await env.DB.prepare('SELECT public_id, name FROM players WHERE user_id = ?1').bind(user.id).first();
     return json({ ready: true, player: row ? { publicId: row.public_id, name: row.name } : null });
   } catch (error) {
@@ -31,6 +32,8 @@ export async function onRequestPost({ request, env }) {
     const player = await ensurePlayer(env, user.id, body.name);
     await touchPlayer(env, player);
     if (body.fleet && typeof body.fleet === 'object') await saveFleet(env, user.id, body.fleet);
+    await rollSeason(env);
+    await deliverSeasonRewards(env, user.id);
     return json({ status: 'ok', player: { publicId: player.public_id, name: player.name } });
   } catch (error) {
     if (isMissingTable(error)) return notReady();
