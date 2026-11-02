@@ -76,6 +76,32 @@
     if(readMails().some(mail=>mail.id==='welcome-gift-2026-01'))return;
     window.deliverCaptainMail({id:'welcome-gift-2026-01',title:'함대에 오신 것을 환영합니다',sender:'연합 사령부',body:'지휘관님, 전선에 합류해 주셔서 감사합니다. 아래 보급품을 수령해 함대를 정비하고 작전을 시작하세요.',rewards:{gold:10000,thorium:1000,scoutTron:20,researchStaff:20}});
   }
+  // 약관·처리방침 사전 공지. 시행일(2026년 12월 2일 0시 KST) 전까지 접속한 모든 이용자에게 한 번 보낸다.
+  const ONLINE_NOTICE_UNTIL=Date.UTC(2026,11,1,15);
+  function ensureOnlineNotice(){
+    if(Date.now()>=ONLINE_NOTICE_UNTIL)return;
+    const sent=window.deliverCaptainMail({id:'notice-online-20261202',title:'개인정보 처리방침·이용약관 변경 사전 안내',sender:'TimesWitch 운영팀',body:`지휘관님, 2026년 12월 2일 이후 랭킹·아레나 대전·연합이 다른 함장과 함께 쓰는 기능으로 바뀝니다. 이에 맞춰 개인정보 처리방침과 이용약관이 2026년 12월 2일부터 바뀝니다.
+
+■ 다른 함장에게 보이는 정보
+함장 이름, 함종별 최고 함선(이름·희귀도·성급)과 무기 개발 레벨, 순위, 아레나 점수·등급·방어 함대·대전 결과, 소속 연합과 직책, 연합원에게 보이는 마지막 접속 시각. 계정 번호, 이메일, 보유 재화는 보이지 않습니다. 실명이나 연락처를 이름·공지에 쓰지 마세요.
+
+■ 처음부터 시작하는 것
+기기에 저장된 아레나 점수·전적은 이어지지 않습니다. 기기에서 만든 연합과 가상 연합은 사라지며, 연합에 쓴 토륨은 돌려드리지 않습니다.
+
+■ 랭킹과 시즌
+랭킹과 랭킹·연합 시즌 보상은 구글 계정을 연동한 계정만 대상입니다. 시즌은 28일 단위이며, 시즌이 끝나면 아레나 점수는 30%로 조정되고 전적은 초기화됩니다.
+
+■ 금지 행위와 조치
+값 조작, 여러 계정 이용, 대전 결과 담합, 욕설·사칭·타인 정보 기재가 확인되면 순위 제외, 이름·공지 변경, 보상 회수, 이용 제한을 할 수 있습니다.
+
+■ 동의하지 않으시면
+시행일 전에 설정에서 계정을 삭제하실 수 있습니다. 시행일 이후에도 계속 이용하시면 변경에 동의한 것으로 봅니다.
+
+전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
+문의·신고: hansryan@gmail.com`});
+    if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
+  }
+  window.addEventListener('load',ensureOnlineNotice);
   const claimMailReward=id=>{
     const mails=readMails(),mail=mails.find(entry=>entry.id===id),rewards=mailRewards(mail||{});
     if(!mail||mail.claimedAt||!Object.keys(rewards).length)return false;
