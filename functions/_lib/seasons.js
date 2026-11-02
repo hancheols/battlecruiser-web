@@ -1,4 +1,5 @@
 // 시즌: 28일 단위, 수요일 0시(KST)에 바뀐다. 첫 시즌은 서버를 켠 뒤 처음 오는 수요일에 시작한다.
+// 랭킹·연합 시즌 보상은 구글 연동 계정만 받는다(게스트 계정을 여러 개 만들어 보상을 받는 것을 막는다).
 // 예약 작업이 없어서, 시즌이 끝난 뒤 처음 온 요청이 순위를 찍고 아레나 점수를 조정한다. 보상은 각자 다음 접속 때 우편으로 받는다.
 import { createGrant } from './grants.js';
 import { day, isWednesday, seasonRewards, tierIndex, tierMinScore, TIERS } from './arena-rules.js';
@@ -12,14 +13,25 @@ const ARENA_REWARD_MIN_TIER = 14;     // 다이아몬드 5 이상만 시즌 보�
 export const RANK_REWARDS = {
   total: [
     { max: 1, label: '1위', gold: 300000, thorium: 3000 },
-    { max: 10, label: '2–10위', gold: 200000, thorium: 2000 },
-    { max: 100, label: '11–100위', gold: 100000, thorium: 1000 },
-    { max: 500, label: '101–500위', gold: 50000, thorium: 400 }
+    { max: 2, label: '2위', gold: 200000, thorium: 2000 },
+    { max: 3, label: '3위', gold: 100000, thorium: 1000 },
+    { max: 10, label: '4–10위', gold: 70000, thorium: 700 },
+    { max: 100, label: '11–100위', gold: 40000, thorium: 400 },
+    { max: 500, label: '101–500위', gold: 20000, thorium: 200 }
   ],
-  ship: [{ max: 1, label: '1위', gold: 100000, thorium: 1000 }],
-  alliance: [{ max: 1, label: '1위 연합 전원', gold: 0, thorium: 500 }]
+  ship: [
+    { max: 1, label: '1위', gold: 100000, thorium: 1000 },
+    { max: 2, label: '2위', gold: 70000, thorium: 700 },
+    { max: 3, label: '3위', gold: 50000, thorium: 500 },
+    { max: 10, label: '4–10위', gold: 20000, thorium: 200 }
+  ],
+  alliance: [
+    { max: 1, label: '1위 연합', gold: 0, thorium: 1000 },
+    { max: 2, label: '2위 연합', gold: 0, thorium: 500 },
+    { max: 3, label: '3위 연합', gold: 0, thorium: 300 }
+  ]
 };
-const TOTAL_LIMIT = RANK_REWARDS.total.at(-1).max;
+const lastRank = table => table.at(-1).max;
 const SHIP_LABELS = { dreadnought: '중전함', battlecruiser: '배틀크루저', destroyer: '구축함' };
 export const rewardTable = category => category === 'alliance' ? RANK_REWARDS.alliance : category === 'total' ? RANK_REWARDS.total : Object.hasOwn(SHIP_LABELS, category) ? RANK_REWARDS.ship : [];
 
@@ -62,14 +74,17 @@ export async function rollSeason(env, now = Date.now()) {
   ).bind(season.number, category, limit);
   const activeSince = now - ACTIVE_DAYS * 86400000;
   await env.DB.batch([
-    board('total', TOTAL_LIMIT),
-    ...Object.keys(SHIP_LABELS).map(category => board(category, 1)),
+    board('total', lastRank(RANK_REWARDS.total)),
+    ...Object.keys(SHIP_LABELS).map(category => board(category, lastRank(RANK_REWARDS.ship))),
     env.DB.prepare(
       `INSERT OR IGNORE INTO season_rewards (season, user_id, category, rank)
-       SELECT ?1, m.user_id, 'alliance', 1 FROM union_members m
-       WHERE m.union_id = (SELECT a.union_id FROM union_members a JOIN players p ON p.user_id = a.user_id JOIN rank_entries r ON r.user_id = a.user_id AND r.category = 'total' JOIN unions u ON u.id = a.union_id WHERE p.last_seen >= ?2 GROUP BY a.union_id ORDER BY SUM(r.grade) DESC, u.created_at ASC LIMIT 1)
-       AND ${open}`
-    ).bind(season.number, activeSince),
+       SELECT ?1, m.user_id, 'alliance', top.rn FROM (
+         SELECT a.union_id, ROW_NUMBER() OVER (ORDER BY SUM(r.grade) DESC, u.created_at ASC) AS rn FROM union_members a
+         JOIN players p ON p.user_id = a.user_id JOIN rank_entries r ON r.user_id = a.user_id AND r.category = 'total' JOIN unions u ON u.id = a.union_id
+         WHERE p.last_seen >= ?2 GROUP BY a.union_id ORDER BY rn LIMIT ?3
+       ) top JOIN union_members m ON m.union_id = top.union_id
+       WHERE EXISTS (SELECT 1 FROM identities i WHERE i.user_id = m.user_id) AND ${open}`
+    ).bind(season.number, activeSince, lastRank(RANK_REWARDS.alliance)),
     env.DB.prepare(`INSERT OR IGNORE INTO season_rewards (season, user_id, category, rank, value) SELECT ?1, user_id, 'arena', 0, score FROM arena_players WHERE defense_power > 0 AND score >= ?2 AND ${open}`).bind(season.number, tierMinScore(ARENA_REWARD_MIN_TIER)),
     env.DB.prepare(`UPDATE arena_players SET score = CAST(score * ?2 AS INTEGER), wins = 0, losses = 0, draws = 0 WHERE ${open}`).bind(season.number, ARENA_RESET_RATE),
     env.DB.prepare('UPDATE season_state SET number = number + 1, start_day = end_day, end_day = end_day + ?2 WHERE id = 1 AND number = ?1').bind(season.number, SEASON_DAYS)
@@ -87,9 +102,9 @@ function mailFor(row, arena) {
     const items = Object.fromEntries(Object.entries(reward).filter(([, amount]) => amount > 0));
     return { orderId: `arena-season-${row.user_id}-${n}`, title: `아레나 시즌 ${n} 보상 · ${TIERS[index].label}`, body: `축하합니다! 시즌 ${n}을 ${TIERS[index].label} 등급으로 마치셨습니다. 한 주도 빠짐없이 전선을 지켜 주신 지휘관님의 노고에 진심으로 감사드립니다.`, items };
   }
-  if (row.category === 'alliance') return { orderId: `season-${row.user_id}-${n}-alliance`, title: `시즌 ${n} 연합 1위 보상`, body: `축하합니다! 소속 연합이 시즌 ${n} 연합 순위 1위에 올랐습니다. 함께 싸워 주신 모든 연합원의 노고에 감사드립니다.`, items: { thorium: RANK_REWARDS.alliance[0].thorium } };
   const tier = rewardTable(row.category).find(item => row.rank <= item.max);
   if (!tier) return null;
+  if (row.category === 'alliance') return { orderId: `season-${row.user_id}-${n}-alliance`, title: `시즌 ${n} 연합 ${row.rank}위 보상`, body: `축하합니다! 소속 연합이 시즌 ${n} 연합 순위 ${row.rank}위에 올랐습니다. 함께 싸워 주신 모든 연합원의 노고에 감사드립니다.`, items: { thorium: tier.thorium } };
   const place = row.category === 'total' ? `종합 ${row.rank}위` : `${SHIP_LABELS[row.category]} ${row.rank}위`;
   return { orderId: `season-${row.user_id}-${n}-${row.category}`, title: `시즌 ${n} 랭킹 보상 · ${place}`, body: `축하합니다! 시즌 ${n} 랭킹 ${place}에 오르셨습니다. ${thanks}`, items: { gold: tier.gold, thorium: tier.thorium } };
 }

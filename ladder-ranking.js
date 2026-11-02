@@ -94,7 +94,7 @@
   const rewardsMarkup = (rank, tiers = []) => {
     if (!tiers.length) return '';
     const reward = rank ? tiers.find(tier => rank <= tier.max) : null;
-    return `<div class="ladder-reward-head"><div><small>SEASON REWARD</small><b>시즌 보상</b></div><span>${reward ? reward.label : '보상 순위 밖'}</span></div><div class="ladder-reward-track">${tiers.map(tier => `<div class="${tier === reward ? 'current-tier' : ''}"><b>${tier.label}</b>${tier.gold ? `<span><i class="ladder-resource-icon gold"></i>${format(tier.gold)}</span>` : ''}<span><i class="ladder-resource-icon thorium"></i>${format(tier.thorium)}</span></div>`).join('')}</div><button class="ladder-claim" type="button" disabled>시즌 종료 후 우편으로 지급</button>`;
+    return `<div class="ladder-reward-head"><div><small>SEASON REWARD</small><b>시즌 보상</b></div><span>${reward ? reward.label : '보상 순위 밖'}</span></div><div class="ladder-reward-track${tiers.length > 4 ? ' is-long' : ''}">${tiers.map(tier => `<div class="${tier === reward ? 'current-tier' : ''}"><b>${tier.label}</b>${tier.gold ? `<span><i class="ladder-resource-icon gold"></i>${format(tier.gold)}</span>` : ''}<span><i class="ladder-resource-icon thorium"></i>${format(tier.thorium)}</span></div>`).join('')}</div><button class="ladder-claim" type="button" disabled>시즌 종료 후 우편으로 지급</button>`;
   };
 
   const renderLadder = async () => {
@@ -125,7 +125,8 @@
     const rows = data.leaders.map((row, index) => rowMarkup(index + 1, me && row.id === me.id ? selfName : row.name, row.entry, category, Boolean(me) && row.id === me.id)).join('');
     const selfRow = me?.rank && !inList ? `<div class="ladder-separator"><span>•••</span></div>${rowMarkup(me.rank, selfName, me.entry, category, true)}` : '';
     const emptyText = category.id === 'alliance' ? '아직 순위에 오른 연합이 없습니다.' : '아직 순위에 오른 함장이 없습니다.';
-    board.innerHTML = rows || selfRow ? `<div class="ladder-columns"><span>RANK</span><span>PLAYER</span><span>SCORE</span></div>${rows}${selfRow}` : message(emptyText);
+    const linkHint = data.linked ? '' : message('구글 계정을 연동하면 순위에 오르고 시즌 보상을 받을 수 있습니다. (설정 > 계정연동)');
+    board.innerHTML = rows || selfRow ? `${linkHint}<div class="ladder-columns"><span>RANK</span><span>PLAYER</span><span>SCORE</span></div>${rows}${selfRow}` : `${linkHint}${message(emptyText)}`;
     rewards.innerHTML = rewardsMarkup(me?.rank || null, data.rewards);
     const season = data.season;
     modal.querySelector('[data-ladder-season]').textContent = `SEASON ${String(season.number).padStart(2, '0')} · SOL FRONT`;

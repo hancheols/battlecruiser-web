@@ -62,3 +62,6 @@
 
 /* 순위 행의 함선 정보: 비교 기준이라 잘리지 않게 줄바꿈하고 읽을 수 있는 크기로 둔다 */
 .ladder-row .ladder-player small{color:#8fb0c4;font-size:10px;letter-spacing:0;line-height:1.3}
+
+/* 보상 구간이 많은 탭(종합 6칸)은 두 줄로 놓는다 */
+.ladder-reward-track.is-long{grid-template-columns:repeat(3,1fr)}

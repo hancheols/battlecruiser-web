@@ -2,7 +2,7 @@
 // 함종·종합은 함선 등급(희귀도 + 성급) → 무기 개발 레벨 순, 연합은 최근 14일 안에 접속한 연합원의 함선 등급 합으로 정한다.
 import { json, authenticate, allow, tooMany } from '../_lib/util.js';
 import { notReady, isMissingTable } from '../_lib/players.js';
-import { SHIP_CATEGORIES } from '../_lib/ranking.js';
+import { SHIP_CATEGORIES, isLinked } from '../_lib/ranking.js';
 import { rollSeason, seasonView, rewardTable, ACTIVE_DAYS } from '../_lib/seasons.js';
 
 const LIMIT = 50;
@@ -65,7 +65,7 @@ export async function onRequestGet({ request, env }) {
     if (category !== 'alliance' && category !== 'total' && !SHIP_CATEGORIES.includes(category)) return json({ error: 'bad-category' }, 400);
     const season = seasonView(await rollSeason(env));
     const board = category === 'alliance' ? await unionBoard(env, user.id) : await shipBoard(env, user.id, category);
-    return json({ category, season, rewards: rewardTable(category), ...board });
+    return json({ category, season, rewards: rewardTable(category), linked: await isLinked(env, user.id), ...board });
   } catch (error) {
     if (isMissingTable(error)) return notReady();
     throw error;

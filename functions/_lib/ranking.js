@@ -42,8 +42,14 @@ export function buildEntries(fleet) {
   return entries;
 }
 
+export async function isLinked(env, userId) {
+  return Boolean(await env.DB.prepare('SELECT 1 FROM identities WHERE user_id = ?1 LIMIT 1').bind(userId).first());
+}
+
+// 구글 연동 계정만 순위에 오른다. 화면의 순위가 곧 시즌 보상 순위가 되고, 게스트 계정으로 순위표를 채울 수 없다.
 // 바뀐 칸만 쓴다. 순위 값이 그대로면 달성 시각도 그대로 둔다(먼저 달성한 함장이 위).
 export async function saveFleet(env, userId, fleet, now = Date.now()) {
+  if (!(await isLinked(env, userId))) return;
   const entries = buildEntries(fleet);
   const rows = (await env.DB.prepare('SELECT category, rank_key, detail FROM rank_entries WHERE user_id = ?1').bind(userId).all()).results || [];
   const existing = new Map(rows.map(row => [row.category, row]));

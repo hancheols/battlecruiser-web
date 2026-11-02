@@ -85,7 +85,8 @@
   }
   let lastReport = '';
   let reporting = null;
-  async function report() {
+  async function report(force = false) {
+    if (force === true) lastReport = '';
     if (reporting) return reporting;
     return reporting = (async () => {
       try {

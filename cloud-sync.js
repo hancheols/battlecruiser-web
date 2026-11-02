@@ -241,7 +241,7 @@
     document.head.append(script);
   })));
 
-  window.cloudAccount = { config, info: accountInfo, link: credential => postAccount('link', credential), switchTo, deleteAccount, loadGsi };
+  window.cloudAccount = { config, info: accountInfo, link: credential => postAccount('link', credential).then(result => { if (result.status === 'linked' || result.status === 'already') window.Online?.report?.(true); return result; }), switchTo, deleteAccount, loadGsi };
 
   window.cloudSync = {
     status: () => ({ guestId: meta.id || null, revision: meta.revision || 0, conflict, disabled, busy, lastError }),
