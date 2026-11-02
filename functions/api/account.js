@@ -14,6 +14,22 @@ export async function onRequestGet({ request, env }) {
   return json({ identities: rows.map(row => ({ provider: row.provider, email: row.email_masked || '' })) });
 }
 
+// 계정을 지우기 전에 연합에서 뺀다. 연합장이었다면 가장 오래된 부연합장(없으면 연합원)에게 넘기고, 혼자였다면 연합을 지운다.
+async function leaveUnionForDelete(env, userId) {
+  try {
+    const member = await env.DB.prepare('SELECT union_id, role FROM union_members WHERE user_id = ?1').bind(userId).first();
+    if (!member) return;
+    await env.DB.prepare('DELETE FROM union_members WHERE user_id = ?1').bind(userId).run();
+    const heir = await env.DB.prepare("SELECT user_id FROM union_members WHERE union_id = ?1 ORDER BY CASE role WHEN 'officer' THEN 0 ELSE 1 END, joined_at LIMIT 1").bind(member.union_id).first();
+    if (!heir) {
+      await env.DB.prepare('DELETE FROM union_applications WHERE union_id = ?1').bind(member.union_id).run();
+      await env.DB.prepare('DELETE FROM unions WHERE id = ?1').bind(member.union_id).run();
+    } else if (member.role === 'leader') {
+      await env.DB.prepare('UPDATE union_members SET role = ?1 WHERE user_id = ?2').bind('leader', heir.user_id).run();
+    }
+  } catch (_) { /* 표가 아직 없으면 건너뛴다 */ }
+}
+
 // DELETE /api/account — 계정 삭제: 이 계정의 저장·연결된 외부 계정·세션·계정 자체를 지운다. 본문 { confirm: 'delete' } 가 있어야 한다.
 // 같은 이용자의 다른 기기 세션도 함께 사라진다. 지운 뒤에는 되돌릴 수 없다.
 export async function onRequestDelete({ request, env }) {
@@ -23,10 +39,17 @@ export async function onRequestDelete({ request, env }) {
   if (!(await allow(env, `delete:${user.id}`, 5, 3600000))) return tooMany();
   const body = await request.json().catch(() => null);
   if (body?.confirm !== 'delete') return json({ error: 'confirm-required' }, 400);
+  await leaveUnionForDelete(env, user.id);
   // 자식 표부터 지우고 계정 행을 마지막에 지운다(중간에 실패하면 다시 시도할 수 있다).
   for (const sql of [
     'DELETE FROM saves WHERE user_id = ?1',
     'DELETE FROM grants WHERE user_id = ?1',
+    'DELETE FROM arena_matches WHERE user_id = ?1',
+    'UPDATE arena_matches SET enemy_user_id = NULL WHERE enemy_user_id = ?1',
+    'DELETE FROM arena_weeks WHERE user_id = ?1',
+    'DELETE FROM arena_players WHERE user_id = ?1',
+    'DELETE FROM union_applications WHERE user_id = ?1',
+    'DELETE FROM players WHERE user_id = ?1',
     'DELETE FROM identities WHERE user_id = ?1',
     'DELETE FROM sessions WHERE user_id = ?1'
   ]) {

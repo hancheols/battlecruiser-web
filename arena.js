@@ -3,6 +3,8 @@
   const C=window.ArenaCore,KEY='starfleet-async-arena-v1',WAL=KEY+'-transaction',RESOURCE='starfleet-game-resources-v1',SELF='player';
   const roles=['선봉','좌익','우익','프리깃'],fmt=n=>Math.round(n||0).toLocaleString('ko-KR'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let overlay=null,lastFocus=null,playTimer=0,playing=false,draft=null,busy=false;
+  // 서버 모드: 점수·전적·입장 횟수·순위는 서버 값(online)을 쓴다. 공격·방어 편성과 티켓은 게임 저장에 그대로 둔다. online 이 null 이면 기기 저장 모드다.
+  let online=null,lastDefenseSig='',claimsSent=false;
   const read=(key,fallback)=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch(_){return fallback;}};
   function recover(){const tx=read(WAL,null);if(tx){localStorage.setItem(KEY,JSON.stringify(tx.state));localStorage.setItem(RESOURCE,JSON.stringify(tx.resources));localStorage.removeItem(WAL);if(window.gameResources)Object.assign(window.gameResources,tx.resources);}}
   function commit(state,resources){
@@ -57,7 +59,13 @@
   }
   function initial(){const deck=(window.getFleetAssignments?.()||[]);while(deck.length<4)deck.push(null);return {version:1,botVersion:4,score:0,wins:0,losses:0,draws:0,tickets:0,freeUsed:0,freeDay:C.day(Date.now()),settledDay:C.day(Date.now()),attack:deck.map(ident),defense:deck.map(ident),defenseSnapshot:complete(deck)?snapshot(deck):null,bots:makeBots(),inbox:[],history:[],pending:null};}
   const playerName=()=>{const p=read('starfleet-commander-profile-v1',{});return p.lastName?`${p.character||''} ${p.lastName}`:'나의 함대';};
-  const board=state=>C.standings([{id:SELF,name:playerName(),score:state.score,deck:state.defenseSnapshot},...state.bots]);
+  const tierOfScore=score=>C.standings([{id:'x',score}])[0].tier;
+  const board=state=>{
+    if(!online?.me?.id)return C.standings([{id:SELF,name:playerName(),score:state.score,deck:state.defenseSnapshot},...state.bots]);
+    const rows=C.standings(online.top.map(p=>p.id===online.me.id?{...p,id:SELF,publicId:p.id}:p));
+    if(!rows.some(p=>p.id===SELF))rows.push({id:SELF,publicId:online.me.id,name:online.me.name,score:online.me.score,rank:online.me.rank,tier:tierOfScore(online.me.score)});
+    return rows;
+  };
   const mine=state=>board(state).find(p=>p.id===SELF);
   // 등급 상승 토륨 보상: 처음 도달한 등급마다 계정당 한 번만 지급한다. 중간 등급을 건너뛰면 지나친 등급도 함께 지급한다. 다이아몬드는 보상 없음.
   const TIER_THORIUM={Bronze:100,Silver:200,Gold:300,Diamond:400,Platinum:500,'HERO 5':1000,'HERO 4':1000,'HERO 3':1000,'HERO 2':1000,'HERO 1':1500,LEGEND:2000};
@@ -126,7 +134,7 @@
       const battleDays=new Set(state.battleDays||[]),info=mine(state),tier=info.tier;
       const daily=C.rewards(tier.index),weekly=C.rewards(tier.index,true);
       const dailyAmounts={gold:0,thorium:0,lionToken:0,ssrShipTicket:0};let dailyCount=0;
-      const firstDay=state.settledDay+1;
+      const firstDay=state.settledDay;
       for(let d=firstDay;d<today;d++){
         if(battleDays.has(d)){dailyCount++;state.weekDays=(state.weekDays||0)+1;dailyAmounts.gold+=daily.gold;dailyAmounts.thorium+=daily.thorium;}
         // d가 대전한 날이고 다음 날이 수요일이면 주 마감이다.
@@ -155,7 +163,39 @@
     }
     return state;
   }
-  function state(){recover();let s=read(KEY,null);if(!s)s=initial();const before=JSON.stringify(s);if(s&&(s.botVersion||0)<4){try{const fresh=makeBots();s.bots=s.bots.map((b,i)=>({...b,deck:fresh[i]?.deck||b.deck}));s.botVersion=4;}catch{/* 함선 정보가 아직 없으면 다음 호출에서 다시 시도한다 */}}settle(s);const defense=resolve(s.defense||[]);if(complete(defense))s.defenseSnapshot=snapshot(defense);if(before!==JSON.stringify(s)||!localStorage.getItem(KEY))commit(s);return s;}
+  // 다른 이용자에게 보낼 방어 함대: 능력치만 보낸다. 이미지·설명은 받는 쪽이 자기 함선 목록에서 다시 채운다.
+  const compactShip=s=>s?{name:s.name,type:s.type,rarity:s.rarity,enhancementStars:s.enhancementStars??s.stars??0,hp:s.hp,dps:s.dps,skillStars:s.skillStars,factor:s.factor,dev:s.dev}:null;
+  function rehydrateDeck(deck){
+    const catalog=window.getFleetCatalog?.()||[];
+    const ships=(deck||[]).map(ship=>{if(!ship)return null;const base=catalog.find(item=>shipKey(item)===shipKey(ship));return base?{...base,...ship,stars:ship.enhancementStars}:undefined;});
+    return ships.length===4&&ships.slice(0,3).every(Boolean)&&ships[3]!==undefined?ships:null;
+  }
+  // 보내지 못한 대전 결과를 다시 보낸다. 서버가 거절한 것(4xx)은 버린다.
+  async function flushUnsent(){
+    const s=read(KEY,null);if(!s?.unsent?.length)return;
+    const left=[...s.unsent];
+    while(left.length){
+      try{const res=await window.Online.arena('result',left[0]);online=res.state;left.shift();}
+      catch(e){if(!(e.status>=400&&e.status<500))break;left.shift();}
+    }
+    const fresh=read(KEY,null);if(fresh){fresh.unsent=left;localStorage.setItem(KEY,JSON.stringify(fresh));}
+  }
+  // 서버 상태를 받아 온다. 돌려주는 값: 'server' | 'local' | 'down'
+  async function refreshOnline(){
+    const mode=await window.Online?.mode?.()??'local';
+    if(mode!=='server'){online=null;return mode;}
+    try{
+      await flushUnsent();
+      const s=state(),body={},deck=complete(s.defenseSnapshot)?s.defenseSnapshot.map(compactShip):null,sig=JSON.stringify(deck);
+      if(deck&&sig!==lastDefenseSig)body.defense=deck;
+      if(!claimsSent)body.claimed=[...Object.keys(s.tierRewards||{}),...Object.keys(s.stepRewards||{})];
+      online=await window.Online.arena('sync',body);
+      if(deck)lastDefenseSig=sig;
+      claimsSent=true;
+      return 'server';
+    }catch(_){online=null;return 'down';}
+  }
+  function state(){recover();let s=read(KEY,null);if(!s)s=initial();const before=JSON.stringify(s);if(s&&(s.botVersion||0)<4){try{const fresh=makeBots();s.bots=s.bots.map((b,i)=>({...b,deck:fresh[i]?.deck||b.deck}));s.botVersion=4;}catch{/* 함선 정보가 아직 없으면 다음 호출에서 다시 시도한다 */}}settle(s);const defense=resolve(s.defense||[]);if(complete(defense))s.defenseSnapshot=snapshot(defense);if(before!==JSON.stringify(s)||!localStorage.getItem(KEY))commit(s);if(online?.me?.id)Object.assign(s,{score:online.me.score,wins:online.me.wins,losses:online.me.losses,draws:online.me.draws,freeUsed:online.me.freeUsed});return s;}
   function note(text){const n=overlay?.querySelector('[data-arena-note]');if(n)n.textContent=text;else window.notice?.(text);}
   async function act(fn){if(busy)return;busy=true;try{await lock(fn);}catch(e){note(e.message||'저장할 수 없습니다. 다시 시도해주세요.');}finally{busy=false;}}
   function emblem(tier,small=false){
@@ -170,11 +210,11 @@
     shell('ARENA',`
       <div class="arena-season"><img src="icons/arena-button.png" alt="Arena"/><div><small>SEASON 01</small><h3>유틀란트 해전</h3></div></div>
       <section class="arena-ranking">
-        <div class="arena-podium">${[1,0,2].map(i=>{const p=top[i];return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span>${emblem(p.tier)}<button type="button" class="arena-podium-name" data-player-id="${esc(p.id)}">${esc(p.name)}</button><small>${p.tier.label}</small><strong>${fmt(p.score)}</strong></div>`;}).join('')}</div>
+        <div class="arena-podium">${[1,0,2].map(i=>{const p=top[i];if(!p)return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span></div>`;return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span>${emblem(p.tier)}<button type="button" class="arena-podium-name" data-player-id="${esc(p.id)}">${esc(p.name)}</button><small>${p.tier.label}</small><strong>${fmt(p.score)}</strong></div>`;}).join('')}</div>
         <div class="arena-rank-list">${rows.slice(3).map(p=>`<div class="${p.id===SELF?'is-self':''}"><strong>${p.rank}</strong>${emblem(p.tier,true)}<span><button type="button" class="arena-player-link" data-player-id="${esc(p.id)}">${esc(p.name)}</button></span><em>${fmt(p.score)}</em></div>`).join('')}</div>
       </section>
       <button class="arena-battle-button" data-match><strong>아레나 출전</strong><span>${ticketLeft?'무료 대전 '+ticketLeft+' / 5':'아레나 티켓 1장 사용'}</span></button>
-      ${deckBlock('defense','수비 함대',s)}${deckBlock('attack','공격 함대',s)}
+      ${deckBlock('defense','수비 함대',s)}${deckBlock('attack','공격 함대',s)}${defenseLogHtml()}
       <footer class="arena-status">${emblem(me.tier)}<div><small>현재 등급</small><div class="arena-tier-line"><b>${me.tier.label}</b><button type="button" class="arena-tier-help" data-rules aria-label="등급과 보상 정보">?</button></div><span>${fmt(s.score)}점 · ${me.rank}위</span></div><div><small>대전 기록</small><b>${s.wins}승 ${s.losses}패</b><button type="button" class="arena-ticket-link" data-arena-ticket-shop>티켓 ${s.tickets}장</button></div></footer>
       <p class="arena-settlement">일일: 그날 대전 1회 이상 · 주간: 일일 보상 5회 이상 수령 (수요일 0시 KST 정산)<br>일일 ${rewardText(daily)} / 주간 ${rewardText(weekly)}</p>
       <div class="arena-matchup-entry"><button type="button" class="arena-help-btn" data-matchup-help aria-label="함종 상성 안내">?</button><span>함종 상성 안내</span></div>
@@ -189,8 +229,18 @@
     overlay.querySelector('[data-matchup-panel]').onclick=()=>{overlay.querySelector('[data-matchup-panel]').hidden=true;};
     overlay.querySelectorAll('[data-player-id]').forEach(button=>button.onclick=()=>showPlayerProfile(rows.find(p=>p.id===button.dataset.playerId)));
   }
-  function showPlayerProfile(player){
+  // 내 방어 함대가 받은 공격 기록(서버 모드).
+  function defenseLogHtml(){
+    if(!online?.me?.id)return '';
+    const rows=online.defenses.map(item=>`<div><b>${item.win===null?'무승부':item.win?'방어 성공':'방어 실패'} · ${esc(item.attacker)}</b><span>${item.delta>0?'+':''}${item.delta}점</span><small>${new Date(item.at).toLocaleString('ko-KR')}</small></div>`).join('');
+    return `<section class="arena-deck arena-deck-log"><header><div><small>DEFENSE LOG</small><h3>방어 기록</h3></div></header><div class="arena-history">${rows||'<p>아직 공격받은 기록이 없습니다.</p>'}</div></section>`;
+  }
+  async function showPlayerProfile(player){
     if(!player)return;
+    if(online?.me?.id&&player.id!==SELF){
+      try{const info=await window.Online.arena('profile',{id:player.id});player={...player,deck:rehydrateDeck(info.deck)||[]};}
+      catch(e){note(e.message||'함장 정보를 불러오지 못했습니다.');return;}
+    }
     document.querySelector('.arena-player-popup')?.remove();
     const roster=player.id===SELF?owned():((player.deck||[]).filter(Boolean));
     const rarityRank={R:1,SR:2,SSR:3,L:4};
@@ -202,7 +252,7 @@
     const tokenCount=player.id===SELF
       ?Math.max(0,Math.floor(Number((window.gameResources||read(RESOURCE,{})).lionToken)||0))
       :Math.max(0,Math.floor(Number(player.tokens??(12+Math.floor(player.score/35)+(botIndex*13)%23))||0));
-    const popup=document.createElement('div');popup.className='arena-player-popup';popup.innerHTML=`<section class="arena-player-card" role="dialog" aria-modal="true" aria-label="함장 정보"><header><small>FLEET CAPTAIN</small><button type="button" aria-label="닫기">×</button></header><h3>${esc(player.name)}</h3><dl><div><dt>최고 등급 함선</dt><dd>${best?`${esc(best.name)} · ${esc(best.rarity||'R')} · ${Number(best.enhancementStars??best.stars)||0}성`:'등록 정보 없음'}</dd></div><div><dt>최고 개발 단계</dt><dd>Lv. ${fmt(levels)}</dd></div><div><dt>사자증표</dt><dd>${fmt(tokenCount)}개</dd></div></dl></section>`;
+    const popup=document.createElement('div');popup.className='arena-player-popup';popup.innerHTML=`<section class="arena-player-card" role="dialog" aria-modal="true" aria-label="함장 정보"><header><small>FLEET CAPTAIN</small><button type="button" aria-label="닫기">×</button></header><h3>${esc(player.name)}</h3><dl><div><dt>최고 등급 함선</dt><dd>${best?`${esc(best.name)} · ${esc(best.rarity||'R')} · ${Number(best.enhancementStars??best.stars)||0}성`:'등록 정보 없음'}</dd></div><div><dt>최고 개발 단계</dt><dd>Lv. ${fmt(levels)}</dd></div>${online?.me?.id&&player.id!==SELF?'':`<div><dt>사자증표</dt><dd>${fmt(tokenCount)}개</dd></div>`}</dl></section>`;
     const close=()=>{popup.remove();document.removeEventListener('keydown',onKey);};
     const onKey=event=>{if(event.key==='Escape'){event.stopPropagation();close();}};
     popup.addEventListener('click',event=>{if(event.target===popup||event.target.closest('button'))close();});
@@ -210,13 +260,13 @@
   }
   const rewardText=r=>[`${fmt(r.gold)} 골드`,`${fmt(r.thorium)} 토륨`,r.lionToken?`증표 ${r.lionToken}`:'',r.ssrShipTicket?`SSR 교환권 ${r.ssrShipTicket}`:''].filter(Boolean).join(' · ');
   function sub(title,html){shell(title,html);overlay.querySelector('[data-arena-close]').onclick=render;}
-  function rules(){sub('등급과 보상',`<p class="arena-explanation">같은 등급 우선 무작위 매칭. 동점 상대 기준 승리 +30 / 패배 −20점, 상대 점수에 따라 +15~45 / −10~30점. 무승부 0점, 최저 0점.<br>HERO는 3,600점부터 200점마다 HERO 5 → 4 → 3 → 2 → 1로 올라갑니다(3,600~3,799 HERO 5, 4,400~4,599 HERO 1). LEGEND는 4,600점 이상입니다.<br>일일 보상: 그날 대전을 1회 이상 해야 지급 (매일 0시 KST 정산). 주간 보상: 일일 보상의 2배, 수요일 0시 기준 한 주에 일일 보상을 5회 이상 받아야 지급되며, 주간 상위 7명에게 SSR 함선 선택 교환권 1장이 추가로 지급됩니다.<br>시즌 보상(시즌 기능 도입 후 지급): 일일 보상의 3배, 다이아 이상. 시즌 중 모든 주간 보상을 받은 경우에만 지급됩니다. 플래티넘 이상 SSR 교환권 1장, 히어로 이상 증표 1개, 레전드 증표 3개.</p><div class="arena-tier-table"><div><b>등급 / 조건</b><b>일일 보상</b><b>주간 보상</b></div>${C.TIERS.map(t=>`<div><span>${emblem(t,true)}<b>${t.label}</b><small>${t.group==='LEGEND'?`${fmt(t.min)}점 이상`:t.group==='HERO'?`${fmt(t.min)} ~ ${fmt(t.min+199)}`:`${fmt(t.min)} ~ ${fmt((C.TIER_STARTS[t.index+1]??t.min+199)-1)}`}</small></span><span>${rewardText(C.rewards(t.index))}</span><span>${rewardText(C.rewards(t.index,true))}</span></div>`).join('')}</div><p class="arena-explanation"><b>함종 상성 (아레나 전용)</b><br>중전함 ▶ 구축함 ▶ 전투순양함 ▶ 중전함 (앞의 함종이 뒤의 함종을 이깁니다). 강한 함종은 상대 함종에게 기본 공격과 스킬 피해가 +10%, 약한 쪽에게 받을 때는 −10%입니다. 연구 공격력 보너스와 더해서 계산합니다. 출전 전에 상대 함대를 미리 확인할 수 있습니다.</p><p class="arena-explanation">보상 가치 기준: 사자증표 1 = 토륨 100 = 골드 100,000.<br>이 리그는 현재 기기에 저장되는 가상 상대 테스트 환경입니다. 실제 이용자 매칭·방어전 수신·서버 시간 정산은 서버 연결 후 제공됩니다.</p>`);if(state().inbox.length){const claim=document.createElement('button');claim.className='arena-save';claim.textContent='도착한 보상 확인';claim.onclick=inbox;overlay.querySelector('.arena-panel').insertBefore(claim,overlay.querySelector('.arena-note'));}}
+  function rules(){sub('등급과 보상',`<p class="arena-explanation">같은 등급 우선 무작위 매칭. 동점 상대 기준 승리 +30 / 패배 −20점, 상대 점수에 따라 +15~45 / −10~30점. 무승부 0점, 최저 0점.<br>HERO는 3,600점부터 200점마다 HERO 5 → 4 → 3 → 2 → 1로 올라갑니다(3,600~3,799 HERO 5, 4,400~4,599 HERO 1). LEGEND는 4,600점 이상입니다.<br>일일 보상: 그날 대전을 1회 이상 해야 지급 (매일 0시 KST 정산). 주간 보상: 일일 보상의 2배, 수요일 0시 기준 한 주에 일일 보상을 5회 이상 받아야 지급되며, 주간 상위 7명에게 SSR 함선 선택 교환권 1장이 추가로 지급됩니다.<br>시즌 보상(시즌 기능 도입 후 지급): 일일 보상의 3배, 다이아 이상. 시즌 중 모든 주간 보상을 받은 경우에만 지급됩니다. 플래티넘 이상 SSR 교환권 1장, 히어로 이상 증표 1개, 레전드 증표 3개.</p><div class="arena-tier-table"><div><b>등급 / 조건</b><b>일일 보상</b><b>주간 보상</b></div>${C.TIERS.map(t=>`<div><span>${emblem(t,true)}<b>${t.label}</b><small>${t.group==='LEGEND'?`${fmt(t.min)}점 이상`:t.group==='HERO'?`${fmt(t.min)} ~ ${fmt(t.min+199)}`:`${fmt(t.min)} ~ ${fmt((C.TIER_STARTS[t.index+1]??t.min+199)-1)}`}</small></span><span>${rewardText(C.rewards(t.index))}</span><span>${rewardText(C.rewards(t.index,true))}</span></div>`).join('')}</div><p class="arena-explanation"><b>함종 상성 (아레나 전용)</b><br>중전함 ▶ 구축함 ▶ 전투순양함 ▶ 중전함 (앞의 함종이 뒤의 함종을 이깁니다). 강한 함종은 상대 함종에게 기본 공격과 스킬 피해가 +10%, 약한 쪽에게 받을 때는 −10%입니다. 연구 공격력 보너스와 더해서 계산합니다. 출전 전에 상대 함대를 미리 확인할 수 있습니다.</p><p class="arena-explanation">보상 가치 기준: 사자증표 1 = 토륨 100 = 골드 100,000.<br>${online?.me?.id?'다른 함장의 방어 함대와 대전합니다. 전투력이 비슷한 함장이 없으면 유령함대와 대전합니다. 공격받으면 방어 결과에 따라 점수가 오르거나 내려갑니다.':'이 리그는 현재 기기에 저장되는 가상 상대 테스트 환경입니다. 실제 이용자 매칭·방어전 수신·서버 시간 정산은 서버 연결 후 제공됩니다.'}</p>`);if(state().inbox.length){const claim=document.createElement('button');claim.className='arena-save';claim.textContent='도착한 보상 확인';claim.onclick=inbox;overlay.querySelector('.arena-panel').insertBefore(claim,overlay.querySelector('.arena-note'));}}
   function editDeck(kind){draft={kind,slots:C.clone(state()[kind])};paintDeck();}
   function paintDeck(){
     const deck=resolve(draft.slots);shell(draft.kind==='defense'?'방어 덱 편성':'공격 덱 편성',`<p class="arena-explanation">선봉 · 좌익 · 우익에 서로 다른 함선을 선택하세요. 프리깃은 연구 개방 후 선택할 수 있습니다.</p><div class="arena-ships">${deck.map((s,i)=>shipCard(s,i,`data-slot="${i}"`)).join('')}</div><div class="arena-tools"><button data-import>함대관리 편성 불러오기</button><button data-save class="arena-save">편성 저장</button></div><p class="arena-explanation">등급·성급은 보유 변형과 연결됩니다. 방어 덱은 저장 시 개발 수치까지 복사되며, 개발 후 다시 저장하면 갱신됩니다.</p>`);
     overlay.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>pick(Number(b.dataset.slot)));
     overlay.querySelector('[data-import]').onclick=()=>{draft.slots=Array.from({length:4},(_,i)=>ident(window.getFleetAssignments?.()[i]));paintDeck();};
-    overlay.querySelector('[data-save]').onclick=()=>act(()=>{const deck=resolve(draft.slots);if(!complete(deck))throw Error('선봉·좌익·우익을 모두 서로 다른 보유 함선으로 편성해주세요.');if(deck[3]&&!frigateUnlocked())throw Error('프리깃 연구가 필요합니다.');const s=state();s[draft.kind]=deck.map(ident);if(draft.kind==='defense')s.defenseSnapshot=snapshot(deck);commit(s);draft=null;render();note('편성을 저장했습니다.');});
+    overlay.querySelector('[data-save]').onclick=()=>act(async()=>{const deck=resolve(draft.slots);if(!complete(deck))throw Error('선봉·좌익·우익을 모두 서로 다른 보유 함선으로 편성해주세요.');if(deck[3]&&!frigateUnlocked())throw Error('프리깃 연구가 필요합니다.');const s=state();s[draft.kind]=deck.map(ident);if(draft.kind==='defense')s.defenseSnapshot=snapshot(deck);commit(s);if(online)await refreshOnline();draft=null;render();note('편성을 저장했습니다.');});
   }
   function pick(slot){
     if(slot===3&&!frigateUnlocked()){note('연구실에서 프리깃을 먼저 개발해주세요.');return;}
@@ -229,14 +279,32 @@
   // 상대 덱 미리보기: 상대를 먼저 정해 state.preview에 저장하고, 출전 버튼을 눌러야 대전이 시작된다.
   const TYPE_KO={dreadnought:'중전함',battlecruiser:'전투순양함',destroyer:'구축함',frigate:'프리깃'};
   async function openPreview(){
-    await act(()=>{
+    await act(async()=>{
       const s=state();if(s.pending){enterArenaBattle(s.pending);return;}
+      if(online&&s.preview&&!s.preview.server)s.preview=null;   // 기기 저장 시절에 남은 상대
       if(s.preview)return;
       const fleet=snapshot(resolve(s.attack));
       if(!complete(fleet)||!complete(s.defenseSnapshot))throw Error('공격 덱과 방어 덱을 먼저 등록해주세요.');
       if(resolve(s.attack)[3]&&!frigateUnlocked())throw Error('프리깃 연구를 먼저 개방해주세요.');
       if(s.freeUsed>=5&&s.tickets<1)throw Error('무료 대전을 모두 사용했습니다. 상점에서 아레나 티켓을 구매해주세요.');
-      const seed=crypto.getRandomValues(new Uint32Array(1))[0],enemy=C.chooseOpponent([{id:SELF,score:s.score,deck:s.defenseSnapshot},...s.bots],SELF,C.random(seed));
+      const seed=crypto.getRandomValues(new Uint32Array(1))[0];
+      if(online){
+        const res=await window.Online.arena('preview');
+        if(res.enemy){
+          const deck=rehydrateDeck(res.enemy.deck);
+          // 이 기기의 게임 버전에 없는 함선이 있으면 다음에 다른 상대를 찾게 한다
+          if(!deck){await window.Online.arena('cancelPreview');throw Error('상대 함대 정보를 불러오지 못했습니다. 다시 시도해주세요.');}
+          s.preview={seed,server:true,enemy:{id:res.enemy.id,name:res.enemy.name,score:res.enemy.score,tier:tierOfScore(res.enemy.score),deck}};
+        }else{
+          // 비슷한 함장이 없으면 유령함대: 서버는 내 점수와 같은 상대로 계산한다
+          const bot=C.chooseOpponent([{id:SELF,score:s.score,deck:s.defenseSnapshot},...s.bots],SELF,C.random(seed));
+          if(!bot)throw Error('매칭 가능한 상대가 없습니다.');
+          s.preview={seed,server:true,enemy:{id:bot.id,name:bot.name,score:s.score,tier:tierOfScore(s.score),deck:bot.deck}};
+        }
+        commit(s);
+        return;
+      }
+      const enemy=C.chooseOpponent([{id:SELF,score:s.score,deck:s.defenseSnapshot},...s.bots],SELF,C.random(seed));
       if(!enemy)throw Error('매칭 가능한 상대가 없습니다.');
       s.preview={seed,enemy:{id:enemy.id,name:enemy.name,score:enemy.score,tier:enemy.tier,deck:enemy.deck}};commit(s);
     });
@@ -286,9 +354,9 @@
       <p class="arena-matchup-summary">${summary}</p>
       <div class="arena-preview-actions"><button type="button" data-preview-cancel>취소</button><button type="button" data-preview-start>출전</button></div>`);
     overlay.querySelector('[data-preview-start]').onclick=()=>startMatch(false);
-    overlay.querySelector('[data-preview-cancel]').onclick=async()=>{await act(()=>{const x=state();x.preview=null;commit(x);});render();};
+    overlay.querySelector('[data-preview-cancel]').onclick=async()=>{await act(async()=>{const x=state();if(x.preview?.server)await window.Online.arena('cancelPreview');x.preview=null;commit(x);});render();};
   }
-  async function startMatch(practice){await act(()=>{
+  async function startMatch(practice){await act(async()=>{
     const s=state();if(s.pending){enterArenaBattle(s.pending);return;}
     const fleet=practice?s.defenseSnapshot:snapshot(resolve(s.attack));
     if(!complete(fleet)||!complete(s.defenseSnapshot))throw Error('공격 덱과 방어 덱을 먼저 등록해주세요.');
@@ -296,6 +364,15 @@
     if(!practice&&s.freeUsed>=5&&s.tickets<1)throw Error('무료 대전을 모두 사용했습니다. 상점에서 아레나 티켓을 구매해주세요.');
     const pv=practice?null:s.preview;const seed=pv?pv.seed:crypto.getRandomValues(new Uint32Array(1))[0],enemy=pv?pv.enemy:C.chooseOpponent([{id:SELF,score:s.score,deck:s.defenseSnapshot},...s.bots],SELF,C.random(seed));if(!enemy)throw Error('매칭 가능한 상대가 없습니다.');
     const result=C.simulate(fleet,enemy.deck,seed),match={id:(crypto.randomUUID?.()||Array.from(crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16)).join("-")),enemy:{id:enemy.id,name:enemy.name,score:enemy.score,tier:enemy.tier},fleet,enemyDeck:enemy.deck,result,practice,scoreBefore:s.score,created:Date.now()};
+    if(!practice&&online){
+      const res=await window.Online.arena('start',{ticket:s.tickets>0});
+      online=res.state;
+      Object.assign(match,{id:res.matchId,server:true,ticketUsed:res.ticketUsed,scoreBefore:res.scoreBefore});
+      match.enemy.score=res.enemyScore;
+      if(res.ticketUsed)s.tickets=Math.max(0,s.tickets-1);
+      s.pending=match;s.preview=null;commit(s);enterArenaBattle(match);
+      return;
+    }
     if(!practice){const ticketUsed=s.freeUsed>=5;if(ticketUsed)s.tickets--;else s.freeUsed++;match.ticketUsed=ticketUsed;s.pending=match;s.preview=null;commit(s);}enterArenaBattle(match);
   });}
   function enterArenaBattle(match){
@@ -304,7 +381,11 @@
     requestAnimationFrame(()=>window.prepareBattle?.({arenaMatch:match}));
   }
   window.cancelArenaBattle=async match=>{
-    await lock(()=>{const s=state();if(s.pending?.id!==match?.id)return;s.pending=null;if(match.ticketUsed)s.tickets++;else s.freeUsed=Math.max(0,s.freeUsed-1);commit(s);});
+    await lock(async()=>{
+      const s=state();if(s.pending?.id!==match?.id)return;
+      if(match.server){try{online=(await window.Online.arena('cancel',{matchId:match.id})).state;}catch{/* 다음 대전 시작 때 서버가 정리한다 */}}
+      s.pending=null;if(match.ticketUsed)s.tickets++;else if(!match.server)s.freeUsed=Math.max(0,s.freeUsed-1);commit(s);
+    });
     window.battleArenaMatch=null;window.show?.('home');window.openArena?.();
   };
   // 앱을 닫거나 새로고침한 실시간 대전은 패배로 처리한다(이어서 재생하지 않는다).
@@ -312,6 +393,13 @@
     const s = read(KEY, null);
     if (!s?.pending) return;
     const match = s.pending;
+    // 서버 대전이면 포기 결과를 보낼 목록에 넣는다(다음 연결 때 전달된다).
+    if (match.server) {
+      s.unsent = [...(s.unsent || []), { matchId: match.id, outcome: false, forfeited: true }];
+      s.pending = null;
+      localStorage.setItem(KEY, JSON.stringify(s));
+      return;
+    }
     const change = C.delta(match.scoreBefore, match.enemy?.score || 0, false);
     s.score = Math.max(0, s.score + change);
     s.losses = (s.losses || 0) + 1;
@@ -322,8 +410,26 @@
     s.pending = null;
     localStorage.setItem(KEY, JSON.stringify(s));
   }
-  window.completeArenaBattle=match=>lock(()=>{
-    const s=state(),outcome=match.forfeited?false:match.result.win;
+  // 서버 대전 결과: 연결이 끊겨도 진행을 막지 않고, 결과를 보관했다가 다음 연결 때 보낸다.
+  async function completeOnline(match,outcome){
+    const s=state(),payload={matchId:match.id,outcome,forfeited:!!match.forfeited};
+    if(s.pending?.id===match.id)s.pending=null;
+    try{
+      const res=await window.Online.arena('result',payload);
+      online=res.state;commit(s);
+      const me=mine(state());
+      return {win:res.outcome,delta:res.delta,score:online.me.score,rank:me.rank,tier:me.tier.label};
+    }catch(e){
+      if(!(e.status>=400&&e.status<500))s.unsent=[...(s.unsent||[]),payload];
+      commit(s);
+      const change=C.delta(match.scoreBefore,match.enemy.score,outcome),score=Math.max(0,match.scoreBefore+change);
+      return {win:outcome,delta:change,score,rank:'—',tier:tierOfScore(score).label};
+    }
+  }
+  window.completeArenaBattle=match=>lock(async()=>{
+    const outcome0=match.forfeited?false:match.result.win;
+    if(match.server)return completeOnline(match,outcome0);
+    const s=state(),outcome=outcome0;
     if(s.pending?.id===match.id){const change=C.delta(match.scoreBefore,match.enemy.score,outcome);s.score=Math.max(0,s.score+change);markBattleDay(s);if(outcome===null)s.draws++;else if(outcome)s.wins++;else s.losses++;const bot=s.bots.find(b=>b.id===match.enemy.id);if(bot)bot.score=Math.max(0,bot.score-change);s.history.unshift({id:match.id,date:Date.now(),enemy:match.enemy.name,win:outcome,delta:change,score:s.score});s.history=s.history.slice(0,40);s.pending=null;const bonus=tierRewardGrant(s);commit(s);if(bonus.labels.length)window.notice?.(`등급 상승 축전이 도착했습니다 · ${bonus.labels.join(', ')}`);}
     const me=mine(s),history=s.history.find(item=>item.id===match.id);return {win:outcome,delta:history?.delta||0,score:s.score,rank:me.rank,tier:me.tier.label};
   });
@@ -366,13 +472,23 @@
     paint();
     overlay.append(box);
   }
-  window.openArena=()=>{if(overlay){overlay.focus();return;}lastFocus=document.activeElement;overlay=document.createElement('div');overlay.className='arena-overlay';document.body.append(overlay);overlay.onclick=e=>{if(e.target===overlay&&!playing)close();};overlay.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!playing){if(draft){draft=null;render();}else close();}}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not(:disabled),input')],first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};try{const s=state();if(s.pending)enterArenaBattle(s.pending);else{render();showArenaIntro();}overlay?.querySelector('button')?.focus();}catch(e){shell('ARENA','');note(e.message);}};
+  async function openHome(){
+    const mode=await refreshOnline();
+    if(!overlay)return;
+    if(mode==='down'){
+      shell('ARENA','<p class="arena-explanation">아레나 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.</p><button type="button" class="arena-save" data-arena-retry>다시 연결</button>');
+      overlay.querySelector('[data-arena-retry]').onclick=()=>{shell('ARENA','<p class="arena-explanation">아레나 서버에 연결하는 중입니다.</p>');openHome();};
+      return;
+    }
+    try{const s=state();if(s.pending)enterArenaBattle(s.pending);else{render();showArenaIntro();}overlay?.querySelector('button')?.focus();}catch(e){shell('ARENA','');note(e.message);}
+  }
+  window.openArena=()=>{if(overlay){overlay.focus();return;}lastFocus=document.activeElement;overlay=document.createElement('div');overlay.className='arena-overlay';document.body.append(overlay);overlay.onclick=e=>{if(e.target===overlay&&!playing)close();};overlay.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!playing){if(draft){draft=null;render();}else close();}}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not(:disabled),input')],first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};shell('ARENA','<p class="arena-explanation">아레나 서버에 연결하는 중입니다.</p>');openHome();};
   window.getArenaTickets=()=>{try{return state().tickets;}catch{return 0;}};
   window.purchaseArenaTicket=()=>lock(()=>{const s=state(),resources={...(window.gameResources||read(RESOURCE,{}))};if((resources.thorium||0)<20)return {ok:false,message:'토륨이 부족합니다.'};resources.thorium-=20;s.tickets++;commit(s,resources);return {ok:true,message:'아레나 티켓 1장을 구매했습니다.'};});
   // 오늘 특가 아레나 티켓(골드 구매): 골드가 충분하면 티켓을 지급한다.
   window.purchaseArenaTicketGold=(count,price)=>lock(()=>{const s=state(),resources={...(window.gameResources||read(RESOURCE,{}))};if((resources.gold||0)<price)return {ok:false,message:'골드가 부족합니다.'};resources.gold-=price;s.tickets+=count;commit(s,resources);return {ok:true,message:`아레나 티켓 ${count}장을 구매했습니다.`};});
   window.addEventListener('storage',e=>{if(e.key===KEY&&overlay&&!playing&&!draft)render();});
-  setInterval(()=>{if(overlay&&!playing&&!draft&&overlay.querySelector('[data-match]')){try{const saved=read(KEY,null);if(saved&&C.day(Date.now())>saved.freeDay)render();}catch{}}},1000);
+  setInterval(()=>{if(overlay&&!playing&&!draft&&overlay.querySelector('[data-match]')){try{const saved=read(KEY,null);if(saved&&C.day(Date.now())>saved.freeDay){if(online)refreshOnline().then(()=>{if(overlay&&!playing&&!draft&&overlay.querySelector('[data-match]'))render();});else render();}}catch{}}},1000);
   window.addEventListener('DOMContentLoaded',()=>{try{recover();settleAbandonedMatch();if(localStorage.getItem(KEY))state();}catch{}});
 })();
 

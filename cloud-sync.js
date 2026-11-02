@@ -247,6 +247,7 @@
     status: () => ({ guestId: meta.id || null, revision: meta.revision || 0, conflict, disabled, busy, lastError }),
     pushNow: () => push(),
     checkGrants: () => checkGrants(0),
+    api: (path, options = {}) => request(path, { ...options, headers: authHeaders() }),   // 랭킹·아레나·연합(online.js)이 쓰는 인증 요청
     stop: () => { disabled = true; clearInterval(timer); }
   };
   // 만 14세 이상 확인(age-gate.js) 전에는 서버에 계정을 만들지 않는다.

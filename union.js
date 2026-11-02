@@ -190,7 +190,7 @@
     };
   })();
 
-  // 서버가 정해지면 window.UnionAdapter를 서버 어댑터로 바꿔 끼운다.
+  // online.js 가 window.UnionAdapter(서버 어댑터)를 넣는다. 서버 준비 전에는 그 어댑터가 Local 로 넘겨 준다.
   const adapter = () => window.UnionAdapter || Local;
 
   // ───────── 화면 ─────────
@@ -574,7 +574,7 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
       const full = u.memberCount >= u.capacity;
       return `<li class="union-card fac-union-card"><div class="card-crest">${crestSvg(u.emblem, { wings: false })}</div><div class="union-card-main"><b>${esc(u.name)}</b><span><em class="ub-lv">Lv.${u.level}</em> 연합원 ${u.memberCount}/${u.capacity} · ${u.joinMode === 'approval' ? '승인 가입' : '자유 가입'}</span><small>${esc(u.notice)}</small></div><button type="button" class="fac-btn small" data-join="${esc(u.id)}"${full ? ' disabled' : ''}>${full ? '정원 마감' : u.joinMode === 'approval' ? '가입 신청' : '가입'}</button></li>`;
     }).join('');
-    return `<div class="union-search"><input type="search" data-query value="${esc(ui.query)}" placeholder="연합 이름 검색" maxlength="12" aria-label="연합 이름 검색"/></div><ul class="union-cards">${items || '<li class="union-empty">검색 결과가 없습니다.</li>'}</ul>`;
+    return `<div class="union-search"><input type="search" data-query value="${esc(ui.query)}" placeholder="연합 이름 검색" maxlength="12" aria-label="연합 이름 검색"/></div><ul class="union-cards">${items || `<li class="union-empty">${ui.query ? '검색 결과가 없습니다.' : '아직 창설된 연합이 없습니다. 첫 연합을 만들어 보세요.'}</li>`}</ul>`;
   }
 
   // 엠블럼 꾸미기: 외부 장식 · 방패 모양 · 내부 문양을 고르고, 방패·금속·문양 색을 따로 바꾼다.
@@ -673,5 +673,6 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
   window.renderUnionScreen = () => render();
   window.openUnionFacility = id => { ui.view = id; ui.tab = 'hall'; ui.menuFor = ''; render(); };
   window.unlockTrialUnion = () => Local.__unlockTrial();
-  window.UnionLocal = Local; // 테스트와 서버 어댑터 작성 시 참고용
+  window.UnionLocal = Local; // 서버 어댑터(online.js)가 체험 연합과 기기 저장 모드에 쓴다
+  window.UnionCosts = { ...COSTS, balance: thoriumBalance, spend: spendThorium };
 })();
