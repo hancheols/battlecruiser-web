@@ -49,6 +49,7 @@ export async function onRequestDelete({ request, env }) {
     'DELETE FROM arena_weeks WHERE user_id = ?1',
     'DELETE FROM arena_players WHERE user_id = ?1',
     'DELETE FROM union_applications WHERE user_id = ?1',
+    'DELETE FROM rank_entries WHERE user_id = ?1',
     'DELETE FROM players WHERE user_id = ?1',
     'DELETE FROM identities WHERE user_id = ?1',
     'DELETE FROM sessions WHERE user_id = ?1'

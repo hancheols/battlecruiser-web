@@ -1,12 +1,11 @@
 (() => {
   // 순위표는 서버(online.js → /api/ranking)에서 받는다. 아레나 순위는 아레나 화면에서 보여준다.
   const categories = [
-    { id: 'total', label: '총전투력', code: 'TOTAL POWER', metric: '전투력' },
-    { id: 'dreadnought', label: '중전함', code: 'DREADNOUGHT', metric: '함급 전투력' },
-    { id: 'battlecruiser', label: '배틀크루저', code: 'BATTLECRUISER', metric: '함급 전투력' },
-    { id: 'destroyer', label: '구축함', code: 'DESTROYER', metric: '함급 전투력' },
-    { id: 'frigate', label: '프리깃', code: 'FRIGATE', metric: '함급 전투력' },
-    { id: 'alliance', label: '연합', code: 'ALLIANCE', metric: '연합 전투력' },
+    { id: 'total', label: '종합', code: 'TOP FLEET', metric: '함종별 최고 함선 3척' },
+    { id: 'dreadnought', label: '중전함', code: 'DREADNOUGHT', metric: '최고 함선' },
+    { id: 'battlecruiser', label: '배틀크루저', code: 'BATTLECRUISER', metric: '최고 함선' },
+    { id: 'destroyer', label: '구축함', code: 'DESTROYER', metric: '최고 함선' },
+    { id: 'alliance', label: '연합', code: 'ALLIANCE', metric: '함선 등급 합' },
     { id: 'arena', label: '아레나', code: 'ARENA', metric: '시즌 점수' }
   ];
 
@@ -35,12 +34,24 @@
   };
   window.updateGameResourceHud = updateResourceHud;
 
-  const rowMarkup = (rank, name, value, category, isSelf = false) => {
+  // 순위 기록을 글로 바꾼다. 함종: 함선 이름·희귀도·성급, 종합: 세 척 요약, 연합: 활동 연합원 수.
+  const starText = stars => '★'.repeat(stars) + '☆'.repeat(Math.max(0, 5 - stars));
+  const shipLine = entry => `${entry.ship} · ${entry.rarity} ${starText(entry.stars)}`;
+  const entryLine = (entry, category) => {
+    if (category.id === 'alliance') return `활동 연합원 ${format(entry.active)}명`;
+    if (category.id === 'total') return entry.ships.map(ship => `${ship.ship} ${ship.rarity}★${ship.stars}`).join(' · ');
+    return shipLine(entry);
+  };
+  const entryScore = (entry, category) => category.id === 'alliance'
+    ? `<b>${format(entry.value)}</b><small>함선 등급 합</small>`
+    : `<b>Lv.${format(entry.dev)}</b><small>${category.id === 'total' ? '개발 합계' : '무기 개발'}</small>`;
+
+  const rowMarkup = (rank, name, entry, category, isSelf = false) => {
     const podium = rank <= 3 ? ` podium-${rank}` : '';
     return `<div class="ladder-row${podium}${isSelf ? ' is-self' : ''}">
       <span class="ladder-rank">${rank}</span>
-      <span class="ladder-player"><b>${esc(name)}</b><small>${isSelf ? 'MY RANKING' : category.id === 'alliance' ? 'UNION' : 'COMMANDER'}</small></span>
-      <span class="ladder-score"><b>${format(value)}</b><small>${category.metric}</small></span>
+      <span class="ladder-player"><b>${esc(name)}</b><small>${esc(entryLine(entry, category))}</small></span>
+      <span class="ladder-score">${entryScore(entry, category)}</span>
     </div>`;
   };
 
@@ -116,9 +127,10 @@
     const me = data.me;
     const selfName = category.id === 'alliance' ? `우리 연합 · ${me?.name || ''}` : `나 · ${me?.name || ''}`;
     const inList = me && data.leaders.some(row => row.id === me.id);
-    summary.innerHTML = `<div><small>${category.code}</small><b>내 순위 <em>${me?.rank ? `${format(me.rank)}위` : '—'}</em></b></div><div><small>${category.metric}</small><strong>${format(me?.value || 0)}</strong></div>`;
-    const rows = data.leaders.map((row, index) => rowMarkup(index + 1, me && row.id === me.id ? selfName : row.name, row.value, category, Boolean(me) && row.id === me.id)).join('');
-    const selfRow = me?.rank && !inList ? `<div class="ladder-separator"><span>•••</span></div>${rowMarkup(me.rank, selfName, me.value, category, true)}` : '';
+    const myValue = !me?.entry ? '—' : category.id === 'alliance' ? format(me.entry.value) : category.id === 'total' ? `개발 Lv.${format(me.entry.dev)}` : `${me.entry.ship} ${me.entry.rarity}★${me.entry.stars} · Lv.${format(me.entry.dev)}`;
+    summary.innerHTML = `<div><small>${category.code}</small><b>내 순위 <em>${me?.rank ? `${format(me.rank)}위` : '—'}</em>${me?.percent ? ` · 상위 ${me.percent}%` : ''}</b></div><div><small>${category.metric}</small><strong>${esc(myValue)}</strong></div>`;
+    const rows = data.leaders.map((row, index) => rowMarkup(index + 1, me && row.id === me.id ? selfName : row.name, row.entry, category, Boolean(me) && row.id === me.id)).join('');
+    const selfRow = me?.rank && !inList ? `<div class="ladder-separator"><span>•••</span></div>${rowMarkup(me.rank, selfName, me.entry, category, true)}` : '';
     const emptyText = category.id === 'alliance' ? '아직 순위에 오른 연합이 없습니다.' : '아직 순위에 오른 함장이 없습니다.';
     board.innerHTML = rows || selfRow ? `<div class="ladder-columns"><span>RANK</span><span>PLAYER</span><span>SCORE</span></div>${rows}${selfRow}` : message(emptyText);
     rewards.innerHTML = rewardsMarkup(me?.rank || null);

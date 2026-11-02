@@ -110,9 +110,14 @@
     const tiers=key?[key,key+'2',key+'3',key+'4',key+'5'].reduce((sum,node)=>sum+level(tree,node),0):0;
     return {power:key?1+tiers*rate:1,cooldown:Math.max(0,level(tree,'firepower2')*.2+level(tree,'frigateCharging2')*.3+level(tree,'frigateCharging3')*.4),timeReduction:Math.min(.9,level(tree,'frigateExpedition')*.01),durationBonus:Math.max(0,(level(tree,'frigatePersistence')+level(tree,'frigatePersistence2'))*.01),assist:!!key&&level(tree,key+'Assist')>=5,final:!!key&&level(tree,key+'Final')>=5,tree};
   }
+  // 함선 무기 개발 레벨: 그 무기 연구 트리의 개발 횟수 합. 무기가 여럿이면 평균을 낸다(무기 수가 많다고 유리해지지 않게).
+  function weaponLevels(ship,research={}){
+    const fields=weaponFields(ship);
+    return Math.round(fields.reduce((sum,field)=>sum+Object.values(research[field+'Tree']||{}).reduce((n,value)=>n+Math.max(0,Math.floor(Number(value)||0)),0),0)/fields.length);
+  }
   function development(ship,research={}){
     const weapon=weaponBonus(ship,research),carrier=research.carrierTree||{},defense=research.defenseTree||{};
-    const fields=weaponFields(ship),levels=[...fields,ship?.type==='frigate'?'frigate':null,'defense'].filter(Boolean).reduce((sum,field)=>sum+Object.values(research[field+'Tree']||{}).reduce((n,value)=>n+Math.max(0,Number(value)||0),0),0);
+    const levels=weaponLevels(ship,research);
     const mergedMaterial=level(defense,'materialDevelopment');
     return {damage:weapon.damage,speed:weapon.speed,hull:0,carrierHull:(level(carrier,'firepower1')+level(carrier,'carrierImprovement2'))*.002+total(carrier,['hull1','hull2','hull3','hull4','hull5','hull6'])*.001,carrierFighters:level(carrier,'firepower2')>=5?1:0,levels,shield:(total(defense,Array.from({length:6},(_,i)=>'durability'+(i+1)))+total(defense,Array.from({length:5},(_,i)=>'materialDurability'+(i+1)))+mergedMaterial)*.001,shieldDuration:(total(defense,Array.from({length:6},(_,i)=>'duration'+(i+1)))+total(defense,Array.from({length:5},(_,i)=>'materialDuration'+(i+1))))*.001,reduction:(total(defense,Array.from({length:6},(_,i)=>'reduction'+(i+1)))+total(defense,Array.from({length:5},(_,i)=>'materialReinforcement'+(i+1)))+mergedMaterial)*.001,frigate:clone(research.frigateTree||{})};
   }
@@ -162,5 +167,5 @@
     frames.push({time,teams:teams.map(team=>team.map(u=>({hp:u.hp,maxHp:u.maxHp,shield:u.shield,energy:u.energy})))});
     return {win,time,frames,events,seed};
   }
-  return {typeBonus,TIERS,TIER_STARTS,indexForScore,GROUPS,DAY,OFFSET,day,isWednesday,standings,rewards,seasonRewards,delta,random,chooseOpponent,weaponFields,weaponBonus,frigateBonus,development,stats,simulate,clone};
+  return {typeBonus,TIERS,TIER_STARTS,indexForScore,GROUPS,DAY,OFFSET,day,isWednesday,standings,rewards,seasonRewards,delta,random,chooseOpponent,weaponFields,weaponLevels,weaponBonus,frigateBonus,development,stats,simulate,clone};
 });

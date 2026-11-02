@@ -59,3 +59,6 @@
   font-family: var(--font-body);
   text-align: center;
 }
+
+/* 순위 행의 함선 정보: 비교 기준이라 잘리지 않게 줄바꿈하고 읽을 수 있는 크기로 둔다 */
+.ladder-row .ladder-player small{color:#8fb0c4;font-size:10px;letter-spacing:0;line-height:1.3}

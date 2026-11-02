@@ -1,5 +1,5 @@
-// 서버 기능 공용 연결: 랭킹·아레나·연합이 쓰는 준비 확인, 요청, 함장 이름·전투력 보고, 연합 서버 어댑터.
-// 서버 표(마이그레이션 0005)가 아직 없으면 mode() 가 'local' 을 돌려주고, 각 기능은 지금처럼 기기 저장으로 동작한다.
+// 서버 기능 공용 연결: 랭킹·아레나·연합이 쓰는 준비 확인, 요청, 함장 이름·최고 함선 보고, 연합 서버 어댑터.
+// 서버 표(마이그레이션 0005·0006)가 아직 없으면 mode() 가 'local' 을 돌려주고, 각 기능은 지금처럼 기기 저장으로 동작한다.
 // 한 번이라도 서버 모드로 동작한 기기가 연결이 끊기면 'down' 을 돌려준다(점수가 서버와 기기로 갈라지지 않게 대전을 막는다).
 (() => {
   'use strict';
@@ -63,36 +63,25 @@
     return read(STICKY_KEY, null) ? 'down' : 'local';
   }
 
-  // ── 함장 이름·전투력 보고 ───────────────────────────────────────────────────
+  // ── 함장 이름·최고 함선 보고 ───────────────────────────────────────────────────
   const commanderName = () => {
     const profile = read(PROFILE_KEY, {});
     return profile.lastName ? `${profile.character || ''} ${profile.lastName}`.trim() : undefined;
   };
-  // 함선 전투력 = √(체력 × 공격력). 프리깃은 체력·공격력이 없어 지원 효과 배율(강화 × 연구)로 잰다.
-  // 함급 전투력 = 그 함급 상위 3척의 합, 총전투력 = 네 함급의 합.
-  function computePowers() {
+  // 랭킹 보고: 함종별(프리깃 제외) 최고 함선 1척. 희귀도 → 성급 → 무기 개발 레벨 순으로 비교한다.
+  const RARITY_RANK = { R: 1, SR: 2, SSR: 3, L: 4 };
+  function bestFleet() {
     const core = window.ArenaCore;
-    const base = window.getArenaShipBaseStats;
     const owned = window.getOwnedFleetVariants?.();
-    if (!core || !base || !owned) return null;
+    if (!core || !owned) return null;
     const research = read(RESEARCH_KEY, {});
-    const best = new Map();
-    for (const ship of owned) {
-      if (ship.isFrame) continue;
-      const variant = { ...ship, enhancementStars: Number(ship.stars ?? ship.enhancementStars) || 0 };
-      const stats = core.stats(variant, base(variant), research);
-      const power = ship.type === 'frigate'
-        ? Math.round(stats.factor * core.frigateBonus(variant, research).power * 100)
-        : Math.round(Math.sqrt(Math.max(0, stats.hp) * Math.max(0, stats.dps)));
-      const key = `${ship.type}|${ship.name}`;
-      if (!best.has(key) || best.get(key).power < power) best.set(key, { type: ship.type, power });
+    const fleet = {};
+    for (const type of ['dreadnought', 'battlecruiser', 'destroyer']) {
+      const ships = owned.filter(ship => !ship.isFrame && ship.type === type).map(ship => ({ name: ship.name, rarity: ship.rarity, stars: Number(ship.stars ?? ship.enhancementStars) || 0, dev: core.weaponLevels(ship, research) }));
+      ships.sort((x, y) => (RARITY_RANK[y.rarity] || 0) - (RARITY_RANK[x.rarity] || 0) || y.stars - x.stars || y.dev - x.dev);
+      if (ships[0]) fleet[type] = ships[0];
     }
-    const powers = { total: 0, dreadnought: 0, battlecruiser: 0, destroyer: 0, frigate: 0 };
-    for (const type of ['dreadnought', 'battlecruiser', 'destroyer', 'frigate']) {
-      powers[type] = [...best.values()].filter(item => item.type === type).map(item => item.power).sort((a, b) => b - a).slice(0, 3).reduce((sum, value) => sum + value, 0);
-      powers.total += powers[type];
-    }
-    return powers;
+    return fleet;
   }
   let lastReport = '';
   let reporting = null;
@@ -101,8 +90,8 @@
     return reporting = (async () => {
       try {
         if ((await ready()) !== true) return false;
-        const powers = computePowers();
-        const body = { name: commanderName(), ...(powers ? { powers } : {}) };
+        const fleet = bestFleet();
+        const body = { name: commanderName(), ...(fleet ? { fleet } : {}) };
         const sig = `${accountId()}:${JSON.stringify(body)}`;
         if (sig === lastReport) return false;
         await call('/player', { method: 'POST', body });
@@ -215,9 +204,9 @@
     disband: routed('disband', () => post('disband'))
   };
 
-  window.Online = { ready, mode, call, arena, ranking, report, computePowers, commanderName };
+  window.Online = { ready, mode, call, arena, ranking, report, bestFleet, commanderName };
 
-  // 접속하면 이름과 전투력을 한 번 알리고, 플레이 중에는 바뀌었을 때만 10분마다 다시 알린다.
+  // 접속하면 이름과 최고 함선을 한 번 알리고, 플레이 중에는 바뀌었을 때만 10분마다 다시 알린다.
   window.addEventListener('load', () => {
     setTimeout(report, 5000);
     setInterval(report, REPORT_EVERY);
