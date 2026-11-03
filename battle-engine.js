@@ -12153,7 +12153,8 @@
       if (!unit.hotspot || unit.dead) return;
       unit.x = (map.left + unit.fx * map.w) / fieldWidth;
       unit.y = (offset + unit.fy * map.h) / fieldHeight;
-      unit.concealed = unit.y < .04 || unit.y > .99 || unit.x < .01 || unit.x > .99;
+      // 위쪽 끝 시설도 공격할 수 있게 화면에 들어오면 바로 드러낸다(맵 끝에서 맨 위 시설의 y 가 .04 보다 작다).
+      unit.concealed = unit.y < 0 || unit.y > .99 || unit.x < .01 || unit.x > .99;
       unit.el.style.left = percent(unit.x);
       unit.el.style.top = percent(unit.y);
       unit.el.style.display = unit.concealed ? 'none' : '';
