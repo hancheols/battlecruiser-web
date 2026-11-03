@@ -12058,7 +12058,8 @@
     scroll: 40, tileRatio: 1599 / 836,
     clearRate: .9,
     facility: { total: 50, hpMin: 5000, hpMax: 10000 },
-    robot: { total: 20, every: 350, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
+    // 30기를 1.8초 간격으로 내보내 맵이 끝날 때까지(약 53초) 고르게 등장시킨다.
+    robot: { total: 30, every: 1800, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
     // 2관문: 파괴할 시설 10곳(1곳 10%)을 지키는 로봇 두 종을 처음에 배치한다.
     gate2Targets: [6, 8, 28, 33, 35, 40, 41, 43, 45, 46],
     // 크기는 원래의 25%
@@ -12097,8 +12098,8 @@
     const total = gate === 1 ? NEPTUNE_BASE.facility.total : NEPTUNE_BASE.gate2Targets.length;
     state.neptuneBase = { gate, total, spawned: 0, destroyed: 0, timer: 900, robotSpawned: 0, bgY: 0, tileH: (refs.viewport?.clientWidth || 375) * NEPTUNE_BASE.tileRatio, wrecks: [], lastX: .5 };
     state.neptuneBase.robotsKilled = 0;
-    // 2관문: 진행도의 절반은 시설 10곳(1곳 2), 절반은 로봇 20기(1기 1). 둘 다 끝내야 클리어한다.
-    state.normalTotal = gate === 2 ? total * 2 + NEPTUNE_BASE.robot.total : total;
+    // 2관문: 진행도의 절반은 시설 10곳(1곳 3), 절반은 로봇 30기(1기 1). 둘 다 끝내야 클리어한다.
+    state.normalTotal = gate === 2 ? total * 3 + NEPTUNE_BASE.robot.total : total;
     state.kills = 0;
     refs.viewport?.style.setProperty('--nep-y', '0px');
     buildNeptuneMap(state.neptuneBase);
@@ -12386,7 +12387,7 @@
       unit.el?.remove();
     } else unit.el?.remove();
     if (base) {
-      if (unit.unitType === 'facility') { base.destroyed += 1; state.kills += base.gate === 2 ? 2 : 1; }
+      if (unit.unitType === 'facility') { base.destroyed += 1; state.kills += base.gate === 2 ? 3 : 1; }
       else { base.robotsKilled += 1; state.kills += 1; }
     }
     updateHud();

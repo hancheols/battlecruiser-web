@@ -271,16 +271,21 @@
     if (!mission) return '';
     const region = regionById(mission.regionId);
     if (mission.status === 'pending') {
-      return `<section class="cmd-status ready"><div><small>귀환 완료</small><b>${esc(region.name)}</b></div><span>보상 대기 중</span></section>`;
+      return `<button type="button" class="cmd-status ready" data-cmd="region" data-region="${esc(region.id)}"><div><small>귀환 완료</small><b>${esc(region.name)}</b></div><span>보상 대기 중 ›</span></button>`;
     }
     return `<section class="cmd-status"><div><small>파견 중</small><b>${esc(region.name)}</b></div><span>남은 시간 <b class="cmd-clock" data-cmd-remaining data-ends="${mission.endsAt}">${fmt(mission.endsAt - now())}</b></span></section>`;
   }
 
   // 메뉴 칸: 제목과 '의뢰 n건'만 둔다. 배경 그림은 반투명으로 깔고, 테두리는 임무 컨셉에 맞춘다.
+  // 현상수배 칸 배경: 오늘 나타나는 해적의 함선. 둘 다 나오는 일요일에는 두 척을 나란히 놓는다.
+  const wantedShips = () => {
+    const [first, second] = piratesToday().map(pirate => `url('${pirate.heroImage || pirate.image}')`);
+    return `--wanted-a:${first}${second ? `;--wanted-b:${second}` : ''}`;
+  };
   function menuView(state) {
     return panel('연합 임무', `<div class="cmd-menu">
       <button type="button" class="cmd-cell cmd-dispatch${state.active ? ' live' : ''}" style="--cell-img:url('battle-scene-background.png')" data-cmd="dispatch"><b>함대파견</b><small>의뢰 ${REGIONS.length}건</small></button>
-      <button type="button" class="cmd-cell cmd-wanted live" style="--cell-img:url('mystery-battleship-outline.png')" data-cmd="bounty"><b>현상수배</b><small>${piratesToday().map(pirate => pirate.title).join(' · ')}</small></button>
+      <button type="button" class="cmd-cell cmd-wanted live${piratesToday().length > 1 ? ' two' : ''}" style="${wantedShips()}" data-cmd="bounty"><b>현상수배</b><small>${piratesToday().length > 1 ? piratesToday().map(pirate => pirate.title.replace('우주해적 ', '')).join(' · ') : piratesToday()[0].title}</small></button>
       <button type="button" class="cmd-cell cmd-soon" style="--cell-img:url('mystery-weapon-outline.png')" disabled><b>COMING SOON</b></button>
     </div>`);
   }
