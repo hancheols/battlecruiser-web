@@ -80,7 +80,7 @@
   const ONLINE_NOTICE_UNTIL=Date.UTC(2026,11,1,15);
   function ensureOnlineNotice(){
     if(Date.now()>=ONLINE_NOTICE_UNTIL)return;
-    const sent=window.deliverCaptainMail({id:'notice-online-20261202',title:'개인정보 처리방침·이용약관 변경 사전 안내',sender:'TimesWitch 운영팀',body:`지휘관님, 2026년 12월 2일 이후 랭킹·아레나 대전·연합이 다른 함장과 함께 쓰는 기능으로 바뀝니다. 이에 맞춰 개인정보 처리방침과 이용약관이 2026년 12월 2일부터 바뀝니다.
+    const sent=window.deliverCaptainMail({id:'notice-online-20261202-2',title:'개인정보 처리방침·이용약관 변경 사전 안내(연락처 정정)',sender:'TimesWitch 운영팀',body:`지휘관님, 2026년 12월 2일 이후 랭킹·아레나 대전·연합이 다른 함장과 함께 쓰는 기능으로 바뀝니다. 이에 맞춰 개인정보 처리방침과 이용약관이 2026년 12월 2일부터 바뀝니다.
 
 ■ 다른 함장에게 보이는 정보
 함장 이름, 함종별 최고 함선(이름·희귀도·성급)과 무기 개발 레벨, 순위, 아레나 점수·등급·방어 함대·대전 결과, 소속 연합과 직책, 연합원에게 보이는 마지막 접속 시각. 계정 번호, 이메일, 보유 재화는 보이지 않습니다. 실명이나 연락처를 이름·공지에 쓰지 마세요.
@@ -98,7 +98,7 @@
 시행일 전에 설정에서 계정을 삭제하실 수 있습니다. 시행일 이후에도 계속 이용하시면 변경에 동의한 것으로 봅니다.
 
 전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
-문의·신고: hansryan@gmail.com`});
+문의·신고: hansryan19@gmail.com (이전 안내의 이메일 주소를 정정했습니다.)`});
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
   }
   window.addEventListener('load',ensureOnlineNotice);
