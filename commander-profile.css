@@ -47,7 +47,9 @@
 .captain-mail-dialog{width:min(100%,390px)}
 .captain-mail-list{gap:10px;padding:17px 0 1px}
 .captain-mail-list-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;padding:0 1px 10px;border-bottom:1px solid #7d9bb744}
-.captain-mail-list-heading>div{display:grid;gap:4px}
+.captain-mail-list-heading>div{display:grid;gap:4px;flex:1;min-width:0}
+.captain-mail-claim-all{flex:none;min-height:30px;padding:5px 11px;border:1px solid #e3c38a;border-radius:20px;background:linear-gradient(125deg,#917446,#3a3942);color:#fff0d0;font:800 11px/1.2 var(--font-body);cursor:pointer}
+.captain-mail-claim-all:disabled{opacity:.45;cursor:default;filter:saturate(.4)}
 .captain-mail-list-heading strong{font-size:15px;color:#fff0c8}
 .captain-mail-list-heading small{font-size:10px;color:#a9bfd3}
 .captain-mail-list-heading>span{flex:none;padding:5px 7px;border:1px solid #718ba288;border-radius:20px;color:#bed2e5;font-size:10px}
@@ -97,4 +99,4 @@
 .captain-mail-back{margin-top:10px}
 .ship-explore-shortage{margin:0 0 12px;color:#ff9da9;font-size:11px;font-weight:700}
 @media(max-width:380px){#persistent-hud .fixed-top.captain-hud{padding:9px 8px;gap:6px}.captain-profile-open{gap:7px}.captain-profile-open .captain-portrait{width:48px;height:65px}.captain-name{font-size:11px}.captain-credentials{font-size:8px;gap:4px}.captain-credentials b{font-size:9px}.captain-hud .captain-balances{width:122px;min-width:122px;max-width:122px}.captain-hud .captain-balances>span{min-width:0;padding:2px 4px}.captain-hud .captain-balances b{font-size:9px}}
-
+.captain-rename-cost{margin:6px 0 0;color:#ffe2a3;font:700 12px/1.4 var(--font-body)}

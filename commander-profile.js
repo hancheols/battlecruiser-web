@@ -102,6 +102,20 @@
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
   }
   window.addEventListener('load',ensureOnlineNotice);
+  // 이름 변경 비용: 처음 100 토륨, 바꿀 때마다 100 토륨씩 오른다. 첫 이름 정하기는 무료다.
+  const RENAME_STEP=100;
+  const renameCost=()=>(count(profile.renameCount)+1)*RENAME_STEP;
+  const currentResources=()=>window.gameResources&&typeof window.gameResources==='object'?window.gameResources:(read(RESOURCE_KEY)||{});
+  function saveRename(next,cost){
+    const resources={...currentResources(),thorium:count(currentResources().thorium)-cost};
+    const previous=[RESOURCE_KEY,PROFILE_KEY].map(key=>[key,localStorage.getItem(key)]);
+    try{localStorage.setItem(RESOURCE_KEY,JSON.stringify(resources));localStorage.setItem(PROFILE_KEY,JSON.stringify(next));}
+    catch{for(const [key,value] of previous){try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch{}}return false;}
+    Object.assign(window.gameResources||(window.gameResources={}),resources);
+    window.updateGameResourceHud?.();
+    window.dispatchEvent(new Event('game-resources-updated'));
+    return true;
+  }
   const claimMailReward=id=>{
     const mails=readMails(),mail=mails.find(entry=>entry.id===id),rewards=mailRewards(mail||{});
     if(!mail||mail.claimedAt||!Object.keys(rewards).length)return false;
@@ -124,6 +138,17 @@
     window.dispatchEvent(new CustomEvent('captain-mail-claimed',{detail:{id}}));
     return true;
   };
+  // 모든 메일을 읽음으로 처리하고 첨부 보급품을 한 번에 받는다.
+  function claimAllMails(){
+    const pending=readMails().filter(mail=>!mail.claimedAt&&Object.keys(mailRewards(mail)).length).map(mail=>mail.id);
+    let claimed=0;
+    for(const id of pending){if(!claimMailReward(id))return {claimed,read:0,failed:true};claimed+=1;}
+    const mails=readMails(),unread=mails.filter(mail=>!mail.readAt),now=Date.now();
+    unread.forEach(mail=>{mail.readAt=now;});
+    if(unread.length&&!saveMails(mails))return {claimed,read:0,failed:true};
+    window.dispatchEvent(new Event('captain-mail-updated'));
+    return {claimed,read:unread.length+claimed,failed:false};
+  }
   function paintMailDetail(id){
     const mails=readMails(),mail=mails.find(entry=>entry.id===id);if(!overlay||!mail)return;
     if(!mail.readAt){mail.readAt=Date.now();saveMails(mails);window.dispatchEvent(new Event('captain-mail-updated'));}
@@ -141,7 +166,8 @@
   function mailListMarkup(){
     const mails=readMails();
     const unread=unreadMailCount();
-    return `<div class="captain-mail-list"><div class="captain-mail-list-heading"><div><strong>받은 메일</strong><small>연합 사령부에서 보낸 소식과 보급품</small></div><span>${unread?`새 메일 ${format(unread)}건`:'모두 확인함'}</span></div>${mails.length?mails.map(mail=>{const hasRewards=Object.keys(mailRewards(mail)).length>0;const status=mail.claimedAt?'수령 완료':hasRewards?'보급품':'공지';return `<button type="button" class="captain-mail-row${mail.readAt?'':' unread'}" data-mail-open="${escapeHtml(mail.id)}"><span class="captain-mail-row-icon" aria-hidden="true">${hasRewards?'✦':'✉'}</span><span class="captain-mail-row-main"><span class="captain-mail-row-top"><b>${escapeHtml(mail.title)}</b>${!mail.readAt?'<i class="captain-mail-new">!</i>':''}</span><small>${escapeHtml(mail.sender||'연합 사령부')} · ${new Date(mail.createdAt||Date.now()).toLocaleDateString('ko-KR')}</small></span><em class="${mail.claimedAt?'claimed':''}">${status}<span aria-hidden="true">›</span></em></button>`;}).join(''):'<p class="captain-mail-empty">도착한 메일이 없습니다.</p>'}</div>`;
+    const canClaimAll=unread>0||mails.some(mail=>!mail.claimedAt&&Object.keys(mailRewards(mail)).length);
+    return `<div class="captain-mail-list"><div class="captain-mail-list-heading"><div><strong>받은 메일</strong><small>연합 사령부에서 보낸 소식과 보급품</small></div><button type="button" class="captain-mail-claim-all" data-mail-claim-all ${canClaimAll?'':'disabled'}>모두 받기</button><span>${unread?`새 메일 ${format(unread)}건`:'모두 확인함'}</span></div>${mails.length?mails.map(mail=>{const hasRewards=Object.keys(mailRewards(mail)).length>0;const status=mail.claimedAt?'수령 완료':hasRewards?'보급품':'공지';return `<button type="button" class="captain-mail-row${mail.readAt?'':' unread'}" data-mail-open="${escapeHtml(mail.id)}"><span class="captain-mail-row-icon" aria-hidden="true">${hasRewards?'✦':'✉'}</span><span class="captain-mail-row-main"><span class="captain-mail-row-top"><b>${escapeHtml(mail.title)}</b>${!mail.readAt?'<i class="captain-mail-new">!</i>':''}</span><small>${escapeHtml(mail.sender||'연합 사령부')} · ${new Date(mail.createdAt||Date.now()).toLocaleDateString('ko-KR')}</small></span><em class="${mail.claimedAt?'claimed':''}">${status}<span aria-hidden="true">›</span></em></button>`;}).join(''):'<p class="captain-mail-empty">도착한 메일이 없습니다.</p>'}</div>`;
   }
   const persistTotal=()=>{try{localStorage.setItem(TOTAL_KEY,JSON.stringify({earned:total}));}catch{}};
   // Only successful acquisitions count; refunds and spending do not change the lifetime total.
@@ -188,16 +214,21 @@
     if(view==='settings'){window.openCaptainSettings(overlay,()=>paintDialog('profile'));return;}
     const character=profile.character,fullName=`Capt. ${character}${profile.lastName?' '+profile.lastName:''}`;
     if(view==='edit'){
-      overlay.innerHTML=`<form class="captain-select-dialog" role="dialog" aria-modal="true" aria-labelledby="captain-select-title"><header><div><small>UNITED STAR FLEET</small><h2 id="captain-select-title">플레이어 네임 변경</h2></div><button type="button" data-captain-close aria-label="닫기">×</button></header><div class="captain-edit-identity">${portrait(character)}<strong>Capt. ${character}</strong></div><label for="captain-last-name">성 (Last name)</label><input id="captain-last-name" name="lastName" maxlength="16" required placeholder="성을 입력하세요" autocomplete="off" /><div class="captain-name-preview" aria-live="polite"></div><p class="captain-input-hint">한글·영문·숫자, 공백·하이픈·작은따옴표 · 최대 16자</p><div class="captain-form-error" role="alert"></div><button class="captain-save" type="submit">변경 저장</button></form>`;
+      overlay.innerHTML=`<form class="captain-select-dialog" role="dialog" aria-modal="true" aria-labelledby="captain-select-title"><header><div><small>UNITED STAR FLEET</small><h2 id="captain-select-title">플레이어 네임 변경</h2></div><button type="button" data-captain-close aria-label="닫기">×</button></header><div class="captain-edit-identity">${portrait(character)}<strong>Capt. ${character}</strong></div><label for="captain-last-name">성 (Last name)</label><input id="captain-last-name" name="lastName" maxlength="16" required placeholder="성을 입력하세요" autocomplete="off" /><div class="captain-name-preview" aria-live="polite"></div><p class="captain-input-hint">한글·영문·숫자, 공백·하이픈·작은따옴표 · 최대 16자</p><p class="captain-rename-cost">변경 비용: 토륨 ${format(renameCost())} (보유 ${format(count(currentResources().thorium))}) · 변경할 때마다 100씩 증가</p><div class="captain-form-error" role="alert"></div><button class="captain-save" type="submit">변경 저장 · 토륨 ${format(renameCost())}</button></form>`;
       const input=overlay.querySelector('input');input.value=profile.lastName;
       const preview=()=>{overlay.querySelector('.captain-name-preview').textContent=`Capt. ${character} ${input.value.trim()||'플레이어 네임'}`;};
       preview();input.addEventListener('input',preview);
       overlay.querySelector('form').addEventListener('submit',event=>{
         event.preventDefault();const lastName=input.value.trim().replace(/\s+/g,' ');
         if(!/^[\p{L}\p{N} '-]{1,16}$/u.test(lastName)){overlay.querySelector('.captain-form-error').textContent='성을 1~16자로 입력해주세요.';input.focus();return;}
-        const next={character,lastName};
-        try{localStorage.setItem(PROFILE_KEY,JSON.stringify(next));}catch{overlay.querySelector('.captain-form-error').textContent='설정을 저장할 수 없습니다. 다시 시도해주세요.';return;}
+        if(lastName===profile.lastName){paintDialog('profile');return;}
+        const cost=renameCost(),have=count(currentResources().thorium);
+        if(have<cost){overlay.querySelector('.captain-form-error').textContent=`토륨이 부족합니다. (필요 ${format(cost)}, 보유 ${format(have)})`;input.focus();return;}
+        const next={...profile,character,lastName,renameCount:count(profile.renameCount)+1};
+        if(!saveRename(next,cost)){overlay.querySelector('.captain-form-error').textContent='설정을 저장할 수 없습니다. 다시 시도해주세요.';return;}
         profile=next;profileLocked=true;render();paintDialog('profile');
+        window.Online?.report?.(true);
+        window.notice?.(`이름을 변경했습니다. (토륨 ${format(cost)} 사용)`);
       });
       input.focus();return;
     }
@@ -209,6 +240,11 @@
     overlay.querySelector('[data-edit-name]')?.addEventListener('click',()=>paintDialog('edit'));
     overlay.querySelectorAll('[data-profile-view]').forEach(button=>button.addEventListener('click',()=>paintDialog(button.dataset.profileView)));
     overlay.querySelectorAll('[data-mail-open]').forEach(button=>button.addEventListener('click',()=>paintMailDetail(button.dataset.mailOpen)));
+    overlay.querySelector('[data-mail-claim-all]')?.addEventListener('click',()=>{
+      const result=claimAllMails();
+      if(result.failed)window.notice?.('저장하지 못했습니다. 다시 시도해주세요.');
+      else window.notice?.(result.claimed?`메일 보급품 ${format(result.claimed)}건을 물자창고에 보관했습니다.`:'모든 메일을 확인했습니다.');
+    });
     overlay.querySelector('[data-open-membership]')?.addEventListener('click',()=>{close();window.openAlienShop?.('featured');setTimeout(()=>document.querySelector('.alien-shop-token-stall')?.scrollIntoView({behavior:'smooth',block:'center'}),80);});
     overlay.querySelector('[data-captain-close]')?.focus();
   }

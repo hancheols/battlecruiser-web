@@ -12056,6 +12056,7 @@
   // 배경(기지)은 위아래로 이어 붙인 타일이 계속 흘러 내려가고, 시설 함선도 같은 속도로 내려온다.
   const NEPTUNE_BASE = {
     scroll: 40, tileRatio: 1599 / 836,
+    clearRate: .9,
     facility: { total: 50, hpMin: 5000, hpMax: 10000 },
     robot: { total: 20, every: 350, maxAlive: 24, enter: 120, hp: 2000, shield: 2000 },
     // 2관문: 파괴할 시설 10곳(1곳 10%)을 지키는 로봇 두 종을 처음에 배치한다.
@@ -12274,7 +12275,23 @@
       }
     });
     const robotsDone = base.gate !== 2 || base.robotsKilled >= NEPTUNE_BASE.robot.total;
-    if (base.destroyed >= base.total && robotsDone && state.status === 'combat') finishBattle(true);
+    if (base.destroyed >= base.total && robotsDone && state.status === 'combat') {
+      if (base.gate === 1) state.neptuneFullStars = true;
+      finishBattle(true);
+      return;
+    }
+    // 1관문: 맵 끝에 다다랐을 때 시설을 90% 이상 파괴했으면 별 3개로 클리어한다.
+    // 미달이면 화면에 남은 시설을 마저 공격하게 두고, 남은 시설을 다 부숴도 90% 가 안 되면 실패로 끝낸다(지나간 시설과 맵 위쪽 끝 시설은 공격할 수 없다).
+    if (base.gate === 1 && state.status === 'combat' && state.elapsed >= NEPTUNE_MAP.scrollSeconds) {
+      const needed = Math.ceil(base.total * NEPTUNE_BASE.clearRate);
+      const reachable = state.midBosses.filter(unit => unit.variant === 'neptune-unit' && !unit.dead && !unit.concealed).length;
+      if (base.destroyed >= needed) {
+        state.neptuneFullStars = true;
+        finishBattle(true);
+      } else if (base.destroyed + reachable < needed) {
+        finishBattle(false, `시설을 ${Math.round(NEPTUNE_BASE.clearRate * 100)}% 이상 파괴하지 못하고 맵 끝에 다다랐습니다.`);
+      }
+    }
   }
 
   // 파괴된 시설: 같은 자리의 배경 그림을 잘라 그을리고(채도·밝기 낮춤), 구덩이·번쩍이는 균열·파편·연기를 덧그린 합성 잔해.
@@ -13605,7 +13622,7 @@
   }
 
   function battleStars() {
-    if (state.tapaoStoryDone) return 3;
+    if (state.tapaoStoryDone || state.neptuneFullStars) return 3;
     const living = state.allies.filter(ally => !ally.dead).length;
     return living >= 3 ? 3 : living === 2 ? 2 : 1;
   }
