@@ -6,6 +6,7 @@ import { json, authenticate, allow, tooMany, randomToken } from '../_lib/util.js
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable, hasBannedWord, isReservedName, nameKey } from '../_lib/players.js';
 import { award, devState, upgradeDev, weekOf, levelProgress, BASE_CAPACITY, DISPATCH_POINTS } from '../_lib/contribution.js';
 import { day } from '../_lib/arena-rules.js';
+import { rollMines, deliverPayouts } from '../_lib/mines.js';
 
 const CAPACITY = BASE_CAPACITY;
 const JOIN_MODES = ['open', 'approval'];
@@ -42,6 +43,7 @@ async function addMember(env, unionId, userId, role = 'member') {
 }
 async function removeUnion(env, unionId) {
   await env.DB.prepare('DELETE FROM union_applications WHERE union_id = ?1').bind(unionId).run();
+  await env.DB.prepare('DELETE FROM union_treasury WHERE union_id = ?1').bind(unionId).run();
   await env.DB.prepare('DELETE FROM union_members WHERE union_id = ?1').bind(unionId).run();
   await env.DB.prepare('DELETE FROM unions WHERE id = ?1').bind(unionId).run();
 }
@@ -80,6 +82,8 @@ export async function onRequestGet({ request, env }) {
     await touchPlayer(env, player);
     const member = await myMembership(env, user.id);
     if (member) await award(env, user.id, 'attendance');   // 하루 첫 접속 출석
+    await rollMines(env);
+    await deliverPayouts(env, user.id);
     const union = member ? await unionById(env, member.union_id) : null;
     return json({ me: { playerId: player.public_id, name: player.name }, union: union ? await unionView(env, union, member.role) : null, dev: await devState(env, user.id) });
   } catch (error) {

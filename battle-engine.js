@@ -969,11 +969,11 @@
     catch(error){state.resultCommitted=false;announce('아레나 결과 저장에 실패했습니다','danger');return;}
     const draw=result.win===null,victory=result.win===true;
     refs.battleResult.hidden=false;refs.battleResult.classList.toggle('victory',victory);refs.battleResult.classList.toggle('defeat',!victory&&!draw);
-    refs.battleResultKicker.textContent='ASYNC ARENA · DUEL COMPLETE';refs.battleResultTitle.textContent=draw?'무승부':victory?'승리':'패배';
+    refs.battleResultKicker.textContent=state.arenaMatch.mineWar?'THORIUM MINE · WAR':'ASYNC ARENA · DUEL COMPLETE';refs.battleResultTitle.textContent=draw?'무승부':victory?'승리':'패배';
     refs.battleResultStars.textContent=draw?'—':victory?'VICTORY':'DEFEAT';
-    refs.battleResultCopy.textContent=`${state.arenaMatch.enemy.name} · ${Math.ceil(state.arenaMatch.result.time)}초 교전 · ${result.tier} ${formatNumber(result.score)}점 · ${result.rank}위`;
-    refs.battleRewards.innerHTML=draw?'<span>무승부 <b>점수 변동 없음</b></span>':`<span>아레나 점수 <b>${result.delta>0?'+':''}${result.delta}</b></span>`;
-    refs.battleResultActions.replaceChildren();addResultButton('아레나로 돌아가기',()=>window.returnFromArenaBattle?.());
+    refs.battleResultCopy.textContent=state.arenaMatch.mineWar?`${state.arenaMatch.enemy.name} · ${Math.ceil(state.arenaMatch.result.time)}초 교전 · ${result.tier}`:`${state.arenaMatch.enemy.name} · ${Math.ceil(state.arenaMatch.result.time)}초 교전 · ${result.tier} ${formatNumber(result.score)}점 · ${result.rank}위`;
+    refs.battleRewards.innerHTML=draw?'<span>무승부 <b>점수 변동 없음</b></span>':`<span>${state.arenaMatch.mineWar?'쟁탈 점수':'아레나 점수'} <b>${result.delta>0?'+':''}${result.delta}</b></span>`;
+    refs.battleResultActions.replaceChildren();addResultButton(state.arenaMatch.mineWar?'광산으로 돌아가기':'아레나로 돌아가기',()=>window.returnFromArenaBattle?.());
     refs.battleOperationName.textContent=state.arenaMatch.enemy.name;
   }
 
@@ -1742,8 +1742,8 @@
     const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isGungnir || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
     const fallbackHp = isGaruda ? 1000 : isAngela ? 12000 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 14000 : isCarrier ? 11000 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isGungnir ? 12000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
-    // 연합 개발 효과: 내구도·피해 감소·핵심기술 발동 에너지. 양쪽 조건이 달라지는 아레나에는 적용하지 않는다.
-    const unionDev = side === 'friendly' && !state?.arenaLive && window.getUnionDevEffects?.(ship) || { hp: 0, reduction: 0, energy: 0 };
+    // 연합 개발 효과: 내구도·피해 감소·핵심기술 발동 에너지. 아레나에는 적용하지 않고, 광산 쟁탈전에는 양쪽 함대에 적용한다.
+    const unionDev = side === 'friendly' && (!state?.arenaLive || state?.arenaMatch?.mineWar) && window.getUnionDevEffects?.(ship) || { hp: 0, reduction: 0, energy: 0 };
     const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1) * (1 + unionDev.hp));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
     const maxShield = isCarrier ? 3000 : 0;
@@ -1978,7 +1978,9 @@
       shotsFired: 0,
       shotDamage: (Number(ship.dps) || 0) * cadence.cycle / 1000 / cadence.shots,
       weapon: String(ship.profile?.[1] || ''),
-      rarity: ship.rarity
+      rarity: ship.rarity,
+      unionDevReduction: Number(ship.unionReduction) || 0,
+      unionDevEnergy: Number(ship.unionEnergy) || 0
     };
     // 파일럿: 스타 크루저는 아군과 같은 레이저 함수(fireBattlecruiserLaser)를 쓴다. 나머지 함선은 기존 간이 발사 표를 쓴다.
     // 거북선(드레드)은 배치된 상태에서 6열 주포 사격만 쓴다(돌격·기동·기력 방패는 아직 상대 쪽에 없음).
@@ -2069,6 +2071,7 @@
     enemy.el = element;
     enemy.healthBar = element.querySelector('.enemy-hp i');
     refs.enemyLayer.append(element);
+    if (enemy.maxEnergy && enemy.unionDevEnergy) enemy.maxEnergy *= 1 - enemy.unionDevEnergy;
     state.enemies.push(enemy);
     return enemy;
   }
@@ -10902,7 +10905,7 @@
     if (!state || state.status !== 'combat' || !target || target.dead) return;
     // 아레나 상대 함선의 면역·회피(탱크·앙헬라·니미츠·야마토의 면역, 도저의 회피 기동)
     if (target.isArenaShip) {
-      packets = packets * (1 - shipDamageReduction(target));
+      packets = packets * (1 - shipDamageReduction(target)) * (1 - (target.unionDevReduction || 0));
       const now = performance.now();
       if (['tankImmuneUntil', 'angelaImmuneUntil', 'nimitzImmuneUntil', 'yamatoImmuneUntil'].some(key => Number(target[key] || 0) > now)) {
         showUnitDamage(target, '0');
@@ -13605,8 +13608,23 @@
     boss.el.style.top = percent(boss.y);
   }
 
+  // 토륨광산 토벌 결과. 점령 여부는 서버가 알려 준다.
+  function renderMineRaidResult(victory, reason) {
+    const bounty = state.bounty;
+    refs.battleResultKicker.textContent = victory ? 'RAID COMPLETE' : 'RAID FAILED';
+    refs.battleResultTitle.textContent = victory ? '토벌 성공' : '토벌 실패';
+    refs.battleResultStars.textContent = victory ? 'THORIUM MINE' : '☆☆☆';
+    refs.battleResultCopy.textContent = victory ? `${bounty.mine.name} · ${bounty.name} 격파` : (reason || `${bounty.name}을(를) 격파하지 못했습니다.`);
+    refs.battleRewards.innerHTML = '<span>결과 <b>집계 중</b></span>';
+    addResultButton('광산으로 돌아가기', () => window.UnionMine?.back?.());
+    window.UnionMine?.finishBattle?.(bounty.mine.battleId, Boolean(victory)).then(result => {
+      refs.battleRewards.innerHTML = result?.error ? `<span>결과 저장 <b>실패</b></span>` : result?.captured ? `<span>광산 <b>점령 완료</b></span>` : victory ? `<span>토벌 승리 <b>+1</b></span>` : '<span>토벌 승리 <b>집계 안 함</b></span>';
+    });
+  }
+
   function renderBountyResult(victory, reason) {
     const bounty = state.bounty;
+    if (bounty.mine) { renderMineRaidResult(victory, reason); return; }
     const outcome = window.UnionCommand?.bountyFinish?.(bounty.pirate, bounty.stage, victory) || { reward: 0, next: false };
     refs.battleResultKicker.textContent = victory ? 'BOUNTY COMPLETE' : 'BOUNTY FAILED';
     refs.battleResultTitle.textContent = victory ? '현상수배 완료' : '임무 실패';

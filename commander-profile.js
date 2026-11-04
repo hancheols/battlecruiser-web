@@ -100,11 +100,13 @@
 전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
 문의·신고: hansryan19@gmail.com (이전 안내의 이메일 주소를 정정했습니다.)`});
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
-    window.deliverCaptainMail({id:'notice-online-contribution-20261202',title:'개인정보 처리방침 추가 안내(연합 기여도)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 2일로 같습니다.
+    window.deliverCaptainMail({id:'notice-online-contribution-mine-20261202',title:'개인정보 처리방침·이용약관 추가 안내(연합 기여도·토륨광산)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 2일로 같습니다.
 
 연합의 기여도와 최근 활동 기록(함장 이름, 활동 종류, 점수, 시각)이 같은 연합의 연합원에게 표시됩니다. 활동 기록은 30일 동안 보관합니다. 계정 번호, 이메일, 보유 재화는 보이지 않습니다.
 
-전문: game.timeswitch.co.kr/privacy.html
+토륨광산이 추가됩니다. 쟁탈전 상대 연합에는 함장 이름과 광산 방어 함대가 표시됩니다. 쟁탈전 결과나 연합 해체로 점령을 잃을 수 있고, 연합이 해체되면 저장고의 토륨은 사라집니다.
+
+전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
 문의·신고: hansryan19@gmail.com`});
   }
   window.addEventListener('load',ensureOnlineNotice);

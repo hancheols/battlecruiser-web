@@ -9,9 +9,12 @@ export const ACTIVITIES = {
   arena: { label: '아레나 대전', points: 5, cap: 5 },
   bounty: { label: '현상수배 도전', points: 10, cap: 5 },
   bountyWin: { label: '현상수배 격파', points: 20, cap: 2 },
-  dispatch: { label: '함대파견 완료', points: 10, cap: 3 }
+  dispatch: { label: '함대파견 완료', points: 10, cap: 3 },
+  mine: { label: '광산 출격', points: 10, cap: 3 }
 };
 export const DISPATCH_POINTS = { mars: 10, titan: 15, oort1: 20, oort2: 25, oort3: 30, oort4: 35, oort5: 40 };
+
+export const ACTIVE_DAYS_FOR_SCORE = 14;   // 연합 점수에 넣는 연합원: 최근 14일 안에 접속
 
 // 연합 레벨: 필요한 누적 경험치. 레벨마다 정원 +1, 연합 개발 단계 상한 +1.
 export const LEVEL_EXP = [0, 5000, 15000, 35000, 70000, 120000, 190000, 280000, 400000, 550000];

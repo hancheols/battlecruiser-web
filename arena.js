@@ -382,6 +382,7 @@
     requestAnimationFrame(()=>window.prepareBattle?.({arenaMatch:match}));
   }
   window.cancelArenaBattle=async match=>{
+    if(match?.mineWar){window.UnionMine.back();return;}
     await lock(async()=>{
       const s=state();if(s.pending?.id!==match?.id)return;
       if(match.server){try{online=(await window.Online.arena('cancel',{matchId:match.id})).state;}catch{/* 다음 대전 시작 때 서버가 정리한다 */}}
@@ -427,14 +428,14 @@
       return {win:outcome,delta:change,score,rank:'—',tier:tierOfScore(score).label};
     }
   }
-  window.completeArenaBattle=match=>lock(async()=>{
+  window.completeArenaBattle=match=>match?.mineWar?window.UnionMine.completeWar(match):lock(async()=>{
     const outcome0=match.forfeited?false:match.result.win;
     if(match.server)return completeOnline(match,outcome0);
     const s=state(),outcome=outcome0;
     if(s.pending?.id===match.id){const change=C.delta(match.scoreBefore,match.enemy.score,outcome);s.score=Math.max(0,s.score+change);markBattleDay(s);if(outcome===null)s.draws++;else if(outcome)s.wins++;else s.losses++;const bot=s.bots.find(b=>b.id===match.enemy.id);if(bot)bot.score=Math.max(0,bot.score-change);s.history.unshift({id:match.id,date:Date.now(),enemy:match.enemy.name,win:outcome,delta:change,score:s.score});s.history=s.history.slice(0,40);s.pending=null;const bonus=tierRewardGrant(s);commit(s);if(bonus.labels.length)window.notice?.(`등급 상승 축전이 도착했습니다 · ${bonus.labels.join(', ')}`);}
     const me=mine(s),history=s.history.find(item=>item.id===match.id);return {win:outcome,delta:history?.delta||0,score:s.score,rank:me.rank,tier:me.tier.label};
   });
-  window.returnFromArenaBattle=()=>{window.battleArenaMatch=null;window.show?.('home');window.openArena?.();};
+  window.returnFromArenaBattle=()=>{if(window.battleArenaMatch?.mineWar){window.UnionMine.back();return;}window.battleArenaMatch=null;window.show?.('home');window.openArena?.();};
   function play(match){
     playing=true;draft=null;let index=0;
     shell('함대 교전',`<div class="arena-versus"><div class="arena-side-tag enemy-tag"><small>상대 함대</small><b>${esc(match.enemy.name)}</b><span>${esc(match.enemy.tier?.label||'ARENA')}</span></div><em>VS</em><div class="arena-side-tag friendly-tag"><small>${match.practice?'방어 테스트':'나의 공격 함대'}</small><b>${esc(playerName())}</b><span>${fmt(match.scoreBefore)}점</span></div></div><p class="arena-auto">AI 자동 전투 <i></i> <span data-clock>00:00</span></p><div class="arena-field"><div class="arena-centerline"><span>ENGAGEMENT ZONE</span></div><div class="arena-combat-team enemy">${match.enemyDeck.slice(0,3).map((s,i)=>unit(s,1,i)).join('')}</div><svg class="arena-trails" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg><div class="arena-combat-team friendly">${match.fleet.slice(0,3).map((s,i)=>unit(s,0,i)).join('')}</div><div class="arena-field-corner enemy-corner">ENEMY FLEET</div><div class="arena-field-corner friendly-corner">YOUR FLEET</div></div><div class="arena-combat-log" aria-live="polite"></div>`);

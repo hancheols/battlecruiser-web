@@ -233,7 +233,7 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
   // 시설 머리말: 장면에서 해당 건물 부분을 잘라 배경으로 쓰고, 테마 색 빛과 제목을 얹는다
   const HERO = {
     hall: { pos: '50% 31%', en: 'COUNCIL HALL', sub: '연합 지휘부' },
-    thorium: { pos: '0% 66%', en: 'THORIUM DISTRIBUTOR', sub: '연합 에너지 분배 시설' },
+    thorium: { pos: '0% 66%', en: 'THORIUM MINES', sub: '광산 점령 · 토륨 분배' },
     tech: { pos: '19% 46%', en: 'TECH COOPERATION', sub: '연합 기술 지원 시설' },
     command: { pos: '78% 52%', en: 'UNION COMMAND', sub: '연합 임무 사령부' },
     rnd: { pos: '100% 41%', en: 'UNION R&D CENTER', sub: '연합 전용 함선 연구소' },
@@ -298,7 +298,7 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
   // 시설 배치: x, y는 장면(540×760) 안의 퍼센트 좌표. 회의장이 맨 위, 나머지는 아래로 내려간다.
   const FACILITIES = [
     { id: 'hall', name: '회의장', desc: '연합원을 확인하고 연합을 운영합니다.', x: 50, y: 16, ready: true },
-    { id: 'thorium', name: '토륨 분배기', desc: '점령한 광산에서 생산된 토륨을 이번 주 기여도에 따라 나눠 받습니다.', x: 23, y: 76, ready: true },
+    { id: 'thorium', name: '토륨광산 점령', desc: '해적을 토벌하고 다른 연합과 겨뤄 광산을 점령하고, 생산된 토륨을 기여도에 따라 나눠 받습니다.', x: 23, y: 76, ready: true },
     { id: 'tech', name: '기술협력소', desc: '연합원의 도움으로 연구 시간을 줄입니다. 연구에 진행 시간이 생기는 후반 단계에 열립니다.', x: 27, y: 33 },
     { id: 'command', name: '연합사령부', desc: '연합 임무를 의뢰받고 함대를 파견하는 지휘 시설입니다.', x: 78, y: 52, ready: true },
     { id: 'rnd', name: '연합 R&D센터', desc: '연합 안에서만 개발할 수 있는 함선 업그레이드를 연구합니다.', x: 82, y: 40, ready: true },
@@ -536,13 +536,6 @@ ${windowLights}
   const DEV_STATS = [['hp', '내구도', '+', '%'], ['reduction', '피해 감소', '+', '%'], ['energy', '핵심기술 발동 에너지', '−', '%']];
   const DEV_COST = { class: 100, ship: 60 };
   const DEV_MAX = 10;
-  function thoriumScreen(union, me) {
-    if (!union?.dev) return serverOnly('thorium', '토륨 분배기', '정식 연합에서 이용할 수 있습니다.');
-    const total = union.members.reduce((sum, m) => sum + (Number(m.weekContribution) || 0), 0);
-    const mine = Number(union.members.find(m => m.playerId === me.playerId)?.weekContribution) || 0;
-    const share = total ? Math.round(mine * 100 / total) : 0;
-    return `${heroHtml('thorium', '토륨 분배기')}${panel('연합 토륨 저장고 <small>RESERVOIR</small>', '<p class="union-hint">토륨은 광산을 점령해야 생산됩니다. 아직 점령한 광산이 없습니다.</p>')}${panel('이번 주 나의 기여 <small>MY SHARE</small>', `<div class="fac-claim"><div><span>이번 주 기여도</span><b>${num(mine)}</b></div><div><span>연합 내 비율</span><b>${share}<small>%</small></b></div></div>${bar(share)}<p class="union-hint">수요일 0시에 이번 주 기여도가 초기화됩니다. 토륨은 이 비율에 따라 나눠 받습니다.</p>`)}`;
-  }
   function devRow(node, scope, stat, label, sign, levels, unionLevel, points) {
     const level = Number(levels[node]) || 0, step = window.Online?.unionDevStep?.[stat] || 0;
     const next = level + 1, cost = DEV_COST[scope] * next;
@@ -578,7 +571,6 @@ ${panel('기록 보상 <small>REWARDS</small>', `<div class="fac-tiers"><div cla
 ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"><li><i>1</i><b>Sora</b><span>미드웨이 S</span></li><li><i>2</i><b>Kade</b><span>트라팔가르 A</span></li><li><i>3</i><b>Mira</b><span>미드웨이 A</span></li></ol>`)}`
   };
   function facilityHtml(f, union, me) {
-    if (f.id === 'thorium') return `<div class="fac fac-thorium">${thoriumScreen(union, me)}</div>`;
     if (f.id === 'rnd') return `<div class="fac fac-rnd">${rndScreen(union)}</div>`;
     const screen = FACILITY_SCREENS[f.id];
     return `<div class="fac fac-${f.id}">${screen ? screen() : `${heroHtml(f.id, f.name, previewTag)}${panel(f.name, `<p>${esc(f.desc)}</p>`)}`}</div>`;
@@ -645,8 +637,10 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
       if (!union && (ui.view === "hub" || ui.view === "hall")) host.innerHTML = noUnionHtml(await api.searchUnions(ui.query));
       else if (ui.view === "hub") host.innerHTML = hubHtml(union, myRole === "leader" || myRole === "officer");
       else if (ui.view === "hall") host.innerHTML = memberHtml(union, me);
+      else if (ui.view === 'thorium' && window.UnionMine) host.innerHTML = `<div class="fac fac-thorium">${await window.UnionMine.html({ heroHtml, panel })}</div>`;
       else host.innerHTML = facilityHtml(facility(ui.view) || FACILITIES[1], union, me);
       bind(host, union, me);
+      if (ui.view === 'thorium') window.UnionMine?.bind(host, render);
       if (keep) { if (screenEl) screenEl.scrollTop = keep.y; window.scrollTo(0, keep.wy); }
       fitScene(); requestAnimationFrame(fitScene);
     } catch (error) {

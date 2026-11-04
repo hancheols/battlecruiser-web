@@ -1,0 +1,45 @@
+/* 토륨광산 점령 */
+.mine-list,.mine-picks{display:grid;gap:8px}
+.mine-card{display:flex;align-items:center;gap:10px;width:100%;min-height:60px;padding:10px 12px;border:1px solid rgba(174,230,255,.22);border-radius:12px;background:rgba(8,16,40,.72);color:#eef8ff;text-align:left;font-family:var(--font-body);cursor:pointer}
+.mine-card.mine-mine{border-color:#8ff0b0;background:linear-gradient(90deg,rgba(143,240,176,.14),rgba(8,16,40,.72))}
+.mine-card.mine-war{border-color:#ff9f7a;background:linear-gradient(90deg,rgba(255,130,80,.18),rgba(8,16,40,.72))}
+.mine-card.mine-pirate{border-color:rgba(224,114,74,.45)}
+.mine-main{display:grid;flex:1;gap:3px;min-width:0}
+.mine-main b{font-size:14px;color:#fff}
+.mine-main small{font-size:11px;color:#a9c3dd;line-height:1.35}
+.mine-card em{flex:none;max-width:38%;font-style:normal;font-size:11px;color:#ffd9a0;text-align:right}
+.mine-size{flex:none;min-width:36px;padding:4px 6px;border-radius:6px;font-size:11px;font-weight:700;text-align:center;color:#06121f;background:#9fc3e8}
+.mine-size.medium{background:#7fe0ff}
+.mine-size.large{background:#ffd27a}
+.mine-phase{margin:0 0 10px;padding:8px 10px;border:1px solid rgba(143,240,176,.5);border-radius:8px;color:#c9f7da;font:600 12px/1.4 var(--font-body)}
+.mine-phase.war{border-color:rgba(255,159,122,.7);color:#ffd9c7}
+.mine-bar{position:relative;height:18px;margin:8px 0;overflow:hidden;border:1px solid rgba(174,230,255,.25);border-radius:9px;background:rgba(4,10,26,.7)}
+.mine-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#4fb6ff,#8ff0ff)}
+.mine-bar span{position:relative;display:block;text-align:center;color:#fff;font:600 11px/16px var(--font-body);text-shadow:0 1px 2px #000}
+.mine-ships{display:grid;gap:4px;margin:0 0 8px;padding:0;list-style:none;color:#eef8ff;font:600 13px/1.4 var(--font-body)}
+.mine-ships small{color:#a9c3dd;font-weight:400}
+.mine-versus{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mine-versus>div{display:grid;gap:2px;min-width:0;padding:8px;border:1px solid rgba(174,230,255,.2);border-radius:8px;text-align:center}
+.mine-versus small{color:#a9c3dd;font:400 11px var(--font-body)}
+.mine-versus b{overflow:hidden;color:#fff;font:600 13px var(--font-body);text-overflow:ellipsis;white-space:nowrap}
+.mine-versus strong{color:#ffd27a;font:700 20px var(--font-num)}
+.mine-targets{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.mine-target{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mine-target>div{display:grid;gap:2px;min-width:0}
+.mine-target b{color:#fff;font:600 13px var(--font-body)}
+.mine-target small{color:#a9c3dd;font:400 11px/1.35 var(--font-body)}
+.mine-target .fac-btn{flex:none}
+.mine-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.mine-slot,.mine-pick{display:grid;gap:2px;min-height:58px;padding:8px;border:1px solid rgba(174,230,255,.25);border-radius:10px;background:rgba(8,16,40,.72);color:#eef8ff;text-align:left;font-family:var(--font-body);cursor:pointer}
+.mine-slot b,.mine-pick b{font-size:13px}
+.mine-slot small,.mine-pick small{color:#a9c3dd;font-size:11px}
+.mine-pick:disabled{opacity:.5;cursor:default}
+.mine-note{margin:0 0 10px;padding:8px 10px;border:1px solid rgba(255,210,122,.6);border-radius:8px;color:#ffe2a3;font:600 12px/1.4 var(--font-body)}
+.mine-shares{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.mine-shares li{display:grid;grid-template-columns:1fr auto 64px;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(174,230,255,.12);color:#dbe9f7;font:400 12px var(--font-body)}
+.mine-shares li.me{color:#fff;font-weight:700}
+.mine-shares small{color:#ffb39a;font-size:10px}
+.mine-shares b{font:600 12px var(--font-num)}
+.mine-shares em{color:#8ff0ff;font:600 12px var(--font-num);text-align:right;font-style:normal}
+.mine-back-row{margin:0 0 10px}
+.mine-back-row .fac-back{position:static;display:inline-flex}
