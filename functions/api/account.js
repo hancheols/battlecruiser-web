@@ -55,6 +55,7 @@ export async function onRequestDelete({ request, env }) {
     'DELETE FROM union_dev WHERE user_id = ?1',
     'DELETE FROM union_log WHERE user_id = ?1',
     'DELETE FROM mine_fleets WHERE user_id = ?1',
+    'DELETE FROM mine_raids WHERE user_id = ?1',
     'DELETE FROM mine_scores WHERE user_id = ?1',
     'DELETE FROM mine_battles WHERE user_id = ?1',
     'UPDATE mine_battles SET target_id = NULL WHERE target_id = ?1',

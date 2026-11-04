@@ -13611,14 +13611,22 @@
   // 토륨광산 토벌 결과. 점령 여부는 서버가 알려 준다.
   function renderMineRaidResult(victory, reason) {
     const bounty = state.bounty;
-    refs.battleResultKicker.textContent = victory ? 'RAID COMPLETE' : 'RAID FAILED';
-    refs.battleResultTitle.textContent = victory ? '토벌 성공' : '토벌 실패';
-    refs.battleResultStars.textContent = victory ? 'THORIUM MINE' : '☆☆☆';
-    refs.battleResultCopy.textContent = victory ? `${bounty.mine.name} · ${bounty.name} 격파` : (reason || `${bounty.name}을(를) 격파하지 못했습니다.`);
-    refs.battleRewards.innerHTML = '<span>결과 <b>집계 중</b></span>';
+    const damage = victory ? bounty.hp : state.boss ? Math.max(0, state.boss.maxHp - Math.max(0, state.boss.hp)) : 0;
+    refs.battleResultKicker.textContent = 'THORIUM MINE RAID';
+    refs.battleResultTitle.textContent = victory ? '해적 격파' : '토벌 종료';
+    refs.battleResultStars.textContent = bounty.mine.name;
+    refs.battleResultCopy.textContent = victory ? `${bounty.name} 격파` : (reason || `${bounty.name}을(를) 격파하지 못했습니다.`);
+    refs.battleRewards.innerHTML = `<span>이번 피해 <b>${formatNumber(Math.floor(damage))}</b></span>`;
     addResultButton('광산으로 돌아가기', () => window.UnionMine?.back?.());
-    window.UnionMine?.finishBattle?.(bounty.mine.battleId, Boolean(victory)).then(result => {
-      refs.battleRewards.innerHTML = result?.error ? `<span>결과 저장 <b>실패</b></span>` : result?.captured ? `<span>광산 <b>점령 완료</b></span>` : victory ? `<span>토벌 승리 <b>+1</b></span>` : '<span>토벌 승리 <b>집계 안 함</b></span>';
+    window.UnionMine?.finishBattle?.(bounty.mine.battleId, Boolean(victory), Math.floor(damage)).then(result => {
+      const raid = result?.raid;
+      refs.battleRewards.innerHTML = result?.error ? '<span>결과 저장 <b>실패</b></span>'
+        : !raid ? `<span>이번 피해 <b>${formatNumber(Math.floor(damage))}</b></span><span>기록 <b>이미 점령된 광산</b></span>`
+          : `<span>이번 피해 <b>${formatNumber(raid.damage)}</b></span><span>내 최고 <b>${formatNumber(raid.best)}</b></span><span>연합 합계 <b>${formatNumber(raid.total)} / ${formatNumber(raid.need)}</b></span>`;
+      if (raid?.captured) {
+        refs.battleResultTitle.textContent = '광산 점령';
+        refs.battleResultCopy.textContent = `연합원의 최고 피해 합계가 해적 체력에 이르러 ${bounty.mine.name}을(를) 점령했습니다.`;
+      }
     });
   }
 

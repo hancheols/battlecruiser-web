@@ -3,29 +3,26 @@
 //   fleet     : 광산 전용 방어 함대 등록(일~화 쟁탈 기간에는 잠긴다)
 //   challenge : 다른 연합이 점령한 광산에 도전 신청(연합장·부연합장, 수~토)
 //   raid      : 해적 토벌 출격(하루 3회) / war : 쟁탈 출격(일~화, 상대 함장 지정)
-//   finish    : 출격 결과 보고 { battleId, win }. 같은 출격은 한 번만 반영한다.
+//   finish    : 출격 결과 보고 { battleId, win, damage }. 같은 출격은 한 번만 반영한다.
 import { json, authenticate, allow, tooMany } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable } from '../_lib/players.js';
 import { isLinked } from '../_lib/ranking.js';
 import { cleanDeck } from '../_lib/arena.js';
 import { award } from '../_lib/contribution.js';
-import { MINES, MINE_SIZES, mineById, phaseOf, rollMines, deliverPayouts, useSortie, sortiesUsed, deckWithDev, newBattle, addRaidWin, warStanding, warPoints, holdBonus, isFastWin, SORTIES_PER_DAY, MIN_FLEETS, PAYOUT_CAP } from '../_lib/mines.js';
+import { MINES, MINE_SIZES, MAX_MINES_PER_UNION, mineById, phaseOf, rollMines, deliverPayouts, useSortie, sortiesUsed, deckWithDev, newBattle, recordRaid, warStanding, warPoints, holdBonus, isFastReport, SORTIES_PER_DAY, MIN_FLEETS, PAYOUT_CAP } from '../_lib/mines.js';
 
 const unionName = async (env, id) => (await env.DB.prepare('SELECT name FROM unions WHERE id = ?1').bind(id).first())?.name || '';
 const membership = (env, userId) => env.DB.prepare('SELECT m.union_id, m.role, m.week_points, m.week_day, u.level, u.name FROM union_members m JOIN unions u ON u.id = m.union_id WHERE m.user_id = ?1').bind(userId).first();
 const fleetCount = async (env, unionId) => Number((await env.DB.prepare('SELECT COUNT(*) AS n FROM mine_fleets f JOIN union_members m ON m.user_id = f.user_id WHERE m.union_id = ?1').bind(unionId).first()).n);
-const holdings = async (env, unionId) => {
-  const rows = (await env.DB.prepare('SELECT mine_id FROM mine_state WHERE union_id = ?1').bind(unionId).all()).results || [];
-  const counts = { small: 0, medium: 0, large: 0 };
-  rows.forEach(row => { const mine = mineById(row.mine_id); if (mine) counts[mine.size] += 1; });
-  return counts;
-};
+const heldCount = async (env, unionId) => Number((await env.DB.prepare('SELECT COUNT(*) AS n FROM mine_state WHERE union_id = ?1').bind(unionId).first()).n);
+const CAP_MESSAGE = `광산은 연합당 ${MAX_MINES_PER_UNION}곳만 점령할 수 있습니다.`;
 
 async function view(env, user, member, phase) {
   const unionId = member?.union_id || null;
   const states = (await env.DB.prepare('SELECT s.mine_id, s.union_id, s.defended, u.name AS holder FROM mine_state s LEFT JOIN unions u ON u.id = s.union_id').bind().all()).results || [];
   const stateOf = new Map(states.map(row => [row.mine_id, row]));
-  const raids = (await env.DB.prepare('SELECT r.mine_id, r.union_id, r.wins, u.name FROM mine_raids r JOIN unions u ON u.id = r.union_id ORDER BY r.wins DESC').bind().all()).results || [];
+  const raids = (await env.DB.prepare('SELECT r.mine_id, r.union_id, SUM(r.best) AS total, u.name FROM mine_raids r JOIN union_members m ON m.user_id = r.user_id AND m.union_id = r.union_id JOIN unions u ON u.id = r.union_id GROUP BY r.mine_id, r.union_id ORDER BY total DESC').bind().all()).results || [];
+  const records = unionId ? (await env.DB.prepare('SELECT r.mine_id, r.user_id, r.best, p.name FROM mine_raids r JOIN union_members m ON m.user_id = r.user_id AND m.union_id = r.union_id JOIN players p ON p.user_id = r.user_id WHERE r.union_id = ?1 ORDER BY r.best DESC').bind(unionId).all()).results || [] : [];
   const wars = (await env.DB.prepare('SELECT * FROM mine_wars WHERE week = ?1').bind(phase.week).all()).results || [];
   const applied = unionId ? ((await env.DB.prepare('SELECT mine_id FROM mine_challenges WHERE week = ?1 AND union_id = ?2').bind(phase.week, unionId).all()).results || []).map(row => row.mine_id) : [];
   const counts = (await env.DB.prepare('SELECT mine_id, COUNT(*) AS n FROM mine_challenges WHERE week = ?1 GROUP BY mine_id').bind(phase.week).all()).results || [];
@@ -35,11 +32,13 @@ async function view(env, user, member, phase) {
     const held = state && state.holder ? state : null;
     const racers = raids.filter(row => row.mine_id === mine.id);
     const info = {
-      id: mine.id, name: mine.name, size: mine.size, sizeLabel: size.label, production: size.production, needWins: size.wins, minLevel: size.minLevel,
+      id: mine.id, name: mine.name, size: mine.size, sizeLabel: size.label, production: size.production, minLevel: size.minLevel,
       pirate: { name: size.pirate.name, hp: size.pirate.hp, limit: size.pirate.limit },
       holder: held ? { name: held.holder, mine: held.union_id === unionId, bonus: holdBonus(held.defended) } : null,
-      myWins: racers.find(row => row.union_id === unionId)?.wins || 0,
-      racers: racers.slice(0, 3).map(row => ({ name: row.name, wins: row.wins, mine: row.union_id === unionId })),
+      myTotal: Number(racers.find(row => row.union_id === unionId)?.total) || 0,
+      myBest: records.find(row => row.mine_id === mine.id && row.user_id === user.id)?.best || 0,
+      racers: racers.slice(0, 3).map(row => ({ name: row.name, total: Number(row.total), mine: row.union_id === unionId })),
+      records: records.filter(row => row.mine_id === mine.id).slice(0, 5).map(row => ({ name: row.name, best: row.best, me: row.user_id === user.id })),
       applied: applied.includes(mine.id),
       applicants: Number(counts.find(row => row.mine_id === mine.id)?.n) || 0,
       war: null
@@ -58,7 +57,7 @@ async function view(env, user, member, phase) {
     mines,
     fleet: fleetRow ? JSON.parse(fleetRow.deck) : null,
     sorties: { used: await sortiesUsed(env, user.id, phase.today), max: SORTIES_PER_DAY },
-    rules: { minFleets: MIN_FLEETS, payoutCap: PAYOUT_CAP },
+    rules: { minFleets: MIN_FLEETS, payoutCap: PAYOUT_CAP, maxMines: MAX_MINES_PER_UNION },
     union: null
   };
   if (member) {
@@ -74,7 +73,9 @@ async function view(env, user, member, phase) {
     out.union = {
       name: member.name, level: member.level, role: member.role, canChallenge: ['leader', 'officer'].includes(member.role),
       fleets: await fleetCount(env, unionId),
-      holdings: await holdings(env, unionId),
+      heldMine: owned[0]?.name || '',
+      appliedMine: mines.find(mine => mine.applied)?.name || '',
+      challenging: wars.some(war => war.challenger_id === unionId),
       treasury: Number(treasury?.thorium) || 0,
       production, pool,
       myPoints: weekOf(members.find(row => row.user_id === user.id) || { week_day: 0 }),
@@ -120,8 +121,9 @@ const ACTIONS = {
     const state = mine && await env.DB.prepare('SELECT union_id FROM mine_state WHERE mine_id = ?1').bind(mine.id).first();
     if (!state) return fail('해적이 점거한 광산은 토벌로 점령합니다.', 409, 'not-held');
     if (state.union_id === member.union_id) return fail('이미 우리 연합이 점령한 광산입니다.', 409, 'own-mine');
-    const counts = await holdings(env, member.union_id);
-    if (counts[mine.size] >= MINE_SIZES[mine.size].cap) return fail(`${MINE_SIZES[mine.size].label} 광산은 연합당 ${MINE_SIZES[mine.size].cap}곳까지 점령할 수 있습니다.`, 409, 'cap');
+    if (await heldCount(env, member.union_id) >= MAX_MINES_PER_UNION) return fail(CAP_MESSAGE, 409, 'cap');
+    const other = await env.DB.prepare('SELECT mine_id FROM mine_challenges WHERE week = ?1 AND union_id = ?2 AND mine_id != ?3').bind(phase.week, member.union_id, mine.id).first();
+    if (other) return fail('도전 신청은 한 주에 한 광산만 할 수 있습니다.', 409, 'applied');
     if (member.level < MINE_SIZES[mine.size].minLevel) return fail(`연합 레벨 ${MINE_SIZES[mine.size].minLevel} 이상이 필요합니다.`, 409, 'level');
     if (await fleetCount(env, member.union_id) < MIN_FLEETS) return fail(`방어 함대를 등록한 연합원이 ${MIN_FLEETS}명 이상이어야 합니다.`, 409, 'fleets');
     await env.DB.prepare('INSERT OR IGNORE INTO mine_challenges (week, mine_id, union_id, created_at) VALUES (?1, ?2, ?3, ?4)').bind(phase.week, mine.id, member.union_id, Date.now()).run();
@@ -135,7 +137,8 @@ const ACTIONS = {
     if (await env.DB.prepare('SELECT 1 AS held FROM mine_state WHERE mine_id = ?1').bind(mine.id).first()) return fail('이미 점령된 광산입니다.', 409, 'held');
     const size = MINE_SIZES[mine.size];
     if (member.level < size.minLevel) return fail(`연합 레벨 ${size.minLevel} 이상이 필요합니다.`, 409, 'level');
-    if ((await holdings(env, member.union_id))[mine.size] >= size.cap) return fail(`${size.label} 광산은 연합당 ${size.cap}곳까지 점령할 수 있습니다.`, 409, 'cap');
+    if (await heldCount(env, member.union_id) >= MAX_MINES_PER_UNION) return fail(CAP_MESSAGE, 409, 'cap');
+    if (await env.DB.prepare('SELECT 1 AS ok FROM mine_wars WHERE week = ?1 AND challenger_id = ?2').bind(phase.week, member.union_id).first()) return fail('쟁탈전에 도전 중인 연합은 토벌할 수 없습니다.', 409, 'challenging');
     if (!(await useSortie(env, user.id, phase.today))) return fail(`오늘 출격 ${SORTIES_PER_DAY}회를 모두 사용했습니다.`, 409, 'no-sortie');
     const battle = newBattle(env, { userId: user.id, unionId: member.union_id, mineId: mine.id, kind: 'raid', week: phase.week, now: Date.now() });
     await battle.statement.run();
@@ -174,16 +177,17 @@ const ACTIONS = {
     if (!battle) return fail('출격 기록을 찾을 수 없습니다.', 404, 'no-battle');
     if (battle.finished_at) return json({ win: battle.win === 1, points: battle.points, captured: false, already: true });
     const now = Date.now(), win = body.win === true;
-    const claimed = await env.DB.prepare('UPDATE mine_battles SET finished_at = ?1, win = ?2, flagged = ?3 WHERE id = ?4 AND finished_at IS NULL').bind(now, win ? 1 : 0, win && isFastWin(battle, now) ? 1 : 0, battle.id).run();
+    const claimed = await env.DB.prepare('UPDATE mine_battles SET finished_at = ?1, win = ?2, flagged = ?3 WHERE id = ?4 AND finished_at IS NULL').bind(now, win ? 1 : 0, (win || Number(body.damage) > 0) && isFastReport(battle, now) ? 1 : 0, battle.id).run();
     if (!claimed?.meta?.changes) return json({ win, points: 0, captured: false, already: true });
     await award(env, user.id, 'mine');
     const mine = mineById(battle.mine_id);
-    let points = 0, captured = false, wins = 0;
+    let points = 0, captured = false, raid = null;
     if (battle.week === phase.week && mine) {
       if (battle.kind === 'raid') {
-        if (win && !(await env.DB.prepare('SELECT 1 AS held FROM mine_state WHERE mine_id = ?1').bind(mine.id).first())) {
-          const result = await addRaidWin(env, mine, battle.union_id, phase.week);
-          captured = result.captured; wins = result.wins;
+        if (!(await env.DB.prepare('SELECT 1 AS held FROM mine_state WHERE mine_id = ?1').bind(mine.id).first())) {
+          raid = await recordRaid(env, mine, battle.union_id, user.id, body.damage, phase.week);
+          captured = raid.captured;
+          await env.DB.prepare('UPDATE mine_battles SET points = ?1 WHERE id = ?2').bind(raid.damage, battle.id).run();
         }
       } else {
         const grade = async id => Number((await env.DB.prepare("SELECT grade FROM rank_entries WHERE user_id = ?1 AND category = 'total'").bind(id).first())?.grade) || 0;
@@ -192,7 +196,7 @@ const ACTIONS = {
         await env.DB.prepare('UPDATE mine_battles SET points = ?1 WHERE id = ?2').bind(points, battle.id).run();
       }
     }
-    return json({ win, points, captured, wins, state: await view(env, user, member, phase) });
+    return json({ win, points, captured, raid: raid && { ...raid, need: MINE_SIZES[mine.size].pirate.hp }, state: await view(env, user, member, phase) });
   }
 };
 

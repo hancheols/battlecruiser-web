@@ -44,8 +44,8 @@
     requestAnimationFrame(() => window.prepareBattle?.(operation));
   }
   // 토벌 전투가 끝나면 엔진이 부른다. 결과는 서버가 반영하고, 점령 여부를 돌려준다.
-  async function finishBattle(battleId, win) {
-    try { return await api('finish', { battleId, win }); }
+  async function finishBattle(battleId, win, damage = 0) {
+    try { return await api('finish', { battleId, win, damage }); }
     catch (error) { return { error: error.message }; }
   }
   async function startWar(mine, targetId) {
@@ -72,6 +72,7 @@
   }
 
   // ── 화면 조각 ───────────────────────────────────────────────────────────────
+  const short = value => { const n = Number(value) || 0; return n >= 10000 ? `${Math.round(n / 1000) / 10}만` : num(n); };
   const phaseText = phase => phase.war ? `쟁탈전 진행 중 · 수요일 0시 정산까지 ${phase.daysLeft}일` : `도전 신청·방어 함대 등록 기간 · 쟁탈전까지 ${phase.daysLeft}일`;
   const shipLine = ship => `${esc(ship.name)} <small>${esc(ship.rarity)} ★${Number(ship.enhancementStars ?? ship.stars) || 0}</small>`;
   const progress = (percent, label = '') => `<div class="mine-bar"><i style="width:${Math.min(100, Math.max(0, percent))}%"></i>${label ? `<span>${label}</span>` : ''}</div>`;
@@ -87,7 +88,7 @@
     const sub = mine.war
       ? `${esc(mine.war.holder)} ${num(mine.war.holderScore)} : ${num(mine.war.challengerScore)} ${esc(mine.war.challenger)}`
       : mine.holder ? `주간 토륨 ${num(mine.production)}${mine.applied ? ' · 도전 신청함' : ''}`
-        : `토벌 ${num(mine.myWins)} / ${num(mine.needWins)}승 · 주간 토륨 ${num(mine.production)}`;
+        : `토벌 ${short(mine.myTotal)} / ${short(mine.pirate.hp)} · 주간 토륨 ${num(mine.production)}`;
     return `<button type="button" class="mine-card mine-${status.cls}" data-mine-open="${esc(mine.id)}"><span class="mine-size ${esc(mine.size)}">${esc(mine.sizeLabel)}</span><span class="mine-main"><b>${esc(mine.name)}</b><small>${sub}</small></span><em>${status.text} ›</em></button>`;
   }
 
@@ -103,8 +104,7 @@
       const list = data.mines.filter(mine => mine.size === size);
       return panel(`${esc(list[0]?.sizeLabel || '')} 광산 <small>${size.toUpperCase()}</small>`, `<div class="mine-list">${list.map(mineCard).join('')}</div>`);
     }).join('');
-    const held = data.union?.holdings;
-    const summary = data.union ? `<div class="fac-claim"><div><span>우리 연합 점령</span><b>대형 ${held.large} · 중형 ${held.medium} · 소형 ${held.small}</b></div><div><span>이번 주 생산</span><b>${num(data.union.production)}<small> 토륨</small></b></div></div>` : '<p class="union-hint">연합에 가입하면 토벌과 도전전에 참여할 수 있습니다.</p>';
+    const summary = data.union ? `<div class="fac-claim"><div><span>우리 연합 점령</span><b>${esc(data.union.heldMine) || '없음'}</b></div><div><span>이번 주 생산</span><b>${num(data.union.production)}<small> 토륨</small></b></div></div>` : '<p class="union-hint">연합에 가입하면 토벌과 도전전에 참여할 수 있습니다.</p>';
     return `${panel('이번 주 전황 <small>STATUS</small>', `<p class="mine-phase ${data.phase.war ? 'war' : ''}">${phaseText(data.phase)}</p>${summary}<p class="union-hint">오늘 남은 출격 ${num(data.sorties.max - data.sorties.used)} / ${num(data.sorties.max)}회</p>`)}${fleetBlock(panel)}${groups}`;
   }
 
@@ -127,14 +127,17 @@
       }
       const action = !u ? '<p class="union-hint">연합에 가입해야 도전할 수 있습니다.</p>'
         : mine.applied ? '<p class="union-hint">도전 신청을 마쳤습니다. 일요일 0시에 대진이 정해집니다.</p>'
+          : u.heldMine ? `<p class="union-hint">광산은 연합당 ${num(data.rules.maxMines)}곳만 점령할 수 있습니다. 우리 연합은 ${esc(u.heldMine)}을 점령하고 있습니다.</p>`
+          : u.appliedMine ? `<p class="union-hint">도전 신청은 한 주에 한 광산만 할 수 있습니다. 이번 주 신청: ${esc(u.appliedMine)}</p>`
           : data.phase.war ? '<p class="union-hint">다음 주 수요일부터 도전 신청을 받습니다.</p>'
             : !u.canChallenge ? '<p class="union-hint">도전 신청은 연합장과 부연합장이 합니다.</p>'
               : `<p class="union-hint">연합 등록 방어 함대 ${num(u.fleets)} / ${num(data.rules.minFleets)}명. 신청 연합이 여럿이면 연합 점수가 가장 비슷한 연합이 뽑힙니다.</p><button type="button" class="fac-btn" data-mine-challenge="${esc(mine.id)}" ${u.fleets < data.rules.minFleets ? 'disabled' : ''}>도전 신청</button>`;
       return `${back}${head}${panel(`점령 연합 · ${esc(mine.holder.name)} <small>CHALLENGE</small>`, action)}`;
     }
-    const racers = mine.racers.length ? `<ul class="fac-stats">${mine.racers.map(racer => `<li><span>${esc(racer.name)}${racer.mine ? ' (우리)' : ''}</span><b>${num(racer.wins)}승</b></li>`).join('')}</ul>` : '';
-    const reason = !data.union ? '연합 필요' : data.union.level < mine.minLevel ? `연합 Lv.${mine.minLevel} 필요` : data.union.holdings[mine.size] >= (mine.size === 'small' ? 2 : 1) ? '점령 상한' : left <= 0 ? '오늘 출격 완료' : '';
-    return `${back}${head}${panel(`우주해적 토벌 <small>RAID</small>`, `<div class="fac-claim"><div><span>상대</span><b>${esc(mine.pirate.name)}</b></div><div><span>제한 시간</span><b>${num(mine.pirate.limit)}초</b></div></div>${progress(mine.myWins * 100 / mine.needWins, `우리 연합 ${num(mine.myWins)} / ${num(mine.needWins)}승`)}${racers}<p class="union-hint">연합원의 승리를 모아 가장 먼저 채운 연합이 점령합니다. 승리만 집계하며, 오늘 남은 출격은 ${num(left)}회입니다.</p><button type="button" class="fac-btn" data-mine-raid="${esc(mine.id)}" ${reason ? 'disabled' : ''}>${reason || '토벌 출격'}</button>`)}`;
+    const racers = mine.racers.length ? `<ul class="fac-stats">${mine.racers.map(racer => `<li><span>${esc(racer.name)}${racer.mine ? ' (우리)' : ''}</span><b>${num(racer.total)}</b></li>`).join('')}</ul>` : '';
+    const records = mine.records.length ? panel('우리 연합 최고 기록 <small>상위 5명</small>', `<ul class="fac-stats">${mine.records.map(row => `<li class="${row.me ? 'me' : ''}"><span>${esc(row.name)}</span><b>${num(row.best)}</b></li>`).join('')}</ul>`) : '';
+    const reason = !data.union ? '연합 필요' : data.union.level < mine.minLevel ? `연합 Lv.${mine.minLevel} 필요` : data.union.heldMine ? `연합당 ${num(data.rules.maxMines)}곳만 점령` : data.union.challenging ? '쟁탈전 도전 중' : left <= 0 ? '오늘 출격 완료' : '';
+    return `${back}${head}${panel(`우주해적 토벌 <small>RAID</small>`, `<div class="fac-claim"><div><span>상대</span><b>${esc(mine.pirate.name)}</b></div><div><span>제한 시간</span><b>${num(mine.pirate.limit)}초</b></div></div>${progress(mine.myTotal * 100 / mine.pirate.hp, `우리 연합 ${num(mine.myTotal)} / ${num(mine.pirate.hp)}`)}<div class="fac-claim"><div><span>내 최고 피해</span><b>${num(mine.myBest)}</b></div></div>${racers}<p class="union-hint">연합원 각자의 최고 피해를 모두 더해 해적 체력에 이르면 점령합니다. 다시 출격하면 더 높은 기록만 남고, 오늘 남은 출격은 ${num(left)}회입니다.</p><button type="button" class="fac-btn" data-mine-raid="${esc(mine.id)}" ${reason ? 'disabled' : ''}>${reason || '토벌 출격'}</button>`)}${records}`;
   }
 
   function fleetEditor(panel) {

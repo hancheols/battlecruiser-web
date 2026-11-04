@@ -17,12 +17,13 @@ export const MINES = [
   { id: 'pallas', name: '팔라스 광맥', size: 'small' },
   { id: 'europa', name: '유로파 광맥', size: 'small' }
 ];
-// 규모별 설정: 주간 토륨, 토벌에 필요한 승리 수, 참가 연합 레벨, 연합당 점령 상한, 해적 함대.
+// 규모별 설정: 주간 토륨, 참가 연합 레벨, 해적 함대. 연합원 각자의 최고 피해 합이 해적 체력에 이르면 점령한다.
 export const MINE_SIZES = {
-  small: { label: '소형', production: 1500, wins: 20, minLevel: 1, cap: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 100000, limit: 90 } },
-  medium: { label: '중형', production: 3500, wins: 75, minLevel: 2, cap: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 1000000, limit: 90 } },
-  large: { label: '대형', production: 7000, wins: 240, minLevel: 4, cap: 1, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 5000000, limit: 60 } }
+  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 500000, limit: 90 } },
+  medium: { label: '중형', production: 3500, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 90 } },
+  large: { label: '대형', production: 7000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 25000000, limit: 60 } }
 };
+export const MAX_MINES_PER_UNION = 1;  // 연합당 점령 상한. 도전 신청도 주 1곳
 export const SORTIES_PER_DAY = 3;
 export const MIN_FLEETS = 5;           // 도전 신청과 수비 보너스에 필요한 등록 방어 함대 수
 export const PAYOUT_CAP = 1000;        // 1인 주간 분배 상한. 넘은 몫은 저장고에 남는다
@@ -77,7 +78,8 @@ async function settleWeek(env, oldWeek, nextWeek, now) {
     const war = await env.DB.prepare('SELECT * FROM mine_wars WHERE week = ?1 AND mine_id = ?2').bind(oldWeek, row.mine_id).first();
     if (!war) continue;
     const standing = await warStanding(env, war);
-    const challengerWins = standing.challenger > standing.holder;   // 동점이면 점령 연합 유지
+    const challengerFree = !held.some(other => other.union_id === war.challenger_id);   // 그사이 다른 광산을 얻었으면 이 광산은 가져갈 수 없다
+    const challengerWins = challengerFree && standing.challenger > standing.holder;   // 동점이면 점령 연합 유지
     statements.push(env.DB.prepare(`UPDATE mine_wars SET winner_id = ?3 WHERE week = ?1 AND mine_id = ?2 AND ${open.replace('?1', '?1')}`).bind(oldWeek, row.mine_id, challengerWins ? war.challenger_id : war.holder_id));
     statements.push(env.DB.prepare(`UPDATE mine_state SET union_id = ?3, defended = ?4, since_week = ?5 WHERE mine_id = ?2 AND ${open}`).bind(oldWeek, row.mine_id, challengerWins ? war.challenger_id : war.holder_id, challengerWins ? 0 : row.defended + 1, challengerWins ? nextWeek : war.week));
   }
@@ -111,6 +113,7 @@ async function startWars(env, week, now) {
     const applicants = (await env.DB.prepare('SELECT union_id FROM mine_challenges WHERE week = ?1 AND mine_id = ?2').bind(week, row.mine_id).all()).results || [];
     const candidates = [];
     for (const applicant of applicants) {
+      if (held.some(other => other.union_id === applicant.union_id)) continue;   // 신청 뒤 토벌로 광산을 얻은 연합은 뺀다
       if (await env.DB.prepare('SELECT id FROM unions WHERE id = ?1').bind(applicant.union_id).first() && await fleetCount(env, applicant.union_id) >= MIN_FLEETS) candidates.push(applicant.union_id);
     }
     if (!candidates.length) continue;
@@ -183,14 +186,22 @@ export function newBattle(env, { userId, unionId, mineId, kind, targetId = null,
   return { id, statement: env.DB.prepare('INSERT INTO mine_battles (id, user_id, union_id, mine_id, kind, target_id, week, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)').bind(id, userId, unionId, mineId, kind, targetId, week, now) };
 }
 
-// 토벌 승리를 더하고, 필요한 승리 수를 채우면 점령한다.
-export async function addRaidWin(env, mine, unionId, week) {
-  const size = MINE_SIZES[mine.size];
-  const row = await env.DB.prepare('INSERT INTO mine_raids (mine_id, union_id, wins) VALUES (?1, ?2, 1) ON CONFLICT(mine_id, union_id) DO UPDATE SET wins = wins + 1 RETURNING wins').bind(mine.id, unionId).first();
-  if (row.wins < size.wins) return { wins: row.wins, captured: false };
-  const taken = await env.DB.prepare('INSERT INTO mine_state (mine_id, union_id, defended, since_week) VALUES (?1, ?2, 0, ?3) ON CONFLICT(mine_id) DO NOTHING').bind(mine.id, unionId, week).run();
-  if (!taken?.meta?.changes) return { wins: row.wins, captured: false };
-  await env.DB.prepare('DELETE FROM mine_raids WHERE mine_id = ?1').bind(mine.id).run();
-  return { wins: row.wins, captured: true };
+// 지금 그 연합에 있는 연합원의 최고 피해만 더한다. 탈퇴한 연합원의 기록은 빠진다.
+export async function raidTotal(env, mineId, unionId) {
+  const row = await env.DB.prepare('SELECT COALESCE(SUM(r.best), 0) AS total FROM mine_raids r JOIN union_members m ON m.user_id = r.user_id AND m.union_id = r.union_id WHERE r.mine_id = ?1 AND r.union_id = ?2').bind(mineId, unionId).first();
+  return Number(row?.total) || 0;
 }
-export const isFastWin = (battle, now) => now - battle.created_at < FAST_WIN_MS;
+// 토벌 기록: 한 번의 피해는 해적 체력을 넘지 못하고, 개인 최고 기록만 남긴다. 연합 합계가 해적 체력에 이르면 점령한다.
+export async function recordRaid(env, mine, unionId, userId, damage, week) {
+  const hp = MINE_SIZES[mine.size].pirate.hp;
+  const counted = Math.min(hp, Math.max(0, Math.floor(Number(damage) || 0)));
+  const best = await env.DB.prepare('INSERT INTO mine_raids (mine_id, union_id, user_id, best) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(mine_id, union_id, user_id) DO UPDATE SET best = MAX(best, ?4) RETURNING best').bind(mine.id, unionId, userId, counted).first();
+  const total = await raidTotal(env, mine.id, unionId);
+  const result = { damage: counted, best: Number(best.best), total, captured: false };
+  if (total < hp) return result;
+  const taken = await env.DB.prepare('INSERT INTO mine_state (mine_id, union_id, defended, since_week) SELECT ?1, ?2, 0, ?3 WHERE NOT EXISTS (SELECT 1 FROM mine_state WHERE union_id = ?2) ON CONFLICT(mine_id) DO NOTHING').bind(mine.id, unionId, week).run();
+  if (!taken?.meta?.changes) return result;
+  await env.DB.prepare('DELETE FROM mine_raids WHERE mine_id = ?1').bind(mine.id).run();
+  return { ...result, captured: true };
+}
+export const isFastReport = (battle, now) => now - battle.created_at < FAST_WIN_MS;

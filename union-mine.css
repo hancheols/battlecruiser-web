@@ -43,3 +43,4 @@
 .mine-shares em{color:#8ff0ff;font:600 12px var(--font-num);text-align:right;font-style:normal}
 .mine-back-row{margin:0 0 10px}
 .mine-back-row .fac-back{position:static;display:inline-flex}
+.fac-stats li.me span{color:#fff;font-weight:700}
