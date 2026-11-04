@@ -100,6 +100,12 @@
 전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
 문의·신고: hansryan19@gmail.com (이전 안내의 이메일 주소를 정정했습니다.)`});
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
+    window.deliverCaptainMail({id:'notice-online-contribution-20261202',title:'개인정보 처리방침 추가 안내(연합 기여도)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 2일로 같습니다.
+
+연합의 기여도와 최근 활동 기록(함장 이름, 활동 종류, 점수, 시각)이 같은 연합의 연합원에게 표시됩니다. 활동 기록은 30일 동안 보관합니다. 계정 번호, 이메일, 보유 재화는 보이지 않습니다.
+
+전문: game.timeswitch.co.kr/privacy.html
+문의·신고: hansryan19@gmail.com`});
   }
   window.addEventListener('load',ensureOnlineNotice);
   // 이름 변경 비용: 처음 100 토륨, 바꿀 때마다 100 토륨씩 오른다. 첫 이름 정하기는 무료다.

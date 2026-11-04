@@ -1742,7 +1742,9 @@
     const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isGungnir || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
     const fallbackHp = isGaruda ? 1000 : isAngela ? 12000 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 14000 : isCarrier ? 11000 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isGungnir ? 12000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
-    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1));
+    // 연합 개발 효과: 내구도·피해 감소·핵심기술 발동 에너지. 양쪽 조건이 달라지는 아레나에는 적용하지 않는다.
+    const unionDev = side === 'friendly' && !state?.arenaLive && window.getUnionDevEffects?.(ship) || { hp: 0, reduction: 0, energy: 0 };
+    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1) * (1 + unionDev.hp));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
     const maxShield = isCarrier ? 3000 : 0;
     const ally = {
@@ -1760,7 +1762,8 @@
       maxShield,
       nextShot: 220 + index * 95,
       energy: usesEnergy ? 0 : null,
-      maxEnergy: usesEnergy ? 100 : 0,
+      maxEnergy: usesEnergy ? 100 * (1 - unionDev.energy) : 0,
+      unionDevReduction: unionDev.reduction,
       isAssaultTurtle,
       assaultTurtleStars: isAssaultTurtle ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       assaultTurtleBarrageDamage: 0,
@@ -10548,9 +10551,10 @@
   function updateBattlecruiserEnergy(ally) {
     if (!ally.energyBar) return;
     const energy = Math.round(Math.max(0, Math.min(ally.maxEnergy, ally.energy)));
-    ally.energyBar.style.width = `${energy}%`;
+    // 연합 개발로 최대 에너지가 100 보다 작을 수 있어 비율로 그린다.
+    ally.energyBar.style.width = `${ally.maxEnergy ? energy / ally.maxEnergy * 100 : 0}%`;
     if (ally.energyLabel) {
-      ally.energyLabel.textContent = ally.nimitzOverload ? '과부하' : `${energy} / ${ally.maxEnergy}`;
+      ally.energyLabel.textContent = ally.nimitzOverload ? '과부하' : `${energy} / ${Math.round(ally.maxEnergy)}`;
       ally.energyLabel.classList.toggle('energy-overload', Boolean(ally.nimitzOverload));
     }
   }
@@ -11034,7 +11038,7 @@
     const fireDustMultiplier = ally.fireDustActive && source?.kind === 'boss' && source.variant === 'flame-beast' ? 1.5 : 1;
     const tankReduction = Number(ally.tankReducedFrom || 0) <= now && Number(ally.tankReducedUntil || 0) > now ? Number(ally.tankReductionRatio || 1) : 1;
     const nemesisReduction = ally.nemesisNetActive ? (ally.nemesisStars >= 5 ? .8 : .9) : 1;
-    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally)) * (1 - (ally.isArenaShip ? 0 : Math.min(.9, Number(state.fleetBuff?.reduction) || 0)));
+    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally)) * (1 - (ally.unionDevReduction || 0)) * (1 - (ally.isArenaShip ? 0 : Math.min(.9, Number(state.fleetBuff?.reduction) || 0)));
     const shieldDamageFactor=(1-Math.min(.9,ally.tacticalDefense?.reduction||0))/(1+(ally.tacticalDefense?.shield||0));
     if (ally.isVaryag && ally.varyagStars >= 5 && !ally.varyagLastStandUsed && packets * packetDamage >= ally.hp + ally.shield) {
       ally.varyagLastStandUsed = true;

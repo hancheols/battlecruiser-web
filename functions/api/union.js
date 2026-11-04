@@ -4,8 +4,10 @@
 // 토륨 비용은 재화가 게임 저장에 있어 게임 쪽에서 낸다. 권한·인원·이름 중복은 서버가 판단한다.
 import { json, authenticate, allow, tooMany, randomToken } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable, hasBannedWord, isReservedName, nameKey } from '../_lib/players.js';
+import { award, devState, upgradeDev, weekOf, levelProgress, BASE_CAPACITY, DISPATCH_POINTS } from '../_lib/contribution.js';
+import { day } from '../_lib/arena-rules.js';
 
-const CAPACITY = 30;
+const CAPACITY = BASE_CAPACITY;
 const JOIN_MODES = ['open', 'approval'];
 const LIST_LIMIT = 30;
 
@@ -45,14 +47,19 @@ async function removeUnion(env, unionId) {
 }
 
 async function unionView(env, union, viewerRole) {
-  const members = (await env.DB.prepare('SELECT m.role, m.post, m.contribution, m.joined_at, p.public_id, p.name, p.last_seen FROM union_members m JOIN players p ON p.user_id = m.user_id WHERE m.union_id = ?1').bind(union.id).all()).results || [];
+  const members = (await env.DB.prepare('SELECT m.role, m.post, m.contribution, m.week_points, m.week_day, m.joined_at, p.public_id, p.name, p.last_seen FROM union_members m JOIN players p ON p.user_id = m.user_id WHERE m.union_id = ?1').bind(union.id).all()).results || [];
   // 신청 목록은 연합장·부연합장에게만 내려보낸다(다른 연합원 화면은 숫자도 쓰지 않는다).
   const applications = ['leader', 'officer'].includes(viewerRole)
     ? (await env.DB.prepare('SELECT a.created_at, p.public_id, p.name FROM union_applications a JOIN players p ON p.user_id = a.user_id WHERE a.union_id = ?1 ORDER BY a.created_at LIMIT 50').bind(union.id).all()).results || []
     : [];
+  const week = weekOf(day(Date.now()));
+  const log = (await env.DB.prepare('SELECT l.text, l.points, l.created_at, p.name FROM union_log l JOIN players p ON p.user_id = l.user_id WHERE l.union_id = ?1 ORDER BY l.id DESC LIMIT 30').bind(union.id).all()).results || [];
+  const progress = levelProgress(union.exp, union.level);
   return {
+    expPercent: progress.percent, expNext: progress.next,
+    log: log.map(item => ({ name: item.name, text: item.text, points: item.points, at: item.created_at })),
     id: union.id, name: union.name, emblem: parseEmblem(union.emblem), level: union.level, exp: union.exp, notice: union.notice, joinMode: union.join_mode, capacity: union.capacity, createdAt: union.created_at,
-    members: members.map(m => ({ playerId: m.public_id, name: m.name, role: m.role, post: m.post, contribution: m.contribution, joinedAt: m.joined_at, lastSeen: m.last_seen })),
+    members: members.map(m => ({ playerId: m.public_id, name: m.name, role: m.role, post: m.post, contribution: m.contribution, weekContribution: m.week_day === week ? m.week_points : 0, joinedAt: m.joined_at, lastSeen: m.last_seen })),
     applications: applications.map(a => ({ playerId: a.public_id, name: a.name, at: a.created_at }))
   };
 }
@@ -72,8 +79,9 @@ export async function onRequestGet({ request, env }) {
     const player = await ensurePlayer(env, user.id);
     await touchPlayer(env, player);
     const member = await myMembership(env, user.id);
+    if (member) await award(env, user.id, 'attendance');   // 하루 첫 접속 출석
     const union = member ? await unionById(env, member.union_id) : null;
-    return json({ me: { playerId: player.public_id, name: player.name }, union: union ? await unionView(env, union, member.role) : null });
+    return json({ me: { playerId: player.public_id, name: player.name }, union: union ? await unionView(env, union, member.role) : null, dev: await devState(env, user.id) });
   } catch (error) {
     if (isMissingTable(error)) return notReady();
     throw error;
@@ -194,6 +202,30 @@ const ACTIONS = {
     await env.DB.prepare('UPDATE union_members SET role = ?1 WHERE user_id = ?2').bind('leader', target.user_id).run();
     await env.DB.prepare('UPDATE union_members SET role = ?1 WHERE user_id = ?2').bind('officer', user.id).run();
     return json({ status: 'ok' });
+  },
+
+  // 게임에서 끝난 활동을 알린다. 점수는 서버가 정하고, 활동별 일일 상한이 있다. 아레나와 출석은 서버가 직접 쌓는다.
+  async contribute({ env, user, body, member }) {
+    if (!member) return json({ gained: 0 });
+    if (body.kind === 'dispatch') {
+      const base = Object.hasOwn(DISPATCH_POINTS, body.region) ? DISPATCH_POINTS[body.region] : 0;
+      const ratio = Math.min(1, Math.max(0, Number(body.ratio)));
+      return json({ gained: await award(env, user.id, 'dispatch', { points: Math.floor(base * (Number.isFinite(ratio) ? ratio : 0)) }) });
+    }
+    if (body.kind === 'bounty') {
+      let gained = body.free === false ? 0 : await award(env, user.id, 'bounty');
+      if (body.win === true) gained += await award(env, user.id, 'bountyWin');
+      return json({ gained });
+    }
+    return json({ error: 'bad-kind' }, 400);
+  },
+
+  async dev({ env, user, body, member }) {
+    if (!member) return NOT_IN_UNION();
+    const union = await unionById(env, member.union_id);
+    const result = await upgradeDev(env, user.id, body.node, union.level);
+    if (result.error) return fail(result.message, 409, result.error);
+    return json({ ...result, dev: await devState(env, user.id) });
   },
 
   async disband({ env, member }) {

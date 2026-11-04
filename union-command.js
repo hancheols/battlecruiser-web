@@ -143,8 +143,10 @@
     const state = settle(read());
     const mission = state.active;
     if (!mission || mission.status !== 'pending') return { ok: false, message: '받을 보상이 없습니다.' };
-    const { thorium, gold, frame } = mission.payout;
+    const { thorium, gold, frame, recalled } = mission.payout;
     grantResources({ thorium, gold });
+    // 중간 회수는 진행 비율만큼만 기여도가 쌓인다.
+    window.Online?.contribute?.('dispatch', { region: mission.regionId, ratio: recalled ? Math.min(1, (mission.endsAt - mission.startedAt) / DURATION) : 1 });
     if (frame) window.grantExplorationLoot?.(frame, 1);
     state.active = null;
     write(state);
@@ -216,8 +218,11 @@
   function bountyFinish(pirateId, stage, victory) {
     const pirate = pirateById(pirateId);
     const spec = pirate?.stages.find(item => item.stage === Number(stage));
-    if (!spec || !victory) return { reward: 0, next: false };
+    if (!spec) return { reward: 0, next: false };
     const state = readBounty(pirate);
+    // 무료 도전만 기여도가 쌓이고, 오늘 첫 격파에는 더 쌓인다.
+    window.Online?.contribute?.('bounty', { free: state.attempts <= FREE_ATTEMPTS, win: Boolean(victory) && state.cleared.length === 0 });
+    if (!victory) return { reward: 0, next: false };
     // 하루에 모든 단계를 통틀어 한 번만 클리어할 수 있고, 보상도 그때 한 번만 받는다.
     const first = state.cleared.length === 0;
     if (first) state.cleared.push(spec.stage);

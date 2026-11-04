@@ -144,6 +144,7 @@
     if (mineCache && Date.now() - mineCache.at < 1500) return mineCache.data;
     const data = await call('/union');
     mineCache = { at: Date.now(), data };
+    rememberDev(data);
     return data;
   }
   const inTrial = async () => Boolean((await Local().getMyUnion())?.trial);
@@ -161,7 +162,9 @@
     async getMyUnion() {
       if ((await unionMode()) === 'local') return Local().getMyUnion();
       const trial = await Local().getMyUnion();
-      return trial?.trial ? trial : (await fetchMine()).union;
+      if (trial?.trial) return trial;
+      const data = await fetchMine();
+      return data.union ? { ...data.union, dev: data.dev } : null;
     },
     async searchUnions(query = '') {
       if ((await unionMode()) === 'local') return Local().searchUnions(query);
@@ -205,11 +208,38 @@
     disband: routed('disband', () => post('disband'))
   };
 
-  window.Online = { ready, mode, call, arena, ranking, report, bestFleet, commanderName };
+  // ── 기여도·연합 개발 ───────────────────────────────────────────────────────
+  // 활동이 끝나면 서버에 알린다(실패해도 게임 진행에 영향이 없다).
+  async function contribute(kind, detail = {}) {
+    try {
+      if ((await ready()) !== true || await inTrial()) return 0;
+      const { gained } = await post('contribute', { kind, ...detail });
+      return gained || 0;
+    } catch { return 0; }
+  }
+  // 전투에서 쓰는 연합 개발 정보. 전투 시작이 서버를 기다리지 않게 받아 둔 값을 기기에 보관한다(계정이 바뀌면 쓰지 않는다).
+  const DEV_KEY = 'starfleet-cloud-uniondev-v1';
+  const DEV_STEP = { hp: .005, reduction: .002, energy: .004 };
+  function rememberDev(data) {
+    const unionLevel = data.union ? Number(data.union.level) || 1 : 0;
+    try { localStorage.setItem(DEV_KEY, JSON.stringify({ account: accountId(), unionLevel, levels: data.dev?.levels || {} })); } catch {}
+  }
+  function shipDevEffects(ship) {
+    const saved = read(DEV_KEY, null);
+    const none = { hp: 0, reduction: 0, energy: 0 };
+    if (!ship?.type || !saved || saved.account !== accountId() || !saved.unionLevel) return none;
+    const level = node => Math.min(saved.unionLevel, Number(saved.levels?.[node]) || 0);
+    const effect = stat => (level(`class:${ship.type}:${stat}`) + level(`ship:${ship.type}:${ship.name}:${stat}`)) * DEV_STEP[stat];
+    return { hp: effect('hp'), reduction: effect('reduction'), energy: effect('energy') };
+  }
+  window.getUnionDevEffects = shipDevEffects;
+
+  window.Online = { ready, mode, call, arena, ranking, report, bestFleet, commanderName, contribute, rememberDev, unionDevStep: DEV_STEP, upgradeDev: node => post('dev', { node }) };
 
   // 접속하면 이름과 최고 함선을 한 번 알리고, 플레이 중에는 바뀌었을 때만 10분마다 다시 알린다.
   window.addEventListener('load', () => {
     setTimeout(report, 5000);
+    setTimeout(() => { ready().then(value => { if (value === true) fetchMine().catch(() => {}); }); }, 6000);
     setInterval(report, REPORT_EVERY);
   });
 })();

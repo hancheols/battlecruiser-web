@@ -267,7 +267,7 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
     const myRole = union.members.find(m => m.playerId === me.playerId)?.role || 'member';
     const canManage = myRole === 'leader' || myRole === 'officer';
     const members = union.members.slice().sort((a, b) => ['leader', 'officer', 'manager', 'member'].indexOf(a.role) - ['leader', 'officer', 'manager', 'member'].indexOf(b.role) || b.contribution - a.contribution);
-    const topContribution = Math.max(1, ...union.members.map(m => Number(m.contribution) || 0));
+    const topContribution = Math.max(1, ...union.members.map(m => Number(m.weekContribution ?? m.contribution) || 0));
     const rows = members.map(m => {
       const self = m.playerId === me.playerId;
       const canKick = !self && canManage && m.role !== 'leader' && !(myRole === 'officer' && m.role !== 'member');
@@ -276,8 +276,8 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
       const actions = (canKick || canRole) ? `<button type="button" class="union-more" data-more="${esc(m.playerId)}" aria-label="${esc(m.name)} 관리">⋯</button>` : '';
       const menu = open ? `<div class="union-menu">${canRole ? `<button type="button" data-role="${esc(m.playerId)}:${m.role === 'officer' ? 'member' : 'officer'}">${m.role === 'officer' ? '부연합장 해임' : '부연합장 임명'}</button><button type="button" data-transfer="${esc(m.playerId)}">연합장 위임</button>` : ''}${canKick ? `<button type="button" class="danger" data-kick="${esc(m.playerId)}">추방</button>` : ''}</div>` : '';
       const online = Date.now() - Number(m.lastSeen || 0) < 5 * 60000;
-      const share = Math.round(100 * Number(m.contribution || 0) / topContribution);
-      return `<li class="union-member roster-row${self ? ' self' : ''}"><div class="roster-rank">${rankSvg(m.role)}</div><div class="roster-main"><div class="roster-name"><b>${esc(m.name)}</b>${self ? '<em class="roster-me">나</em>' : ''}<span class="role role-${m.role}">${ROLE_LABEL[m.role]}</span>${m.post ? `<small class="post">${esc(m.post)}</small>` : ""}</div><div class="roster-bar" aria-label="기여 ${num(m.contribution)}"><i style="width:${share}%"></i></div></div><div class="roster-meta"><b>${num(m.contribution)}</b><span class="${online ? 'on' : ''}"><i></i>${ago(m.lastSeen)}</span></div>${actions}${menu}</li>`;
+      const share = Math.round(100 * Number(m.weekContribution ?? m.contribution ?? 0) / topContribution);
+      return `<li class="union-member roster-row${self ? ' self' : ''}"><div class="roster-rank">${rankSvg(m.role)}</div><div class="roster-main"><div class="roster-name"><b>${esc(m.name)}</b>${self ? '<em class="roster-me">나</em>' : ''}<span class="role role-${m.role}">${ROLE_LABEL[m.role]}</span>${m.post ? `<small class="post">${esc(m.post)}</small>` : ""}</div><div class="roster-bar" aria-label="기여 ${num(m.contribution)}"><i style="width:${share}%"></i></div></div><div class="roster-meta"><b>${m.weekContribution === undefined ? num(m.contribution) : `주 ${num(m.weekContribution)} · 누적 ${num(m.contribution)}`}</b><span class="${online ? 'on' : ''}"><i></i>${ago(m.lastSeen)}</span></div>${actions}${menu}</li>`;
     }).join('');
     const noticeBox = canManage
       ? `<textarea class="brief-edit" data-notice maxlength="120" rows="3" aria-label="공지">${esc(union.notice)}</textarea><div class="brief-actions"><button type="button" class="fac-btn small" data-save-notice>브리핑 송출</button></div>`
@@ -298,10 +298,10 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
   // 시설 배치: x, y는 장면(540×760) 안의 퍼센트 좌표. 회의장이 맨 위, 나머지는 아래로 내려간다.
   const FACILITIES = [
     { id: 'hall', name: '회의장', desc: '연합원을 확인하고 연합을 운영합니다.', x: 50, y: 16, ready: true },
-    { id: 'thorium', name: '토륨 분배기', desc: '생산된 토륨을 연합원이 나눠 받습니다.', x: 23, y: 76 },
+    { id: 'thorium', name: '토륨 분배기', desc: '점령한 광산에서 생산된 토륨을 이번 주 기여도에 따라 나눠 받습니다.', x: 23, y: 76, ready: true },
     { id: 'tech', name: '기술협력소', desc: '연합원의 도움으로 연구 시간을 줄입니다. 연구에 진행 시간이 생기는 후반 단계에 열립니다.', x: 27, y: 33 },
     { id: 'command', name: '연합사령부', desc: '연합 임무를 의뢰받고 함대를 파견하는 지휘 시설입니다.', x: 78, y: 52, ready: true },
-    { id: 'rnd', name: '연합 R&D센터', desc: '연합 안에서만 개발할 수 있는 함선 업그레이드를 연구합니다.', x: 82, y: 40 },
+    { id: 'rnd', name: '연합 R&D센터', desc: '연합 안에서만 개발할 수 있는 함선 업그레이드를 연구합니다.', x: 82, y: 40, ready: true },
     { id: 'archive', name: '기록관', desc: '시뮬레이션 전투로 함대를 시험하고 기록에 따라 보상을 받습니다.', x: 81, y: 70 }
   ];
   const facility = id => FACILITIES.find(f => f.id === id);
@@ -499,7 +499,7 @@ ${windowLights}
 
   function hubHtml(union, canManage) {
     const pending = union && canManage ? union.applications.length : 0;
-    const exp = union ? Math.min(100, Math.round(union.exp % 1000 / 10)) : 0;
+    const exp = union ? (union.expPercent ?? Math.min(100, Math.round(union.exp % 1000 / 10))) : 0;
     const status = `<div class="ub-crest">${crestSvg(union ? union.emblem : '⊕')}</div><div class="ub-main"><small class="ub-kicker">EARTH UNION · 지구연합</small><b class="ub-name">${esc(union ? union.name : '지구연합')}</b>${union
       ? `<div class="ub-meta"><span class="ub-lv">Lv.${union.level}</span><span>연합원 <em>${union.members.length}</em>/${union.capacity}</span></div><div class="ub-exp" aria-label="연합 경험치 ${exp}%"><i style="width:${exp}%"></i></div>`
       : `<div class="ub-meta"><span>회의장에서 연합에 가입하거나 창설하세요</span></div>`}</div>`;
@@ -529,29 +529,57 @@ ${windowLights}
   const bar = (pct, label = '') => `<div class="fac-bar"><i style="width:${pct}%"></i>${label ? `<span>${label}</span>` : ''}</div>`;
   const stars = n => `<span class="fac-stars">${'★'.repeat(n)}<s>${'★'.repeat(5 - n)}</s></span>`;
 
-  const FACILITY_SCREENS = {
-    thorium: () => `${heroHtml('thorium', '토륨 분배기', previewTag)}
-${panel('연합 토륨 저장고 <small>RESERVOIR</small>', `<div class="fac-split">${gauge(68, '34,000', '/ 50,000')}<ul class="fac-stats"><li><span>시간당 생산</span><b>+1,200</b></li><li><span>다음 분배까지</span><b class="mono">04:12:30</b></li><li><span>분배 대상</span><b>연합원 전원</b></li></ul></div>`)}
-${panel('나의 분배 몫 <small>MY SHARE</small>', `<div class="fac-claim"><div><span>기여도 비례 예상 수령량</span><b>≈ 850 <small>토륨</small></b></div>${soonBtn('수령하기')}</div>${bar(42, '이번 주기 기여도 42%')}`)}
-${panel('분배 기록 <small>LOG</small>', `<ul class="fac-log"><li><span>어제 21:00</span><b>정기 분배</b><em>+820</em></li><li><span>어제 09:00</span><b>정기 분배</b><em>+760</em></li><li><span>2일 전</span><b>연합 보너스</b><em>+1,200</em></li></ul>`)}`,
+  // 서버 연합에서만 쓰는 시설. 기기 저장 모드와 체험 연합에는 안내만 보여 준다.
+  const serverOnly = (id, title, text) => `${heroHtml(id, title)}${panel(title, `<p class="union-hint">${text}</p>`)}`;
+  const RARITY_ORDER = { L: 4, SSR: 3, SR: 2, R: 1 };
+  const DEV_TYPES = [['dreadnought', '중전함'], ['battlecruiser', '전투순양함'], ['destroyer', '구축함']];
+  const DEV_STATS = [['hp', '내구도', '+', '%'], ['reduction', '피해 감소', '+', '%'], ['energy', '핵심기술 발동 에너지', '−', '%']];
+  const DEV_COST = { class: 100, ship: 60 };
+  const DEV_MAX = 10;
+  function thoriumScreen(union, me) {
+    if (!union?.dev) return serverOnly('thorium', '토륨 분배기', '정식 연합에서 이용할 수 있습니다.');
+    const total = union.members.reduce((sum, m) => sum + (Number(m.weekContribution) || 0), 0);
+    const mine = Number(union.members.find(m => m.playerId === me.playerId)?.weekContribution) || 0;
+    const share = total ? Math.round(mine * 100 / total) : 0;
+    return `${heroHtml('thorium', '토륨 분배기')}${panel('연합 토륨 저장고 <small>RESERVOIR</small>', '<p class="union-hint">토륨은 광산을 점령해야 생산됩니다. 아직 점령한 광산이 없습니다.</p>')}${panel('이번 주 나의 기여 <small>MY SHARE</small>', `<div class="fac-claim"><div><span>이번 주 기여도</span><b>${num(mine)}</b></div><div><span>연합 내 비율</span><b>${share}<small>%</small></b></div></div>${bar(share)}<p class="union-hint">수요일 0시에 이번 주 기여도가 초기화됩니다. 토륨은 이 비율에 따라 나눠 받습니다.</p>`)}`;
+  }
+  function devRow(node, scope, stat, label, sign, levels, unionLevel, points) {
+    const level = Number(levels[node]) || 0, step = window.Online?.unionDevStep?.[stat] || 0;
+    const next = level + 1, cost = DEV_COST[scope] * next;
+    const value = n => (n ? `${sign}${(n * step * 100).toFixed(1)}%` : '0%');
+    const reason = level >= DEV_MAX ? '최고 단계' : next > unionLevel ? `연합 Lv.${next} 필요` : points < cost ? `포인트 ${num(cost)} 필요` : '';
+    return `<li class="dev-row"><div><b>${label}</b><small>${level}/${DEV_MAX}단계 · 현재 ${value(Math.min(level, unionLevel))}${level < DEV_MAX ? ` → ${value(next)}` : ''}</small></div><button type="button" class="fac-btn small" data-dev-node="${esc(node)}" ${reason ? 'disabled' : ''}>${reason || `개발 · ${num(cost)}`}</button></li>`;
+  }
+  function rndScreen(union) {
+    if (!union?.dev) return serverOnly('rnd', '연합 R&D센터', '정식 연합에서 이용할 수 있습니다.');
+    const { levels, points } = union.dev;
+    const type = ui.devType || 'dreadnought';
+    const owned = (window.getOwnedFleetVariants?.() || []).filter(ship => !ship.isFrame && ship.type === type);
+    const best = new Map();
+    owned.forEach(ship => { const old = best.get(ship.name); if (!old || (RARITY_ORDER[ship.rarity] || 0) > (RARITY_ORDER[old.rarity] || 0)) best.set(ship.name, ship); });
+    const ships = [...best.values()].sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0) || a.name.localeCompare(b.name, 'ko'));
+    const selected = ships.some(ship => ship.name === ui.devShip) ? ui.devShip : ships[0]?.name;
+    const rows = (scope, prefix) => DEV_STATS.map(([stat, label, sign]) => devRow(`${prefix}:${stat}`, scope, stat, label, sign, levels, union.level, points)).join('');
+    const tabs = DEV_TYPES.map(([id, label]) => `<button type="button" role="tab" aria-selected="${id === type}" data-dev-type="${id}">${label}</button>`).join('');
+    const shipTabs = ships.length ? `<div class="dev-ships">${ships.map(ship => `<button type="button" aria-pressed="${ship.name === selected}" data-dev-ship="${esc(ship.name)}">${esc(ship.name)}</button>`).join('')}</div><ul class="dev-list">${rows('ship', `ship:${type}:${selected}`)}</ul>` : '<p class="union-hint">이 함종의 보유 함선이 없습니다.</p>';
+    return `${heroHtml('rnd', '연합 R&D센터')}${panel('연구 포인트 <small>RESEARCH POINTS</small>', `<div class="fac-claim"><div><span>보유 포인트</span><b>${num(points)}</b></div><div><span>개발 단계 상한</span><b>${union.level}<small>단계</small></b></div></div><p class="union-hint">기여도를 얻으면 같은 양의 포인트가 쌓입니다. 효과는 연합에 있을 때 연합 레벨까지만 적용되며, 시나리오 전투에 적용되고 아레나에는 적용되지 않습니다.</p>`)}<nav class="union-tabs fac-tabs" role="tablist">${tabs}</nav>${panel('함종 개발 <small>CLASS</small>', `<ul class="dev-list">${rows('class', `class:${type}`)}</ul>`)}${panel('함선 개발 <small>SHIP</small>', shipTabs)}`;
+  }
 
+  const FACILITY_SCREENS = {
     tech: () => `${heroHtml('tech', '기술협력소', previewTag)}
 ${panel('오늘의 지원 <small>SUPPORT</small>', `<div class="fac-claim"><div><span>남은 지원 횟수</span><b>7 <small>/ 10</small></b></div><div><span>지원 1회당 단축</span><b>−3% <small>남은 시간</small></b></div></div>${bar(30, '지원 보상 진행도 3/10')}`)}
 ${panel('지원 요청 <small>REQUESTS</small>', ['Sora|함포 출력 강화 Lv.3|02:41:10|62|5/8', 'Kade|보호막 증폭 Lv.2|05:12:44|25|2/8', 'Mira|추진기 개량 Lv.4|00:48:03|88|7/8'].map(row => { const [who, what, left, pct, help] = row.split('|'); return `<div class="fac-card"><div class="fac-card-head"><b>${what}</b><span>${who}</span></div>${bar(pct)}<div class="fac-card-foot"><span>남은 시간 <b class="mono">${left}</b></span><span>지원 ${help}</span>${soonBtn('지원')}</div></div>`; }).join(''))}
 ${panel('나의 연구 <small>MY RESEARCH</small>', `<div class="fac-empty"><p>진행 중인 연구가 없습니다.<br>연구를 시작하면 연합원에게 지원을 요청할 수 있습니다.</p>${soonBtn('지원 요청 보내기')}</div>`)}`,
 
     command: () => window.UnionCommand?.screen(heroHtml('command', '연합사령부')) ?? heroHtml('command', '연합사령부'),
-    rnd: () => `${heroHtml('rnd', '연합 R&D센터', previewTag)}
-${panel('연합 연구 포인트 <small>RESEARCH POINTS</small>', `<div class="fac-claim"><div><span>보유 RP</span><b>12,400 <small>RP</small></b></div><div><span>이번 주 적립</span><b>+3,150</b></div></div>`)}
-${panel('함대 연구 트리 <small>TECH TREE</small>', `<div class="fac-tree">${[['화력', [['함포 출력', 2], ['미사일 장전', 1], ['광선 집속', 0]]], ['방어', [['장갑 강화', 3], ['보호막 증폭', 0], ['피해 분산', 0]]], ['기동', [['추진기 개량', 1], ['회피 기동', 0], ['도약 항법', 0]]]].map(([col, nodes]) => `<div class="fac-tree-col"><h4>${col}</h4>${nodes.map(([n, lv], i) => `<div class="fac-node${lv ? '' : ' locked'}"><b>${n}</b><span class="pips">${Array.from({ length: 5 }, (_, k) => `<i class="${k < lv ? 'on' : ''}"></i>`).join('')}</span><small>Lv.${lv}/5</small></div>${i < nodes.length - 1 ? '<span class="fac-link"></span>' : ''}`).join('')}</div>`).join('')}</div>`)}
-${panel('진행 중인 연구 <small>IN PROGRESS</small>', `<div class="fac-card"><div class="fac-card-head"><b>장갑 강화 Lv.4</b><span>연합 공동 연구</span></div>${bar(42)}<div class="fac-card-foot"><span>완료까지 <b class="mono">11:20:05</b></span>${soonBtn('RP 투입')}</div></div>`)}`,
-
     archive: () => `${heroHtml('archive', '기록관', previewTag)}
 ${panel('시뮬레이션 작전 <small>SIMULATIONS</small>', [['미드웨이 해전', 3, '항모 기동부대 격파', 'A'], ['트라팔가르 해전', 2, '전열 돌파 작전', 'B'], ['명량 해전', 4, '13척으로 버텨라', '—'], ['레이테만 해전', 5, '최대 규모 함대전', '—']].map(([name, lv, desc, best]) => `<div class="fac-op"><div class="fac-op-main"><b>${name}</b><span>${desc}</span>${stars(lv)}</div><div class="fac-op-side"><span>최고 기록</span><b class="grade grade-${best === '—' ? 'none' : best}">${best}</b>${soonBtn('출격')}</div></div>`).join(''))}
 ${panel('기록 보상 <small>REWARDS</small>', `<div class="fac-tiers"><div class="tier s"><b>S</b><span>토륨 2,000</span></div><div class="tier a"><b>A</b><span>토륨 1,200</span></div><div class="tier b"><b>B</b><span>토륨 600</span></div></div>`)}
 ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"><li><i>1</i><b>Sora</b><span>미드웨이 S</span></li><li><i>2</i><b>Kade</b><span>트라팔가르 A</span></li><li><i>3</i><b>Mira</b><span>미드웨이 A</span></li></ol>`)}`
   };
-  function facilityHtml(f) {
+  function facilityHtml(f, union, me) {
+    if (f.id === 'thorium') return `<div class="fac fac-thorium">${thoriumScreen(union, me)}</div>`;
+    if (f.id === 'rnd') return `<div class="fac fac-rnd">${rndScreen(union)}</div>`;
     const screen = FACILITY_SCREENS[f.id];
     return `<div class="fac fac-${f.id}">${screen ? screen() : `${heroHtml(f.id, f.name, previewTag)}${panel(f.name, `<p>${esc(f.desc)}</p>`)}`}</div>`;
   }
@@ -560,11 +588,12 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     const myRole = union.members.find(m => m.playerId === me.playerId)?.role || 'member';
     const canManage = myRole === 'leader' || myRole === 'officer';
     const pending = canManage ? union.applications.length : 0;
-    const exp = Math.min(100, Math.round(union.exp % 1000 / 10));
+    const exp = union.expPercent ?? Math.min(100, Math.round(union.exp % 1000 / 10));
     const online = union.members.filter(m => Date.now() - Number(m.lastSeen || 0) < 5 * 60000).length;
     const total = union.members.reduce((sum, m) => sum + (Number(m.contribution) || 0), 0);
-    const tabs = [['hall', '함대 명단'], ['apps', `입대 신청${pending ? ` <i class="tab-dot">${pending}</i>` : ''}`]];
-    const body = ui.tab === 'apps' ? applicationsHtml(union, canManage) : hallHtml(union, me);
+    const tabs = [['hall', '함대 명단'], ['apps', `입대 신청${pending ? ` <i class="tab-dot">${pending}</i>` : ''}`], ...(union.log ? [['log', '활동 기록']] : [])];
+    const logHtml = () => panel('연합 활동 기록 <small>LOG</small>', union.log.length ? `<ul class="fac-log">${union.log.map(item => `<li><span>${ago(item.at).replace('접속 중', '방금')}</span><b>${esc(item.name)} · ${esc(item.text)}</b><em>+${num(item.points)}</em></li>`).join('')}</ul>` : '<p class="union-empty">아직 활동 기록이 없습니다.</p>');
+    const body = ui.tab === 'apps' ? applicationsHtml(union, canManage) : ui.tab === 'log' && union.log ? logHtml() : hallHtml(union, me);
     const command = `<section class="hall-command"><div class="hall-crest">${crestSvg(union.emblem)}</div><div class="hall-id"><small>UNION FLAGSHIP COMMAND</small><h3>${esc(union.name)}${union.trial ? '<em class="trial-tag">체험</em>' : ""}</h3><div class="hall-lv"><span class="ub-lv">Lv.${union.level}</span><div class="ub-exp"><i style="width:${exp}%"></i></div><em>${exp}%</em></div></div></section><div class="hall-stats"><div><span>연합원</span><b>${union.members.length}<small>/${union.capacity}</small></b></div><div><span>접속 중</span><b class="on">${online}</b></div><div><span>총 기여</span><b>${num(total)}</b></div></div>`;
     return `<div class="fac fac-hall">${heroHtml('hall', '회의장')}${command}<nav class="union-tabs fac-tabs" role="tablist">${tabs.map(([id, label]) => `<button type="button" role="tab" aria-selected="${ui.tab === id}" data-tab="${id}">${label}</button>`).join('')}</nav><div class="union-body">${body}</div></div>`;
   }
@@ -616,7 +645,7 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
       if (!union && (ui.view === "hub" || ui.view === "hall")) host.innerHTML = noUnionHtml(await api.searchUnions(ui.query));
       else if (ui.view === "hub") host.innerHTML = hubHtml(union, myRole === "leader" || myRole === "officer");
       else if (ui.view === "hall") host.innerHTML = memberHtml(union, me);
-      else host.innerHTML = facilityHtml(facility(ui.view) || FACILITIES[1]);
+      else host.innerHTML = facilityHtml(facility(ui.view) || FACILITIES[1], union, me);
       bind(host, union, me);
       if (keep) { if (screenEl) screenEl.scrollTop = keep.y; window.scrollTo(0, keep.wy); }
       fitScene(); requestAnimationFrame(fitScene);
@@ -627,18 +656,21 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
 
   function bind(host, union, me) {
     const on = (selector, handler, event = 'click') => host.querySelectorAll(selector).forEach(el => el.addEventListener(event, handler));
+    const rememberScroll = () => { ui.restoreScroll = { y: document.getElementById('earth-union')?.scrollTop || 0, wy: window.scrollY || 0 }; };
     // 건물 외곽선을 누르면 외곽선이 잠깐 켜진 뒤 해당 시설 화면으로 간다
     on('[data-nz]', e => {
       const id = e.currentTarget.dataset.nz;
       host.querySelector(`.nz[data-fac="${id}"]`)?.classList.add('on');
       setTimeout(() => { ui.view = id; ui.tab = 'hall'; ui.menuFor = ''; render(); }, 480);
     });
+    on('[data-dev-type]', e => { rememberScroll(); ui.devType = e.currentTarget.dataset.devType; ui.devShip = ''; render(); });
+    on('[data-dev-ship]', e => { rememberScroll(); ui.devShip = e.currentTarget.dataset.devShip; render(); });
+    on('[data-dev-node]', e => { rememberScroll(); run(() => window.Online.upgradeDev(e.currentTarget.dataset.devNode), '개발을 완료했습니다.'); });
     on('[data-view]', e => { ui.view = e.currentTarget.dataset.view; ui.tab = 'hall'; ui.menuFor = ''; render(); });
     on('[data-tab]', e => { ui.tab = e.currentTarget.dataset.tab; ui.menuFor = ''; render(); });
     on('[data-mode]', e => { ui.mode = e.currentTarget.dataset.mode; render(); });
     on('[data-query]', e => { ui.query = e.currentTarget.value; render().then(() => { const input = root()?.querySelector('[data-query]'); input?.focus(); input?.setSelectionRange(ui.query.length, ui.query.length); }); }, 'change');
     on('[data-join]', e => run(() => adapter().joinUnion(e.currentTarget.dataset.join), r => r === 'applied' ? '가입 신청을 보냈습니다.' : '연합에 가입했습니다.'));
-    const rememberScroll = () => { ui.restoreScroll = { y: document.getElementById('earth-union')?.scrollTop || 0, wy: window.scrollY || 0 }; };
     const emHolder = el => (el.dataset.emTarget === 'edit' ? ui.edit : ui.draft);
     on('[data-em-part]', e => { rememberScroll(); const holder = emHolder(e.currentTarget); if (!holder) return; const cur = window.UnionEmblem.normalize(holder.emblem); holder.emblem = { ...cur, [e.currentTarget.dataset.emPart]: e.currentTarget.dataset.emValue }; syncDraft(host); render(); });
     on('[data-em-random]', e => { rememberScroll(); const holder = emHolder(e.currentTarget); if (!holder) return; holder.emblem = window.UnionEmblem.random(); syncDraft(host); render(); });

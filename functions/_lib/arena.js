@@ -5,6 +5,7 @@ import { createGrant } from './grants.js';
 import { ensurePlayer } from './players.js';
 import { TIERS, day, isWednesday, tierIndex, delta, rewards, deckPower, tierMail } from './arena-rules.js';
 import { currentSeason, seasonOfWeek } from './seasons.js';
+import { award } from './contribution.js';
 
 export const FREE_PER_DAY = 5;
 export const MATCHES_PER_DAY = 200;   // 티켓은 게임 저장에 있어 서버가 셀 수 없으므로 하루 총 대전 수에 상한을 둔다
@@ -144,6 +145,7 @@ export async function finishMatch(env, match, outcome, now = Date.now()) {
     .bind(change, JSON.stringify(battleDays), match.id, now, match.user_id).run();
   if (match.enemy_user_id && change) await env.DB.prepare('UPDATE arena_players SET score = MAX(0, score - ?1) WHERE user_id = ?2').bind(change, match.enemy_user_id).run();
   await grantTierMail(env, row, Math.max(0, row.score + change));
+  await award(env, match.user_id, 'arena', { now });
   return { delta: change, outcome };
 }
 
