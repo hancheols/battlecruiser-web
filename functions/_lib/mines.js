@@ -19,8 +19,8 @@ export const MINES = [
 ];
 // 규모별 설정: 주간 토륨, 참가 연합 레벨, 해적 함대. 연합원 각자의 최고 피해 합이 해적 체력에 이르면 점령한다.
 export const MINE_SIZES = {
-  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 500000, limit: 90 } },
-  medium: { label: '중형', production: 3500, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 90 } },
+  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 500000, limit: 60 } },
+  medium: { label: '중형', production: 3500, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 60 } },
   large: { label: '대형', production: 7000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 25000000, limit: 60 } }
 };
 export const MAX_MINES_PER_UNION = 1;  // 연합당 점령 상한. 도전 신청도 주 1곳

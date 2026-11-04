@@ -44,3 +44,6 @@
 .mine-back-row{margin:0 0 10px}
 .mine-back-row .fac-back{position:static;display:inline-flex}
 .fac-stats li.me span{color:#fff;font-weight:700}
+.mine-raid-stats{display:flex;flex-direction:column;gap:6px;width:100%}
+.mine-raid-stats span{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-radius:10px;font-family:var(--font-body)}
+.mine-raid-stats b{font-family:var(--font-num)}

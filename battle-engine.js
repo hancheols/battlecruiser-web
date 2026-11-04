@@ -13616,14 +13616,16 @@
     refs.battleResultTitle.textContent = victory ? '해적 격파' : '토벌 종료';
     refs.battleResultStars.textContent = bounty.mine.name;
     refs.battleResultCopy.textContent = victory ? `${bounty.name} 격파` : (reason || `${bounty.name}을(를) 격파하지 못했습니다.`);
-    refs.battleRewards.innerHTML = `<span>이번 피해 <b>${formatNumber(Math.floor(damage))}</b></span>`;
+    const stats = rows => `<div class="mine-raid-stats">${rows.map(([label, value]) => `<span>${label} <b>${value}</b></span>`).join('')}</div>`;
+    refs.battleRewards.innerHTML = stats([['이번 피해', formatNumber(Math.floor(damage))]]);
     addResultButton('광산으로 돌아가기', () => window.UnionMine?.back?.());
     window.UnionMine?.finishBattle?.(bounty.mine.battleId, Boolean(victory), Math.floor(damage)).then(result => {
       const raid = result?.raid;
-      refs.battleRewards.innerHTML = result?.error ? '<span>결과 저장 <b>실패</b></span>'
-        : !raid ? `<span>이번 피해 <b>${formatNumber(Math.floor(damage))}</b></span><span>기록 <b>이미 점령된 광산</b></span>`
-          : `<span>이번 피해 <b>${formatNumber(raid.damage)}</b></span><span>내 최고 <b>${formatNumber(raid.best)}</b></span><span>연합 합계 <b>${formatNumber(raid.total)} / ${formatNumber(raid.need)}</b></span>`;
+      refs.battleRewards.innerHTML = result?.error ? stats([['결과 저장', '실패']])
+        : !raid ? stats([['이번 피해', formatNumber(Math.floor(damage))], ['기록', '이미 점령된 광산']])
+          : stats([['이번 피해', formatNumber(raid.damage)], ['내 최고', formatNumber(raid.best)], ['연합 합계', `${formatNumber(raid.total)} / ${formatNumber(raid.need)}`]]);
       if (raid?.captured) {
+        refs.battleResult.classList.replace('defeat', 'victory');
         refs.battleResultTitle.textContent = '광산 점령';
         refs.battleResultCopy.textContent = `연합원의 최고 피해 합계가 해적 체력에 이르러 ${bounty.mine.name}을(를) 점령했습니다.`;
       }
