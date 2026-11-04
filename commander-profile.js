@@ -77,7 +77,7 @@
     window.deliverCaptainMail({id:'welcome-gift-2026-01',title:'함대에 오신 것을 환영합니다',sender:'연합 사령부',body:'지휘관님, 전선에 합류해 주셔서 감사합니다. 아래 보급품을 수령해 함대를 정비하고 작전을 시작하세요.',rewards:{gold:10000,thorium:1000,scoutTron:20,researchStaff:20}});
   }
   // 약관·처리방침 사전 공지. 시행일(2026년 12월 9일 0시 KST) 전까지 접속한 모든 이용자에게 한 번 보낸다.
-  const ONLINE_NOTICE_UNTIL=Date.UTC(2026,11,1,15);
+  const ONLINE_NOTICE_UNTIL=Date.UTC(2026,11,8,15);
   function ensureOnlineNotice(){
     if(Date.now()>=ONLINE_NOTICE_UNTIL)return;
     const sent=window.deliverCaptainMail({id:'notice-online-20261202-2',title:'개인정보 처리방침·이용약관 변경 사전 안내(연락처 정정)',sender:'TimesWitch 운영팀',body:`지휘관님, 2026년 12월 9일 이후 랭킹·아레나 대전·연합이 다른 함장과 함께 쓰는 기능으로 바뀝니다. 이에 맞춰 개인정보 처리방침과 이용약관이 2026년 12월 9일부터 바뀝니다.
@@ -100,6 +100,7 @@
 전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
 문의·신고: hansryan19@gmail.com (이전 안내의 이메일 주소를 정정했습니다.)`});
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
+    window.deliverCaptainMail({id:'notice-online-date-20261209',title:'개인정보 처리방침·이용약관 시행일 변경 안내',sender:'TimesWitch 운영팀',body:'지휘관님, 앞서 안내드린 개인정보 처리방침과 이용약관 변경의 시행일을 2026년 12월 2일에서 2026년 12월 9일로 변경합니다. 랭킹·아레나 대전·연합·토륨광산 기능은 이날 이후 시작합니다.\n\n전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html\n문의·신고: hansryan19@gmail.com'});
     window.deliverCaptainMail({id:'notice-online-contribution-mine-20261202',title:'개인정보 처리방침·이용약관 추가 안내(연합 기여도·토륨광산)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 9일로 같습니다.
 
 연합의 기여도와 최근 활동 기록(함장 이름, 활동 종류, 점수, 시각)이 같은 연합의 연합원에게 표시됩니다. 활동 기록은 30일 동안 보관합니다. 계정 번호, 이메일, 보유 재화는 보이지 않습니다.
