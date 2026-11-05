@@ -174,8 +174,12 @@
     document.body.append(panel);
     panel.focus();
   }
+  // 메일을 열었다 돌아와도 목록의 보던 위치를 유지한다.
+  let mailListScroll=0;
+  const rememberMailScroll=()=>{const rows=overlay?.querySelector('.captain-mail-rows');if(rows)mailListScroll=rows.scrollTop;};
   function paintMailDetail(id){
     const mails=readMails(),mail=mails.find(entry=>entry.id===id);if(!overlay||!mail)return;
+    rememberMailScroll();
     if(!mail.readAt){mail.readAt=Date.now();saveMails(mails);window.dispatchEvent(new Event('captain-mail-updated'));}
     window.dispatchEvent(new CustomEvent('captain-mail-opened',{detail:{id}}));
     const hasRewards=Object.keys(mailRewards(mail)).length>0;
@@ -192,7 +196,7 @@
     const mails=readMails();
     const unread=unreadMailCount();
     const canClaimAll=unread>0||mails.some(mail=>!mail.claimedAt&&Object.keys(mailRewards(mail)).length);
-    return `<div class="captain-mail-list"><div class="captain-mail-list-heading"><div><strong>받은 메일</strong><small>연합 사령부에서 보낸 소식과 보급품</small></div><button type="button" class="captain-mail-claim-all" data-mail-claim-all ${canClaimAll?'':'disabled'}>모두 받기</button><span>${unread?`새 메일 ${format(unread)}건`:'모두 확인함'}</span></div>${mails.length?mails.map(mail=>{const hasRewards=Object.keys(mailRewards(mail)).length>0;const status=mail.claimedAt?'수령 완료':hasRewards?'보급품':'공지';return `<button type="button" class="captain-mail-row${mail.readAt?'':' unread'}" data-mail-open="${escapeHtml(mail.id)}"><span class="captain-mail-row-icon" aria-hidden="true">${hasRewards?'✦':'✉'}</span><span class="captain-mail-row-main"><span class="captain-mail-row-top"><b>${escapeHtml(mail.title)}</b>${!mail.readAt?'<i class="captain-mail-new">!</i>':''}</span><small>${escapeHtml(mail.sender||'연합 사령부')} · ${new Date(mail.createdAt||Date.now()).toLocaleDateString('ko-KR')}</small></span><em class="${mail.claimedAt?'claimed':''}">${status}<span aria-hidden="true">›</span></em></button>`;}).join(''):'<p class="captain-mail-empty">도착한 메일이 없습니다.</p>'}</div>`;
+    return `<div class="captain-mail-list"><div class="captain-mail-list-heading"><div><strong>받은 메일</strong><small>연합 사령부에서 보낸 소식과 보급품</small></div><button type="button" class="captain-mail-claim-all" data-mail-claim-all ${canClaimAll?'':'disabled'}>모두 받기</button><span>${unread?`새 메일 ${format(unread)}건`:'모두 확인함'}</span></div><div class="captain-mail-rows">${mails.length?mails.map(mail=>{const hasRewards=Object.keys(mailRewards(mail)).length>0;const status=mail.claimedAt?'수령 완료':hasRewards?'보급품':'공지';return `<button type="button" class="captain-mail-row${mail.readAt?'':' unread'}" data-mail-open="${escapeHtml(mail.id)}"><span class="captain-mail-row-icon" aria-hidden="true">${hasRewards?'✦':'✉'}</span><span class="captain-mail-row-main"><span class="captain-mail-row-top"><b>${escapeHtml(mail.title)}</b>${!mail.readAt?'<i class="captain-mail-new">!</i>':''}</span><small>${escapeHtml(mail.sender||'연합 사령부')} · ${new Date(mail.createdAt||Date.now()).toLocaleDateString('ko-KR')}</small></span><em class="${mail.claimedAt?'claimed':''}">${status}<span aria-hidden="true">›</span></em></button>`;}).join(''):'<p class="captain-mail-empty">도착한 메일이 없습니다.</p>'}</div></div>`;
   }
   const persistTotal=()=>{try{localStorage.setItem(TOTAL_KEY,JSON.stringify({earned:total}));}catch{}};
   // Only successful acquisitions count; refunds and spending do not change the lifetime total.
@@ -233,6 +237,7 @@
   }
   function close(){const previous=overlay?.opener;overlay?.remove();overlay=null;previous?.focus();window.dispatchEvent(new Event('captain-profile-closed'));}
   function paintDialog(view='profile'){
+    rememberMailScroll();if(view!=='mail')mailListScroll=0;
     if(!overlay)return;
     overlay.dataset.profileView=view;
     delete overlay.dataset.settingsActive;
@@ -264,6 +269,7 @@
     overlay.innerHTML=`<section class="captain-select-dialog captain-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="captain-select-title"><header><div><small>UNITED STAR FLEET</small><h2 id="captain-select-title">${view==='profile'?'함장 프로필':view==='settings'?'설정':view==='mail'?'메일함':'Membership'}</h2></div><button type="button" data-captain-close aria-label="닫기">×</button></header>${content}</section>`;
     overlay.querySelector('[data-edit-name]')?.addEventListener('click',()=>paintDialog('edit'));
     overlay.querySelectorAll('[data-profile-view]').forEach(button=>button.addEventListener('click',()=>paintDialog(button.dataset.profileView)));
+    const mailRows=overlay.querySelector('.captain-mail-rows');if(mailRows)mailRows.scrollTop=mailListScroll;
     overlay.querySelectorAll('[data-mail-open]').forEach(button=>button.addEventListener('click',()=>paintMailDetail(button.dataset.mailOpen)));
     overlay.querySelector('[data-mail-claim-all]')?.addEventListener('click',()=>{
       const result=claimAllMails();

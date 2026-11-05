@@ -46,6 +46,12 @@
 .captain-profile-mail-alert{position:absolute;right:7px;top:6px}
 .captain-mail-dialog{width:min(100%,390px)}
 .captain-mail-list{gap:10px;padding:17px 0 1px}
+/* 메일함: 제목과 모두 받기는 고정하고 메일 목록만 스크롤한다 */
+.captain-select-overlay[data-profile-view="mail"] .captain-select-dialog{display:flex;flex-direction:column;overflow:hidden}
+.captain-select-overlay[data-profile-view="mail"] .captain-select-dialog>header{flex:none}
+.captain-select-overlay[data-profile-view="mail"] .captain-mail-list{display:flex;flex-direction:column;flex:0 1 auto;min-height:0}
+.captain-mail-list-heading{flex:none}
+.captain-mail-rows{display:grid;gap:10px;align-content:start;flex:0 1 auto;min-height:0;padding:2px 8px 2px 2px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#70899d #0b1420}
 .captain-mail-list-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;padding:0 1px 10px;border-bottom:1px solid #7d9bb744}
 .captain-mail-list-heading>div{display:grid;gap:4px;flex:1;min-width:0}
 .captain-mail-claim-all{flex:none;min-height:30px;padding:5px 11px;border:1px solid #e3c38a;border-radius:20px;background:linear-gradient(125deg,#917446,#3a3942);color:#fff0d0;font:800 11px/1.2 var(--font-body);cursor:pointer}
