@@ -1054,3 +1054,4 @@
 
 /* 폭발 범위 그림: 판정 범위(fieldPx)와 같은 배율. 애니메이션의 transform 과 겹치지 않도록 scale 속성을 쓴다 */
 .fx-explosion,.fx-varyag-splash,.fx-kddx-splash,.fx-pandora-electric-field,.hyperion-emp-field{scale:var(--battle-fx-scale,1)}
+.fx-pegasus-silver-lance,.fx-angela-sword{scale:var(--battle-fx-scale-x,1)}

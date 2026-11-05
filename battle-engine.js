@@ -340,7 +340,7 @@
   const PEGASUS_LANCE = { interval: 5000, travel: 900, length: 100, pierceHits: 1000, grazeHits: 300 };
   const PLANET_DESTROYER_LASER = { hits: 350, shots: 5, shotInterval: 200, reload: 2000, travel: 110 };
   const PLANET_DESTROYER_FIGHTER = { ...BASTION_FIGHTER, hits: 150 };
-  const PLANET_DESTROYER_SUPERNOVA = { move: 3000, charge: 2000, fire: 5000, tick: 1000, hits: 2000, stun: 3000, return: 2000, beamWidth: 84 };
+  const PLANET_DESTROYER_SUPERNOVA = { move: 3000, charge: 2000, fire: 5000, tick: 1000, hits: 2000, stun: 3000, return: 2000, beamWidth: 72 };
   const PANDORA_ATTACK = { interval: 1000, missileHits: 300, laserHits: 500, cannonHits: 250, missileTravel: 420 };
   const PANDORA_MAIN = { charge: 2000, travel: 650, missileHits: 500, burstDelay: 1000, burstRadius: 45, burstDuration: 1500, burstHits: 300, hopeHitsPerSecond: 1000 };
   // 미사일은 0.4초마다 한 발씩 세 발사구를 돌아가며 쏜다. 용맹(5성)이면 피해가 40% 늘어난다.
@@ -438,10 +438,16 @@
   const FIELD_BASE_SIZE = Math.sqrt(390 * 676);
   const fieldScale = () => Math.sqrt((refs.field?.clientWidth || 390) * (refs.field?.clientHeight || 676)) / FIELD_BASE_SIZE;
   const fieldPx = value => value * fieldScale();
+  // 위로 뻗는 직선(관통, 광선)은 맞는 적의 수가 전투판 가로폭에 달려 있어 가로폭 390px 기준으로 맞춘다.
+  const fieldWidthPx = value => value * (refs.field?.clientWidth || 390) / 390;
   // 폭발 그림도 같은 배율로 그린다(battle-engine.css 의 --battle-fx-scale).
   function syncBattleFxScale() {
-    const scale = fieldScale().toFixed(3);
-    if (refs.field && refs.field.dataset.fxScale !== scale) { refs.field.dataset.fxScale = scale; refs.field.style.setProperty('--battle-fx-scale', scale); }
+    const scale = fieldScale().toFixed(3), scaleX = fieldWidthPx(1).toFixed(3), key = scale + '/' + scaleX;
+    if (refs.field && refs.field.dataset.fxScale !== key) {
+      refs.field.dataset.fxScale = key;
+      refs.field.style.setProperty('--battle-fx-scale', scale);
+      refs.field.style.setProperty('--battle-fx-scale-x', scaleX);
+    }
   }
   const timers = new Set();
   let state = null;
@@ -5134,9 +5140,8 @@
       hostileAllyTargets().forEach(ally => {
         if (absorbed || struck.has(ally) || ally.dead) return;
         const point = pointOf(ally);
-        const rect = ally.el?.getBoundingClientRect();
-        const radius = rect?.width ? (rect.width + rect.height) * .2 : 22;
-        if (Math.hypot((point.x - x) * width, (point.y - y) * height) > radius + 9) return;
+        const radius = ally.el ? 38 : 22;
+        if (Math.hypot((point.x - x) * width, (point.y - y) * height) > fieldPx(radius + 9)) return;
         struck.add(ally);
         if (ally.isCelestialShield) {
           hitCelestialShield(ally, point, bug, PLASMA_BUG.damage);
@@ -6214,10 +6219,10 @@
         const relativeY = target.y * field.height - sword.start.y;
         const along = relativeX * sword.dx + relativeY * sword.dy;
         const bounds = target.el?.getBoundingClientRect();
-        const radius = Math.min(48, Math.max(bounds?.width || 18, bounds?.height || 18) * .35);
-        if (along > tipDistance + radius || along < tipDistance - ANGELA_SWORD.length - radius) continue;
+        const radius = fieldWidthPx(Math.min(48, Math.max(bounds?.width || 18, bounds?.height || 18) * .35));
+        if (along > tipDistance + radius || along < tipDistance - fieldWidthPx(ANGELA_SWORD.length) - radius) continue;
         const offset = Math.abs(relativeX * sword.dy - relativeY * sword.dx);
-        if (offset > ANGELA_SWORD.pierceWidth + radius * .5) continue;
+        if (offset > fieldWidthPx(ANGELA_SWORD.pierceWidth) + radius * .5) continue;
         sword.hit.add(target);
         shooterDamage(target, ANGELA_SWORD.hits, sword.owner);
         createExplosion(pointOf(target), 'laser');
@@ -7232,7 +7237,7 @@
   function planetDestroyerBeamTouches(target, centerX, beamStartY, beamWidth) {
     const field = refs.field.getBoundingClientRect();
     const targetBounds = target.el?.getBoundingClientRect();
-    const radius = Math.min(60, Math.max(targetBounds?.width || 18, targetBounds?.height || 18) * .38);
+    const radius = fieldWidthPx(Math.min(60, Math.max(targetBounds?.width || 18, targetBounds?.height || 18) * .38));
     const y = target.y * field.height;
     if (y < -radius || y > beamStartY + radius) return false;
     const halfWidth = beamWidth * .5;
@@ -7287,7 +7292,7 @@
       ally.el?.classList.add('planet-destroyer-firing');
       const field = refs.field.getBoundingClientRect();
       const hull = ally.facingShell?.querySelector('.planet-destroyer-topview')?.getBoundingClientRect();
-      const beamWidth = hull?.width || profile.beamWidth;
+      const beamWidth = fieldWidthPx(profile.beamWidth);
       // 충전 구체 중심에서 레이저가 위쪽 화면 끝까지 뻗는다.
       const beamStartY = Math.max(0, Math.min(field.height, (hull?.top || field.top + destination.y * field.height - 76) - field.top + 4));
       const beam = document.createElement('i');
@@ -8786,7 +8791,7 @@
     const distance = Math.hypot(center.x - (start.x + projection * dx), center.y - (start.y + projection * dy));
     const bounds = target.el?.getBoundingClientRect();
     const targetRadius = Math.max(bounds?.width || 18, bounds?.height || 18) * .36;
-    return distance <= beamWidthPx / 2 + targetRadius;
+    return distance <= fieldWidthPx(beamWidthPx / 2 + targetRadius);
   }
 
   function pegasusMuzzlePoint(ally, localX, localY) {
@@ -8945,11 +8950,11 @@
         const relativeY = target.y * field.height - lance.start.y;
         const along = relativeX * lance.dx + relativeY * lance.dy;
         const bounds = target.el?.getBoundingClientRect();
-        const radius = Math.min(48, Math.max(bounds?.width || 18, bounds?.height || 18) * .35);
-        if (along > tipDistance + radius || along < tipDistance - PEGASUS_LANCE.length - radius) continue;
+        const radius = fieldWidthPx(Math.min(48, Math.max(bounds?.width || 18, bounds?.height || 18) * .35));
+        if (along > tipDistance + radius || along < tipDistance - fieldWidthPx(PEGASUS_LANCE.length) - radius) continue;
         const offset = Math.abs(relativeX * lance.dy - relativeY * lance.dx);
-        const pierceWidth = 13 + radius * .5;
-        const grazeWidth = 38 + radius * .7;
+        const pierceWidth = fieldWidthPx(13) + radius * .5;
+        const grazeWidth = fieldWidthPx(38) + radius * .7;
         if (offset > grazeWidth) continue;
         lance.hit.add(target);
         shooterDamage(target, offset <= pierceWidth ? PEGASUS_LANCE.pierceHits : PEGASUS_LANCE.grazeHits, lance.owner);
@@ -9817,7 +9822,7 @@
       const dx = (point.x - bow.x) * width;
       const dy = (point.y - bow.y) * height;
       const distance = Math.hypot(dx, dy) || 1;
-      const reach = target.kind === 'boss' ? 60 : 0;
+      const reach = target.kind === 'boss' ? fieldPx(60) : 0;
       if (forward * dy < 0 || Math.abs(dx) > forward * dy + reach || distance > range + reach) return;
       schedule(() => {
         if (!state || state.status !== 'combat' || target.dead) return;
@@ -9834,7 +9839,7 @@
     const angle = Math.atan2(forward.y * height, forward.x * width) + Math.PI / 2;
     const pixelForward = Math.hypot(forward.x * width, forward.y * height) || 1;
     const bow = { x: to.x + forward.x * config.bowOffset / pixelForward, y: to.y + forward.y * config.bowOffset / pixelForward };
-    const range = Math.max(78, height * ASSAULT_TURTLE_CHARGE.ramLength);
+    const range = Math.max(fieldPx(78), height * ASSAULT_TURTLE_CHARGE.ramLength);
     const travel = range / config.speed;
     turtleBowFlash(bow, 'blue', angle);
     turtleImpactPunch();
