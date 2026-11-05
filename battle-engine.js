@@ -13623,7 +13623,7 @@
       const raid = result?.raid;
       refs.battleRewards.innerHTML = result?.error ? stats([['결과 저장', '실패']])
         : !raid ? stats([['이번 피해', formatNumber(Math.floor(damage))], ['기록', '이미 점령된 광산']])
-          : stats([['이번 피해', formatNumber(raid.damage)], ['내 최고', formatNumber(raid.best)], ['연합 합계', `${formatNumber(raid.total)} / ${formatNumber(raid.need)}`]]);
+          : stats([['이번 피해', formatNumber(raid.damage)], ['내 최고', `${formatNumber(raid.best)} (상한 ${formatNumber(raid.cap)})`], ['연합 합계', `${formatNumber(raid.total)} / ${formatNumber(raid.need)}`]]);
       if (raid?.captured) {
         refs.battleResult.classList.replace('defeat', 'victory');
         refs.battleResultTitle.textContent = '광산 점령';

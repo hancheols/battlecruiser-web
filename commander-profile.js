@@ -150,13 +150,28 @@
   // 모든 메일을 읽음으로 처리하고 첨부 보급품을 한 번에 받는다.
   function claimAllMails(){
     const pending=readMails().filter(mail=>!mail.claimedAt&&Object.keys(mailRewards(mail)).length).map(mail=>mail.id);
-    let claimed=0;
-    for(const id of pending){if(!claimMailReward(id))return {claimed,read:0,failed:true};claimed+=1;}
+    let claimed=0;const totals={};
+    for(const id of pending){
+      const rewards=mailRewards(readMails().find(mail=>mail.id===id));
+      if(!claimMailReward(id))return {claimed,read:0,failed:true,totals};
+      claimed+=1;
+      for(const [key,amount] of Object.entries(rewards))totals[key]=(totals[key]||0)+amount;
+    }
     const mails=readMails(),unread=mails.filter(mail=>!mail.readAt),now=Date.now();
     unread.forEach(mail=>{mail.readAt=now;});
-    if(unread.length&&!saveMails(mails))return {claimed,read:0,failed:true};
+    if(unread.length&&!saveMails(mails))return {claimed,read:0,failed:true,totals};
     window.dispatchEvent(new Event('captain-mail-updated'));
-    return {claimed,read:unread.length+claimed,failed:false};
+    return {claimed,read:unread.length+claimed,failed:false,totals};
+  }
+  // 모두 받기 결과: 받은 종류와 총량을 아이콘으로 보여 주고, 어디든 누르면 닫는다.
+  function showMailTotals(totals){
+    document.querySelector('.captain-mail-total')?.remove();
+    const panel=document.createElement('button');
+    panel.type='button';panel.className='captain-mail-total';
+    panel.innerHTML=`<span class="captain-mail-total-card"><small>COMMANDER INBOX</small><b>보급품 수령 완료</b><span class="captain-mail-total-list">${Object.entries(totals).map(([key,amount])=>`<span class="captain-mail-total-item"><img src="${rewardIcons[key]}" alt="" /><span>${rewardLabel(key)}</span><strong>× ${format(amount)}</strong></span>`).join('')}</span><em>아무 곳이나 누르면 닫힙니다</em></span>`;
+    panel.addEventListener('click',()=>panel.remove());
+    document.body.append(panel);
+    panel.focus();
   }
   function paintMailDetail(id){
     const mails=readMails(),mail=mails.find(entry=>entry.id===id);if(!overlay||!mail)return;
@@ -252,7 +267,8 @@
     overlay.querySelector('[data-mail-claim-all]')?.addEventListener('click',()=>{
       const result=claimAllMails();
       if(result.failed)window.notice?.('저장하지 못했습니다. 다시 시도해주세요.');
-      else window.notice?.(result.claimed?`메일 보급품 ${format(result.claimed)}건을 물자창고에 보관했습니다.`:'모든 메일을 확인했습니다.');
+      else if(!result.claimed)window.notice?.('모든 메일을 확인했습니다.');
+      if(result.claimed)showMailTotals(result.totals);
     });
     overlay.querySelector('[data-open-membership]')?.addEventListener('click',()=>{close();window.openAlienShop?.('featured');setTimeout(()=>document.querySelector('.alien-shop-token-stall')?.scrollIntoView({behavior:'smooth',block:'center'}),80);});
     overlay.querySelector('[data-captain-close]')?.focus();

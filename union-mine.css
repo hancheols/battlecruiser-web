@@ -16,8 +16,6 @@
 .mine-bar{position:relative;height:18px;margin:8px 0;overflow:hidden;border:1px solid rgba(174,230,255,.25);border-radius:9px;background:rgba(4,10,26,.7)}
 .mine-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#4fb6ff,#8ff0ff)}
 .mine-bar span{position:relative;display:block;text-align:center;color:#fff;font:600 11px/16px var(--font-body);text-shadow:0 1px 2px #000}
-.mine-ships{display:grid;gap:4px;margin:0 0 8px;padding:0;list-style:none;color:#eef8ff;font:600 13px/1.4 var(--font-body)}
-.mine-ships small{color:#a9c3dd;font-weight:400}
 .mine-versus{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mine-versus>div{display:grid;gap:2px;min-width:0;padding:8px;border:1px solid rgba(174,230,255,.2);border-radius:8px;text-align:center}
 .mine-versus small{color:#a9c3dd;font:400 11px var(--font-body)}
@@ -29,10 +27,17 @@
 .mine-target b{color:#fff;font:600 13px var(--font-body)}
 .mine-target small{color:#a9c3dd;font:400 11px/1.35 var(--font-body)}
 .mine-target .fac-btn{flex:none}
-.mine-slots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.mine-slot,.mine-pick{display:grid;gap:2px;min-height:58px;padding:8px;border:1px solid rgba(174,230,255,.25);border-radius:10px;background:rgba(8,16,40,.72);color:#eef8ff;text-align:left;font-family:var(--font-body);cursor:pointer}
-.mine-slot b,.mine-pick b{font-size:13px}
-.mine-slot small,.mine-pick small{color:#a9c3dd;font-size:11px}
+.mine-deck{margin:0 0 10px}
+.mine-deck .arena-ship:not(:disabled){cursor:pointer}
+.mine-deck .arena-ship:disabled{opacity:1}
+.mine-deck .arena-ship b{font-family:var(--font-body)}
+.mine-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mine-pick{display:grid;justify-items:center;gap:2px;padding:8px;border:1px solid rgba(174,230,255,.25);border-radius:10px;background:linear-gradient(180deg,#293f53e8,#0a1421);color:#eef8ff;text-align:center;font-family:var(--font-body);cursor:pointer}
+.mine-pick img{width:100%;height:72px;object-fit:contain;filter:drop-shadow(0 4px 5px #000b)}
+.mine-pick b{font-size:13px}
+.mine-pick small{color:#e6c980;font-size:11px}
+.mine-target-actions{display:flex;flex:none;flex-direction:column;gap:6px}
+.mine-raid-actions{flex-wrap:wrap;gap:8px}
 .mine-pick:disabled{opacity:.5;cursor:default}
 .mine-note{margin:0 0 10px;padding:8px 10px;border:1px solid rgba(255,210,122,.6);border-radius:8px;color:#ffe2a3;font:600 12px/1.4 var(--font-body)}
 .mine-shares{display:grid;gap:4px;margin:0;padding:0;list-style:none}

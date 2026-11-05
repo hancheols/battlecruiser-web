@@ -18,12 +18,15 @@ export const MINES = [
   { id: 'europa', name: '유로파 광맥', size: 'small' }
 ];
 // 규모별 설정: 주간 토륨, 참가 연합 레벨, 해적 함대. 연합원 각자의 최고 피해 합이 해적 체력에 이르면 점령한다.
+// 측정값: L등급 3척 함대가 60초에 약 30만 피해. 같은 함대 기준 소형 4명, 중형 17명, 대형은 Lv.4 정원 33명이 평균 45만을 내야 한다.
 export const MINE_SIZES = {
-  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 500000, limit: 60 } },
+  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 1000000, limit: 60 } },
   medium: { label: '중형', production: 3500, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 60 } },
-  large: { label: '대형', production: 7000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 25000000, limit: 60 } }
+  large: { label: '대형', production: 7000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 15000000, limit: 60 } }
 };
 export const MAX_MINES_PER_UNION = 1;  // 연합당 점령 상한. 도전 신청도 주 1곳
+export const RECORD_CAP_RATE = .3;     // 1인 기록은 해적 체력의 30%까지만 합계에 반영한다
+export const MINE_RANK = { small: 1, medium: 2, large: 3 };
 export const SORTIES_PER_DAY = 3;
 export const MIN_FLEETS = 5;           // 도전 신청과 수비 보너스에 필요한 등록 방어 함대 수
 export const PAYOUT_CAP = 1000;        // 1인 주간 분배 상한. 넘은 몫은 저장고에 남는다
@@ -36,6 +39,13 @@ const INACTIVE_MS = 14 * 86400000;     // 점령 연합이 이 기간 아무도 
 const FAST_WIN_MS = 8000;
 
 export const mineById = id => MINES.find(mine => mine.id === id) || null;
+export const recordCap = mine => Math.floor(MINE_SIZES[mine.size].pirate.hp * RECORD_CAP_RATE);
+// 광산이 없거나 지금보다 큰 광산만 얻을 수 있다. 얻으면 옛 광산은 해적에게 돌아간다.
+export const canTakeMine = (held, mine) => !held || MINE_RANK[mine.size] > MINE_RANK[held.size];
+export async function heldMineOf(env, unionId) {
+  const row = await env.DB.prepare('SELECT mine_id FROM mine_state WHERE union_id = ?1').bind(unionId).first();
+  return row ? mineById(row.mine_id) : null;
+}
 export const holdBonus = defended => Math.max(0, HOLD_BONUS - HOLD_BONUS_DECAY * defended);
 export const warPoints = (win, myGrade, targetGrade) => win ? WIN_POINTS + Math.min(MAX_GRADE_BONUS, Math.max(0, (targetGrade - myGrade) * GRADE_BONUS_RATE)) : LOSS_POINTS;
 
@@ -64,7 +74,7 @@ async function settleWeek(env, oldWeek, nextWeek, now) {
   const open = 'EXISTS (SELECT 1 FROM mine_week_state WHERE id = 1 AND week = ?1)';
   const statements = [];
   const held = (await env.DB.prepare('SELECT s.mine_id, s.union_id, s.defended FROM mine_state s').bind().all()).results || [];
-  const production = new Map();
+  const production = new Map(), taken = new Map();
   for (const row of held) {
     const mine = mineById(row.mine_id);
     if (!mine) continue;
@@ -78,10 +88,16 @@ async function settleWeek(env, oldWeek, nextWeek, now) {
     const war = await env.DB.prepare('SELECT * FROM mine_wars WHERE week = ?1 AND mine_id = ?2').bind(oldWeek, row.mine_id).first();
     if (!war) continue;
     const standing = await warStanding(env, war);
-    const challengerFree = !held.some(other => other.union_id === war.challenger_id);   // 그사이 다른 광산을 얻었으면 이 광산은 가져갈 수 없다
-    const challengerWins = challengerFree && standing.challenger > standing.holder;   // 동점이면 점령 연합 유지
+    const challengerHeld = held.find(other => other.union_id === war.challenger_id);
+    const challengerWins = canTakeMine(challengerHeld && mineById(challengerHeld.mine_id), mine) && standing.challenger > standing.holder;   // 동점이면 점령 연합 유지
+    if (challengerWins) taken.set(row.mine_id, war.challenger_id);
     statements.push(env.DB.prepare(`UPDATE mine_wars SET winner_id = ?3 WHERE week = ?1 AND mine_id = ?2 AND ${open.replace('?1', '?1')}`).bind(oldWeek, row.mine_id, challengerWins ? war.challenger_id : war.holder_id));
     statements.push(env.DB.prepare(`UPDATE mine_state SET union_id = ?3, defended = ?4, since_week = ?5 WHERE mine_id = ?2 AND ${open}`).bind(oldWeek, row.mine_id, challengerWins ? war.challenger_id : war.holder_id, challengerWins ? 0 : row.defended + 1, challengerWins ? nextWeek : war.week));
+  }
+  // 더 큰 광산을 얻은 연합의 옛 광산은 해적에게 돌아간다. 옛 광산도 쟁탈전에서 빼앗겼다면 새 주인이 갖는다.
+  for (const unionId of taken.values()) {
+    const old = held.find(other => other.union_id === unionId);
+    if (old && !taken.has(old.mine_id)) statements.push(env.DB.prepare(`DELETE FROM mine_state WHERE mine_id = ?2 AND ${open}`).bind(oldWeek, old.mine_id));
   }
   // 저장고에 이번 주 생산을 더하고, 이번 주 기여 비율로 나눈다. 1인 상한을 넘거나 나누고 남은 몫은 저장고에 남긴다.
   for (const [unionId, amount] of production) {
@@ -113,7 +129,8 @@ async function startWars(env, week, now) {
     const applicants = (await env.DB.prepare('SELECT union_id FROM mine_challenges WHERE week = ?1 AND mine_id = ?2').bind(week, row.mine_id).all()).results || [];
     const candidates = [];
     for (const applicant of applicants) {
-      if (held.some(other => other.union_id === applicant.union_id)) continue;   // 신청 뒤 토벌로 광산을 얻은 연합은 뺀다
+      const applicantHeld = held.find(other => other.union_id === applicant.union_id);
+      if (!canTakeMine(applicantHeld && mineById(applicantHeld.mine_id), mineById(row.mine_id))) continue;   // 신청 뒤 토벌로 같거나 큰 광산을 얻은 연합은 뺀다
       if (await env.DB.prepare('SELECT id FROM unions WHERE id = ?1').bind(applicant.union_id).first() && await fleetCount(env, applicant.union_id) >= MIN_FLEETS) candidates.push(applicant.union_id);
     }
     if (!candidates.length) continue;
@@ -191,15 +208,20 @@ export async function raidTotal(env, mineId, unionId) {
   const row = await env.DB.prepare('SELECT COALESCE(SUM(r.best), 0) AS total FROM mine_raids r JOIN union_members m ON m.user_id = r.user_id AND m.union_id = r.union_id WHERE r.mine_id = ?1 AND r.union_id = ?2').bind(mineId, unionId).first();
   return Number(row?.total) || 0;
 }
-// 토벌 기록: 한 번의 피해는 해적 체력을 넘지 못하고, 개인 최고 기록만 남긴다. 연합 합계가 해적 체력에 이르면 점령한다.
+// 토벌 기록: 개인 최고 기록만 남기고 1인 상한까지만 반영한다. 연합 합계가 해적 체력에 이르면 점령하고, 옛 광산은 해적에게 돌아간다.
 export async function recordRaid(env, mine, unionId, userId, damage, week) {
   const hp = MINE_SIZES[mine.size].pirate.hp;
-  const counted = Math.min(hp, Math.max(0, Math.floor(Number(damage) || 0)));
+  const reported = Math.min(hp, Math.max(0, Math.floor(Number(damage) || 0)));
+  const counted = Math.min(recordCap(mine), reported);
   const best = await env.DB.prepare('INSERT INTO mine_raids (mine_id, union_id, user_id, best) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(mine_id, union_id, user_id) DO UPDATE SET best = MAX(best, ?4) RETURNING best').bind(mine.id, unionId, userId, counted).first();
   const total = await raidTotal(env, mine.id, unionId);
-  const result = { damage: counted, best: Number(best.best), total, captured: false };
-  if (total < hp) return result;
-  const taken = await env.DB.prepare('INSERT INTO mine_state (mine_id, union_id, defended, since_week) SELECT ?1, ?2, 0, ?3 WHERE NOT EXISTS (SELECT 1 FROM mine_state WHERE union_id = ?2) ON CONFLICT(mine_id) DO NOTHING').bind(mine.id, unionId, week).run();
+  const result = { damage: reported, best: Number(best.best), total, captured: false };
+  if (total < hp || !canTakeMine(await heldMineOf(env, unionId), mine)) return result;
+  if (await env.DB.prepare('SELECT 1 AS ok FROM mine_wars WHERE week = ?1 AND (holder_id = ?2 OR challenger_id = ?2)').bind(week, unionId).first()) return result;
+  const [taken] = await env.DB.batch([
+    env.DB.prepare('INSERT INTO mine_state (mine_id, union_id, defended, since_week) VALUES (?1, ?2, 0, ?3) ON CONFLICT(mine_id) DO NOTHING').bind(mine.id, unionId, week),
+    env.DB.prepare('DELETE FROM mine_state WHERE union_id = ?2 AND mine_id != ?1 AND EXISTS (SELECT 1 FROM mine_state WHERE mine_id = ?1 AND union_id = ?2)').bind(mine.id, unionId)
+  ]);
   if (!taken?.meta?.changes) return result;
   await env.DB.prepare('DELETE FROM mine_raids WHERE mine_id = ?1').bind(mine.id).run();
   return { ...result, captured: true };

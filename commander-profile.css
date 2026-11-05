@@ -100,3 +100,14 @@
 .ship-explore-shortage{margin:0 0 12px;color:#ff9da9;font-size:11px;font-weight:700}
 @media(max-width:380px){#persistent-hud .fixed-top.captain-hud{padding:9px 8px;gap:6px}.captain-profile-open{gap:7px}.captain-profile-open .captain-portrait{width:48px;height:65px}.captain-name{font-size:11px}.captain-credentials{font-size:8px;gap:4px}.captain-credentials b{font-size:9px}.captain-hud .captain-balances{width:122px;min-width:122px;max-width:122px}.captain-hud .captain-balances>span{min-width:0;padding:2px 4px}.captain-hud .captain-balances b{font-size:9px}}
 .captain-rename-cost{margin:6px 0 0;color:#ffe2a3;font:700 12px/1.4 var(--font-body)}
+/* 메일 모두 받기 결과 */
+.captain-mail-total{position:fixed;inset:0;z-index:21000;display:grid;place-items:center;width:100%;padding:18px;border:0;background:#030813cf;color:#eef8ff;font-family:var(--font-body);cursor:pointer}
+.captain-mail-total-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(340px,100%);max-height:calc(100dvh - 36px);overflow:auto;padding:20px 16px;border:1px solid #e3c38a;border-radius:14px;background:linear-gradient(160deg,#10243a,#070d18);box-shadow:0 0 24px #ffbe504d}
+.captain-mail-total-card small{font:400 11px var(--font-display);letter-spacing:.18em;color:#8fb4c8}
+.captain-mail-total-card b{font:400 19px var(--font-display);color:#ffe2a6}
+.captain-mail-total-list{display:grid;gap:7px;width:100%}
+.captain-mail-total-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px;border:1px solid #547b90;border-radius:10px;background:#071927;text-align:left}
+.captain-mail-total-item img{width:34px;height:34px;object-fit:contain}
+.captain-mail-total-item span{font-size:13px;line-height:1.3}
+.captain-mail-total-item strong{font:600 15px var(--font-num);color:#ffd45b}
+.captain-mail-total-card em{font-size:11px;font-style:normal;color:#8fb4c8}
