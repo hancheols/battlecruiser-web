@@ -357,7 +357,7 @@
   const OMEGA_LASER = { duration: 3000, tick: 500, hits: 150, cooldown: 2000, width: .026, spread: Math.PI / 6, blastRadius: 58, blastDamage: 1000 };
   const OMEGA_FOCUS = { beams: 5, duration: 3000, impactDelay: 2000, hits: 2500, width: .018, stun: 3000 };
   const DEIMOS_CANNON = { hits: 100, interval: 500, travel: 90 };
-  const DEIMOS_SHOTGUN = { hits: 300, shots: 3, interval: 1500, radius: 400, knockback: 34, duration: 3300, cone: Math.PI / 3 };
+  const DEIMOS_SHOTGUN = { hits: 300, shots: 3, interval: 1500, knockback: 34, duration: 3300, cone: Math.PI / 3 };
   const URANUS_CANNON = { hits: 90, interval: 500, travel: 110 };
   const URANUS_BARRAGE = { hits: 900, shots: 3, interval: 500, travel: 120, radius: 52, duration: 1300 };
   const SPEAR_LASER = { hits: 100, interval: 1000, travel: 100 };
@@ -434,6 +434,15 @@
   const CONSTRUCTION_DRONE_REPAIR = { entry: 1000, travel: 1000, repair: 1000, exit: 1000, pulses: 5 };
 
   const refs = {};
+  // 범위 값은 전투판 390×676px(일반 휴대폰) 기준으로 적어 둔다. 적 위치는 전투판 비율로 움직이므로, 전투판 면적에 맞춰 범위를 키우고 줄여야 기기마다 맞는 적의 수가 같다.
+  const FIELD_BASE_SIZE = Math.sqrt(390 * 676);
+  const fieldScale = () => Math.sqrt((refs.field?.clientWidth || 390) * (refs.field?.clientHeight || 676)) / FIELD_BASE_SIZE;
+  const fieldPx = value => value * fieldScale();
+  // 폭발 그림도 같은 배율로 그린다(battle-engine.css 의 --battle-fx-scale).
+  function syncBattleFxScale() {
+    const scale = fieldScale().toFixed(3);
+    if (refs.field && refs.field.dataset.fxScale !== scale) { refs.field.dataset.fxScale = scale; refs.field.style.setProperty('--battle-fx-scale', scale); }
+  }
   const timers = new Set();
   let state = null;
   let selectedWeapon = 'missile';
@@ -2704,6 +2713,7 @@
         return;
       }
       state.hudAccumulator += dt;
+      syncBattleFxScale();
       state.frigateCooldown = Math.max(0, state.frigateCooldown - dt / 1000);
       if (state.frigateAuto && state.frigate && state.frigateCooldown <= 0) launchFrigateSkill();
       state.damageBoost = Math.max(0, state.damageBoost - dt);
@@ -3727,7 +3737,7 @@
         const field = refs.field?.getBoundingClientRect();
         if (!target.dead) dealAllyDamage(target, BATTLECRUISER_MAIN_BATTERY.hits * factor, ship);
         if (field) [...(state.allies || []), ...(state.garudaWingmen || [])]
-          .filter(ally => ally !== target && !ally.dead && Math.hypot((ally.x - impactPoint.x) * field.width, (ally.y - impactPoint.y) * field.height) <= BATTLECRUISER_MAIN_BATTERY.photonSplashRadius)
+          .filter(ally => ally !== target && !ally.dead && Math.hypot((ally.x - impactPoint.x) * field.width, (ally.y - impactPoint.y) * field.height) <= fieldPx(BATTLECRUISER_MAIN_BATTERY.photonSplashRadius))
           .forEach(ally => dealAllyDamage(ally, BATTLECRUISER_MAIN_BATTERY.hits * factor, ship));
         createPlasmaCannonImpact(impactPoint, false);
         createExplosion(impactPoint, 'photon');
@@ -5370,7 +5380,7 @@
     const nearest = livingEnemyTargets()
       .filter(enemy => enemy !== target && !enemy.dead)
       .map(enemy => ({ enemy, distance: Math.hypot((enemy.x - center.x) * width, (enemy.y - center.y) * height) }))
-      .filter(entry => entry.distance <= DOUBLE_TARGET.radius)
+      .filter(entry => entry.distance <= fieldPx(DOUBLE_TARGET.radius))
       .sort((a, b) => a.distance - b.distance)[0];
     if (!nearest) return;
     const strike = Math.round(packets * combatStatFactor(carrier) * DOUBLE_TARGET.ratio);
@@ -5564,7 +5574,7 @@
   }
 
   function furyBarrageRadius(ally) {
-    return FURY_BARRAGE.radius * (ally.furyStars >= 5 ? 1.5 : 1);
+    return fieldPx(FURY_BARRAGE.radius) * (ally.furyStars >= 5 ? 1.5 : 1);
   }
 
   function furyDenseRegion(ally) {
@@ -5944,7 +5954,7 @@
           if (auxUnlocked) {
             const field = refs.field.getBoundingClientRect();
             hostileTargetsFor(ally).filter(candidate => candidate !== impactTarget && !candidate.dead &&
-              Math.hypot((candidate.x - impactPoint.x) * field.width, (candidate.y - impactPoint.y) * field.height) <= BATTLECRUISER_MAIN_BATTERY.photonSplashRadius)
+              Math.hypot((candidate.x - impactPoint.x) * field.width, (candidate.y - impactPoint.y) * field.height) <= fieldPx(BATTLECRUISER_MAIN_BATTERY.photonSplashRadius))
               .forEach(candidate => shooterDamage(candidate, BATTLECRUISER_MAIN_BATTERY.hits, ally));
           }
         }
@@ -6281,7 +6291,7 @@
     const next = hostileTargetsFor(ally)
       .filter(enemy => enemy !== target)
       .map(enemy => ({ enemy, distance: Math.hypot((enemy.x - impact.x) * width, (enemy.y - impact.y) * height) }))
-      .filter(candidate => candidate.distance <= 120)
+      .filter(candidate => candidate.distance <= fieldPx(120))
       .sort((a, b) => a.distance - b.distance)[0]?.enemy;
     if (!next) return;
     const beam = document.createElement('i');
@@ -6413,7 +6423,7 @@
       schedule(() => splash.remove(), 380);
       // 폭발 범위 대상: 아군은 적(몬스터), 아레나 상대 함선은 아군을 고른다.
       const splashTargets = ally.isArenaShip ? state.allies.filter(candidate => !candidate.dead) : hostileTargetsFor(ally);
-      splashTargets.filter(candidate => Math.hypot((candidate.x - to.x) * field.width, (candidate.y - to.y) * field.height) <= VARYAG_MISSILE.splashRadius)
+      splashTargets.filter(candidate => Math.hypot((candidate.x - to.x) * field.width, (candidate.y - to.y) * field.height) <= fieldPx(VARYAG_MISSILE.splashRadius))
         .forEach(candidate => shooterDamage(candidate, Math.round(VARYAG_MISSILE.hits * (ally.varyagStars >= 5 ? VARYAG_MISSILE.valorDamage : 1)), ally, 'missile'));
     }, VARYAG_MISSILE.travel);
   }
@@ -6678,7 +6688,7 @@
         electricField.innerHTML = '<i></i><i></i><i></i><i></i><i></i><i></i>';
         refs.effects.append(electricField);
         schedule(() => electricField.remove(), PANDORA_MAIN.burstDuration);
-        hostileTargetsFor(ally).filter(enemy => Math.hypot((enemy.x - impact.x) * field.width, (enemy.y - impact.y) * field.height) <= PANDORA_MAIN.burstRadius)
+        hostileTargetsFor(ally).filter(enemy => Math.hypot((enemy.x - impact.x) * field.width, (enemy.y - impact.y) * field.height) <= fieldPx(PANDORA_MAIN.burstRadius))
           .forEach(enemy => shooterDamage(enemy, PANDORA_MAIN.burstHits, ally, 'electric'));
       }, PANDORA_MAIN.travel + PANDORA_MAIN.burstDelay);
       schedule(() => { ally.charging = false; }, PANDORA_MAIN.travel);
@@ -6762,6 +6772,9 @@
     return true;
   }
 
+  // 샷건포 사거리는 일반 공격과 같은 전투판 높이 비율이다(3성부터 1.3배). 기기 크기와 상관없이 일반 공격이 닿는 적에게 발사한다.
+  const deimosShotgunReach = ally => ALLY_ATTACK_RANGE_RATIO * (refs.field?.clientHeight || 720) * (ally.deimosStars >= 3 ? 1.3 : 1);
+
   function deimosShotgunTargets(ally, muzzle, target) {
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
@@ -6772,7 +6785,7 @@
       const dx = (candidate.x - muzzle.x) * width;
       const dy = (candidate.y - muzzle.y) * height;
       const distance = Math.hypot(dx, dy);
-      if (distance > DEIMOS_SHOTGUN.radius * enhanced) return false;
+      if (distance > deimosShotgunReach(ally)) return false;
       const angle = Math.atan2(dy, dx);
       let delta = angle - heading;
       while (delta > Math.PI) delta -= Math.PI * 2;
@@ -6786,7 +6799,7 @@
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
     const height = field?.height || 720;
-    const radius = DEIMOS_SHOTGUN.radius * (ally.deimosStars >= 3 ? 1.3 : 1);
+    const radius = deimosShotgunReach(ally);
     return shooterTargetsFor(ally).find(candidate => Math.hypot((candidate.x - muzzle.x) * width, (candidate.y - muzzle.y) * height) <= radius) || null;
   }
 
@@ -6795,8 +6808,7 @@
     const width = field?.width || 480;
     const height = field?.height || 720;
     const heading = Math.atan2((target.y - from.y) * height, (target.x - from.x) * width);
-    const enhanced = ally.deimosStars >= 3 ? 1.3 : 1;
-    const flameLength = DEIMOS_SHOTGUN.radius * enhanced;
+    const flameLength = deimosShotgunReach(ally);
     const flameWidth = flameLength * .4;
     const blast = document.createElement('i');
     blast.className = 'fx-deimos-shotgun-art';
@@ -6819,8 +6831,8 @@
     const dx = (target.x - origin.x) * width;
     const dy = (target.y - origin.y) * height;
     const distance = Math.hypot(dx, dy) || 1;
-    target.x = Math.max(.04, Math.min(.96, target.x + (dx / distance) * DEIMOS_SHOTGUN.knockback / width));
-    target.y = Math.max(.08, Math.min(1.08, target.y + (dy / distance) * DEIMOS_SHOTGUN.knockback / height));
+    target.x = Math.max(.04, Math.min(.96, target.x + (dx / distance) * fieldPx(DEIMOS_SHOTGUN.knockback) / width));
+    target.y = Math.max(.08, Math.min(1.08, target.y + (dy / distance) * fieldPx(DEIMOS_SHOTGUN.knockback) / height));
     target.el?.style.setProperty('left', percent(target.x));
     target.el?.style.setProperty('top', percent(target.y));
     target.el?.classList.add('deimos-knockback');
@@ -6898,7 +6910,7 @@
     const height = field?.height || 720;
     return targets.map(candidate => ({
       candidate,
-      density: targets.filter(other => Math.hypot((candidate.x - other.x) * width, (candidate.y - other.y) * height) <= 78).length
+      density: targets.filter(other => Math.hypot((candidate.x - other.x) * width, (candidate.y - other.y) * height) <= fieldPx(78)).length
     })).sort((a, b) => b.density - a.density || Math.hypot(a.candidate.x - ally.x, a.candidate.y - ally.y) - Math.hypot(b.candidate.x - ally.x, b.candidate.y - ally.y))[0]?.candidate || null;
   }
 
@@ -6934,7 +6946,7 @@
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
     const height = field?.height || 720;
-    return hostileTargetsFor(ally).filter(candidate => Math.hypot((candidate.x - point.x) * width, (candidate.y - point.y) * height) <= URANUS_BARRAGE.radius);
+    return hostileTargetsFor(ally).filter(candidate => Math.hypot((candidate.x - point.x) * width, (candidate.y - point.y) * height) <= fieldPx(URANUS_BARRAGE.radius));
   }
 
   function fireUranusFocusBarrage(ally) {
@@ -7018,7 +7030,7 @@
             const field = refs.field?.getBoundingClientRect();
             const width = field?.width || 480;
             const height = field?.height || 720;
-            hostileTargetsFor(ally).filter(candidate => Math.hypot((candidate.x - impact.x) * width, (candidate.y - impact.y) * height) <= SPEAR_VOLLEY.blastRadius)
+            hostileTargetsFor(ally).filter(candidate => Math.hypot((candidate.x - impact.x) * width, (candidate.y - impact.y) * height) <= fieldPx(SPEAR_VOLLEY.blastRadius))
               .forEach(candidate => shooterDamage(candidate, SPEAR_VOLLEY.hits, ally));
           } else {
             shooterDamage(target, SPEAR_VOLLEY.hits, ally);
@@ -7183,7 +7195,7 @@
         const height = field?.height || 720;
         hostileTargetsFor(ally).forEach(enemy => {
           const distance = Math.hypot((enemy.x - impact.x) * width, (enemy.y - impact.y) * height);
-          if (distance <= OMEGA_LASER.blastRadius) shooterDamage(enemy, OMEGA_LASER.blastDamage, ally, 'laser');
+          if (distance <= fieldPx(OMEGA_LASER.blastRadius)) shooterDamage(enemy, OMEGA_LASER.blastDamage, ally, 'laser');
         });
       }
     }, OMEGA_FOCUS.duration + OMEGA_FOCUS.impactDelay);
@@ -7390,7 +7402,7 @@
           refs.effects.append(burst);
           schedule(() => burst.remove(), 420);
           const damage = Math.max(1, Math.round(KDDX_CHAIN.hits * Math.pow(KDDX_CHAIN.falloff, index)));
-          hostileTargetsFor(ally).filter(enemy => distance(enemy, impact) <= KDDX_CHAIN.splashRadius).forEach(enemy => {
+          hostileTargetsFor(ally).filter(enemy => distance(enemy, impact) <= fieldPx(KDDX_CHAIN.splashRadius)).forEach(enemy => {
             shooterDamage(enemy, damage, ally, 'electric');
             applyKddxElectrocution(enemy);
           });
@@ -7796,7 +7808,7 @@
     const field = refs.field?.getBoundingClientRect();
     const width = field?.width || 480;
     const height = field?.height || 720;
-    return hostileTargetsFor(ally).filter(target => Math.hypot((target.x - point.x) * width, (target.y - point.y) * height) <= HAMMER_DRONE.radius);
+    return hostileTargetsFor(ally).filter(target => Math.hypot((target.x - point.x) * width, (target.y - point.y) * height) <= fieldPx(HAMMER_DRONE.radius));
   }
 
   function launchHammerDrone(ally, initialTarget, index, hits = HAMMER_DRONE.hits) {
@@ -8159,7 +8171,7 @@
         const ratio = segmentLength ? Math.max(0, Math.min(1, ((enemyX - fromX) * segmentX + (enemyY - fromY) * segmentY) / segmentLength)) : 0;
         const nearestX = fromX + segmentX * ratio, nearestY = fromY + segmentY * ratio;
         const targetRect = target.el?.getBoundingClientRect();
-        const radius = COLOSSUS_MAIN.throwRadius + Math.min(55, Math.max(12, Math.max(targetRect?.width || 0, targetRect?.height || 0) * .32));
+        const radius = fieldPx(COLOSSUS_MAIN.throwRadius) + Math.min(55, Math.max(12, Math.max(targetRect?.width || 0, targetRect?.height || 0) * .32));
         return Math.hypot(enemyX - nearestX, enemyY - nearestY) <= radius;
       }).sort((left, right) => (left.x * width - fromX) ** 2 + (left.y * height - fromY) ** 2 - (right.x * width - fromX) ** 2 - (right.y * height - fromY) ** 2);
       for (const target of touched) {
@@ -8282,11 +8294,11 @@
       if (enhanced) {
         const field = refs.field.getBoundingClientRect();
         hostileTargetsFor(ally).filter(candidate => candidate !== liveTarget && !candidate.dead &&
-          Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= IOWA_TOMAHAWK.splashRadius)
+          Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= fieldPx(IOWA_TOMAHAWK.splashRadius))
           .forEach(candidate => shooterDamage(candidate, hits, null, 'missile'));
       }
       if (commandSkill) hostileTargetsFor(ally).filter(candidate => !candidate.dead &&
-        Math.hypot((candidate.x - impact.x) * refs.field.clientWidth, (candidate.y - impact.y) * refs.field.clientHeight) <= IOWA_TOMAHAWK.splashRadius)
+        Math.hypot((candidate.x - impact.x) * refs.field.clientWidth, (candidate.y - impact.y) * refs.field.clientHeight) <= fieldPx(IOWA_TOMAHAWK.splashRadius))
         .forEach(candidate => applyTimedEnemyStun(candidate, IOWA_TOMAHAWK.stun));
       if (commandSkill) boostAlliedFleetAttackSpeed(IOWA_TOMAHAWK.fleetSpeedBonus, IOWA_TOMAHAWK.fleetSpeedDuration, `${ally.ship.name} · 지휘`);
       createExplosion(impact, 'missile');
@@ -8481,7 +8493,7 @@
     refs.effects.append(field);
     schedule(() => field.remove(), 1050);
     const bounds = refs.field.getBoundingClientRect();
-    hostileTargetsFor(ally).filter(target => Math.hypot((target.x - center.x) * bounds.width, (target.y - center.y) * bounds.height) <= HYPERION_MAX_OUTPUT.disruptionRadius).forEach(target => {
+    hostileTargetsFor(ally).filter(target => Math.hypot((target.x - center.x) * bounds.width, (target.y - center.y) * bounds.height) <= fieldPx(HYPERION_MAX_OUTPUT.disruptionRadius)).forEach(target => {
       const until = performance.now() + HYPERION_MAX_OUTPUT.disruptionDuration;
       target.energyRechargeDisabledUntil = Math.max(Number(target.energyRechargeDisabledUntil) || 0, until);
       target.hyperionDisruptedUntil = Math.max(Number(target.hyperionDisruptedUntil) || 0, until);
@@ -9560,7 +9572,7 @@
     const width = field?.width || 480;
     const height = field?.height || 720;
     hostileTargetsFor(ally).forEach(target => {
-      if (Math.hypot((target.x - ally.x) * width, (target.y - ally.y) * height) <= DREAD_TURTLE_CHARGE.fearTouchRadius) applyDreadTurtleFear(target);
+      if (Math.hypot((target.x - ally.x) * width, (target.y - ally.y) * height) <= fieldPx(DREAD_TURTLE_CHARGE.fearTouchRadius)) applyDreadTurtleFear(target);
     });
   }
 
@@ -9920,7 +9932,7 @@
       if (ally.turtleShipStars >= 3) {
         const field = refs.field.getBoundingClientRect();
         const nearby = hostileTargetsFor(ally).filter(candidate => candidate !== target && !candidate.dead &&
-          Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= TURTLE_SHIP_MISSILE.splashRadius);
+          Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= fieldPx(TURTLE_SHIP_MISSILE.splashRadius));
         nearby.forEach(candidate => shooterDamage(candidate, Math.round(damage * TURTLE_SHIP_MISSILE.splashRatio), null, 'missile'));
       }
       shooterDamage(target, damage, null, 'missile');
@@ -10263,7 +10275,7 @@
       const impact = target.dead ? to : pointOf(target);
       const field = refs.field.getBoundingClientRect();
       const nearby = ally.assaultTurtleStars >= 3 ? hostileTargetsFor(ally).filter(candidate => candidate !== target && !candidate.dead &&
-        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= ASSAULT_TURTLE_MISSILE.splashRadius * ASSAULT_TURTLE_MISSILE.enhancedRadiusRatio) : [];
+        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= fieldPx(ASSAULT_TURTLE_MISSILE.splashRadius * ASSAULT_TURTLE_MISSILE.enhancedRadiusRatio)) : [];
       [target, ...nearby].forEach(candidate => {
         if (!candidate || candidate.dead) return;
         const before = candidate.hp;
@@ -10281,7 +10293,7 @@
     createExplosion(point, 'assault-turtle-return');
     if (damage <= 0) return;
     hostileTargetsFor(ally).filter(target => !target.dead &&
-      Math.hypot((target.x - point.x) * field.width, (target.y - point.y) * field.height) <= ASSAULT_TURTLE_CHARGE.returnBlastRadius)
+      Math.hypot((target.x - point.x) * field.width, (target.y - point.y) * field.height) <= fieldPx(ASSAULT_TURTLE_CHARGE.returnBlastRadius))
       .forEach(target => shooterDamage(target, damage, ally, 'explosion'));
   }
 
@@ -10324,7 +10336,7 @@
           if (!target || target.dead || hit.has(target) || !(target.kind === 'boss' || target.deployed)) return;
           const point = pointOf(target);
           const distance = Math.hypot((point.x - headX) * fieldWidth, (point.y - headY) * fieldHeight);
-          if (distance > ASSAULT_TURTLE_CHARGE.pathRadius) return;
+          if (distance > fieldPx(ASSAULT_TURTLE_CHARGE.pathRadius)) return;
           hit.add(target);
           shooterDamage(target, ASSAULT_TURTLE_CHARGE.ramDamage, ally);
           applyAssaultTurtleRamStun(target);
@@ -10784,7 +10796,7 @@
       createExplosion(center, 'cannon-splash');
     }
     livingEnemyTargets()
-      .filter(enemy => enemy !== target && !enemy.dead && Math.hypot((enemy.x - center.x) * width, (enemy.y - center.y) * height) <= EXPLOSIVE_SHELL.radius)
+      .filter(enemy => enemy !== target && !enemy.dead && Math.hypot((enemy.x - center.x) * width, (enemy.y - center.y) * height) <= fieldPx(EXPLOSIVE_SHELL.radius))
       .forEach(enemy => shooterDamage(enemy, splash, source, 'cannon-splash'));
   }
 
@@ -10870,7 +10882,7 @@
       createExplosion(center, 'cannon-splash');
     }
     livingEnemyTargets()
-      .filter(enemy => enemy !== target && !enemy.dead && Math.hypot((enemy.x - center.x) * width, (enemy.y - center.y) * height) <= EXPLODING_LASER.radius)
+      .filter(enemy => enemy !== target && !enemy.dead && Math.hypot((enemy.x - center.x) * width, (enemy.y - center.y) * height) <= fieldPx(EXPLODING_LASER.radius))
       .forEach(enemy => shooterDamage(enemy, splash, source, 'cannon-splash'));
   }
 
@@ -12860,7 +12872,7 @@
       const impact = pointOf(target);
       const field = refs.field.getBoundingClientRect();
       const nearby = livingEnemyTargets().filter(candidate => candidate !== target && !candidate.dead &&
-        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= splashRadius[kind]);
+        Math.hypot((candidate.x - impact.x) * field.width, (candidate.y - impact.y) * field.height) <= fieldPx(splashRadius[kind]));
       shooterDamage(target, damage, null, kind);
       nearby.forEach(candidate => shooterDamage(candidate, Math.round(damage * .2), null, kind));
       createExplosion(impact, kind);
@@ -13027,7 +13039,7 @@
           const height = rect?.height || 720;
           livingEnemyTargets().forEach(target => {
             const distance = Math.hypot((target.x - origin.x) * width, (target.y - origin.y) * height);
-            if (target !== source && distance > skill.radius) return;
+            if (target !== source && distance > fieldPx(skill.radius)) return;
             const ratio = target.kind === 'boss' ? .02 : skill.ratio;
             const damage = Math.ceil(Math.max(1, Number(target.maxHp) || Number(target.hp) || 1) * ratio);
             target.el?.classList.add('science-radiation-marked');
@@ -14003,6 +14015,7 @@
 
   function createExplosion(point, kind = '') {
     if (!refs.effects || !state || state.status === 'ended' && kind !== 'boss') return;
+    syncBattleFxScale();
     const effect = document.createElement('i');
     const missileCinematic = kind === 'missile' || kind === 'pojakseon';
     if(kind==='missile')playMissileImpactSound();
