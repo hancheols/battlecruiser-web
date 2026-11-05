@@ -1742,7 +1742,7 @@
     const usesEnergy = ship.type === 'battlecruiser' || isAtlas || isGungnir || isNemesis || isAegis || isColossus || isBastion || isHammer || isNimitz || isAngela || isTank || isDozer || isCarrier || isDreadTurtle || isSuPanokseon || isKddx || isPegasus || isPlanetDestroyer || isPandora || isVaryag || isGaruda || isFury || isOmega || isDeimos || isUranus || isSpear || isBlade;
     const fallbackHp = isGaruda ? 1000 : isAngela ? 12000 : isVaryag ? 5300 : isYamato ? 5900 : isBrownBess ? 2500 : isTank ? 4500 : isNemesis ? 2200 : isDozer ? 1900 : isIronFist ? 2700 : isFury ? 1250 : isBlade ? 800 : isSpear ? 800 : isUranus ? 800 : isDeimos ? 1000 : isOmega ? 1100 : isPandora ? 2000 : isPlanetDestroyer ? 6000 : isNimitz ? 14000 : isCarrier ? 11000 : isSuPanokseon ? 6000 : isKddx || isPegasus ? 2000 : isDreadTurtle ? 4400 : isColossus ? 4500 : isBastion ? 2300 : isHammer ? 1100 : isAssaultTurtle ? 7000 : isGungnir ? 12000 : isHyperion || isLionheart ? 9000 : isAtlas ? 1300 : isHelios ? 1000 : isMagellan ? 1000 : isTurtleShip ? 3300 : ship.type === 'dreadnought' ? 135 : ship.type === 'battlecruiser' ? 120 : 105;
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
-    // 연합 개발 효과: 내구도·피해 감소·핵심기술 발동 에너지. 아레나에는 적용하지 않고, 광산 쟁탈전에는 양쪽 함대에 적용한다.
+    // 연합 개발 효과: 내구도·피해 증가·공격 속도·피해 감소·핵심기술 발동 에너지. 아레나에는 적용하지 않고, 광산 쟁탈전에는 양쪽 함대에 적용한다.
     const unionDev = side === 'friendly' && (!state?.arenaLive || state?.arenaMatch?.mineWar) && window.getUnionDevEffects?.(ship) || { hp: 0, reduction: 0, energy: 0 };
     const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1) * (1 + unionDev.hp));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
@@ -1764,6 +1764,8 @@
       energy: usesEnergy ? 0 : null,
       maxEnergy: usesEnergy ? 100 * (1 - unionDev.energy) : 0,
       unionDevReduction: unionDev.reduction,
+      unionDevDamage: unionDev.damage || 0,
+      unionDevSpeed: unionDev.attackSpeed || 0,
       isAssaultTurtle,
       assaultTurtleStars: isAssaultTurtle ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       assaultTurtleBarrageDamage: 0,
@@ -2872,6 +2874,7 @@
       const energyRechargeLocked = Number(ally.energyRechargeDisabledUntil) > performance.now();
       if (state.fleetAttackSpeedBoostUntil > performance.now() && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * IOWA_TOMAHAWK.fleetSpeedBonus;
       if (state.fleetBuff?.speed && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * state.fleetBuff.speed;
+      if (ally.unionDevSpeed && !ally.charging && ally.nextShot > 0) ally.nextShot -= dt * ally.unionDevSpeed;
       if (ally.gwimyeonShieldActive && ally.dreadTurtleFearEnabled) updateDreadTurtleNearbyFear(ally);
       const mainBatteryReady = !ally.charging && ally.energy >= ally.maxEnergy && (ally.isStarCruiser || ally.isBrownBess || ally.isYamato);
       if (!(ally.facingLockUntil > performance.now() || mainBatteryReady)) faceAllyTowardTarget(ally, shooterTargetFor(ally));
@@ -10948,7 +10951,7 @@
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     // 함대 버프(공격력): 편성된 아군 함선의 공격에만 곱한다(고정 피해·파생 피해 제외).
-    const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? 1 + (Number(state.fleetBuff?.damage) || 0) : 1;
+    const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? (1 + (Number(state.fleetBuff?.damage) || 0)) * (1 + (Number(source.unionDevDamage) || 0)) : 1;
     const scaledPackets = basePackets * statFactor * fleetDamage * (1+researchDamage) * (fixedPackets ? 1 : gungnirDamageBonus(source, attackType)) + (source?.starDamageRemainder || 0);
     const roundedPackets = Math.round(scaledPackets);
     if (source && (statFactor !== 1 || researchDamage || fleetDamage !== 1)) source.starDamageRemainder = scaledPackets - roundedPackets;

@@ -1,9 +1,9 @@
-// 토륨광산: 해적을 토벌해 첫 점령을 하고, 이후에는 주간 도전전으로 소유가 바뀐다. 토륨은 광산에서만 생산되고 기여 비율로 나눠 지급한다.
+// 토륨광산: 해적을 토벌해 첫 점령을 하고, 이후에는 주간 도전전으로 소유가 바뀐다. 토륨은 광산에서만 생산되고 CREDIT 비율로 나눠 지급한다.
 // 한 주는 수요일 0시(KST)에 시작한다. 수~토는 도전 신청·방어 함대 등록, 일~화는 쟁탈전이다. 수치는 이 파일에 모아 둔다.
 import { randomToken } from './util.js';
 import { createGrant } from './grants.js';
 import { day } from './arena-rules.js';
-import { weekOf, ACTIVE_DAYS_FOR_SCORE, devState } from './contribution.js';
+import { weekOf, ACTIVE_DAYS_FOR_SCORE, unionDevLevels, DEV_STEP_EFFECT } from './contribution.js';
 
 // 광산을 늘릴 때는 이 목록에 한 줄만 더하면 된다. id 는 기록에 쓰이므로 한 번 정하면 바꾸지 않는다. 표를 고칠 필요는 없다.
 export const MINES = [
@@ -100,7 +100,7 @@ async function settleWeek(env, oldWeek, nextWeek, now) {
     const old = held.find(other => other.union_id === unionId);
     if (old && !taken.has(old.mine_id)) statements.push(env.DB.prepare(`DELETE FROM mine_state WHERE mine_id = ?2 AND ${open}`).bind(oldWeek, old.mine_id));
   }
-  // 저장고에 이번 주 생산을 더하고, 이번 주 기여 비율로 나눈다. 1인 상한을 넘거나 나누고 남은 몫은 저장고에 남긴다.
+  // 저장고에 이번 주 생산을 더하고, 이번 주 CREDIT 비율로 나눈다. 1인 상한을 넘거나 나누고 남은 몫은 저장고에 남긴다.
   for (const [unionId, amount] of production) {
     const saved = await env.DB.prepare('SELECT thorium FROM union_treasury WHERE union_id = ?1').bind(unionId).first();
     const pool = (Number(saved?.thorium) || 0) + amount;
@@ -168,7 +168,7 @@ export async function deliverPayouts(env, userId, now = Date.now()) {
     const percent = row.total_points ? Math.round(row.points * 100 / row.total_points) : 0;
     await createGrant(env, {
       userId, orderId: `mine-${userId}-${row.week}-${row.union_id}`, title: '토륨 분배 도착',
-      body: `토륨광산 점령에서 이번 주 토륨 분배 몫을 보냅니다.\n이번 주 기여도 ${row.points} (연합 내 ${percent}%)\n함께 광산을 지켜 주신 노고에 감사드립니다.`,
+      body: `토륨광산 점령에서 이번 주 토륨 분배 몫을 보냅니다.\n이번 주 CREDIT ${row.points} (연합 내 ${percent}%)\n함께 광산을 지켜 주신 노고에 감사드립니다.`,
       items: { thorium: row.amount }
     });
     await env.DB.prepare('UPDATE mine_payouts SET delivered_at = ?1 WHERE week = ?2 AND user_id = ?3 AND union_id = ?4').bind(now, row.week, userId, row.union_id).run();
@@ -188,14 +188,15 @@ export async function sortiesUsed(env, userId, today) {
   return Number(row?.count) || 0;
 }
 
-// 다른 이용자의 방어 함대를 내려줄 때 그 함장의 연합 개발 효과를 서버 기록으로 얹는다(게임이 보낸 값을 믿지 않는다).
-export async function deckWithDev(env, userId, deck, unionLevel) {
-  const { levels } = await devState(env, userId);
-  const level = node => Math.min(unionLevel, Number(levels[node]) || 0);
+// 다른 이용자의 방어 함대를 내려줄 때 그 연합의 개발 효과를 서버 기록으로 얹는다(게임이 보낸 값을 믿지 않는다).
+// 피해 증가와 공격 속도는 초당 피해에 함께 곱한다.
+export async function deckWithDev(env, unionId, deck) {
+  const levels = await unionDevLevels(env, unionId);
+  const level = node => Number(levels[node]) || 0;
   return deck.map(ship => {
     if (!ship) return null;
-    const stat = name => level(`class:${ship.type}:${name}`) + level(`ship:${ship.type}:${ship.name}:${name}`);
-    return { ...ship, hp: ship.hp * (1 + stat('hp') * .005), unionReduction: stat('reduction') * .002, unionEnergy: stat('energy') * .004 };
+    const stat = name => (level(`class:${ship.type}:${name}`) + level(`ship:${ship.type}:${ship.name}:${name}`)) * DEV_STEP_EFFECT[name];
+    return { ...ship, hp: ship.hp * (1 + stat('hp')), dps: (Number(ship.dps) || 0) * (1 + stat('damage')) * (1 + stat('attackSpeed')), unionReduction: stat('reduction'), unionEnergy: stat('energy') };
   });
 }
 

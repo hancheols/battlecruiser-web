@@ -23,6 +23,8 @@ async function leaveUnionForDelete(env, userId) {
     const heir = await env.DB.prepare("SELECT user_id FROM union_members WHERE union_id = ?1 ORDER BY CASE role WHEN 'officer' THEN 0 ELSE 1 END, joined_at LIMIT 1").bind(member.union_id).first();
     if (!heir) {
       await env.DB.prepare('DELETE FROM union_applications WHERE union_id = ?1').bind(member.union_id).run();
+      await env.DB.prepare('DELETE FROM union_dev WHERE union_id = ?1').bind(member.union_id).run();
+      await env.DB.prepare('DELETE FROM union_dev_focus WHERE union_id = ?1').bind(member.union_id).run();
       await env.DB.prepare('DELETE FROM unions WHERE id = ?1').bind(member.union_id).run();
     } else if (member.role === 'leader') {
       await env.DB.prepare('UPDATE union_members SET role = ?1 WHERE user_id = ?2').bind('leader', heir.user_id).run();
@@ -52,7 +54,6 @@ export async function onRequestDelete({ request, env }) {
     'DELETE FROM rank_entries WHERE user_id = ?1',
     'DELETE FROM contribution_daily WHERE user_id = ?1',
     'DELETE FROM union_progress WHERE user_id = ?1',
-    'DELETE FROM union_dev WHERE user_id = ?1',
     'DELETE FROM union_log WHERE user_id = ?1',
     'DELETE FROM mine_fleets WHERE user_id = ?1',
     'DELETE FROM mine_raids WHERE user_id = ?1',

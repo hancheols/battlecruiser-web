@@ -4,7 +4,7 @@
 // 토륨 비용은 재화가 게임 저장에 있어 게임 쪽에서 낸다. 권한·인원·이름 중복은 서버가 판단한다.
 import { json, authenticate, allow, tooMany, randomToken } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable, hasBannedWord, isReservedName, nameKey } from '../_lib/players.js';
-import { award, devState, upgradeDev, weekOf, levelProgress, BASE_CAPACITY, DISPATCH_POINTS } from '../_lib/contribution.js';
+import { award, devState, giveDevCredit, setDevFocus, weekOf, levelProgress, BASE_CAPACITY, DISPATCH_POINTS } from '../_lib/contribution.js';
 import { day } from '../_lib/arena-rules.js';
 import { rollMines, deliverPayouts } from '../_lib/mines.js';
 
@@ -44,6 +44,8 @@ async function addMember(env, unionId, userId, role = 'member') {
 async function removeUnion(env, unionId) {
   await env.DB.prepare('DELETE FROM union_applications WHERE union_id = ?1').bind(unionId).run();
   await env.DB.prepare('DELETE FROM union_treasury WHERE union_id = ?1').bind(unionId).run();
+  await env.DB.prepare('DELETE FROM union_dev WHERE union_id = ?1').bind(unionId).run();
+  await env.DB.prepare('DELETE FROM union_dev_focus WHERE union_id = ?1').bind(unionId).run();
   await env.DB.prepare('DELETE FROM union_members WHERE union_id = ?1').bind(unionId).run();
   await env.DB.prepare('DELETE FROM unions WHERE id = ?1').bind(unionId).run();
 }
@@ -85,7 +87,7 @@ export async function onRequestGet({ request, env }) {
     await rollMines(env);
     await deliverPayouts(env, user.id);
     const union = member ? await unionById(env, member.union_id) : null;
-    return json({ me: { playerId: player.public_id, name: player.name }, union: union ? await unionView(env, union, member.role) : null, dev: await devState(env, user.id) });
+    return json({ me: { playerId: player.public_id, name: player.name }, union: union ? await unionView(env, union, member.role) : null, dev: await devState(env, user.id, member?.union_id) });
   } catch (error) {
     if (isMissingTable(error)) return notReady();
     throw error;
@@ -227,9 +229,17 @@ const ACTIONS = {
   async dev({ env, user, body, member }) {
     if (!member) return NOT_IN_UNION();
     const union = await unionById(env, member.union_id);
-    const result = await upgradeDev(env, user.id, body.node, union.level);
+    const result = await giveDevCredit(env, user.id, union, body.node, body.amount);
     if (result.error) return fail(result.message, 409, result.error);
-    return json({ ...result, dev: await devState(env, user.id) });
+    return json({ ...result, dev: await devState(env, user.id, member.union_id) });
+  },
+
+  async devFocus({ env, user, body, member }) {
+    if (!member) return NOT_IN_UNION();
+    if (!['leader', 'officer'].includes(member.role)) return fail('연구 목표는 연합장과 부연합장이 정합니다.', 403, 'forbidden');
+    const result = await setDevFocus(env, member.union_id, body.node ?? null);
+    if (result.error) return fail(result.message, 409, result.error);
+    return json({ dev: await devState(env, user.id, member.union_id) });
   },
 
   async disband({ env, member }) {

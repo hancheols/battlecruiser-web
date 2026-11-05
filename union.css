@@ -567,3 +567,28 @@ body #earth-union.screen:has(.union-scene){padding:0!important}
 .dev-ships{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .dev-ships button{min-height:32px;padding:4px 10px;border:1px solid #2c3f66;border-radius:8px;background:#0c1630;color:#9db3d8;font-family:var(--font-body);font-size:12px}
 .dev-ships button[aria-pressed="true"]{border-color:#7aa2ff;background:#17284d;color:#fff}
+
+/* 내 CREDIT: 연합 메뉴 어디서나 고정 표시 */
+.union-credit{position:fixed;z-index:2147483000;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 6px;padding:3px 8px;border:1px solid #6be2ff99;border-radius:10px;background:#061225e8;box-shadow:0 0 12px #39b6e055;pointer-events:none}
+.union-credit b{font:400 10px var(--font-display);letter-spacing:.1em;color:#8fe7ff}
+.union-credit strong{font:700 14px var(--font-num);color:#fff;text-align:right}
+.union-credit small{grid-column:1/-1;font:400 10px var(--font-body);color:#a9c3dd;text-align:right}
+/* 연합 R&D센터 트리: 연구실 무기 연구와 같은 모양 */
+.union-dev-tree{margin:10px 0 0}
+.union-dev-tree .cannon-tech-node{width:29%;min-width:0;padding-inline:3px;font-family:var(--font-body)}
+.union-dev-tree .cannon-tech-node.dev-wide-row{width:23%}
+.union-dev-tree .cannon-tech-node b{font-size:11px;white-space:normal;word-break:keep-all}
+.union-dev-tree .cannon-tech-node.locked{opacity:.62}
+.union-dev-tree .cannon-tech-future{width:48%;min-height:48px;font-family:var(--font-body)}
+.dev-scope-tabs{margin:0 0 4px}
+.dev-give-row{display:flex;gap:6px}
+.dev-give-row .cannon-tech-action{flex:1;min-width:0;font-family:var(--font-body)}
+.dev-give-row .cannon-tech-action:disabled{opacity:.55;cursor:default;filter:saturate(.4)}
+.dev-focus-row{display:flex;justify-content:center;margin-top:8px}
+.dev-focus{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dev-focus>div{display:grid;gap:2px;min-width:0}
+.dev-focus b{color:#fff;font:600 14px var(--font-body)}
+.dev-focus small{color:#a9c3dd;font:400 11px/1.35 var(--font-body)}
+.fac-rnd .dev-ships{display:flex;gap:6px;margin:10px 0 0}
+.fac-rnd .dev-ships button{flex:1;min-width:0;min-height:34px;padding:4px;border:1px solid #2c3f66;border-radius:8px;background:#0c1630;color:#9db3d0;font:600 11px/1.2 var(--font-body);cursor:pointer}
+.fac-rnd .dev-ships button[aria-pressed="true"]{border-color:#7aa2ff;background:#17284d;color:#fff}

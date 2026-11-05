@@ -126,21 +126,21 @@
     return {...clone(ship),enhancementStars:stars,hp:Math.max(1,Math.round(base.hp||1000)),dps:Math.max(0,base.dps||0)*(1+dev.damage),skillStars:base.skillStars||stars,factor:base.factor||1,dev};
   }
   function simulate(attack,defense,seed){
-    const rng=random(seed),teams=[attack,defense].map((deck,side)=>deck.slice(0,3).map((s,slot)=>({...clone(s),side,slot,maxHp:s.hp,hp:s.hp,shield:0,shieldUntil:0,fighterGuard:Math.max(0,300*(s.name==='우주항모'?6:s.name==='니미츠'?5:s.name==='콜로서스'?4:s.name==='배스천'?3:s.name==='해머'?2:0)*(Number(s.dev?.carrierHull)||0)),stun:0,energy:0,next:slot*.16,core:7+slot,nextSupport:10}))),events=[],frames=[];
+    const rng=random(seed),teams=[attack,defense].map((deck,side)=>deck.slice(0,3).map((s,slot)=>({...clone(s),side,slot,maxHp:s.hp,hp:s.hp,shield:0,shieldUntil:0,fighterGuard:Math.max(0,300*(s.name==='우주항모'?6:s.name==='니미츠'?5:s.name==='콜로서스'?4:s.name==='배스천'?3:s.name==='해머'?2:0)*(Number(s.dev?.carrierHull)||0)),stun:0,energy:0,next:slot*.16,core:(7+slot)*(1-(Number(s.unionEnergy)||0)),nextSupport:10}))),events=[],frames=[];
     const frigates=[attack[3],defense[3]],frigateResearch=frigates.map(f=>f?frigateBonus(f,{frigateTree:f.dev.frigate}):{timeReduction:0}),supportAt=frigateResearch.map(bonus=>10*(1-bonus.timeReduction)),fatManCharges=[0,0];
     const alive=side=>teams[side].filter(u=>u.hp>0);
     const target=side=>{const a=alive(side);return a.find(u=>u.slot===0)&&rng()<.7?a.find(u=>u.slot===0):a[Math.floor(rng()*a.length)];};
     const damageTaken=[0,0];
     // 가시방패(배틀 엔진 규칙): 보호막이 활성인 동안 받는 피해를 공격자에게 그대로 되돌린다. 반사 피해는 다시 반사되지 않는다.
-    const hurt=(u,n,src=null,reflect=true)=>{if(!u)return;const shieldFactor=1-Math.max(0,Math.min(.5,Number(u.dev?.reduction)||0)),absorbed=Math.min(n,u.shield/shieldFactor);u.shield=Math.max(0,u.shield-absorbed*shieldFactor);const escortAbsorbed=Math.min(n-absorbed,u.fighterGuard);u.fighterGuard-=escortAbsorbed;u.hp=Math.max(0,u.hp-(n-absorbed-escortAbsorbed));damageTaken[u.side]+=n;if(reflect&&src&&src.hp>0&&u.thornsUntil>time)hurt(src,n,null,false);};
+    const hurt=(u,n,src=null,reflect=true)=>{if(!u)return;n*=1-(Number(u.unionReduction)||0);const shieldFactor=1-Math.max(0,Math.min(.5,Number(u.dev?.reduction)||0)),absorbed=Math.min(n,u.shield/shieldFactor);u.shield=Math.max(0,u.shield-absorbed*shieldFactor);const escortAbsorbed=Math.min(n-absorbed,u.fighterGuard);u.fighterGuard-=escortAbsorbed;u.hp=Math.max(0,u.hp-(n-absorbed-escortAbsorbed));damageTaken[u.side]+=n;if(reflect&&src&&src.hp>0&&u.thornsUntil>time)hurt(src,n,null,false);};
     let time=0,nextFrame=0;
     for(;time<=120&&alive(0).length&&alive(1).length;time+=.05){
       const pending=[];
       teams.flat().forEach(u=>{
         if(u.hp<=0)return;if(u.shieldUntil<=time)u.shield=0;if(u.stun>time){u.next+=.05;u.core+=.05;return;}
         if(time>=u.next){u.next=time+1/(1+(Number(u.dev?.speed)||0));const enemy=target(1-u.side);if(enemy)pending.push(()=>{const dealt=u.dps*(.9+rng()*.2)*edgeScale(u,enemy);hurt(enemy,dealt,u);events.push({time,side:u.side,slot:u.slot,to:enemy.slot,type:'shot',weapon:u.profile?.[1]});});}
-        u.energy=Math.min(100,100*(1-(u.core-time)/10));
-        if(time>=u.core){u.core=time+10;u.energy=0;const enemy=target(1-u.side),skill=u.profile?.[4]||'';if(!enemy)return;
+        const coreCycle=10*(1-(Number(u.unionEnergy)||0));u.energy=Math.min(100,100*(1-(u.core-time)/coreCycle));
+        if(time>=u.core){u.core=time+coreCycle;u.energy=0;const enemy=target(1-u.side),skill=u.profile?.[4]||'';if(!enemy)return;
           pending.push(()=>{
             if(/수리|수복/.test(skill)){const friend=alive(u.side).sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp)[0];if(friend)friend.hp=Math.min(friend.maxHp,friend.hp+friend.maxHp*.18*u.factor);}
             else if(/보호|방패|석화/.test(skill))alive(u.side).forEach(friend=>{friend.shield=friend.maxHp*.15*(1+u.dev.shield);friend.shieldUntil=time+5*(1+u.dev.shieldDuration);});

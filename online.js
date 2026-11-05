@@ -208,7 +208,7 @@
     disband: routed('disband', () => post('disband'))
   };
 
-  // ── 기여도·연합 개발 ───────────────────────────────────────────────────────
+  // ── CREDIT·연합 개발 ───────────────────────────────────────────────────────
   // 활동이 끝나면 서버에 알린다(실패해도 게임 진행에 영향이 없다).
   async function contribute(kind, detail = {}) {
     try {
@@ -219,22 +219,24 @@
   }
   // 전투에서 쓰는 연합 개발 정보. 전투 시작이 서버를 기다리지 않게 받아 둔 값을 기기에 보관한다(계정이 바뀌면 쓰지 않는다).
   const DEV_KEY = 'starfleet-cloud-uniondev-v1';
-  const DEV_STEP = { hp: .005, reduction: .002, energy: .004 };
+  const DEV_STEP = { hp: .005, damage: .005, attackSpeed: .003, reduction: .002, energy: .004 };
+  let lastDev = null;
   function rememberDev(data) {
+    lastDev = data.dev || null;
     const unionLevel = data.union ? Number(data.union.level) || 1 : 0;
     try { localStorage.setItem(DEV_KEY, JSON.stringify({ account: accountId(), unionLevel, levels: data.dev?.levels || {} })); } catch {}
   }
   function shipDevEffects(ship) {
     const saved = read(DEV_KEY, null);
-    const none = { hp: 0, reduction: 0, energy: 0 };
+    const none = { hp: 0, damage: 0, attackSpeed: 0, reduction: 0, energy: 0 };
     if (!ship?.type || !saved || saved.account !== accountId() || !saved.unionLevel) return none;
     const level = node => Math.min(saved.unionLevel, Number(saved.levels?.[node]) || 0);
     const effect = stat => (level(`class:${ship.type}:${stat}`) + level(`ship:${ship.type}:${ship.name}:${stat}`)) * DEV_STEP[stat];
-    return { hp: effect('hp'), reduction: effect('reduction'), energy: effect('energy') };
+    return { hp: effect('hp'), damage: effect('damage'), attackSpeed: effect('attackSpeed'), reduction: effect('reduction'), energy: effect('energy') };
   }
   window.getUnionDevEffects = shipDevEffects;
 
-  window.Online = { ready, mode, call, arena, ranking, report, bestFleet, commanderName, contribute, rememberDev, unionDevStep: DEV_STEP, upgradeDev: node => post('dev', { node }) };
+  window.Online = { ready, mode, call, arena, ranking, report, bestFleet, commanderName, contribute, rememberDev, unionDevStep: DEV_STEP, devSnapshot: () => lastDev, giveDevCredit: (node, amount) => post('dev', { node, amount }), setDevFocus: node => post('devFocus', { node }) };
 
   // 접속하면 이름과 최고 함선을 한 번 알리고, 플레이 중에는 바뀌었을 때만 10분마다 다시 알린다.
   window.addEventListener('load', () => {

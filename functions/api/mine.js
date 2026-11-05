@@ -3,7 +3,7 @@
 //   fleet     : 광산 전용 방어 함대 등록(일~화 쟁탈 기간에는 잠긴다)
 //   challenge : 다른 연합이 점령한 광산에 도전 신청(연합장·부연합장, 수~토)
 //   raid      : 해적 토벌 출격(하루 3회) / war : 쟁탈 출격(일~화, 상대 함장 지정)
-//   sweep     : 토벌 건너뛰기. 기록이 있는 광산에 출격 1회를 쓰고 기여도만 받는다.
+//   sweep     : 토벌 건너뛰기. 기록이 있는 광산에 출격 1회를 쓰고 CREDIT 만 받는다.
 //   finish    : 출격 결과 보고 { battleId, win, damage }. 같은 출격은 한 번만 반영한다.
 import { json, authenticate, allow, tooMany } from '../_lib/util.js';
 import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable } from '../_lib/players.js';
@@ -192,7 +192,7 @@ const ACTIONS = {
     if (!(await useSortie(env, user.id, phase.today))) return fail(`오늘 출격 ${SORTIES_PER_DAY}회를 모두 사용했습니다.`, 409, 'no-sortie');
     const battle = newBattle(env, { userId: user.id, unionId: member.union_id, mineId: mine.id, kind: 'war', targetId: target.user_id, week: phase.week, now: Date.now() });
     await battle.statement.run();
-    return json({ battleId: battle.id, enemy: { name: target.name, deck: await deckWithDev(env, target.user_id, JSON.parse(target.deck), target.level) }, mine: { id: mine.id, name: mine.name } });
+    return json({ battleId: battle.id, enemy: { name: target.name, deck: await deckWithDev(env, enemy, JSON.parse(target.deck)) }, mine: { id: mine.id, name: mine.name } });
   },
 
   async finish({ env, user, body, phase, member }) {
