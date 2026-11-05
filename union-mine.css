@@ -1,54 +1,171 @@
-/* 토륨광산 점령 */
-.mine-list,.mine-picks{display:grid;gap:8px}
-.mine-card{display:flex;align-items:center;gap:10px;width:100%;min-height:60px;padding:10px 12px;border:1px solid rgba(174,230,255,.22);border-radius:12px;background:rgba(8,16,40,.72);color:#eef8ff;text-align:left;font-family:var(--font-body);cursor:pointer}
-.mine-card.mine-mine{border-color:#8ff0b0;background:linear-gradient(90deg,rgba(143,240,176,.14),rgba(8,16,40,.72))}
-.mine-card.mine-war{border-color:#ff9f7a;background:linear-gradient(90deg,rgba(255,130,80,.18),rgba(8,16,40,.72))}
-.mine-card.mine-pirate{border-color:rgba(224,114,74,.45)}
-.mine-main{display:grid;flex:1;gap:3px;min-width:0}
-.mine-main b{font-size:14px;color:#fff}
-.mine-main small{font-size:11px;color:#a9c3dd;line-height:1.35}
-.mine-card em{flex:none;max-width:38%;font-style:normal;font-size:11px;color:#ffd9a0;text-align:right}
-.mine-size{flex:none;min-width:36px;padding:4px 6px;border-radius:6px;font-size:11px;font-weight:700;text-align:center;color:#06121f;background:#9fc3e8}
-.mine-size.medium{background:#7fe0ff}
-.mine-size.large{background:#ffd27a}
-.mine-phase{margin:0 0 10px;padding:8px 10px;border:1px solid rgba(143,240,176,.5);border-radius:8px;color:#c9f7da;font:600 12px/1.4 var(--font-body)}
-.mine-phase.war{border-color:rgba(255,159,122,.7);color:#ffd9c7}
-.mine-bar{position:relative;height:18px;margin:8px 0;overflow:hidden;border:1px solid rgba(174,230,255,.25);border-radius:9px;background:rgba(4,10,26,.7)}
-.mine-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#4fb6ff,#8ff0ff)}
-.mine-bar span{position:relative;display:block;text-align:center;color:#fff;font:600 11px/16px var(--font-body);text-shadow:0 1px 2px #000}
-.mine-versus{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.mine-versus>div{display:grid;gap:2px;min-width:0;padding:8px;border:1px solid rgba(174,230,255,.2);border-radius:8px;text-align:center}
-.mine-versus small{color:#a9c3dd;font:400 11px var(--font-body)}
-.mine-versus b{overflow:hidden;color:#fff;font:600 13px var(--font-body);text-overflow:ellipsis;white-space:nowrap}
-.mine-versus strong{color:#ffd27a;font:700 20px var(--font-num)}
-.mine-targets{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-.mine-target{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.mine-target>div{display:grid;gap:2px;min-width:0}
-.mine-target b{color:#fff;font:600 13px var(--font-body)}
-.mine-target small{color:#a9c3dd;font:400 11px/1.35 var(--font-body)}
-.mine-target .fac-btn{flex:none}
-.mine-deck{margin:0 0 10px}
+/* 토륨광산 점령. 규모 색: 소형 강철, 중형 청록, 대형 금색. 상태 색: 우리 점령 초록, 쟁탈전 주황, 해적 적갈, 다른 연합 회청 */
+.fac-thorium{--tm-small:#a9c4e4;--tm-medium:#7fe0ff;--tm-large:#ffd27a;--tm-mine:#8ff0b0;--tm-war:#ffa684;--tm-pirate:#ef8d6c;--tm-text:#eef8ff;--tm-sub:#a9c3dd;--tm-line:rgba(174,230,255,.2);--tm-size:var(--tm-small)}
+.fac-thorium .size-medium{--tm-size:var(--tm-medium)}
+.fac-thorium .size-large{--tm-size:var(--tm-large)}
+.tm-crystal{width:15px;height:15px;object-fit:contain;vertical-align:-3px;margin-right:3px}
+
+/* 상단 고정 메뉴. 게임 전체 틀(#app)의 overflow:hidden 은 sticky 를 막으므로 이 화면에서만 clip 으로 바꾼다 */
+#app:has(.tm-top){overflow:clip}
+.tm-top{position:sticky;z-index:20;margin:0 -12px;padding:8px 12px;border-bottom:1px solid rgba(111,245,207,.55);background:linear-gradient(180deg,#0a2030f7,#07141ff7);box-shadow:0 8px 18px #0009}
+.tm-top-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tm-back{flex:none;min-height:32px;padding:0 11px;border:1px solid rgba(174,230,255,.45);border-radius:6px;background:#0c1d30;color:#dff3ff;font:600 12px var(--font-body);cursor:pointer}
+.tm-top-title{display:grid;min-width:0}
+.tm-top-title small{color:var(--acc);font:600 9px var(--font-num);letter-spacing:.22em}
+.tm-top-title b{color:#fff;font:400 18px/1.1 var(--font-display)}
+.tm-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:3px;border:1px solid var(--tm-line);border-radius:9px;background:#050f1a}
+.tm-tabs button{min-height:36px;border:0;border-radius:7px;background:transparent;color:var(--tm-sub);font:400 14px var(--font-display);cursor:pointer}
+.tm-tabs button[aria-selected="true"]{background:linear-gradient(180deg,#1b8d73,#0f5a4c);color:#fff;box-shadow:inset 0 1px #ffffff33,0 0 10px rgba(22,199,154,.4)}
+
+/* 공용 */
+.tm-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.tm-stats.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tm-stat{display:grid;align-content:start;gap:3px;min-width:0;padding:8px;border:1px solid var(--tm-line);border-radius:8px;background:#071421b8}
+.tm-stat span{color:var(--tm-sub);font:400 11px var(--font-body)}
+.tm-stat b{overflow-wrap:anywhere;color:var(--tm-text);font:600 14px/1.25 var(--font-body)}
+.tm-bar{position:relative;display:block;height:6px;overflow:hidden;border-radius:4px;background:#ffffff14}
+.tm-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+.tm-bar.big{height:10px;margin-top:8px}
+.tm-bar.thin{height:4px;margin-top:6px}
+.tm-line{display:flex;align-items:baseline;justify-content:space-between;gap:10px;color:var(--tm-sub);font:400 12px/1.4 var(--font-body)}
+.tm-line>span:first-child{min-width:0;overflow-wrap:anywhere}
+.tm-line b{color:var(--tm-text);font-weight:600}
+.tm-chip{flex:none;max-width:48%;overflow:hidden;padding:3px 8px;border:1px solid currentColor;border-radius:20px;font:600 11px/1.2 var(--font-body);text-overflow:ellipsis;white-space:nowrap}
+.tm-chip.mine{color:var(--tm-mine)}
+.tm-chip.war{color:var(--tm-war)}
+.tm-chip.pirate{color:var(--tm-pirate)}
+.tm-chip.held{color:#b6c7da}
+.tm-note{margin:9px 0 0!important;color:var(--tm-sub)!important;font:400 12px/1.5 var(--font-body)!important}
+.tm-warn{margin:10px 0 0!important;padding:8px 10px;border:1px solid rgba(255,166,132,.6);border-radius:8px;background:rgba(255,130,80,.1);color:#ffd9c7!important;font:600 12px/1.45 var(--font-body)!important}
+.tm-actions{display:grid;gap:8px;margin-top:12px}
+.tm-cta{width:100%;min-height:46px;font-size:15px}
+.tm-sub-btn{min-height:36px;padding:0 12px;border:1px solid var(--tm-line);border-radius:7px;background:#0c1d30;color:#dff3ff;font:600 12px var(--font-body);cursor:pointer}
+.tm-rules{margin-top:10px;color:var(--tm-sub);font:400 12px/1.5 var(--font-body)}
+.tm-rules summary{cursor:pointer;color:var(--acc);font-weight:600}
+.tm-rules p{margin:6px 0 0!important;color:var(--tm-sub)!important;font-size:12px!important;line-height:1.55}
+
+/* 이번 주 전황 */
+.tm-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:0;padding:0;list-style:none}
+.tm-steps li{display:grid;justify-items:center;gap:1px;padding:7px 4px;border-bottom:3px solid #ffffff1c;color:var(--tm-sub)}
+.tm-steps b{font:600 13px var(--font-body)}
+.tm-steps small{font:400 11px var(--font-body)}
+.tm-steps li.on{border-color:var(--acc);background:linear-gradient(0deg,rgba(22,199,154,.2),transparent);color:#fff}
+.tm-pips{display:inline-flex;gap:3px;margin-right:6px;vertical-align:1px}
+.tm-pips i{width:8px;height:8px;border-radius:50%;background:#ffffff26}
+.tm-pips i.on{background:var(--acc);box-shadow:0 0 5px var(--acc2)}
+
+/* 방어 함대 */
+.mine-deck{margin:0}
 .mine-deck .arena-ship:not(:disabled){cursor:pointer}
 .mine-deck .arena-ship:disabled{opacity:1}
 .mine-deck .arena-ship b{font-family:var(--font-body)}
-.mine-picks{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tm-fleet-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;color:var(--tm-sub);font:400 12px/1.4 var(--font-body)}
+.tm-fleet-foot b{color:var(--tm-text)}
+.tm-fleet-foot .fac-btn{flex:none}
+
+/* 광산 목록 */
+.tm-group h4{display:flex;align-items:baseline;gap:8px;margin:6px 2px 8px;color:var(--tm-size);font:400 15px var(--font-display)}
+.tm-group h4 b{font-weight:400}
+.tm-group h4 small{color:var(--tm-sub);font:400 11px var(--font-body)}
+.tm-list{display:grid;gap:8px}
+.tm-card{display:grid;gap:7px;width:100%;padding:11px 12px 9px 15px;position:relative;overflow:hidden;border:1px solid var(--tm-line);border-radius:11px;background:linear-gradient(120deg,#102338,#091626);color:var(--tm-text);text-align:left;font-family:var(--font-body);cursor:pointer}
+.tm-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tm-size)}
+.tm-card:hover,.tm-card:focus-visible{border-color:#cfe9ff;filter:brightness(1.1);outline:none}
+.tm-card.is-mine{border-color:rgba(143,240,176,.75);background:linear-gradient(120deg,#123a2e,#091626 70%)}
+.tm-card.is-war{border-color:rgba(255,166,132,.75);background:linear-gradient(120deg,#3b2118,#091626 70%)}
+.tm-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tm-card-head b{min-width:0;font:600 15px/1.25 var(--font-body)}
+.tm-card-foot{display:flex;align-items:center;gap:8px;color:var(--tm-sub);font:400 12px var(--font-body)}
+.tm-yield b{color:var(--tm-text);font-weight:600}
+.tm-card-foot em{margin-left:auto;font:600 12px var(--font-body)}
+.tm-card-foot i{margin-left:auto;color:var(--tm-sub);font:400 18px/1 var(--font-body)}
+.tm-card-foot em+i{margin-left:2px}
+.tm-go{color:var(--acc)}
+.tm-lock{color:#8ea3b8}
+.tm-split{display:flex;gap:2px;height:7px;overflow:hidden;border-radius:4px}
+.tm-split i{display:block;background:linear-gradient(90deg,#2f9bff,#7fd0ff)}
+.tm-split u{display:block;background:linear-gradient(90deg,#ffa684,#e0613a)}
+
+/* 광산 상세 */
+.tm-head{position:relative;padding:13px 12px 12px 15px;overflow:hidden;border:1px solid var(--tm-line);border-radius:11px;background:linear-gradient(120deg,#102338,#091626)}
+.tm-head::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tm-size)}
+.tm-head h3{margin:0;color:#fff;font:400 20px/1.2 var(--font-display)}
+.tm-gauge{display:flex;align-items:center;gap:14px}
+.tm-gauge strong{flex:none;color:var(--acc);font:700 38px/1 var(--font-num);text-shadow:0 0 12px var(--glow)}
+.tm-gauge strong small{font-size:18px}
+.tm-gauge div{display:grid;gap:2px;min-width:0}
+.tm-gauge span{color:var(--tm-sub);font:400 12px var(--font-body)}
+.tm-gauge b{color:var(--tm-text);font:700 17px var(--font-num);overflow-wrap:anywhere}
+.tm-gauge b small{color:var(--tm-sub);font-size:13px;font-weight:600}
+.tm-rank,.tm-members,.tm-history,.tm-targets{display:grid;margin:0;padding:0;list-style:none}
+.tm-rank{gap:9px}
+.tm-rank li{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:8px}
+.tm-rank li>div{display:grid;gap:4px}
+.tm-rank-no{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#ffffff14;color:var(--tm-text);font:700 12px var(--font-num)}
+.tm-rank li.me .tm-rank-no{background:var(--acc2);color:#04161a}
+.tm-rank li.me .tm-line>span:first-child{color:#fff;font-weight:600}
+.tm-versus{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;margin-bottom:9px}
+.tm-versus>span{color:var(--tm-sub);font:700 13px var(--font-num)}
+.tm-side{display:grid;justify-items:center;gap:2px;min-width:0;padding:9px 6px;border:1px solid var(--tm-line);border-radius:9px;background:#071421b8;text-align:center}
+.tm-side small{color:var(--tm-sub);font:400 11px var(--font-body)}
+.tm-side b{max-width:100%;overflow:hidden;color:#fff;font:600 13px var(--font-body);text-overflow:ellipsis;white-space:nowrap}
+.tm-side strong{font:700 26px/1.1 var(--font-num)}
+.tm-side.holder strong{color:#7fd0ff}
+.tm-side.challenger strong{color:var(--tm-war)}
+.tm-side.me{border-color:var(--acc);box-shadow:inset 0 0 12px rgba(22,199,154,.2)}
+.tm-targets{gap:8px}
+.tm-target{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border:1px solid var(--tm-line);border-radius:9px;background:#071421b8}
+.tm-target.done{opacity:.65}
+.tm-target-main{display:grid;gap:4px;min-width:0}
+.tm-target-main b{color:#fff;font:600 14px var(--font-body);overflow-wrap:anywhere}
+.tm-target-art{display:flex;gap:4px}
+.tm-target-art img{width:50px;height:32px;object-fit:contain;filter:drop-shadow(0 2px 3px #000b)}
+.mine-target-actions{display:grid;flex:none;gap:5px}
+.mine-target-actions .fac-btn{min-width:82px}
+
+/* 토륨 분배 */
+.tm-share-hero{display:grid;justify-items:center;gap:6px;padding:16px 14px 13px;border:1px solid rgba(111,245,207,.5);border-radius:12px;background:radial-gradient(ellipse at 50% 0,rgba(22,199,154,.3),transparent 70%),linear-gradient(170deg,#0e2a33,#081422);text-align:center}
+.tm-share-hero>span:first-child{color:#d4f6ec;font:600 13px var(--font-body)}
+.tm-share-hero strong{color:#fff;font:700 44px/1 var(--font-num);text-shadow:0 0 14px var(--glow)}
+.tm-share-hero strong .tm-crystal{width:32px;height:32px;vertical-align:-5px;margin-right:6px}
+.tm-share-hero small{color:var(--tm-sub);font:400 12px var(--font-body)}
+.tm-share-hero small b{color:#fff;font-weight:600}
+.tm-share-hero .tm-bar{width:100%;margin-top:3px}
+.tm-flow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:5px}
+.tm-flow>div{display:grid;justify-items:center;align-content:center;gap:2px;min-width:0;min-height:62px;padding:7px 4px;border:1px solid var(--tm-line);border-radius:8px;background:#071421b8;text-align:center}
+.tm-flow>div.sum{border-color:rgba(111,245,207,.6);background:rgba(22,199,154,.13)}
+.tm-flow span{color:var(--tm-sub);font:400 11px/1.25 var(--font-body);word-break:keep-all}
+.tm-flow b{color:#fff;font:700 18px var(--font-num)}
+.tm-flow>i{color:var(--tm-sub);font:700 15px var(--font-num);font-style:normal}
+.tm-members{gap:0}
+.tm-members li{display:grid;gap:3px;padding:9px 2px;border-bottom:1px solid rgba(174,230,255,.1)}
+.tm-members li:last-child{border-bottom:0}
+.tm-members li.me{margin:0 -6px;padding-inline:8px;border:1px solid rgba(111,245,207,.45);border-radius:8px;background:rgba(22,199,154,.1)}
+.tm-members li.off{opacity:.72}
+.tm-members .tm-line>span:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:6px;color:var(--tm-text);font-weight:600}
+.tm-members .tm-chip{max-width:none;padding:1px 6px;font-size:10px}
+.tm-members .tm-line b{flex:none;font:700 15px var(--font-num)}
+.tm-member-sub{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px}
+.tm-member-sub small{color:var(--tm-sub);font:400 11px var(--font-body)}
+.tm-member-sub .tm-bar{margin:0}
+.tm-history li{display:grid;grid-template-columns:62px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid rgba(174,230,255,.1)}
+.tm-history li:last-child{border-bottom:0}
+.tm-history span{color:var(--tm-text);font:600 12px var(--font-body)}
+.tm-history small{color:var(--tm-sub);font:400 11px var(--font-body)}
+.tm-history b{color:var(--acc);font:700 15px var(--font-num)}
+
+/* 편성 선택 */
+.mine-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
 .mine-pick{display:grid;justify-items:center;gap:2px;padding:8px;border:1px solid rgba(174,230,255,.25);border-radius:10px;background:linear-gradient(180deg,#293f53e8,#0a1421);color:#eef8ff;text-align:center;font-family:var(--font-body);cursor:pointer}
+.mine-pick:disabled{opacity:.5;cursor:default}
 .mine-pick img{width:100%;height:72px;object-fit:contain;filter:drop-shadow(0 4px 5px #000b)}
 .mine-pick b{font-size:13px}
 .mine-pick small{color:#e6c980;font-size:11px}
-.mine-target-actions{display:flex;flex:none;flex-direction:column;gap:6px}
-.mine-raid-actions{flex-wrap:wrap;gap:8px}
-.mine-pick:disabled{opacity:.5;cursor:default}
-.mine-note{margin:0 0 10px;padding:8px 10px;border:1px solid rgba(255,210,122,.6);border-radius:8px;color:#ffe2a3;font:600 12px/1.4 var(--font-body)}
-.mine-shares{display:grid;gap:4px;margin:0;padding:0;list-style:none}
-.mine-shares li{display:grid;grid-template-columns:1fr auto 64px;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(174,230,255,.12);color:#dbe9f7;font:400 12px var(--font-body)}
-.mine-shares li.me{color:#fff;font-weight:700}
-.mine-shares small{color:#ffb39a;font-size:10px}
-.mine-shares b{font:600 12px var(--font-num)}
-.mine-shares em{color:#8ff0ff;font:600 12px var(--font-num);text-align:right;font-style:normal}
-.mine-back-row{margin:0 0 10px}
-.mine-back-row .fac-back{position:static;display:inline-flex}
-.fac-stats li.me span{color:#fff;font-weight:700}
+
+/* 알림, 다른 화면이 함께 쓰는 막대와 결과창 */
+.mine-note{margin:0;padding:8px 10px;border:1px solid rgba(255,210,122,.6);border-radius:8px;color:#ffe2a3;font:600 12px/1.4 var(--font-body)}
+.mine-bar{position:relative;height:18px;margin:8px 0;overflow:hidden;border:1px solid rgba(174,230,255,.25);border-radius:9px;background:rgba(4,10,26,.7)}
+.mine-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#4fb6ff,#8ff0ff)}
+.mine-bar span{position:relative;display:block;text-align:center;color:#fff;font:600 11px/16px var(--font-body);text-shadow:0 1px 2px #000}
 .mine-raid-stats{display:flex;flex-direction:column;gap:6px;width:100%}
 .mine-raid-stats span{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-radius:10px;font-family:var(--font-body)}
 .mine-raid-stats b{font-family:var(--font-num)}

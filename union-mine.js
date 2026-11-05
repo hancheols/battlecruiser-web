@@ -86,74 +86,128 @@
 
   // ── 화면 조각 ───────────────────────────────────────────────────────────────
   const short = value => { const n = Number(value) || 0; return n >= 10000 ? `${Math.round(n / 1000) / 10}만` : num(n); };
-  const phaseText = phase => phase.war ? `쟁탈전 진행 중 · 수요일 0시 정산까지 ${phase.daysLeft}일` : `도전 신청·방어 함대 등록 기간 · 쟁탈전까지 ${phase.daysLeft}일`;
+  const percentOf = (value, total) => (total ? Math.min(100, Math.max(0, value * 100 / total)) : 0);
+  const percentText = percent => (percent > 0 && percent < 1 ? '1 미만' : String(Math.floor(percent)));
+  const crystal = '<img class="tm-crystal" src="thorium-crystal-icon.png" alt="토륨"/>';
+  const bar = (percent, cls = '') => `<span class="tm-bar ${cls}"><i style="width:${percent}%"></i></span>`;
+  const stat = (label, value) => `<div class="tm-stat"><span>${label}</span><b>${value}</b></div>`;
+  const chip = (text, cls = '') => `<span class="tm-chip ${cls}">${text}</span>`;
+  const rules = (title, text) => `<details class="tm-rules"><summary>${title}</summary><p>${text}</p></details>`;
   // 아레나 편성과 같은 함선 카드. 이미지는 저장값에 없어서 내 함선 목록에서 찾는다.
   const shipArt = ship => ship.image || (window.getFleetCatalog?.() || []).find(item => sameShip(item, ship))?.image || '';
   const shipCard = (ship, index, attrs = '') => `<button type="button" class="arena-ship" ${attrs || 'disabled'}><small>${ROLES[index]}</small>${ship ? `<img src="${esc(shipArt(ship))}" alt="${esc(ship.name)}"/><b>${esc(ship.name)}</b><em>${esc(ship.rarity)} · ${Number(ship.enhancementStars ?? ship.stars) || 0}성</em>` : '<span class="arena-empty">＋</span><b>선택</b>'}</button>`;
   const deckCards = (deck, attrsOf = () => '') => `<div class="arena-deck arena-deck-defense mine-deck"><div class="arena-ships">${ROLES.map((_, index) => shipCard(deck?.[index] || null, index, attrsOf(index))).join('')}</div></div>`;
-  const progress = (percent, label = '') => `<div class="mine-bar"><i style="width:${Math.min(100, Math.max(0, percent))}%"></i>${label ? `<span>${label}</span>` : ''}</div>`;
 
   function statusOf(mine) {
-    if (mine.war) return { cls: 'war', text: mine.war.mySide ? '쟁탈전 참가 중' : '쟁탈전 중' };
-    if (mine.holder?.mine) return { cls: 'mine', text: '우리 연합 점령' };
+    if (mine.war) return { cls: 'war', text: mine.war.mySide ? '쟁탈전 참가 중' : '쟁탈전' };
+    if (mine.holder?.mine) return { cls: 'mine', text: '우리 점령' };
     if (mine.holder) return { cls: 'held', text: esc(mine.holder.name) };
-    return { cls: 'pirate', text: '우주해적 점거' };
+    return { cls: 'pirate', text: '해적 점거' };
   }
+  // 우리 연합이 지금 할 수 있는 일. 목록에서 바로 알아보게 한 줄로 보여 준다.
+  function chanceOf(mine) {
+    const u = data.union;
+    if (!u || mine.holder?.mine || mine.war) return '';
+    if (u.level < mine.minLevel) return `<em class="tm-lock">연합 Lv.${mine.minLevel} 필요</em>`;
+    if (!mine.canTake) return '<em class="tm-lock">더 큰 광산만 가능</em>';
+    if (mine.holder) return mine.applied ? '<em class="tm-go">도전 신청함</em>' : data.phase.war ? '' : '<em class="tm-go">도전 가능</em>';
+    return u.inWar ? '' : '<em class="tm-go">토벌 가능</em>';
+  }
+  const warSplit = war => {
+    const holder = percentOf(war.holderScore, war.holderScore + war.challengerScore) || 50;
+    return `<span class="tm-split"><i style="width:${holder}%"></i><u style="width:${100 - holder}%"></u></span>`;
+  };
   function mineCard(mine) {
     const status = statusOf(mine);
-    const sub = mine.war
-      ? `${esc(mine.war.holder)} ${num(mine.war.holderScore)} : ${num(mine.war.challengerScore)} ${esc(mine.war.challenger)}`
-      : mine.holder ? `주간 토륨 ${num(mine.production)}${mine.applied ? ' · 도전 신청함' : ''}`
-        : `토벌 ${short(mine.myTotal)} / ${short(mine.pirate.hp)} · 주간 토륨 ${num(mine.production)}`;
-    return `<button type="button" class="mine-card mine-${status.cls}" data-mine-open="${esc(mine.id)}"><span class="mine-size ${esc(mine.size)}">${esc(mine.sizeLabel)}</span><span class="mine-main"><b>${esc(mine.name)}</b><small>${sub}</small></span><em>${status.text} ›</em></button>`;
+    let body;
+    if (mine.war) {
+      body = `<span class="tm-line"><span>${esc(mine.war.holder)} <b>${num(mine.war.holderScore)}</b></span><span><b>${num(mine.war.challengerScore)}</b> ${esc(mine.war.challenger)}</span></span>${warSplit(mine.war)}`;
+    } else if (mine.holder) {
+      body = `<span class="tm-line"><span>${mine.holder.mine ? `수비 보너스 <b>+${Math.round(mine.holder.bonus * 100)}%</b>` : '점령 연합이 있는 광산'}</span><span>도전 신청 <b>${num(mine.applicants)}</b></span></span>`;
+    } else {
+      const percent = percentOf(mine.myTotal, mine.pirate.hp);
+      body = `<span class="tm-line"><span>우리 연합 토벌</span><span><b>${short(mine.myTotal)}</b> / ${short(mine.pirate.hp)}</span></span>${bar(percent)}`;
+    }
+    return `<button type="button" class="tm-card is-${status.cls} size-${esc(mine.size)}" data-mine-open="${esc(mine.id)}"><span class="tm-card-head"><b>${esc(mine.name)}</b>${chip(status.text, status.cls)}</span>${body}<span class="tm-card-foot"><span class="tm-yield">${crystal}주 <b>${num(mine.production)}</b></span>${chanceOf(mine)}<i aria-hidden="true">›</i></span></button>`;
   }
 
   function fleetBlock(panel) {
-    const locked = data.phase.war;
-    const ships = Boolean(data.fleet);
-    const count = data.union ? `<p class="union-hint">연합 등록 ${num(data.union.fleets)}명 · 도전 신청과 수비 보너스에 ${num(data.rules.minFleets)}명 이상 필요</p>` : '';
-    return panel('광산 방어 함대 <small>GUARD FLEET</small>', `${deckCards(data.fleet)}${ships ? '' : '<p class="union-hint">아직 등록하지 않았습니다. 아레나와 따로 등록합니다.</p>'}${count}<button type="button" class="fac-btn small" data-mine-fleet ${locked ? 'disabled' : ''}>${locked ? '쟁탈 기간에는 변경 불가' : ships ? '함대 변경' : '함대 등록'}</button>`);
+    const locked = data.phase.war, ships = Boolean(data.fleet);
+    const count = data.union ? `<span>연합 등록 <b>${num(data.union.fleets)}</b>명 · 도전과 수비 보너스에 ${num(data.rules.minFleets)}명 이상 필요</span>` : '<span>연합에 가입하면 쓸 수 있습니다.</span>';
+    return panel('광산 방어 함대 <small>GUARD FLEET</small>', `${deckCards(data.fleet)}<div class="tm-fleet-foot">${count}<button type="button" class="fac-btn small" data-mine-fleet ${locked ? 'disabled' : ''}>${locked ? '쟁탈 기간 잠김' : ships ? '함대 변경' : '함대 등록'}</button></div>`);
+  }
+
+  function weekPanel(panel) {
+    const war = data.phase.war, u = data.union, left = data.sorties.max - data.sorties.used;
+    const steps = [['신청', '수~토', !war], ['쟁탈전', '일~화', war], ['정산', '수 0시', false]].map(([name, when, on]) => `<li class="${on ? 'on' : ''}"><b>${name}</b><small>${when}</small></li>`).join('');
+    const pips = Array.from({ length: data.sorties.max }, (_, index) => `<i class="${index < left ? 'on' : ''}"></i>`).join('');
+    const stats = u ? `<div class="tm-stats">${stat('우리 점령', esc(u.heldMine) || '없음')}${stat('주간 생산', `${crystal}${num(u.production)}`)}${stat('오늘 출격', `<span class="tm-pips">${pips}</span>${left}/${data.sorties.max}`)}</div>` : '<p class="union-hint">연합에 가입하면 토벌과 도전전에 참여할 수 있습니다.</p>';
+    return panel(`이번 주 전황 <small>${war ? `정산까지 ${data.phase.daysLeft}일` : `쟁탈전까지 ${data.phase.daysLeft}일`}</small>`, `<ol class="tm-steps">${steps}</ol>${stats}`);
   }
 
   function minesTab(panel) {
     const groups = SIZE_ORDER.map(size => {
       const list = data.mines.filter(mine => mine.size === size);
-      return panel(`${esc(list[0]?.sizeLabel || '')} 광산 <small>${size.toUpperCase()}</small>`, `<div class="mine-list">${list.map(mineCard).join('')}</div>`);
+      if (!list.length) return '';
+      return `<section class="tm-group size-${size}"><h4><b>${esc(list[0].sizeLabel)} 광산</b><small>연합 Lv.${num(list[0].minLevel)}부터</small></h4><div class="tm-list">${list.map(mineCard).join('')}</div></section>`;
     }).join('');
-    const summary = data.union ? `<div class="fac-claim"><div><span>우리 연합 점령</span><b>${esc(data.union.heldMine) || '없음'}</b></div><div><span>이번 주 생산</span><b>${num(data.union.production)}<small> 토륨</small></b></div></div>` : '<p class="union-hint">연합에 가입하면 토벌과 도전전에 참여할 수 있습니다.</p>';
-    return `${panel('이번 주 전황 <small>STATUS</small>', `<p class="mine-phase ${data.phase.war ? 'war' : ''}">${phaseText(data.phase)}</p>${summary}<p class="union-hint">오늘 남은 출격 ${num(data.sorties.max - data.sorties.used)} / ${num(data.sorties.max)}회</p>`)}${fleetBlock(panel)}${groups}`;
+    return `${weekPanel(panel)}${fleetBlock(panel)}${groups}`;
+  }
+
+  function detailHead(mine) {
+    const status = statusOf(mine);
+    const owner = mine.war ? esc(mine.war.holder) : mine.holder ? esc(mine.holder.name) : esc(mine.pirate.name);
+    return `<section class="tm-head is-${status.cls} size-${esc(mine.size)}"><div class="tm-card-head"><h3>${esc(mine.name)}</h3>${chip(status.text, status.cls)}</div><div class="tm-stats">${stat('규모', esc(mine.sizeLabel))}${stat('주간 생산', `${crystal}${num(mine.production)}`)}${stat(mine.holder || mine.war ? '점령 연합' : '점거 세력', owner)}</div></section>`;
+  }
+
+  function warDetail(panel, mine, left) {
+    const war = mine.war;
+    const side = (key, label, name, score) => `<div class="tm-side ${key}${war.mySide === key ? ' me' : ''}"><small>${label}${war.mySide === key ? ' · 우리' : ''}</small><b>${esc(name)}</b><strong>${num(score)}</strong></div>`;
+    const board = panel('쟁탈전 점수 <small>WAR</small>', `<div class="tm-versus">${side('holder', '점령 연합', war.holder, war.holderScore)}<span>VS</span>${side('challenger', '도전 연합', war.challenger, war.challengerScore)}</div>${warSplit(war)}<p class="tm-note">점수는 상위 20명 합계입니다.${war.holderBonus ? ` 점령 연합 수비 보너스 +${Math.round(war.holderBonus * 100)}% 포함.` : ''} 동점이면 점령 연합이 지킵니다.</p>`);
+    if (!war.mySide) return board;
+    const catalog = window.getFleetCatalog?.() || [];
+    const rows = (ui.targets || []).map(target => {
+      const art = target.ships.map(ship => `<img src="${esc(catalog.find(item => item.name === ship.name)?.image || '')}" alt="${esc(ship.name)} ${esc(ship.rarity)} ${ship.stars}성" title="${esc(ship.name)}"/>`).join('');
+      const done = target.attacked || left <= 0;
+      return `<li class="tm-target${target.attacked ? ' done' : ''}"><div class="tm-target-main"><b>${esc(target.name)}</b><span class="tm-target-art">${art}</span></div><div class="mine-target-actions"><button type="button" class="fac-btn small" data-mine-attack="${esc(target.id)}" ${done ? 'disabled' : ''}>${target.attacked ? '공격함' : '공격'}</button>${done ? '' : `<button type="button" class="tm-sub-btn" data-mine-attack-skip="${esc(target.id)}">건너뛰기</button>`}</div></li>`;
+    }).join('');
+    return `${board}${panel(`상대 함장 <small>남은 출격 ${left}회</small>`, rows ? `<ul class="tm-targets">${rows}</ul>` : '<p class="union-hint">공격할 수 있는 방어 함대가 없습니다.</p>')}`;
+  }
+
+  function holdDetail(panel, mine) {
+    const u = data.union;
+    if (mine.holder.mine) {
+      return panel('점령 현황 <small>HOLD</small>', `<div class="tm-stats">${stat('수비 보너스', `+${Math.round(mine.holder.bonus * 100)}%`)}${stat('도전 신청', `${num(mine.applicants)}개 연합`)}${stat('등록 함대', `${num(u.fleets)}명`)}</div><p class="tm-note">일요일 0시에 도전 상대가 정해집니다. 방어 함대가 ${num(data.rules.minFleets)}명 미만이면 수비 보너스를 받지 못합니다.</p>`);
+    }
+    const note = text => `<p class="tm-note">${text}</p>`;
+    let action;
+    if (!u) action = note('연합에 가입해야 도전할 수 있습니다.');
+    else if (mine.applied) action = note('도전 신청을 마쳤습니다. 일요일 0시에 대진이 정해집니다.');
+    else if (!mine.canTake) action = note(`점령 중에는 더 큰 광산에만 도전할 수 있습니다. 우리 연합 점령: ${esc(u.heldMine)}`);
+    else if (u.appliedMine) action = note(`도전 신청은 한 주에 한 광산만 할 수 있습니다. 이번 주 신청: ${esc(u.appliedMine)}`);
+    else if (data.phase.war) action = note('다음 주 수요일부터 도전 신청을 받습니다.');
+    else if (!u.canChallenge) action = note('도전 신청은 연합장과 부연합장이 합니다.');
+    else {
+      const ready = u.fleets >= data.rules.minFleets;
+      action = `<div class="tm-stats">${stat('등록 함대', `${num(u.fleets)} / ${num(data.rules.minFleets)}명`)}${stat('도전 신청', `${num(mine.applicants)}개 연합`)}</div>${u.heldMine ? `<p class="tm-warn">이기면 ${esc(u.heldMine)}은 해적에게 돌아갑니다.</p>` : ''}<button type="button" class="fac-btn tm-cta" data-mine-challenge="${esc(mine.id)}" ${ready ? '' : 'disabled'}>${ready ? '도전 신청' : `방어 함대 ${num(data.rules.minFleets)}명 필요`}</button>${rules('규칙 보기', '신청 연합이 여럿이면 연합 점수가 가장 비슷한 연합이 뽑힙니다. 쟁탈전은 일~화요일이고 수요일 0시에 정산합니다.')}`;
+    }
+    return panel('도전 신청 <small>CHALLENGE</small>', action);
+  }
+
+  function raidDetail(panel, mine, left) {
+    const total = mine.pirate.hp, percent = percentOf(mine.myTotal, total), u = data.union;
+    const reason = !u ? '연합 필요' : u.level < mine.minLevel ? `연합 Lv.${mine.minLevel} 필요` : !mine.canTake ? '더 큰 광산만 가능' : u.inWar ? '쟁탈전 진행 중' : left <= 0 ? '오늘 출격 완료' : '';
+    const canSweep = !reason && mine.myBest > 0;
+    const main = panel('우주해적 토벌 <small>RAID</small>', `<div class="tm-gauge"><strong>${percentText(percent)}<small>%</small></strong><div><span>우리 연합 합계 피해</span><b>${num(mine.myTotal)} <small>/ ${num(total)}</small></b></div></div>${bar(percent, 'big')}<div class="tm-stats">${stat('제한 시간', `${num(mine.pirate.limit)}초`)}${stat('남은 출격', `${num(left)}회`)}${stat('내 최고', num(mine.myBest))}</div>${bar(percentOf(mine.myBest, mine.recordCap), 'thin')}<p class="tm-note">내 기록은 ${num(mine.recordCap)}까지 합계에 반영됩니다.</p>${u?.heldMine && mine.canTake ? `<p class="tm-warn">점령하면 ${esc(u.heldMine)}은 해적에게 돌아갑니다.</p>` : ''}<div class="tm-actions"><button type="button" class="fac-btn tm-cta" data-mine-raid="${esc(mine.id)}" ${reason ? 'disabled' : ''}>${reason || '토벌 출격'}</button>${canSweep ? `<button type="button" class="tm-sub-btn" data-mine-sweep="${esc(mine.id)}">건너뛰기</button>` : ''}</div>${rules('규칙 보기', `연합원 각자의 최고 피해를 모두 더해 해적 체력에 이르면 점령합니다. 1인 기록은 해적 체력의 ${num(data.rules.recordCapPercent)}%까지 반영하고, 다시 출격하면 더 높은 기록만 남습니다. 건너뛰기는 출격 1회를 쓰고 CREDIT만 받으며 기록은 그대로입니다.`)}`);
+    const race = mine.racers.length ? panel('연합 경쟁 <small>RACE</small>', `<ol class="tm-rank">${mine.racers.map((racer, index) => `<li class="${racer.mine ? 'me' : ''}"><span class="tm-rank-no">${index + 1}</span><div><span class="tm-line"><span>${esc(racer.name)}${racer.mine ? ' · 우리' : ''}</span><b>${percentText(percentOf(racer.total, total))}%</b></span>${bar(percentOf(racer.total, total))}</div></li>`).join('')}</ol>`) : '';
+    const records = mine.records.length ? panel('우리 연합 최고 기록 <small>상위 5명</small>', `<ol class="tm-rank">${mine.records.map((row, index) => `<li class="${row.me ? 'me' : ''}"><span class="tm-rank-no">${index + 1}</span><div><span class="tm-line"><span>${esc(row.name)}</span><b>${num(row.best)}</b></span>${bar(percentOf(row.best, mine.recordCap))}</div></li>`).join('')}</ol>`) : '';
+    return `${main}${race}${records}`;
   }
 
   function mineDetail(panel, mine) {
-    const back = '<div class="mine-back-row"><button type="button" class="fac-back" data-mine-back>‹ 광산 목록</button></div>';
     const left = data.sorties.max - data.sorties.used;
-    const head = panel(`${esc(mine.name)} <small>${esc(mine.sizeLabel)}</small>`, `<div class="fac-claim"><div><span>주간 토륨 생산</span><b>${num(mine.production)}</b></div><div><span>현재 상태</span><b>${statusOf(mine).text}</b></div></div>`);
-    if (mine.war) {
-      const total = Math.max(1, mine.war.holderScore + mine.war.challengerScore);
-      const board = panel('쟁탈전 <small>WAR</small>', `<div class="mine-versus"><div><small>점령 연합</small><b>${esc(mine.war.holder)}</b><strong>${num(mine.war.holderScore)}</strong></div><div><small>도전 연합</small><b>${esc(mine.war.challenger)}</b><strong>${num(mine.war.challengerScore)}</strong></div></div>${progress(mine.war.holderScore * 100 / total)}${mine.war.holderBonus ? `<p class="union-hint">점령 연합 수비 보너스 +${Math.round(mine.war.holderBonus * 100)}% 포함 · 점수는 상위 20명 합계</p>` : '<p class="union-hint">점수는 상위 20명 합계입니다.</p>'}`);
-      if (!mine.war.mySide) return `${back}${head}${board}`;
-      const targets = ui.targets || [];
-      const rows = targets.map(target => `<li class="mine-target"><div><b>${esc(target.name)}</b><small>${target.ships.map(ship => `${esc(ship.name)} ${esc(ship.rarity)}★${ship.stars}`).join(' · ')}</small></div><div class="mine-target-actions"><button type="button" class="fac-btn small" data-mine-attack="${esc(target.id)}" ${target.attacked || left <= 0 ? 'disabled' : ''}>${target.attacked ? '오늘 공격함' : '공격'}</button>${target.attacked || left <= 0 ? '' : `<button type="button" class="fac-btn small" data-mine-attack-skip="${esc(target.id)}">건너뛰기</button>`}</div></li>`).join('');
-      return `${back}${head}${board}${panel(`상대 함장 <small>남은 출격 ${left}회</small>`, rows ? `<ul class="mine-targets">${rows}</ul>` : '<p class="union-hint">공격할 수 있는 방어 함대가 없습니다.</p>')}`;
-    }
-    if (mine.holder) {
-      const u = data.union;
-      if (mine.holder.mine) {
-        return `${back}${head}${panel('점령 현황 <small>HOLD</small>', `<p class="union-hint">수비 보너스 +${Math.round(mine.holder.bonus * 100)}% · 이번 주 도전 신청 ${num(mine.applicants)}개 연합. 일요일 0시에 도전 상대가 정해지고, 방어 함대가 ${num(data.rules.minFleets)}명 미만이면 보너스를 받지 못합니다.</p>`)}`;
-      }
-      const action = !u ? '<p class="union-hint">연합에 가입해야 도전할 수 있습니다.</p>'
-        : mine.applied ? '<p class="union-hint">도전 신청을 마쳤습니다. 일요일 0시에 대진이 정해집니다.</p>'
-          : !mine.canTake ? `<p class="union-hint">점령 중에는 더 큰 광산에만 도전할 수 있습니다. 우리 연합 점령: ${esc(u.heldMine)}</p>`
-          : u.appliedMine ? `<p class="union-hint">도전 신청은 한 주에 한 광산만 할 수 있습니다. 이번 주 신청: ${esc(u.appliedMine)}</p>`
-          : data.phase.war ? '<p class="union-hint">다음 주 수요일부터 도전 신청을 받습니다.</p>'
-            : !u.canChallenge ? '<p class="union-hint">도전 신청은 연합장과 부연합장이 합니다.</p>'
-              : `<p class="union-hint">연합 등록 방어 함대 ${num(u.fleets)} / ${num(data.rules.minFleets)}명. 신청 연합이 여럿이면 연합 점수가 가장 비슷한 연합이 뽑힙니다.${u.heldMine ? ` 이기면 ${esc(u.heldMine)}은 해적에게 돌아갑니다.` : ''}</p><button type="button" class="fac-btn" data-mine-challenge="${esc(mine.id)}" ${u.fleets < data.rules.minFleets ? 'disabled' : ''}>도전 신청</button>`;
-      return `${back}${head}${panel(`점령 연합 · ${esc(mine.holder.name)} <small>CHALLENGE</small>`, action)}`;
-    }
-    const racers = mine.racers.length ? `<ul class="fac-stats">${mine.racers.map(racer => `<li><span>${esc(racer.name)}${racer.mine ? ' (우리)' : ''}</span><b>${num(racer.total)}</b></li>`).join('')}</ul>` : '';
-    const records = mine.records.length ? panel('우리 연합 최고 기록 <small>상위 5명</small>', `<ul class="fac-stats">${mine.records.map(row => `<li class="${row.me ? 'me' : ''}"><span>${esc(row.name)}</span><b>${num(row.best)}</b></li>`).join('')}</ul>`) : '';
-    const reason = !data.union ? '연합 필요' : data.union.level < mine.minLevel ? `연합 Lv.${mine.minLevel} 필요`  : !mine.canTake ? '더 큰 광산만 가능' : data.union.inWar ? '쟁탈전 진행 중' : left <= 0 ? '오늘 출격 완료' : '';
-    return `${back}${head}${panel(`우주해적 토벌 <small>RAID</small>`, `<div class="fac-claim"><div><span>상대</span><b>${esc(mine.pirate.name)}</b></div><div><span>제한 시간</span><b>${num(mine.pirate.limit)}초</b></div></div>${progress(mine.myTotal * 100 / mine.pirate.hp, `우리 연합 ${num(mine.myTotal)} / ${num(mine.pirate.hp)}`)}<div class="fac-claim"><div><span>내 최고 피해</span><b>${num(mine.myBest)}</b></div><div><span>1인 반영 상한</span><b>${num(mine.recordCap)}</b></div></div>${racers}<p class="union-hint">연합원 각자의 최고 피해를 모두 더해 해적 체력에 이르면 점령합니다. 1인 기록은 해적 체력의 ${num(data.rules.recordCapPercent)}%까지 반영하고, 다시 출격하면 더 높은 기록만 남습니다. 오늘 남은 출격은 ${num(left)}회입니다.${data.union?.heldMine && mine.canTake ? ` 점령하면 ${esc(data.union.heldMine)}은 해적에게 돌아갑니다.` : ''}</p><div class="union-actions mine-raid-actions"><button type="button" class="fac-btn" data-mine-raid="${esc(mine.id)}" ${reason ? 'disabled' : ''}>${reason || '토벌 출격'}</button>${!reason && mine.myBest > 0 ? `<button type="button" class="fac-btn small" data-mine-sweep="${esc(mine.id)}">건너뛰기</button>` : ''}</div>${!reason && mine.myBest > 0 ? '<p class="union-hint">건너뛰기는 출격 1회를 쓰고 CREDIT만 받습니다. 기록을 올리려면 직접 출격해 주세요.</p>' : ''}`)}${records}`;
+    const body = mine.war ? warDetail(panel, mine, left) : mine.holder ? holdDetail(panel, mine) : raidDetail(panel, mine, left);
+    return `${detailHead(mine)}${body}`;
   }
 
   function fleetEditor(panel) {
@@ -165,9 +219,9 @@
       ships.forEach(ship => { const key = `${ship.type}|${ship.name}`; if (!best.has(key)) best.set(key, ship); });
       const rows = [...best.values()].map((ship, index) => { const used = slots.some((item, i) => i !== slot && sameShip(item, ship)); return `<button type="button" class="mine-pick" data-mine-pick="${index}" ${used ? 'disabled' : ''}><img src="${esc(shipArt(ship))}" alt=""/><b>${esc(ship.name)}</b><small>${esc(ship.rarity)} · ${Number(ship.stars) || 0}성${used ? ' · 편성됨' : ''}</small></button>`; }).join('');
       ui.pickList = [...best.values()];
-      return `<div class="mine-back-row"><button type="button" class="fac-back" data-mine-pick-back>‹ 함대 편성</button></div>${panel(`${ROLES[slot]} 선택`, `<div class="mine-picks">${rows || '<p class="union-hint">고를 수 있는 함선이 없습니다.</p>'}</div>${slot === 3 ? '<button type="button" class="fac-btn small" data-mine-pick-clear>프리깃 없음</button>' : ''}`)}`;
+      return panel(`${ROLES[slot]} 선택`, `<div class="mine-picks">${rows || '<p class="union-hint">고를 수 있는 함선이 없습니다.</p>'}</div>${slot === 3 ? '<button type="button" class="tm-sub-btn" data-mine-pick-clear>프리깃 없음</button>' : ''}`);
     }
-    return `<div class="mine-back-row"><button type="button" class="fac-back" data-mine-edit-cancel>‹ 돌아가기</button></div>${panel('광산 방어 함대 편성', `${deckCards(slots, index => `data-mine-slot="${index}"`)}<p class="union-hint">능력치는 저장할 때 기록됩니다. 함선을 키운 뒤 다시 저장하면 갱신됩니다. 아레나 편성이나 파견과 겹쳐도 됩니다.</p><div class="union-actions"><button type="button" class="fac-btn small" data-mine-import>함대관리 편성 불러오기</button><button type="button" class="fac-btn" data-mine-save>저장</button></div>`)}`;
+    return panel('광산 방어 함대 편성', `${deckCards(slots, index => `data-mine-slot="${index}"`)}<p class="tm-note">능력치는 저장할 때 기록됩니다. 함선을 키운 뒤 다시 저장하면 갱신됩니다. 아레나 편성이나 파견과 겹쳐도 됩니다.</p><div class="tm-actions"><button type="button" class="fac-btn tm-cta" data-mine-save>저장</button><button type="button" class="tm-sub-btn" data-mine-import>함대관리 편성 불러오기</button></div>`);
   }
 
   function shareTab(panel) {
@@ -175,32 +229,43 @@
     if (!u) return panel('토륨 분배', '<p class="union-hint">연합에 가입하면 이용할 수 있습니다.</p>');
     const owned = data.mines.filter(mine => mine.holder?.mine);
     const me = u.shares.find(row => row.me);
-    const percent = u.totalPoints && me?.linked && !me.waiting ? Math.round(u.myPoints * 100 / u.totalPoints) : 0;
+    const blocked = !me?.linked ? '구글 연동 필요' : me.waiting ? '다음 주부터 받음' : '';
+    const percent = u.totalPoints && !blocked ? u.myPoints * 100 / u.totalPoints : 0;
+    const planned = u.shares.reduce((sum, row) => sum + row.expected, 0);
     const settledOn = week => { const date = new Date((week + 7) * 86400000); return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일`; };
-    const list = u.shares.map(row => `<li class="${row.me ? 'me' : ''}"><span>${esc(row.name)}${!row.linked ? ' <small>구글 연동 필요</small>' : row.waiting ? ' <small>다음 주부터</small>' : ''}</span><b>${num(row.points)}</b><em>${num(row.expected)}</em></li>`).join('');
-    const history = u.history.length ? `<ul class="fac-log">${u.history.map(item => `<li><span>${settledOn(item.week)}</span><b>CREDIT ${num(item.points)} · ${item.total ? Math.round(item.points * 100 / item.total) : 0}%</b><em>+${num(item.amount)}</em></li>`).join('')}</ul>` : '<p class="union-empty">아직 받은 토륨이 없습니다.</p>';
-    return `${panel('연합 토륨 저장고 <small>RESERVOIR</small>', `<div class="fac-claim"><div><span>저장고</span><b>${num(u.treasury)}</b></div><div><span>이번 주 생산 예정</span><b>+${num(u.production)}</b></div></div>${owned.length ? `<ul class="fac-stats">${owned.map(mine => `<li><span>${esc(mine.name)}</span><b>+${num(mine.production)}</b></li>`).join('')}</ul>` : '<p class="union-hint">토륨은 광산을 점령해야 생산됩니다. 아직 점령한 광산이 없습니다.</p>'}`)}${panel('이번 주 나의 몫 <small>MY SHARE</small>', `<div class="fac-claim"><div><span>이번 주 CREDIT</span><b>${num(u.myPoints)}</b></div><div><span>예상 분배</span><b>${num(me?.expected)}<small> 토륨</small></b></div></div>${progress(percent, `연합 내 ${percent}%`)}<p class="union-hint">수요일 0시에 CREDIT 비율대로 우편으로 지급합니다. 1인 상한은 주 ${num(data.rules.payoutCap)} 토륨이고, 남은 몫은 저장고에 남습니다. 구글 연동 계정만 받으며, 정산 전 24시간 안에 가입했으면 다음 주부터 받습니다.</p>`)}${panel('연합원 분배 예상 <small>이번 주 CREDIT · 토륨</small>', `<ul class="mine-shares">${list}</ul>`)}${panel('받은 기록 <small>HISTORY</small>', history)}`;
+    const mineShare = `<section class="tm-share-hero"><span>이번 주 내 예상 분배</span><strong>${crystal}${num(me?.expected)}</strong>${blocked ? chip(blocked, 'war') : `<small>이번 주 CREDIT <b>${num(u.myPoints)}</b> · 연합 내 <b>${Math.round(percent)}%</b></small>`}${bar(percentOf(me?.expected || 0, data.rules.payoutCap))}<small>1인 상한 ${num(data.rules.payoutCap)} · 수요일 0시 우편 지급</small></section>`;
+    const flow = panel('이번 주 분배 흐름 <small>FLOW</small>', `<div class="tm-flow"><div><span>저장고</span><b>${num(u.treasury)}</b></div><i>+</i><div><span>${owned.length ? esc(owned[0].name) : '광산 생산'}</span><b>${num(u.production)}</b></div><i>=</i><div class="sum"><span>분배 총량</span><b>${num(u.pool)}</b></div></div><div class="tm-stats two">${stat('지급 예정', num(planned))}${stat('저장고에 남음', num(Math.max(0, u.pool - planned)))}</div>${owned.length ? '' : '<p class="tm-note">토륨은 광산을 점령해야 생산됩니다. 아직 점령한 광산이 없습니다.</p>'}${rules('규칙 보기', `이번 주에 얻은 CREDIT 비율대로 나눕니다. 연합 개발에 CREDIT을 써도 몫은 줄지 않습니다. 1인 상한을 넘거나 나누고 남은 몫은 저장고에 남습니다. 구글 연동 계정만 받으며, 정산 24시간 전 뒤에 가입했으면 다음 주부터 받습니다.`)}`);
+    const members = panel('연합원 분배 예상 <small>CREDIT · 토륨</small>', `<ol class="tm-members">${u.shares.map(row => `<li class="${row.me ? 'me' : ''}${row.expected ? '' : ' off'}"><div class="tm-line"><span>${esc(row.name)}${!row.linked ? chip('구글 연동 필요', 'war') : row.waiting ? chip('다음 주부터', 'held') : ''}</span><b>${crystal}${num(row.expected)}</b></div><div class="tm-member-sub"><small>CREDIT ${num(row.points)}</small>${bar(percentOf(row.expected, data.rules.payoutCap), 'thin')}</div></li>`).join('')}</ol>`);
+    const history = panel('받은 기록 <small>HISTORY</small>', u.history.length ? `<ul class="tm-history">${u.history.map(item => `<li><span>${settledOn(item.week)}</span><small>CREDIT ${num(item.points)} · ${item.total ? Math.round(item.points * 100 / item.total) : 0}%</small><b>${crystal}+${num(item.amount)}</b></li>`).join('')}</ul>` : '<p class="union-hint">아직 받은 토륨이 없습니다.</p>');
+    return `${mineShare}${flow}${members}${history}`;
   }
 
   // ── 화면 ───────────────────────────────────────────────────────────────────
+  // 스크롤해도 남는 상단 메뉴. 뒤로가기는 지금 보는 화면에 맞춰 바뀐다.
+  function topBar(tabs, mine) {
+    const back = ui.tab === 'share' ? ['data-view="hub"', '연합 광장']
+      : ui.editing ? (ui.picking >= 0 ? ['data-mine-pick-back', '함대 편성'] : ['data-mine-edit-cancel', '돌아가기'])
+        : mine ? ['data-mine-back', '광산 목록'] : ['data-view="hub"', '연합 광장'];
+    const top = Math.round(document.querySelector('#persistent-hud .fixed-top')?.getBoundingClientRect().bottom || 96);
+    return `<header class="tm-top" style="top:${top}px"><div class="tm-top-row"><button type="button" class="tm-back" ${back[0]}>‹ ${back[1]}</button><div class="tm-top-title"><small>THORIUM MINES</small><b>토륨광산 점령</b></div></div><nav class="tm-tabs" role="tablist">${tabs}</nav></header>`;
+  }
   async function html({ heroHtml, panel }) {
-    const hero = heroHtml('thorium', '토륨광산 점령');
     const mode = await window.Online?.mode?.();
-    if (mode !== 'server') return `${hero}${panel('토륨광산 점령', `<p class="union-hint">${mode === 'down' ? '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.' : '정식 연합 서비스가 시작되면 이용할 수 있습니다.'}</p>`)}`;
+    if (mode !== 'server') return `${heroHtml('thorium', '토륨광산 점령')}${panel('토륨광산 점령', `<p class="union-hint">${mode === 'down' ? '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.' : '정식 연합 서비스가 시작되면 이용할 수 있습니다.'}</p>`)}`;
     data = await window.Online.call('/mine');
     const tabs = [['mines', '광산 점령'], ['share', '토륨 분배']].map(([id, label]) => `<button type="button" role="tab" aria-selected="${ui.tab === id}" data-mine-tab="${id}">${label}</button>`).join('');
     const link = data.linked ? '' : panel('구글 계정 연동 필요', '<p class="union-hint">토륨광산은 구글 계정을 연동한 함장만 참여할 수 있습니다. (설정 > 계정연동)</p>');
     const note = ui.note ? `<p class="mine-note" role="status">${esc(ui.note)}</p>` : '';
     ui.note = '';
+    const mine = ui.tab === 'mines' && !ui.editing ? data.mines.find(item => item.id === ui.mineId) : null;
     let body;
     if (ui.tab === 'share') body = shareTab(panel);
     else if (ui.editing) body = fleetEditor(panel);
     else {
-      const mine = data.mines.find(item => item.id === ui.mineId);
       if (mine?.war?.mySide) { try { ui.targets = (await api('targets', { mine: mine.id })).targets; } catch { ui.targets = []; } }
       body = mine ? mineDetail(panel, mine) : minesTab(panel);
     }
-    return `${hero}<nav class="union-tabs fac-tabs" role="tablist">${tabs}</nav>${link}${note}${body}`;
+    return `${topBar(tabs, mine)}${link}${note}${body}`;
   }
 
   function bind(host, render) {
@@ -210,6 +275,8 @@
     on('[data-mine-tab]', e => { ui.tab = e.currentTarget.dataset.mineTab; ui.mineId = ''; ui.editing = null; ui.picking = -1; render(); });
     on('[data-mine-open]', e => { ui.mineId = e.currentTarget.dataset.mineOpen; ui.targets = null; render(); });
     on('[data-mine-back]', () => { ui.mineId = ''; render(); });
+    // 연합 광장으로 나가면 다음에는 광산 목록부터 보인다. 화면 전환은 union.js 가 맡는다.
+    on('[data-view]', () => { ui.mineId = ''; ui.editing = null; ui.picking = -1; });
     on('[data-mine-fleet]', () => {
       const catalog = ownedShips();
       ui.editing = (data.fleet || [null, null, null, null]).map(ship => ship ? catalog.find(item => sameShip(item, ship)) || null : null);
