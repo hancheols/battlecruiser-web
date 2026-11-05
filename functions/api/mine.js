@@ -10,7 +10,7 @@ import { ensurePlayer, touchPlayer, notReady, fail, isMissingTable } from '../_l
 import { isLinked } from '../_lib/ranking.js';
 import { cleanDeck } from '../_lib/arena.js';
 import { award } from '../_lib/contribution.js';
-import { MINES, MINE_SIZES, RECORD_CAP_RATE, recordCap, canTakeMine, heldMineOf, mineById, phaseOf, rollMines, deliverPayouts, useSortie, sortiesUsed, deckWithDev, newBattle, recordRaid, warStanding, warPoints, holdBonus, isFastReport, SORTIES_PER_DAY, MIN_FLEETS, PAYOUT_CAP } from '../_lib/mines.js';
+import { MINES, MINE_SIZES, JOIN_WAIT_MS, RECORD_CAP_RATE, recordCap, canTakeMine, heldMineOf, mineById, phaseOf, rollMines, deliverPayouts, useSortie, sortiesUsed, deckWithDev, newBattle, recordRaid, warStanding, warPoints, holdBonus, isFastReport, SORTIES_PER_DAY, MIN_FLEETS, PAYOUT_CAP } from '../_lib/mines.js';
 
 const unionName = async (env, id) => (await env.DB.prepare('SELECT name FROM unions WHERE id = ?1').bind(id).first())?.name || '';
 const membership = (env, userId) => env.DB.prepare('SELECT m.union_id, m.role, m.week_points, m.week_day, u.level, u.name FROM union_members m JOIN unions u ON u.id = m.union_id WHERE m.user_id = ?1').bind(userId).first();
@@ -75,9 +75,13 @@ async function view(env, user, member, phase) {
   };
   if (member) {
     const treasury = await env.DB.prepare('SELECT thorium FROM union_treasury WHERE union_id = ?1').bind(unionId).first();
-    const members = (await env.DB.prepare('SELECT m.user_id, m.week_points, m.week_day, p.name, p.public_id, (SELECT 1 FROM identities i WHERE i.user_id = m.user_id LIMIT 1) AS linked FROM union_members m JOIN players p ON p.user_id = m.user_id WHERE m.union_id = ?1').bind(unionId).all()).results || [];
+    const members = (await env.DB.prepare('SELECT m.user_id, m.week_points, m.week_day, m.joined_at, p.name, p.public_id, (SELECT 1 FROM identities i WHERE i.user_id = m.user_id LIMIT 1) AS linked FROM union_members m JOIN players p ON p.user_id = m.user_id WHERE m.union_id = ?1').bind(unionId).all()).results || [];
     const weekOf = row => row.week_day === phase.week ? row.week_points : 0;
-    const totalPoints = members.reduce((sum, row) => sum + weekOf(row), 0);
+    // 예상값도 실제 정산과 같은 사람끼리 나눈다: 구글 연동을 했고 다음 정산 24시간 전까지 가입한 연합원
+    const settleAt = (phase.week + 7) * 86400000 - 9 * 3600000;
+    const waiting = row => row.joined_at > settleAt - JOIN_WAIT_MS;
+    const eligible = row => Boolean(row.linked) && !waiting(row);
+    const totalPoints = members.filter(eligible).reduce((sum, row) => sum + weekOf(row), 0);
     const owned = mines.filter(mine => mine.holder?.mine);
     const production = owned.reduce((sum, mine) => sum + mine.production, 0);
     const pool = (Number(treasury?.thorium) || 0) + production;
@@ -93,7 +97,7 @@ async function view(env, user, member, phase) {
       production, pool,
       myPoints: weekOf(members.find(row => row.user_id === user.id) || { week_day: 0 }),
       totalPoints,
-      shares: members.map(row => ({ name: row.name, me: row.user_id === user.id, points: weekOf(row), linked: Boolean(row.linked), expected: row.linked ? shareOf(weekOf(row)) : 0 })).sort((a, b) => b.points - a.points),
+      shares: members.map(row => ({ name: row.name, me: row.user_id === user.id, points: weekOf(row), linked: Boolean(row.linked), waiting: waiting(row), expected: eligible(row) ? shareOf(weekOf(row)) : 0 })).sort((a, b) => b.points - a.points),
       history: history.map(row => ({ week: row.week, amount: row.amount, points: row.points, total: row.total_points }))
     };
   }

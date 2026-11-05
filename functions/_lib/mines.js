@@ -5,6 +5,7 @@ import { createGrant } from './grants.js';
 import { day } from './arena-rules.js';
 import { weekOf, ACTIVE_DAYS_FOR_SCORE, devState } from './contribution.js';
 
+// 광산을 늘릴 때는 이 목록에 한 줄만 더하면 된다. id 는 기록에 쓰이므로 한 번 정하면 바꾸지 않는다. 표를 고칠 필요는 없다.
 export const MINES = [
   { id: 'oort', name: '오르트 대광맥', size: 'large' },
   { id: 'ganymede', name: '가니메데 광맥', size: 'medium' },
@@ -20,9 +21,9 @@ export const MINES = [
 // 규모별 설정: 주간 토륨, 참가 연합 레벨, 해적 함대. 연합원 각자의 최고 피해 합이 해적 체력에 이르면 점령한다.
 // 측정값: L등급 3척 함대가 60초에 약 30만 피해. 같은 함대 기준 소형 4명, 중형 17명, 대형은 Lv.4 정원 33명이 평균 45만을 내야 한다.
 export const MINE_SIZES = {
-  small: { label: '소형', production: 1500, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 1000000, limit: 60 } },
-  medium: { label: '중형', production: 3500, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 60 } },
-  large: { label: '대형', production: 7000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 15000000, limit: 60 } }
+  small: { label: '소형', production: 1000, minLevel: 1, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '우주해적 정찰 함대', hp: 1000000, limit: 60 } },
+  medium: { label: '중형', production: 2000, minLevel: 2, pirate: { pirate: 'black', image: 'blackbeard.webp', name: '검은수염 주력 함대', hp: 5000000, limit: 60 } },
+  large: { label: '대형', production: 4000, minLevel: 4, pirate: { pirate: 'red', image: 'redbeard-top.webp', name: '붉은수염 정예 함대', hp: 15000000, limit: 60 } }
 };
 export const MAX_MINES_PER_UNION = 1;  // 연합당 점령 상한. 도전 신청도 주 1곳
 export const RECORD_CAP_RATE = .3;     // 1인 기록은 해적 체력의 30%까지만 합계에 반영한다
@@ -167,7 +168,7 @@ export async function deliverPayouts(env, userId, now = Date.now()) {
     const percent = row.total_points ? Math.round(row.points * 100 / row.total_points) : 0;
     await createGrant(env, {
       userId, orderId: `mine-${userId}-${row.week}-${row.union_id}`, title: '토륨 분배 도착',
-      body: `연합 광장의 토륨 분배기에서 이번 주 몫을 보냅니다.\n이번 주 기여도 ${row.points} (연합 내 ${percent}%)\n함께 광산을 지켜 주신 노고에 감사드립니다.`,
+      body: `토륨광산 점령에서 이번 주 토륨 분배 몫을 보냅니다.\n이번 주 기여도 ${row.points} (연합 내 ${percent}%)\n함께 광산을 지켜 주신 노고에 감사드립니다.`,
       items: { thorium: row.amount }
     });
     await env.DB.prepare('UPDATE mine_payouts SET delivered_at = ?1 WHERE week = ?2 AND user_id = ?3 AND union_id = ?4').bind(now, row.week, userId, row.union_id).run();

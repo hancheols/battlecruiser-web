@@ -168,10 +168,11 @@
     const u = data.union;
     if (!u) return panel('토륨 분배', '<p class="union-hint">연합에 가입하면 이용할 수 있습니다.</p>');
     const owned = data.mines.filter(mine => mine.holder?.mine);
-    const percent = u.totalPoints ? Math.round(u.myPoints * 100 / u.totalPoints) : 0;
     const me = u.shares.find(row => row.me);
-    const list = u.shares.map(row => `<li class="${row.me ? 'me' : ''}"><span>${esc(row.name)}${row.linked ? '' : ' <small>구글 연동 필요</small>'}</span><b>${num(row.points)}</b><em>${num(row.expected)}</em></li>`).join('');
-    const history = u.history.length ? `<ul class="fac-log">${u.history.map(item => `<li><span>${item.total ? Math.round(item.points * 100 / item.total) : 0}%</span><b>기여 ${num(item.points)}</b><em>+${num(item.amount)}</em></li>`).join('')}</ul>` : '<p class="union-empty">아직 받은 토륨이 없습니다.</p>';
+    const percent = u.totalPoints && me?.linked && !me.waiting ? Math.round(u.myPoints * 100 / u.totalPoints) : 0;
+    const settledOn = week => { const date = new Date((week + 7) * 86400000); return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일`; };
+    const list = u.shares.map(row => `<li class="${row.me ? 'me' : ''}"><span>${esc(row.name)}${!row.linked ? ' <small>구글 연동 필요</small>' : row.waiting ? ' <small>다음 주부터</small>' : ''}</span><b>${num(row.points)}</b><em>${num(row.expected)}</em></li>`).join('');
+    const history = u.history.length ? `<ul class="fac-log">${u.history.map(item => `<li><span>${settledOn(item.week)}</span><b>기여 ${num(item.points)} · ${item.total ? Math.round(item.points * 100 / item.total) : 0}%</b><em>+${num(item.amount)}</em></li>`).join('')}</ul>` : '<p class="union-empty">아직 받은 토륨이 없습니다.</p>';
     return `${panel('연합 토륨 저장고 <small>RESERVOIR</small>', `<div class="fac-claim"><div><span>저장고</span><b>${num(u.treasury)}</b></div><div><span>이번 주 생산 예정</span><b>+${num(u.production)}</b></div></div>${owned.length ? `<ul class="fac-stats">${owned.map(mine => `<li><span>${esc(mine.name)}</span><b>+${num(mine.production)}</b></li>`).join('')}</ul>` : '<p class="union-hint">토륨은 광산을 점령해야 생산됩니다. 아직 점령한 광산이 없습니다.</p>'}`)}${panel('이번 주 나의 몫 <small>MY SHARE</small>', `<div class="fac-claim"><div><span>이번 주 기여도</span><b>${num(u.myPoints)}</b></div><div><span>예상 분배</span><b>${num(me?.expected)}<small> 토륨</small></b></div></div>${progress(percent, `연합 내 ${percent}%`)}<p class="union-hint">수요일 0시에 기여 비율대로 우편으로 지급합니다. 1인 상한은 주 ${num(data.rules.payoutCap)} 토륨이고, 남은 몫은 저장고에 남습니다. 구글 연동 계정만 받으며, 정산 전 24시간 안에 가입했으면 다음 주부터 받습니다.</p>`)}${panel('연합원 분배 예상 <small>이번 주 기여 · 토륨</small>', `<ul class="mine-shares">${list}</ul>`)}${panel('받은 기록 <small>HISTORY</small>', history)}`;
   }
 
