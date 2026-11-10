@@ -1175,6 +1175,32 @@ function initializeFleetFormation(){
   // Membership Service: L급 함선 목록과 지급(이름으로 찾아 획득 처리)
   window.getLClassShips=()=>availableFleetShips.filter(ship=>ship.rarity==='L'&&!ship.isFrame);
   window.grantMembershipShip=name=>{const ship=availableFleetShips.find(candidate=>candidate.rarity==='L'&&candidate.name===name);if(!ship)return false;window.acquireFleetShip(ship);return true;};
+  // 테스트 쿠폰: 코드마다 한 기기에서 한 번만 쓸 수 있다. 함선은 함대 편성은 건드리지 않고 보유 목록에만 1척씩 넣는다.
+  // 정식 쿠폰은 서버에서 코드·기한·횟수를 확인하는 방식으로 다시 만들어야 하며, 이 코드는 앱 파일에 보이므로 출시 전에 제거한다.
+  const COUPON_STORAGE_KEY='starfleet-coupons-v1';
+  const COUPONS={RYU1:{ships:'L'}};
+  const usedCoupons=()=>{try{const list=JSON.parse(localStorage.getItem(COUPON_STORAGE_KEY)||'[]');return Array.isArray(list)?list:[];}catch{return [];}};
+  window.redeemCoupon=rawCode=>{
+    const code=String(rawCode||'').trim().toUpperCase().replace(/\s+/g,'');
+    if(!code)return {ok:false,reason:'empty'};
+    const coupon=Object.prototype.hasOwnProperty.call(COUPONS,code)?COUPONS[code]:null;
+    if(!coupon)return {ok:false,reason:'invalid'};
+    if(usedCoupons().includes(code))return {ok:false,reason:'used'};
+    let ships=0;
+    if(coupon.ships){
+      for(const ship of availableFleetShips.filter(candidate=>candidate.rarity===coupon.ships&&!candidate.isFrame)){
+        const variants=shipVariants(ship),base=variants.find(item=>item.stars===0);
+        if(base)base.copies+=1;else variants.push({stars:0,copies:1,rarity:ship.rarity});
+        enhancementState[shipKey(ship)]={variants};
+        discoveredShips[shipKey(ship)]=true;
+        ships+=1;
+      }
+      saveDiscoveredShips();saveShipProgress();
+      window.refreshFleetSlotStars?.();
+    }
+    try{localStorage.setItem(COUPON_STORAGE_KEY,JSON.stringify([...usedCoupons(),code]));}catch{}
+    return {ok:true,ships};
+  };
   window.getSsrTicketShips=()=>availableFleetShips.filter(ship=>ship.rarity==='SSR'&&!ship.isFrame).map(ship=>({...ship,typeName:fleetTypeNames[ship.type]||ship.type}));
   window.redeemSsrShipTicket=ship=>{
     const resolved=availableFleetShips.find(candidate=>candidate.rarity==='SSR'&&fleetShipKey(candidate)===fleetShipKey(ship));
