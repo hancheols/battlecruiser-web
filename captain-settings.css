@@ -96,3 +96,178 @@
 .captain-danger-button:disabled{opacity:.4;cursor:not-allowed}
 
 .captain-doc-link{display:flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   설정 화면 (함교 지휘 콘솔 · 환경설정 패널)
+   - 큰 틀(깎은 모서리·빛줄기·머리말)은 command-skin.css 의 함장 프로필 대화상자를 그대로 쓴다.
+   - 여기서는 설정 안쪽 구성만 꾸민다: 상태줄 → 묶음(작전 환경/계정/정보) → 행(아이콘·제목·값 칩·화살표).
+   - 청록 = 정보·선택, 금색 = 주요 행동·현재 값. 글꼴은 game-fonts.css 변수만 쓴다.
+   - command-skin.css 가 뒤에 불러와지므로 선택자를 .captain-select-overlay .captain-settings-dialog 로 한 단계 더 좁힌다.
+   ───────────────────────────────────────────────────────────────────────────── */
+.captain-select-overlay .captain-settings-dialog{
+  --cs-panel:linear-gradient(100deg,#11263c,#0a1727 72%);
+  --cs-panel-hi:linear-gradient(100deg,#183552,#0d1e32 72%);
+  --cs-cut:10px;
+  --cs-clip:polygon(var(--cs-cut) 0,100% 0,100% calc(100% - var(--cs-cut)),calc(100% - var(--cs-cut)) 100%,0 100%,0 var(--cs-cut));
+  width:min(100%,440px);padding:20px 20px 18px;font-family:var(--font-body);
+}
+.captain-select-overlay .captain-settings-dialog>header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.captain-select-overlay .captain-settings-dialog .cs-head{flex:1;min-width:0}
+.captain-select-overlay .captain-settings-dialog .cs-head h2{margin-top:5px;font-size:24px;line-height:1.15}
+.captain-select-overlay .captain-settings-dialog>header .cs-back{color:var(--sk-cyan)}
+.captain-select-overlay .captain-settings-dialog>header .cs-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.captain-select-overlay .captain-settings-dialog svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.captain-select-overlay .captain-settings-dialog .cs-body{display:grid;gap:16px;animation:cs-in .22s ease-out both}
+@keyframes cs-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* 공통: 작은 영문 라벨 */
+.captain-select-overlay .captain-settings-dialog small{font-family:var(--font-body)}
+.captain-select-overlay .captain-settings-dialog .cs-status small,
+.captain-select-overlay .captain-settings-dialog .cs-channel-head small,
+.captain-select-overlay .captain-settings-dialog .cs-ticket-top small,
+.captain-select-overlay .captain-settings-dialog .cs-link-card small{display:block;font-family:var(--font-num);font-size:10px;font-weight:700;letter-spacing:.24em;color:var(--sk-mute);text-transform:uppercase}
+
+/* ── 상단 상태줄: 연결 방식 · 빌드 ── */
+.captain-select-overlay .captain-settings-dialog .cs-status{display:grid;grid-template-columns:minmax(0,1fr) auto;clip-path:var(--cs-clip);background:linear-gradient(100deg,rgba(29,155,214,.2),rgba(10,24,41,.4) 60%),#071322;box-shadow:inset 0 0 0 1px var(--sk-line)}
+.captain-select-overlay .captain-settings-dialog .cs-status>div{display:flex;align-items:center;gap:11px;padding:11px 14px;min-width:0}
+.captain-select-overlay .captain-settings-dialog .cs-status b{display:block;margin-top:3px;font:600 14px/1.25 var(--font-body);color:var(--sk-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.captain-select-overlay .captain-settings-dialog .cs-status-build{flex-direction:column;align-items:flex-end!important;justify-content:center;gap:0!important;border-left:1px solid var(--sk-line);text-align:right}
+.captain-select-overlay .captain-settings-dialog .cs-status-build b{font:700 16px/1.1 var(--font-num);letter-spacing:.06em;color:var(--sk-gold);font-variant-numeric:tabular-nums}
+.captain-select-overlay .captain-settings-dialog .cs-dot{flex:none;width:9px;height:9px;border-radius:50%;background:#5cf2bd;box-shadow:0 0 0 3px rgba(92,242,189,.14),0 0 10px #5cf2bd;animation:sk-blink 2.4s ease-in-out infinite}
+.captain-select-overlay .captain-settings-dialog [data-linked="google"] .cs-dot{background:var(--sk-gold);box-shadow:0 0 0 3px rgba(242,208,135,.16),0 0 10px var(--sk-gold)}
+
+/* ── 묶음 제목 ── */
+.captain-select-overlay .captain-settings-dialog .cs-group>h3{display:flex;align-items:center;gap:9px;margin:0 0 8px;font:600 12px/1 var(--font-body);color:#cfe3f5;letter-spacing:.03em}
+.captain-select-overlay .captain-settings-dialog .cs-group>h3 span{font:700 10px/1 var(--font-num);letter-spacing:.26em;color:var(--sk-gold)}
+.captain-select-overlay .captain-settings-dialog .cs-group>h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--sk-line-hi),transparent)}
+
+/* ── 묶음 안의 행: 한 판 안에 가는 선으로 나눈 목록 ── */
+.captain-select-overlay .captain-settings-dialog .cs-list{display:grid;gap:1px;clip-path:var(--cs-clip);background:var(--sk-line);box-shadow:inset 0 0 0 1px var(--sk-line)}
+.captain-select-overlay .captain-settings-dialog .cs-row{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:62px;margin:0;padding:10px 14px 10px 12px;border:0;border-radius:0;background:var(--cs-panel);color:var(--sk-text);font:inherit;text-align:left;cursor:pointer;transition:background .2s ease}
+.captain-select-overlay .captain-settings-dialog .cs-row::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:2px;background:var(--sk-cyan);box-shadow:0 0 8px var(--sk-cyan);transform:scaleY(0);transition:transform .2s ease}
+.captain-select-overlay .captain-settings-dialog .cs-row:hover{background:var(--cs-panel-hi);filter:none}
+.captain-select-overlay .captain-settings-dialog .cs-row:hover::before,.captain-select-overlay .captain-settings-dialog .cs-row:focus-visible::before{transform:scaleY(1)}
+.captain-select-overlay .captain-settings-dialog .cs-row:focus-visible{outline:none;background:var(--cs-panel-hi)}
+.captain-select-overlay .captain-settings-dialog .cs-row:active{background:#1d3d5c}
+.captain-select-overlay .captain-settings-dialog .cs-row-icon{flex:none;display:grid;place-items:center;width:38px;height:38px;font-style:normal;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:radial-gradient(circle at 50% 40%,rgba(127,227,255,.38),#0d2a44 72%);color:var(--sk-cyan)}
+.captain-select-overlay .captain-settings-dialog .cs-row-icon svg{width:18px;height:18px}
+.captain-select-overlay .captain-settings-dialog .cs-row-emblem{font:700 13px/1 var(--font-num);letter-spacing:.02em}
+.captain-select-overlay .captain-settings-dialog .cs-row-emblem:not(:empty){font-size:13px}
+.captain-select-overlay .captain-settings-dialog [data-settings-view="guest"] .cs-row-emblem{font-size:8.5px;letter-spacing:.04em}
+.captain-select-overlay .captain-settings-dialog .cs-row-copy{display:grid;gap:4px;flex:1;min-width:0}
+.captain-select-overlay .captain-settings-dialog .cs-row-copy b{font:400 16px/1.2 var(--font-display);letter-spacing:.02em;color:#f1f8ff}
+.captain-select-overlay .captain-settings-dialog .cs-row-copy small{font-size:11px;line-height:1.4;color:var(--sk-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.captain-select-overlay .captain-settings-dialog .cs-row-value{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:46%}
+.captain-select-overlay .captain-settings-dialog .cs-row>em{flex:none;font:400 22px/1 var(--font-num);font-style:normal;color:var(--sk-gold);transition:transform .2s ease}
+.captain-select-overlay .captain-settings-dialog .cs-row:hover>em{transform:translateX(2px)}
+/* 현재 쓰는 계정 방식(금색) */
+.captain-select-overlay .captain-settings-dialog .cs-row.is-active{background:linear-gradient(100deg,#3a3016,#120f07 72%)}
+.captain-select-overlay .captain-settings-dialog .cs-row.is-active::before{background:var(--sk-gold);box-shadow:0 0 8px var(--sk-gold);transform:scaleY(1)}
+.captain-select-overlay .captain-settings-dialog .cs-row.is-active .cs-row-icon{background:radial-gradient(circle at 50% 40%,rgba(242,208,135,.5),#3a2c10 72%);color:#ffe6a6}
+.captain-select-overlay .captain-settings-dialog .cs-row.is-active small{color:#e8d49a}
+
+/* 값 칩 */
+.captain-select-overlay .captain-settings-dialog .cs-chip{display:inline-block;padding:3px 7px 2px;font:700 11px/1.2 var(--font-num);letter-spacing:.1em;color:var(--sk-cyan);background:rgba(127,227,255,.08);box-shadow:inset 0 0 0 1px rgba(127,227,255,.32);clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);white-space:nowrap;font-variant-numeric:tabular-nums}
+.captain-select-overlay .captain-settings-dialog .cs-chip.is-off{color:#8396a8;background:rgba(131,150,168,.08);box-shadow:inset 0 0 0 1px rgba(131,150,168,.3)}
+
+/* ── 소리: 채널 카드 ── */
+.captain-select-overlay .captain-settings-dialog .cs-channels{display:grid;gap:10px}
+.captain-select-overlay .captain-settings-dialog .cs-channel{padding:14px 14px 12px;clip-path:var(--cs-clip);background:var(--cs-panel);box-shadow:inset 0 0 0 1px var(--sk-line);transition:background .2s}
+.captain-select-overlay .captain-settings-dialog .cs-channel[data-on="true"]{box-shadow:inset 0 0 0 1px rgba(127,227,255,.35),inset 3px 0 0 var(--sk-cyan)}
+.captain-select-overlay .captain-settings-dialog .cs-channel-head{display:flex;align-items:center;gap:12px}
+.captain-select-overlay .captain-settings-dialog .cs-channel-head>span{flex:1;min-width:0}
+.captain-select-overlay .captain-settings-dialog .cs-channel-head b{display:block;margin-top:3px;font:400 17px/1.2 var(--font-display);color:#f1f8ff}
+.captain-select-overlay .captain-settings-dialog .cs-channel .captain-audio-toggle b{width:30px;font:700 12px/1 var(--font-num);letter-spacing:.1em;color:var(--sk-cyan)}
+.captain-select-overlay .captain-settings-dialog .cs-channel[data-on="false"] .captain-audio-toggle b{color:#7d8fa0}
+.captain-select-overlay .captain-settings-dialog .cs-volume{display:flex;align-items:center;gap:12px;margin-top:12px;padding-left:50px;transition:opacity .2s}
+.captain-select-overlay .captain-settings-dialog .cs-channel[data-on="false"] .cs-volume{opacity:.38}
+.captain-select-overlay .captain-settings-dialog .cs-volume output{width:38px;flex:none;text-align:right;font:700 20px/1 var(--font-num);color:var(--sk-gold);font-variant-numeric:tabular-nums}
+.captain-select-overlay .captain-settings-dialog input.cs-range{-webkit-appearance:none;appearance:none;flex:1;min-width:0;width:auto;height:6px;margin:0;padding:0;border:0;border-radius:3px;background:linear-gradient(90deg,var(--sk-cyan-deep),var(--sk-cyan)) 0 0/var(--fill,50%) 100% no-repeat,#13283d;box-shadow:inset 0 0 0 1px rgba(127,227,255,.15);cursor:pointer}
+.captain-select-overlay .captain-settings-dialog input.cs-range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border:2px solid var(--sk-cyan);border-radius:50%;background:radial-gradient(circle,#ffffff 0 30%,#bdeeff 31% 100%);box-shadow:0 0 10px rgba(127,227,255,.7)}
+.captain-select-overlay .captain-settings-dialog input.cs-range::-moz-range-thumb{width:16px;height:16px;border:2px solid var(--sk-cyan);border-radius:50%;background:#e9f9ff;box-shadow:0 0 10px rgba(127,227,255,.7)}
+.captain-select-overlay .captain-settings-dialog input.cs-range:focus-visible{outline:2px solid var(--sk-cyan);outline-offset:6px}
+.captain-select-overlay .captain-settings-dialog .cs-ghost{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;padding:10px;border:0;border-radius:0;clip-path:var(--cs-clip);background:rgba(127,227,255,.06);box-shadow:inset 0 0 0 1px rgba(127,227,255,.35);color:var(--sk-cyan);font:600 13px/1 var(--font-body);letter-spacing:.03em}
+.captain-select-overlay .captain-settings-dialog .cs-ghost svg{width:17px;height:17px}
+.captain-select-overlay .captain-settings-dialog .cs-ghost:hover{background:rgba(127,227,255,.13);filter:none}
+
+/* ── 계정연동 ── */
+.captain-select-overlay .captain-settings-dialog .cs-link-card{display:flex;align-items:center;gap:12px;padding:14px 16px;clip-path:var(--cs-clip);background:linear-gradient(100deg,rgba(92,242,189,.12),rgba(10,24,41,.5) 60%),#071322;box-shadow:inset 0 0 0 1px rgba(92,242,189,.3)}
+.captain-select-overlay .captain-settings-dialog .cs-link-card b{display:block;margin-top:3px;font:400 18px/1.2 var(--font-display);color:#f1f8ff}
+.captain-select-overlay .captain-settings-dialog .captain-setting-note{margin:0;font-size:12px;line-height:1.75;color:#a9bfd4}
+.captain-select-overlay .captain-settings-dialog .captain-danger-link{margin:0 auto;padding:6px 12px;color:#e39a9a;font-size:12px;text-underline-offset:3px}
+
+/* ── 언어 ── */
+.captain-select-overlay .captain-settings-dialog .cs-langs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.captain-select-overlay .captain-settings-dialog .cs-lang{position:relative;display:grid;justify-items:start;gap:10px;margin:0;padding:16px 14px 14px;clip-path:var(--cs-clip);background:var(--cs-panel);box-shadow:inset 0 0 0 1px var(--sk-line);color:var(--sk-text);font-weight:400;cursor:pointer;transition:background .2s,box-shadow .2s}
+.captain-select-overlay .captain-settings-dialog .cs-lang input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.captain-select-overlay .captain-settings-dialog .cs-lang-mark{font:700 30px/1 var(--font-num);letter-spacing:.06em;color:#6f8aa3}
+.captain-select-overlay .captain-settings-dialog .cs-lang-copy{display:grid;gap:4px}
+.captain-select-overlay .captain-settings-dialog .cs-lang-copy b{font:400 16px/1.2 var(--font-display);color:#f1f8ff}
+.captain-select-overlay .captain-settings-dialog .cs-lang-copy small{font:700 9px/1 var(--font-num);letter-spacing:.22em;color:var(--sk-mute)}
+.captain-select-overlay .captain-settings-dialog .cs-check{position:absolute;right:12px;top:14px;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(141,167,194,.55)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:hover{background:var(--cs-panel-hi)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:has(input:checked){background:linear-gradient(150deg,rgba(242,208,135,.16),#0d1b2c 65%);box-shadow:inset 0 0 0 1px rgba(242,208,135,.6),inset 0 3px 0 var(--sk-gold)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:has(input:checked) .cs-lang-mark{color:var(--sk-gold);text-shadow:0 0 14px rgba(242,208,135,.4)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:has(input:checked) .cs-check{background:var(--sk-gold);box-shadow:0 0 10px rgba(242,208,135,.6)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:has(input:checked) .cs-check::after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:solid #2a1d06;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.captain-select-overlay .captain-settings-dialog .cs-lang:has(input:focus-visible){outline:2px solid var(--sk-cyan);outline-offset:2px}
+
+/* ── 쿠폰: 금색 티켓 ── */
+.captain-select-overlay .captain-settings-dialog .cs-ticket{position:relative;display:grid;gap:10px;padding:16px 16px 16px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);background:radial-gradient(ellipse 80% 60% at 100% 0,rgba(242,208,135,.2),transparent 70%),linear-gradient(160deg,#1d2633,#0b1420 70%);box-shadow:inset 0 0 0 1px rgba(242,208,135,.45),inset 0 2px 0 rgba(242,208,135,.5)}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-top{display:flex;align-items:center;gap:12px}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-top .cs-row-icon{background:radial-gradient(circle at 50% 40%,rgba(242,208,135,.55),#3a2c10 72%);color:#ffe6a6}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-top small{color:var(--sk-gold)}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-top b{display:block;margin-top:3px;font:400 20px/1.2 var(--font-display);color:#fff7e3}
+.captain-select-overlay .captain-settings-dialog .cs-ticket>p{margin:0;font-size:12px;line-height:1.6;color:#c7b996}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-cut{position:relative;height:1px;margin:4px -16px;background:repeating-linear-gradient(90deg,rgba(242,208,135,.45) 0 6px,transparent 6px 11px)}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-cut::before,.captain-select-overlay .captain-settings-dialog .cs-ticket-cut::after{content:"";position:absolute;top:-8px;width:16px;height:16px;border-radius:50%;background:#0a1727;box-shadow:inset 0 0 0 1px rgba(242,208,135,.45)}
+.captain-select-overlay .captain-settings-dialog .cs-ticket-cut::before{left:-8px}.captain-select-overlay .captain-settings-dialog .cs-ticket-cut::after{right:-8px}
+.captain-select-overlay .captain-settings-dialog label.cs-field-label{display:block;margin:2px 0 0;font:600 11px/1 var(--font-body);color:#d9c79b}
+.captain-select-overlay .captain-settings-dialog input.cs-code-input{width:100%;height:54px;margin:0;padding:0 14px;border:0;border-radius:0;clip-path:var(--cs-clip);background:#050c16;box-shadow:inset 0 0 0 1px rgba(242,208,135,.4);color:#fff;font:700 24px/1 var(--font-num);letter-spacing:.32em;text-align:center;text-transform:uppercase}
+.captain-select-overlay .captain-settings-dialog input.cs-code-input::placeholder{font:500 14px/1 var(--font-body);letter-spacing:.04em;color:#6c7c8c;text-transform:none}
+.captain-select-overlay .captain-settings-dialog input.cs-code-input:focus{outline:none;box-shadow:inset 0 0 0 1px var(--sk-gold),0 0 0 3px rgba(242,208,135,.15),inset 0 0 18px rgba(242,208,135,.12)}
+.captain-select-overlay .captain-settings-dialog button.cs-redeem{width:100%;min-height:50px;margin:2px 0 0;font-size:17px}
+.captain-select-overlay .captain-settings-dialog .cs-hints{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.captain-select-overlay .captain-settings-dialog .cs-hints li{position:relative;padding-left:16px;font-size:11.5px;line-height:1.55;color:#a3b8cc}
+.captain-select-overlay .captain-settings-dialog .cs-hints li::before{content:"";position:absolute;left:2px;top:.55em;width:6px;height:6px;background:var(--sk-cyan);transform:rotate(45deg);opacity:.7}
+
+/* ── 정보: ID 카드·버전 ── */
+.captain-select-overlay .captain-settings-dialog .cs-records{display:grid;gap:10px}
+.captain-select-overlay .captain-settings-dialog .cs-record{display:grid;gap:8px;padding:13px 14px;clip-path:var(--cs-clip);background:var(--cs-panel);box-shadow:inset 0 0 0 1px var(--sk-line)}
+.captain-select-overlay .captain-settings-dialog .cs-record label{display:block;margin:0;font:600 11px/1 var(--font-body);color:var(--sk-gold)}
+.captain-select-overlay .captain-settings-dialog .cs-record-field{display:flex;gap:8px}
+.captain-select-overlay .captain-settings-dialog .cs-record-field input{flex:1;min-width:0;width:auto;margin:0;padding:10px 10px;border:0;border-radius:0;background:#050c16;box-shadow:inset 0 0 0 1px var(--sk-line);color:#dff3ff;font:600 13px/1 var(--font-num);letter-spacing:.05em}
+.captain-select-overlay .captain-settings-dialog .cs-record-field button{display:inline-flex;align-items:center;gap:6px;flex:none;padding:0 13px;border:0;border-radius:0;background:rgba(127,227,255,.1);box-shadow:inset 0 0 0 1px rgba(127,227,255,.4);color:var(--sk-cyan);font:600 12px/1 var(--font-body)}
+.captain-select-overlay .captain-settings-dialog .cs-record-field button svg{width:15px;height:15px}
+.captain-select-overlay .captain-settings-dialog .cs-record-field button:hover{background:rgba(127,227,255,.18);filter:none}
+.captain-select-overlay .captain-settings-dialog .cs-record small{font-size:10.5px;line-height:1.5;color:var(--sk-mute)}
+.captain-select-overlay .captain-settings-dialog .cs-version{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 4px;font-size:12px;color:var(--sk-mute)}
+.captain-select-overlay .captain-settings-dialog .cs-version b{font:600 13px/1.3 var(--font-num);letter-spacing:.04em;color:var(--sk-gold);text-align:right}
+
+/* ── 상태 메시지(쿠폰 결과·복사 등): 금색 표지줄 ── */
+.captain-select-overlay .captain-settings-dialog .captain-setting-status{margin:14px 0 0;padding:10px 12px 10px 14px;clip-path:var(--cs-clip);background:linear-gradient(100deg,rgba(242,208,135,.14),rgba(10,24,41,.3) 70%);box-shadow:inset 3px 0 0 var(--sk-gold);color:#f4dfae;font-size:12px;line-height:1.55;animation:cs-in .2s ease-out both}
+.captain-select-overlay .captain-settings-dialog .captain-setting-status:empty{display:none}
+
+/* ── 계정 삭제·문서·구글 등 기존 상세 화면을 새 틀에 맞춤 ── */
+.captain-select-overlay .captain-settings-dialog .captain-setting-hero{padding:6px 0 4px;font-family:var(--font-num);font-size:10px;letter-spacing:.24em}
+.captain-select-overlay .captain-settings-dialog .captain-delete-list{margin:0;color:#c7d6e0}
+.captain-select-overlay .captain-settings-dialog .captain-delete-label{margin:0;font-size:12px}
+.captain-select-overlay .captain-settings-dialog input.captain-delete-input{margin:0;padding:12px;border:0;border-radius:0;clip-path:var(--cs-clip);background:#0b0a10;box-shadow:inset 0 0 0 1px rgba(224,122,122,.5);color:#ffe3e3}
+.captain-select-overlay .captain-settings-dialog .captain-danger-button{margin:0;border:0;border-radius:0;clip-path:var(--cs-clip);background:linear-gradient(180deg,#7a2a2e,#4a171a);box-shadow:inset 0 0 0 1px rgba(255,150,150,.5);font-family:var(--font-display);font-weight:400;font-size:16px;letter-spacing:.04em}
+.captain-select-overlay .captain-settings-dialog .captain-save{margin:0}
+
+@media(max-width:380px){
+  .captain-select-overlay .captain-settings-dialog{padding:16px 14px 14px}
+  .captain-select-overlay .captain-settings-dialog .cs-head h2{font-size:21px}
+  .captain-select-overlay .captain-settings-dialog .cs-row{min-height:58px;gap:10px;padding:9px 11px 9px 10px}
+  .captain-select-overlay .captain-settings-dialog .cs-row-icon{width:34px;height:34px}
+  .captain-select-overlay .captain-settings-dialog .cs-row-copy b{font-size:15px}
+  .captain-select-overlay .captain-settings-dialog .cs-volume{padding-left:0}
+  .captain-select-overlay .captain-settings-dialog input.cs-code-input{font-size:20px;letter-spacing:.22em}
+}
+@media(prefers-reduced-motion:reduce){
+  .captain-select-overlay .captain-settings-dialog .cs-body,
+  .captain-select-overlay .captain-settings-dialog .captain-setting-status,
+  .captain-select-overlay .captain-settings-dialog .cs-dot{animation:none}
+}
+.captain-select-overlay .captain-settings-dialog .cs-status-build small{letter-spacing:.08em}
