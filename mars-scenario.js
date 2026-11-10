@@ -1007,7 +1007,7 @@
     {speaker:'eva',name:'EVA-9',text:'적 함선의 크기와 기능, 성능을 비교했을 때 20년전 태양계 전쟁과 연결지을 수 있습니다.'},
     {speaker:'captain',name:'함장',text:'20년 전이라...'}
   ];
-  // 아스만 병참기지 1관문 출격: 바트르 카자의 경고 → 대화가 끝나면 전투가 자동으로 시작된다(카자 초상화는 이미지 전달 전까지 임시 신호 아이콘).
+  // 아스만 병참기지 1관문 출격: 바트르 카자의 경고 → 대화가 끝나면 전투가 자동으로 시작된다(카자 초상화: kaza-bust.png).
   const nepAsman1PreLines=[
     {speaker:'kaza',name:'바트르 카자',text:'침입자는 들어라.',remote:true},
     {speaker:'kaza',name:'바트르 카자',text:'우리 관문을 통해 행성에 무단으로 진입하고 기지를 파괴하다니, 우리와 전쟁을 벌이겠다는 뜻인가?',remote:true},
@@ -1016,14 +1016,113 @@
     {speaker:'kaza',name:'바트르 카자',text:'20년 전에도 지금도 네놈들은 거짓을 일삼을 뿐이야!',remote:true},
     {speaker:'kaza',name:'바트르 카자',text:'저놈들을 당장 우주먼지로 만들어라!',remote:true}
   ];
-  const multiLine={'nep-asman1-pre':nepAsman1PreLines,'nep-g5-lab':nepG5LabLines,'nep-g2-clear':nepG2ClearLines,'nep-g3-clear':nepG3ClearLines,'nep-g4-clear':nepG4ClearLines,'nep-g5-clear':nepG5ClearLines,'nep-g5-bridge':nepG5BridgeLines,'tapao-g10a':tapaoG10aLines,'tapao-g10b':tapaoG10bLines,'tapao-g10-clear':tapaoG10ClearLines,'tapao-g10-bridge':tapaoG10BridgeLines,'tapao-g10-lab':tapaoG10LabLines,'tapao-col10-pre':tapaoCol10PreLines,'tapao-col10-clear':tapaoCol10ClearLines,'tapao-col10-bridge':tapaoCol10BridgeLines,'tapao-col10-hangar':tapaoCol10HangarLines,'tapao-col10-lab':tapaoCol10LabLines,'tapao-colony-pre':tapaoColonyPreLines,'tapao-orb10-hangar':tapaoOrb10HangarLines,'tapao-orb10-bridge':tapaoOrb10BridgeLines,'tapao-orb10-lab':tapaoOrb10LabLines,'tapao-orbit5-clear':tapaoOrbit5ClearLines,'tapao-o10a':tapaoO10aLines,'tapao-o10b':tapaoO10bLines,'tapao-o10c':tapaoO10cLines,'tapao-o10d':tapaoO10dLines,'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'tapao-near5-clear':tapaoNear5ClearLines,'tapao-near10-clear':tapaoNear10ClearLines,'tapao-near10-hangar':tapaoNear10HangarLines,'tapao-near10-lab':tapaoNear10LabLines,'tapao-near10-bridge':tapaoNear10BridgeLines,'tapao-eva-lab':tapaoEvaLabLines,'tapao-orbit-pre':tapaoOrbitPreLines,'tapao-near10-known':tapaoNear10KnownLines,'tapao-near10-known-a':tapaoNear10KnownALines,'tapao-near10-known-b':tapaoNear10KnownBLines,'tapao-near10-unknown':tapaoNear10UnknownLines,'tapao-near10-unknown-a':tapaoNear10UnknownALines,'tapao-near10-unknown-b':tapaoNear10UnknownBLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
+  // 아스만 병참기지 5관문: 출격 시 카자의 호령 → 전투 자동 시작, 클리어 후 아이라의 철수 명령 → 함교(루카·말릭과 대화)
+  const nepAsman5PreLines=[
+    {speaker:'kaza',name:'바트르 카자',text:'미개한 종족들이 제법이구나.',remote:true},
+    {speaker:'kaza',name:'바트르 카자',text:'애초에 너희같은 놈들에게 기술을 전해주는 게 아니었어.',remote:true},
+    {speaker:'kaza',name:'바트르 카자',text:'놈들을 모두 박살내라!',remote:true}
+  ];
+  const nepAsman5ClearLines=[
+    {speaker:'ayra',name:'아이라',text:'바트르, 그 쯤 해두고 병사들을 물리도록 하세요.',remote:true},
+    {speaker:'kaza',name:'바트르 카자',text:'바슈치, 저들을 몰아 낼 수 있습니다. 페리슈트를 불렀습니다.',remote:true},
+    {speaker:'ayra',name:'아이라',text:'아니요, 저들이 다가오도록 적당히 대응해 주세요.',remote:true},
+    {speaker:'ayra',name:'아이라',text:'페리슈트는 적당한 시점에서 내보내도록 하겠습니다.',remote:true},
+    {speaker:'kaza',name:'바트르 카자',text:'...분부대로 하겠습니다. 바슈치',remote:true}
+  ];
+  const nepAsman5BridgeLines=[
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'저들이 먼저 물러나서 다행이야, 더 이상 못버틸 줄 알았어.'},
+    {speaker:'captain',name:'함장',text:'그래, 그런데 뭔가 이상해.'},
+    {speaker:'captain',name:'함장',text:'우릴 끌어들이는 것 같은 느낌이야.'},
+    {speaker:'malik',name:'캡틴 말릭 오코로',text:'그건 그래. 저들의 병력과 화력이면 우리를 끝장내고도 남았을 텐데말이지...'},
+    {speaker:'captain',name:'함장',text:()=>`뭔가 불안해, 하지만 ${protagonistIsJake()?'도나':'오빠'}를 포기할 수는 없어.`}
+  ];
+  // 아스만 병참기지 10관문: 출격 시 함장·루카의 대화 → 전투 자동 시작, 클리어 후 카자의 철수 명령과 아마라·함장의 대화.
+  const nepAsman10PreLines=[
+    {speaker:'captain',name:'함장',text:'뭔가 이상해, 계속 같은 패턴을 반복하고 있어.'},
+    {speaker:'luca',name:'파일럿 루카 레예스',text:'곧 알게 되겠지.'}
+  ];
+  const nepAsman10ClearLines=[
+    {speaker:'kaza',name:'바트르 카자',text:'흥, 벌레 같은 놈들이 아무것도 모르고 따라오는 구나.',remote:true},
+    {speaker:'kaza',name:'바트르 카자',text:'병참기지는 더이상 지키지 않는다. 모두 사령부로 이동.',remote:true},
+    {speaker:'okoye',name:'아마라 오코예 함장',text:'저들이 물러납니다.'},
+    {speaker:'captain',name:'함장',text:'일단 돌아간 후에 여기를 수색해 보자.'}
+  ];
+  // 10관문 클리어 후 함교: 병참기지 수색 결과 → 사령부 공략 논의, 한 제독이 사령부에 보고하며 이번 장이 끝난다.
+  const nepAsman10BridgeLines=[
+    {speaker:'han',name:'한성민 제독',text:()=>`병참기지를 수색해 봤지만, ${protagonistIsJake()?'도나':'제이크'}의 흔적은 발견하지 못했네.`},
+    {speaker:'eva',name:'EVA-9',text:'공습에 미리 대비한 듯 합니다.'},
+    {speaker:'eva',name:'EVA-9',text:'인력은 물론 주요한 시설이나 데이터도 전혀 없었습니다.'},
+    {speaker:'han',name:'한성민 제독',text:'뭔가 우리가 말려들고 있는 기분이군.'},
+    {speaker:'captain',name:'함장',text:'하지만 이대로 포기할 수는 없습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'이제 적의 사령부가 눈 앞에 있습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'지금보다 공격이 더욱 거세질 것으로 예상됩니다.'},
+    {speaker:'han',name:'한성민 제독',text:'적의 심장부 같은 곳이야, 우리 힘만으로는 어림없어.'},
+    {speaker:'captain',name:'함장',text:'사령부를 한 군데 씩 공략하면 승산이 있습니다.'},
+    {speaker:'captain',name:'함장',text:'적은 함대로 빠르게 치고 빠지면서 시간을 벌겠습니다.'},
+    {speaker:'han',name:'한성민 제독',text:'또 목숨을 거는 건가?'},
+    {speaker:'han',name:'한성민 제독',text:'그렇게되면 자네들의 안전은 지켜줄 수가 없어.'},
+    {speaker:'han',name:'한성민 제독',text:'일단 사령부에 보고하도록 하지, 기다리게.'}
+  ];
+  // 병참기지 시나리오 마무리: 연구실(에바의 사령부 분석) → 함교(잔류부대 결정, 빅터 볼코프 사령관 부임) → 연구실(보급품, 유키히사)
+  const nepAsman10LabLines=[
+    {speaker:'eva',name:'EVA-9',text:'적 사령부 기지를 스캔 한 결과 다수의 기체와 함께 사령부 자체 방어시설도 탐지 되었습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'게다가 인근에 사령부 건물이 여러 개 있기 때문에 어느쪽에서든 증원이 올 가능성도 있습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'다른 지역보다 매우 어려운 싸움이 예상됩니다.'},
+    {speaker:'eva',name:'EVA-9',text:'철저히 준비하시기 바랍니다.'},
+    {speaker:'captain',name:'함장',text:'다른 곳에서 증원이 온다면 우리가 고립될 수도 있겠어.'},
+    {speaker:'captain',name:'함장',text:'화력과 속도를 집중해서 빠르게 정리해야 해.'},
+    {speaker:'eva',name:'EVA-9',text:'제독님의 호출입니다.'},
+    {speaker:'eva',name:'EVA-9',text:'함교로 이동하시기 바랍니다.'}
+  ];
+  const nepAsman10AdmiralLines=[
+    {speaker:'han',name:'한성민 제독',text:'상황이 어렵게 되었다 제군들.'},
+    {speaker:'han',name:'한성민 제독',text:'태양계에서 마주한 괴 생명체들의 잔당을 소탕하는 중에 또 다른 생명체 무리가 접근하고 있다는 첩보를 받았다.'},
+    {speaker:'han',name:'한성민 제독',text:'일부는 태양계 방어를 위해 돌아가고 일부는 남아서 여기를 지키기로 했다.'},
+    {speaker:'han',name:'한성민 제독',text:'우리는...'},
+    {speaker:'han',name:'한성민 제독',text:'여기 남는다.'},
+    {speaker:'narration',name:'',text:'함교의 사람들이 웅성거린다.'},
+    {speaker:'han',name:'한성민 제독',text:'그리고!'},
+    {speaker:'han',name:'한성민 제독',text:'잔류부대를 지휘할 사령관님이다.'},
+    {speaker:'narration',name:'',text:'빅터 볼코프 사령관이 함교에 모습을 드러낸다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'제군들, 우리는 전우들의 뒤를 지켜줄 막중한 임무를 받았다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'모두 목숨을 걸고 지키도록!'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'최선의 방어는 바로 공격이다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:()=>`함장 ${heroName()}, 자네 부대가 선봉을 맡아 적 사령부로 나가도록 하게.`},
+    {speaker:'han',name:'한성민 제독',text:'...!!'},
+    {speaker:'captain',name:'함장',text:'...네, 즉시 준비하겠습니다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'좋아, 연구실로 가서 보급품을 받게 준비하게.'}
+  ];
+  const nepAsman10SupplyLines=[
+    {speaker:'eva',name:'EVA-9',text:'사령관님께서 보급품을 준비하셨습니다.'},
+    {speaker:'captain',name:'함장',text:'잘된 일이지만, 어쩐지 예감이 안 좋아...'},
+    {speaker:'narration',name:'',text:'빅터 볼코프 사령관이 연구실에 나타난다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'이거 오랜만이군 그래.'},
+    {speaker:'captain',name:'함장',text:'사령관님.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'얼마전에 추방자 함대를 만났다고?'},
+    {speaker:'captain',name:'함장',text:'네? 네 그렇습니다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'그래, 뭐 이상한 점은 없었나?'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'그자나 아니면 제독이나 누구든 말이야.'},
+    {speaker:'captain',name:'함장',text:'없었습니다.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'그렇군.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'가기 전에 제독을 만나면 물어보게.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'유키히사 라는 사람을 아느냐고 말이야.'},
+    {speaker:'volkov',name:'사령관 빅터 볼코프',text:'흐흐흐흐'},
+    {speaker:'narration',name:'',text:'빅터 볼코프 사령관이 웃음소리를 남기고 사라진다.'},
+    {speaker:'captain',name:'함장',text:'유키히사...?'},
+    {speaker:'captain',name:'함장',text:'그게 누구지, 에바?'},
+    {speaker:'eva',name:'EVA-9',text:'...공식 기록 상에는 자료가 없습니다.'},
+    {speaker:'eva',name:'EVA-9',text:'추방자 처결을 받은 사람 명단에도 없습니다.'},
+    {speaker:'captain',name:'함장',text:'이상하군, 제독님을 만나면 물어봐야겠어.'}
+  ];
+  const multiLine={'nep-asman10-lab':nepAsman10LabLines,'nep-asman10-admiral':nepAsman10AdmiralLines,'nep-asman10-supply':nepAsman10SupplyLines,'nep-asman10-bridge':nepAsman10BridgeLines,'nep-asman10-pre':nepAsman10PreLines,'nep-asman10-clear':nepAsman10ClearLines,'nep-asman5-pre':nepAsman5PreLines,'nep-asman5-clear':nepAsman5ClearLines,'nep-asman5-bridge':nepAsman5BridgeLines,'nep-asman1-pre':nepAsman1PreLines,'nep-g5-lab':nepG5LabLines,'nep-g2-clear':nepG2ClearLines,'nep-g3-clear':nepG3ClearLines,'nep-g4-clear':nepG4ClearLines,'nep-g5-clear':nepG5ClearLines,'nep-g5-bridge':nepG5BridgeLines,'tapao-g10a':tapaoG10aLines,'tapao-g10b':tapaoG10bLines,'tapao-g10-clear':tapaoG10ClearLines,'tapao-g10-bridge':tapaoG10BridgeLines,'tapao-g10-lab':tapaoG10LabLines,'tapao-col10-pre':tapaoCol10PreLines,'tapao-col10-clear':tapaoCol10ClearLines,'tapao-col10-bridge':tapaoCol10BridgeLines,'tapao-col10-hangar':tapaoCol10HangarLines,'tapao-col10-lab':tapaoCol10LabLines,'tapao-colony-pre':tapaoColonyPreLines,'tapao-orb10-hangar':tapaoOrb10HangarLines,'tapao-orb10-bridge':tapaoOrb10BridgeLines,'tapao-orb10-lab':tapaoOrb10LabLines,'tapao-orbit5-clear':tapaoOrbit5ClearLines,'tapao-o10a':tapaoO10aLines,'tapao-o10b':tapaoO10bLines,'tapao-o10c':tapaoO10cLines,'tapao-o10d':tapaoO10dLines,'kb10-clear':kb10ClearLines,'kb10-bridge':kb10BridgeLines,'kb10-lab':kb10LabLines,'tapao-bridge':tapaoBridgeLines,'tapao-hangar':tapaoHangarLines,'tapao-admiral':tapaoAdmiralLines,'tapao-lab':tapaoLabLines,'tapao-near-pre':tapaoNearPreLines,'tapao-near5-clear':tapaoNear5ClearLines,'tapao-near10-clear':tapaoNear10ClearLines,'tapao-near10-hangar':tapaoNear10HangarLines,'tapao-near10-lab':tapaoNear10LabLines,'tapao-near10-bridge':tapaoNear10BridgeLines,'tapao-eva-lab':tapaoEvaLabLines,'tapao-orbit-pre':tapaoOrbitPreLines,'tapao-near10-known':tapaoNear10KnownLines,'tapao-near10-known-a':tapaoNear10KnownALines,'tapao-near10-known-b':tapaoNear10KnownBLines,'tapao-near10-unknown':tapaoNear10UnknownLines,'tapao-near10-unknown-a':tapaoNear10UnknownALines,'tapao-near10-unknown-b':tapaoNear10UnknownBLines,'kb1-pre':kb1PreLines,'kb5-pre':kb5PreLines,'kb5-clear':kb5ClearLines,'kb5-farah':kb5FarahLines,'katm210-retreat':katm210RetreatLines,'katm210-para':katm210ParaLines,'katm210-walk':katm210WalkLines,'katm210-eva':katm210EvaLines,'katm6-start':katm6StartLines,'katm210-ayra':katm210AyraLines,'katm5-volkov':katm5VolkovLines,'katm5-volkov-truth':katm5VolkovTruthLines,'katm5-volkov-noreason':katm5VolkovNoReasonLines,'katm5-volkov-trust':katm5VolkovTrustLines,'katm5-volkov-lie':katm5VolkovLieLines,'katm5-volkov-apology':katm5VolkovApologyLines,'katm5-volkov-suspicion':katm5VolkovSuspicionLines,'katm5-clear':katm5ClearLines,'katm5-admiral':katm5AdmiralLines,'katm5-supply':katm5SupplyLines,'katm5-start':katm5StartLines,'katm5-boss':katm5BossLines,'kepler-okoye-call':keplerOkoyeLines,'kepler5-warning':kepler5WarningLines,'kepler5-clear':kepler5ClearLines,'kepler10-intro':kepler10IntroLines,'kepler10-clear':kepler10ClearLines,'kepler10-lab':kepler10LabLines,'atm10-clear':atm10ClearLines,'atm10-home':atm10HomeLines,'atm10-lab':atm10LabLines,'atm5-clear':atm5ClearLines,'tas10-clear':tas10ClearLines,'tas10-home':tas10HomeLines,'tas10-lab':tas10LabLines,'tas10-volkov':tas10VolkovLines,'tas5-depart':tas5DepartLines,'tas5-clear':tas5ClearLines,'tas1-depart':tas1DepartLines,'magenta10-clear':magenta10ClearLines,'magenta10-lab':magenta10LabLines,briefing:gate6Lines,'titan-briefing':titanBriefingLines,'mars-clear':marsClearLines,malik:malikLines,'titan-gate5':titanGate5Lines,'titan-fall':titanFallLines,'titan-lab':titanLabLines,'titan-report':titanReportLines,'lab-briefing':labBriefingLines,oort10:oort10Lines,'oort10-clear':oort10ClearLines,oort15:oort15Lines,oort20:oort20Lines,'oort20-clear':oort20ClearLines,'oort-return':oortReturnLines,volkov:volkovLines,'magenta5-clear':magenta5ClearLines,'magenta5-volkov':magenta5VolkovLines,'magenta5-lab':magenta5LabLines,magenta6:magenta6Lines,'magenta9-malik':magenta9MalikLines,'magenta9-lab':magenta9LabLines};
   // 출격 직후 통신이 끝나면 준비된 전투를 바로 개시하는 단계
-  const AUTO_START_STAGES=['malik','oort10','oort15','volkov','magenta6','tapao-near-pre','tapao-orbit-pre','tapao-colony-pre','tapao-col10-pre','nep-asman1-pre'];
+  const AUTO_START_STAGES=['malik','oort10','oort15','volkov','magenta6','tapao-near-pre','tapao-orbit-pre','tapao-colony-pre','tapao-col10-pre','nep-asman1-pre','nep-asman5-pre','nep-asman10-pre'];
   // 출격 직후 대화 단계(새로고침하면 준비된 전투가 사라지므로 다음 출격 때 다시 보여줌). 오르트 20관문은 보호막 함선 권고에 따라 편성을 바꿀 수 있게 [전투 개시]를 기다립니다.
   const PREBATTLE_STAGES=[...AUTO_START_STAGES,'oort20'];
   // 대사 중간에 보상을 주는 지점: 해당 줄에서 [계속]을 누르면 지급 + 물자창고 이송 연출 후 다음 줄로 넘어갑니다.
   const REWARD_ICON={gold:['골드','gold-resource-icon.svg'],precisionScout:['정밀탐색드론','icons/precision-scout-drone.webp'],ssrShipTicket:['SSR 함선 선택 교환권','icons/ssr-ship-ticket.svg?v=3'],frameTicket:['함선골조 교환권','icons/frame-ticket.svg?v=2'],frameCannon:['함포 골조','icons/ship-frame.png'],frameMissile:['미사일 골조','icons/ship-frame.png'],frameLaser:['레이저포 골조','icons/ship-frame.png'],framePiercing:['관통레이저 골조','icons/ship-frame.png'],frameCarrier:['함재기 골조','icons/ship-frame.png'],frameElectric:['전기무기 골조','icons/ship-frame.png'],goldVault:['금고','icons/vault.png'],thoriumBox:['토륨 상자','icons/thorium-box.png'],thorium:['토륨','thorium-crystal-icon.png'],scoutTron:['탐사드론','icons/scout-drone.png'],researchStaff:['연구인력','icons/research-personnel-20261002.png'],journal:['연구일지','icons/research-journal.png'],core:['범용연구코어','icons/research-core.png']};
   const rewardSteps={
+    'nep-asman10-supply':{index:0,flag:'nepAsman10SupplyGranted',kicker:'COMMANDER VOLKOV · SORTIE SUPPLY',title:'사령관 보급품',rewards:{precisionScout:30,researchStaff:30,gold:50000}},
     'nep-g5-bridge':{index:3,flag:'nepG5RewardGranted',kicker:'HEADQUARTERS · MERIT SUPPLIES',title:'사령부 공적 치하 물자',rewards:{precisionScout:20,scoutTron:20,researchStaff:20,gold:200000}},
     'tapao-g10-lab':{index:4,flag:'tapaoG10LabRewardGranted',kicker:'EVA-9 · DEPARTURE SUPPLIES',title:'관문 돌입 대비 물자',rewards:{precisionScout:20,researchStaff:20}},
     'tapao-col10-hangar':{index:0,flag:'tapaoCol10FarahGranted',kicker:'FARAH · PRECISION SCOUT',title:'파라의 정밀탐색드론',rewards:{precisionScout:10}},
@@ -1096,6 +1195,15 @@
     'nep-g5-bridge':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN',
     'nep-g5-lab':'RESEARCH LAB · EVA-9',
     'nep-asman1-pre':'SUPER NEPTUNE · ASMAN SUPPLY BASE 1 / BATR KAZA',
+    'nep-asman5-pre':'SUPER NEPTUNE · ASMAN SUPPLY BASE 5 / BATR KAZA',
+    'nep-asman10-pre':'SUPER NEPTUNE · ASMAN SUPPLY BASE 10 / BRIDGE',
+    'nep-asman10-clear':'SUPER NEPTUNE · ASMAN SUPPLY BASE 10 / BATR KAZA',
+    'nep-asman10-bridge':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN · EVA-9',
+    'nep-asman10-lab':'RESEARCH LAB · EVA-9',
+    'nep-asman10-admiral':'UNITED STAR FLEET · BRIDGE / COMMANDER VOLKOV',
+    'nep-asman10-supply':'RESEARCH LAB · COMMANDER VOLKOV',
+    'nep-asman5-clear':'SUPER NEPTUNE · ASMAN SUPPLY BASE 5 / BASHUCHI AYRA',
+    'nep-asman5-bridge':'UNITED STAR FLEET · BRIDGE / LUCA · MALIK',
     'tapao-g10-clear':'TAPAO THONG · TAPAO GATE 10 / GATE SECURED',
     'tapao-g10-bridge':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN',
     'tapao-g10-lab':'RESEARCH LAB · EVA-9',
@@ -1333,6 +1441,15 @@
     if(stage==='nep-g5-bridge')state.nepG5BridgeDone=true;
     if(stage==='nep-g5-lab')state.nepG5LabDone=true;
     if(stage==='nep-asman1-pre')state.nepAsman1PreDone=true;
+    if(stage==='nep-asman5-pre')state.nepAsman5PreDone=true;
+    if(stage==='nep-asman10-pre')state.nepAsman10PreDone=true;
+    if(stage==='nep-asman10-clear')state.nepAsman10ClearDone=true;
+    if(stage==='nep-asman10-bridge')state.nepAsman10BridgeDone=true;
+    if(stage==='nep-asman10-lab')state.nepAsman10LabDone=true;
+    if(stage==='nep-asman10-admiral')state.nepAsman10AdmiralDone=true;
+    if(stage==='nep-asman10-supply')state.nepAsman10SupplyDone=true;
+    if(stage==='nep-asman5-clear')state.nepAsman5ClearDone=true;
+    if(stage==='nep-asman5-bridge')state.nepAsman5BridgeDone=true;
     if(stage==='tapao-g10-clear')state.tapaoG10ClearDone=true;
     if(stage==='tapao-g10-bridge')state.tapaoG10BridgeDone=true;
     if(stage==='tapao-g10-lab')state.tapaoG10LabDone=true;
@@ -1389,7 +1506,7 @@
       return;
     }
     // 타파오 통 도입부: 케플러 연구실 장면 → 함교 → 격납고 → 함교(제독) → 연구실 순서로, 각 장면이 끝나면 다음 화면으로 이동할 때까지 기다린다.
-    const TAPAO_FLOW={'nep-g5-clear':'nep-g5-bridge-pending','tapao-g10-clear':'tapao-g10-bridge-pending','tapao-col10-clear':'tapao-col10-bridge-pending','tapao-orb10-hangar':'tapao-orb10-bridge-pending','tapao-orb10-bridge':'tapao-orb10-lab-pending','tapao-near10-known-a':'tapao-eva-lab-pending','tapao-near10-known-b':'tapao-eva-lab-pending','tapao-near10-unknown-a':'tapao-eva-lab-pending','tapao-near10-unknown-b':'tapao-eva-lab-pending','tapao-near10-hangar':'tapao-near10-lab-pending','tapao-near10-lab':'tapao-near10-bridge-pending','kb10-lab':'tapao-bridge-pending','tapao-bridge':'tapao-hangar-pending','tapao-hangar':'tapao-admiral-pending','tapao-admiral':'tapao-lab-pending'};
+    const TAPAO_FLOW={'nep-asman10-clear':'nep-asman10-bridge-pending','nep-asman10-bridge':'nep-asman10-lab-pending','nep-asman10-lab':'nep-asman10-admiral-pending','nep-asman10-admiral':'nep-asman10-supply-pending','nep-asman5-clear':'nep-asman5-bridge-pending','nep-g5-clear':'nep-g5-bridge-pending','tapao-g10-clear':'tapao-g10-bridge-pending','tapao-col10-clear':'tapao-col10-bridge-pending','tapao-orb10-hangar':'tapao-orb10-bridge-pending','tapao-orb10-bridge':'tapao-orb10-lab-pending','tapao-near10-known-a':'tapao-eva-lab-pending','tapao-near10-known-b':'tapao-eva-lab-pending','tapao-near10-unknown-a':'tapao-eva-lab-pending','tapao-near10-unknown-b':'tapao-eva-lab-pending','tapao-near10-hangar':'tapao-near10-lab-pending','tapao-near10-lab':'tapao-near10-bridge-pending','kb10-lab':'tapao-bridge-pending','tapao-bridge':'tapao-hangar-pending','tapao-hangar':'tapao-admiral-pending','tapao-admiral':'tapao-lab-pending'};
     if(stage==='tapao-bridge')state.tapaoBridgeDone=true;
     if(stage==='tapao-hangar')state.tapaoHangarDone=true;
     if(stage==='tapao-admiral')state.tapaoAdmiralDone=true;
@@ -1513,6 +1630,12 @@
     }
     if(Number(operation?.chapter)===5&&operation?.region==='asman-supply'&&Number(operation?.gate)===1&&!state.nepAsman1PreDone&&!active()){
       setTimeout(()=>{if(!active())setStage('nep-asman1-pre');},0);
+    }
+    if(Number(operation?.chapter)===5&&operation?.region==='asman-supply'&&Number(operation?.gate)===10&&!state.nepAsman10PreDone&&!active()){
+      setTimeout(()=>{if(!active())setStage('nep-asman10-pre');},0);
+    }
+    if(Number(operation?.chapter)===5&&operation?.region==='asman-supply'&&Number(operation?.gate)===5&&!state.nepAsman5PreDone&&!active()){
+      setTimeout(()=>{if(!active())setStage('nep-asman5-pre');},0);
     }
     if(Number(operation?.chapter)===4&&operation?.region==='tapao-colony'&&Number(operation?.gate)===10&&!state.tapaoCol10PreDone&&!active()){
       setTimeout(()=>{if(!active())setStage('tapao-col10-pre');},0);
@@ -1643,14 +1766,14 @@
     if(/-pending$/.test(state.stage))return true;
     // 함교에서 진행되는 대화는 새로고침 후 복원될 때도 함교로 이동할 수 있어야 합니다.
     if(state.stage==='katm210-para')return id==='collection';
-    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='tapao-lab'||state.stage==='tapao-eva-lab'||state.stage==='tapao-near10-lab'||state.stage==='tapao-orb10-lab'||state.stage==='tapao-col10-lab'||state.stage==='tapao-g10-lab'||state.stage==='nep-g5-lab'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
+    if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='tapao-lab'||state.stage==='tapao-eva-lab'||state.stage==='tapao-near10-lab'||state.stage==='tapao-orb10-lab'||state.stage==='tapao-col10-lab'||state.stage==='tapao-g10-lab'||state.stage==='nep-g5-lab'||state.stage==='nep-asman10-lab'||state.stage==='nep-asman10-supply'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
     if(state.stage==='magenta5-volkov')return id==='collection';
     if(state.stage==='katm210-para')return id==='collection';
     // 클리어 직후 안내 장면은 전투 결과 화면에서 어느 메뉴로 나가도 막지 않는다(막히면 버튼이 먹지 않는다).
-    if(state.stage==='katm210-retreat'||state.stage==='tapao-near5-clear'||state.stage==='tapao-orbit5-clear'||state.stage==='tapao-near10-clear'||state.stage==='tapao-col10-clear'||state.stage==='tapao-g10-clear'||/^nep-g[2-5]-clear$/.test(state.stage)||/^tapao-g10[ab]$/.test(state.stage)||/^tapao-o10[abcd]$/.test(state.stage))return true;
+    if(state.stage==='katm210-retreat'||state.stage==='tapao-near5-clear'||state.stage==='tapao-orbit5-clear'||state.stage==='tapao-near10-clear'||state.stage==='tapao-col10-clear'||state.stage==='tapao-g10-clear'||/^nep-g[2-5]-clear$/.test(state.stage)||state.stage==='nep-asman5-clear'||state.stage==='nep-asman10-clear'||/^tapao-g10[ab]$/.test(state.stage)||/^tapao-o10[abcd]$/.test(state.stage))return true;
     if(state.stage==='kb5-farah'||state.stage==='tapao-hangar'||state.stage==='tapao-near10-hangar'||state.stage==='tapao-orb10-hangar'||state.stage==='tapao-col10-hangar')return id==='collection';
     if(state.stage==='katm210-walk')return id==='collection'||id==='home';
-    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear','tapao-bridge','tapao-admiral','tapao-near10-bridge','tapao-orb10-bridge','tapao-col10-bridge','tapao-g10-bridge','nep-g5-bridge','tapao-near10-known','tapao-near10-known-a','tapao-near10-known-b','tapao-near10-unknown','tapao-near10-unknown-a','tapao-near10-unknown-b'].includes(state.stage)&&id==='home';
+    return ['briefing','mars-clear','titan-briefing','titan-fall','titan-report','oort-return','magenta9-malik','magenta10-clear','tas10-clear','tas10-home','tas10-volkov','atm10-clear','atm10-home','kepler10-clear','kb10-clear','kb10-fade','kb10-bridge','katm5-clear','katm5-admiral','katm5-supply','katm210-retreat','katm210-eva','kb5-clear','tapao-bridge','tapao-admiral','tapao-near10-bridge','tapao-orb10-bridge','tapao-col10-bridge','tapao-g10-bridge','nep-g5-bridge','nep-asman5-bridge','nep-asman10-bridge','nep-asman10-admiral','tapao-near10-known','tapao-near10-known-a','tapao-near10-known-b','tapao-near10-unknown','tapao-near10-unknown-a','tapao-near10-unknown-b'].includes(state.stage)&&id==='home';
   };
   // 플레이어가 연구실(summon) 화면을 직접 열었을 때만 작전 회의를 시작한다.
   // 연구실로 바로 들어가면 지원 물품을 기본 지원의 50%만큼 추가로 지급한다(다른 화면을 거쳤다면 추가 지급 없음).
@@ -1658,7 +1781,7 @@
   window.addEventListener('game-screen-changed',event=>{
     const screen=event.detail?.screen;
     // 타스 10관문: 함교로 돌아오면 루카와의 대화, 연구실을 열면 EVA-9와의 대화가 이어진다.
-    const TAS10_NEXT={'nep-g5-bridge-pending':{screen:'home',stage:'nep-g5-bridge'},'tapao-g10-bridge-pending':{screen:'home',stage:'tapao-g10-bridge'},'tapao-col10-bridge-pending':{screen:'home',stage:'tapao-col10-bridge'},'tapao-orb10-bridge-pending':{screen:'home',stage:'tapao-orb10-bridge'},'tapao-orb10-lab-pending':{screen:'summon',stage:'tapao-orb10-lab'},'tapao-eva-lab-pending':{screen:'summon',stage:'tapao-eva-lab'},'tapao-near10-lab-pending':{screen:'summon',stage:'tapao-near10-lab'},'tapao-near10-bridge-pending':{screen:'home',stage:'tapao-near10-bridge'},'tapao-bridge-pending':{screen:'home',stage:'tapao-bridge'},'tapao-hangar-pending':{screen:'collection',stage:'tapao-hangar'},'tapao-admiral-pending':{screen:'home',stage:'tapao-admiral'},'tapao-lab-pending':{screen:'summon',stage:'tapao-lab'},'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
+    const TAS10_NEXT={'nep-asman10-lab-pending':{screen:'summon',stage:'nep-asman10-lab'},'nep-asman10-admiral-pending':{screen:'home',stage:'nep-asman10-admiral'},'nep-asman10-supply-pending':{screen:'summon',stage:'nep-asman10-supply'},'nep-asman10-bridge-pending':{screen:'home',stage:'nep-asman10-bridge'},'nep-asman5-bridge-pending':{screen:'home',stage:'nep-asman5-bridge'},'nep-g5-bridge-pending':{screen:'home',stage:'nep-g5-bridge'},'tapao-g10-bridge-pending':{screen:'home',stage:'tapao-g10-bridge'},'tapao-col10-bridge-pending':{screen:'home',stage:'tapao-col10-bridge'},'tapao-orb10-bridge-pending':{screen:'home',stage:'tapao-orb10-bridge'},'tapao-orb10-lab-pending':{screen:'summon',stage:'tapao-orb10-lab'},'tapao-eva-lab-pending':{screen:'summon',stage:'tapao-eva-lab'},'tapao-near10-lab-pending':{screen:'summon',stage:'tapao-near10-lab'},'tapao-near10-bridge-pending':{screen:'home',stage:'tapao-near10-bridge'},'tapao-bridge-pending':{screen:'home',stage:'tapao-bridge'},'tapao-hangar-pending':{screen:'collection',stage:'tapao-hangar'},'tapao-admiral-pending':{screen:'home',stage:'tapao-admiral'},'tapao-lab-pending':{screen:'summon',stage:'tapao-lab'},'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
     // 위성궤도 10관문 클리어: 결과 화면에서 나가면 격납고로 이동해 대화가 시작된다.
     if(state.stage==='tapao-orb10-hangar-pending'){
       if(screen==='collection'){setStage('tapao-orb10-hangar');window.show?.('collection');}
@@ -1705,6 +1828,8 @@
     if(Number(chapter)===4&&region==='tapao-orbit'&&Number(gate)===10&&firstClear&&!state.tapaoOrb10HangarDone&&!active()){setStage('tapao-orb10-hangar-pending');return;}
     if(Number(chapter)===4&&region==='tapao-colony'&&Number(gate)===10&&firstClear&&!state.tapaoCol10ClearDone&&!active()){setStage('tapao-col10-clear');return;}
     if(Number(chapter)===4&&region==='tapao-gate'&&Number(gate)===10&&firstClear&&!state.tapaoG10ClearDone&&!active()){setStage('tapao-g10-clear');return;}
+    if(Number(chapter)===5&&region==='asman-supply'&&Number(gate)===10&&firstClear&&!state.nepAsman10ClearDone&&!active()){setStage('nep-asman10-clear');return;}
+    if(Number(chapter)===5&&region==='asman-supply'&&Number(gate)===5&&firstClear&&!state.nepAsman5ClearDone&&!active()){setStage('nep-asman5-clear');return;}
     if(Number(chapter)===5&&region==='neptune-gate'&&firstClear&&!active()){
       const nepStage={2:'nep-g2-clear',3:'nep-g3-clear',4:'nep-g4-clear',5:'nep-g5-clear'}[Number(gate)];
       const nepDone={2:state.nepG2ClearDone,3:state.nepG3ClearDone,4:state.nepG4ClearDone,5:state.nepG5ClearDone}[Number(gate)];
