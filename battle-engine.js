@@ -1078,8 +1078,14 @@
 
   // 타파오 통 행성(챕터 4): 모든 지역이 외계 함대 전투다. 지역 키는 tapao-near(행성 인근)·tapao-orbit(위성 궤도)·tapao-colony·tapao-gate.
   // 지역별 외계 함선 강화(체력·공격력): 행성인근·위성궤도 +10%, 콜로니 +15%, 게이트 +20%.
-  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2, 'asman-supply': 1.2, 'asman-hq': 1.4 };
-  const tapaoAlienScale = (operation = state?.operation) => TAPAO_ALIEN_SCALES[String(operation?.region || '').toLowerCase()] || 1.1;
+  // 아스만 사령부는 적의 심장부: 기본 1.7배(이전 1.4)에 관문마다 4%씩 더 강해진다(10관문 약 2.3배).
+  const TAPAO_ALIEN_SCALES = { 'tapao-near': 1.1, 'tapao-orbit': 1.1, 'tapao-colony': 1.15, 'tapao-gate': 1.2, 'neptune-gate': 1.2, 'asman-supply': 1.2, 'asman-hq': 1.7 };
+  const ASMAN_HQ_GATE_GROWTH = .04;
+  const tapaoAlienScale = (operation = state?.operation) => {
+    const region = String(operation?.region || '').toLowerCase();
+    const base = TAPAO_ALIEN_SCALES[region] || 1.1;
+    return region === 'asman-hq' ? base * (1 + ASMAN_HQ_GATE_GROWTH * (Math.max(1, Number(operation?.gate) || 1) - 1)) : base;
+  };
   // 함종 상성(타파오 통부터, 아군이 외계 함선을 칠 때만): 중전함 > 구축함 > 순양함 > 중전함. 유리하면 피해 +10%, 불리하면 -10%.
   // 외계 함선의 공격에는 적용하지 않는다. 함재기·포탑처럼 함종이 없는 대상은 상성이 없다.
   const TAPAO_MATCHUP_RATE = .1;
@@ -1428,7 +1434,9 @@
     if (region === 'asman-hq') {
       const esc = 'escort', sc = 'starcruiser', an = 'angela';
       const flag = Object.assign(['carrier', esc, esc], { xs: [.67, .4, .15] });
-      return [
+      // 인근 사령부 건물에서 오는 증원: 2관문부터 마지막에 증원 웨이브가 한 번 더 온다(관문이 오를수록 무거워진다).
+      const reinforcement = gate >= 8 ? [an, an, sc, sc] : gate >= 5 ? [an, sc, esc, esc] : gate >= 2 ? [esc, esc, sc] : null;
+      const plan = [
         [[esc, esc, esc, esc], [sc, sc]],
         [[sc, sc, sc], [an, esc, esc]],
         [[esc, esc, esc, esc, esc], [sc, sc, sc], [an, sc, sc]],
@@ -1440,6 +1448,7 @@
         [[an, an, an], [sc, sc, sc], [an, sc, sc]],
         [flag, [an, an, sc], [an, an, an]]
       ][Math.min(10, Math.max(1, gate)) - 1];
+      return reinforcement ? [...plan, reinforcement] : plan;
     }
     if (region === 'asman-supply') return gate === 1 ? [Object.assign(['carrier', 'escort', 'escort'], { xs: [.67, .4, .15] })] : [['carrier']];
     if (region === 'tapao-near') return gate === 5 || gate === 10 ? [flagship] : [cruisers];
@@ -1759,7 +1768,9 @@
     const baseHp = Number(ship.profile?.[0]) > 0 ? Number(ship.profile[0]) : fallbackHp;
     // 연합 개발 효과: 내구도·피해 증가·공격 속도·피해 감소·핵심기술 발동 에너지. 아레나에는 적용하지 않고, 광산 쟁탈전에는 양쪽 함대에 적용한다.
     const unionDev = side === 'friendly' && (!state?.arenaLive || state?.arenaMatch?.mineWar) && window.getUnionDevEffects?.(ship) || { hp: 0, reduction: 0, energy: 0 };
-    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1) * (1 + unionDev.hp));
+    // 함장 훈련: 계급 효과와 탑승 함장 효과(공격력·내구도, 특수기술). 아레나·광산 쟁탈전에는 적용하지 않는다.
+    const command = side === 'friendly' && !state?.arenaLive && window.CaptainTraining?.battleEffects?.(ship) || null;
+    const maxHp = Math.floor(baseHp * combatStatFactor(ship) * ALLY_HP_BALANCE * (state?.arenaLive ? ARENA_DURABILITY_MULT : 1) * (side === 'friendly' ? 1 + (Number(state?.fleetBuff?.hp) || 0) : 1) * (1 + unionDev.hp) * (1 + (Number(command?.hp) || 0)));
     // 보호막 사양은 추후 함선별로 정의한다. 현재 전투에서는 수치와 시각 효과를 모두 사용하지 않는다.
     const maxShield = isCarrier ? 3000 : 0;
     const ally = {
@@ -1781,6 +1792,10 @@
       unionDevReduction: unionDev.reduction,
       unionDevDamage: unionDev.damage || 0,
       unionDevSpeed: unionDev.attackSpeed || 0,
+      captainDamage: Number(command?.damage) || 0,
+      captainSkill: command?.skill || null,
+      captainClock: 0,
+      captainSpeedPenalty: Number(command?.speedPenalty) || 0,
       isAssaultTurtle,
       assaultTurtleStars: isAssaultTurtle ? Math.max(0, Math.floor(Number(ship.enhancementStars) || 0)) : 0,
       assaultTurtleBarrageDamage: 0,
@@ -1915,6 +1930,64 @@
     } else {
       refs.allyLayer.append(element);
       state.allies.push(ally);
+      // 함장 특수기술 '과충전 출격': 스킬 에너지를 채운 채로 출격한다.
+      if (ally.captainSkill?.id === 'energyStart' && usesEnergy) {
+        ally.energy = ally.maxEnergy * Math.min(.95, Number(ally.captainSkill.value) || 0);
+        updateBattlecruiserEnergy(ally);
+      }
+      if (ally.captainSkill) element.classList.add('captain-aboard');
+      if (command?.offSpec) element.classList.add('captain-offspec');
+    }
+  }
+
+  // ── 함장 특수기술 ──
+  // 피해 배율: 계급·함장 효과 + 선제 지휘·섬광 일제사격·추격 사격·거함 사냥.
+  function captainDamageFactor(source, target) {
+    if (!source || source.isArenaShip) return 1;
+    let factor = 1 + (Number(source.captainDamage) || 0);
+    const skill = source.captainSkill;
+    if (!skill) return factor;
+    const value = Number(skill.value) || 0;
+    if (skill.id === 'opening' && source.captainClock < skill.seconds * 1000) factor *= 1 + value;
+    else if (skill.id === 'surge' && source.captainSurge) factor *= 1 + value;
+    else if (skill.id === 'execute' && target && target.hp / Math.max(1, target.maxHp) <= skill.threshold) factor *= 1 + value;
+    else if (skill.id === 'boss' && target?.kind === 'boss') factor *= 1 + value;
+    return factor;
+  }
+  // 받는 피해 배율: 철벽 지휘(내구도 50% 이하)·회피 기동.
+  function captainTakenFactor(ally) {
+    const skill = ally?.captainSkill;
+    if (!skill || ally.isArenaShip) return 1;
+    if (skill.id === 'evasion') return 1 - (Number(skill.value) || 0);
+    if (skill.id === 'lowHpGuard' && ally.hp / Math.max(1, ally.maxHp) <= skill.threshold) return 1 - (Number(skill.value) || 0);
+    return 1;
+  }
+  // 시간 흐름: 전투 시간(일시정지 제외)으로 섬광 일제사격·요새 정비·최후의 방벽·속사 지휘를 처리한다.
+  function updateCaptainSkill(ally, dt) {
+    const skill = ally.captainSkill;
+    if (!skill || ally.dead) return;
+    ally.captainClock += dt;
+    // 비전문 함선 탑승: 공격 속도 패널티(다음 사격까지 남은 시간이 덜 줄어든다).
+    if (ally.captainSpeedPenalty && !(ally.stun > 0) && !ally.charging && ally.nextShot > 0) ally.nextShot += dt * ally.captainSpeedPenalty;
+    const value = Number(skill.value) || 0;
+    if (skill.id === 'surge') {
+      const phase = ally.captainClock % (skill.every * 1000);
+      const active = ally.captainClock >= skill.every * 1000 && phase < skill.seconds * 1000;
+      if (active !== Boolean(ally.captainSurge)) { ally.captainSurge = active; ally.el?.classList.toggle('captain-surge', active); }
+    } else if (skill.id === 'opening') {
+      const active = ally.captainClock < skill.seconds * 1000;
+      if (active !== Boolean(ally.captainOpening)) { ally.captainOpening = active; ally.el?.classList.toggle('captain-surge', active); }
+    } else if (skill.id === 'regen') {
+      ally.captainRegenTimer = (ally.captainRegenTimer || 0) + dt;
+      if (ally.captainRegenTimer >= skill.every * 1000) { ally.captainRegenTimer = 0; if (ally.hp < ally.maxHp) repairAlly(ally, Math.round(ally.maxHp * value)); }
+    } else if (skill.id === 'lastStand') {
+      if (!ally.captainLastStandUsed && ally.hp > 0 && ally.hp / Math.max(1, ally.maxHp) <= skill.threshold) {
+        ally.captainLastStandUsed = true;
+        repairAlly(ally, Math.round(ally.maxHp * value));
+        announce(`${skill.captain} · ${skill.name}`, 'friendly');
+      }
+    } else if (skill.id === 'speed') {
+      if (!ally.charging && ally.nextShot > 0) ally.nextShot -= dt * value;
     }
   }
 
@@ -2518,6 +2591,7 @@
     state.vanguardLine = startFront ? { x: Number(startFront.x), y: Number(startFront.y) } : null;
     window.dispatchEvent(new CustomEvent('tutorial-battle-started', {detail:{operation:state.operation}}));
     if (isAsmanHqOperation() && asmanHqRule()) schedule(() => announce(`작전 규칙 · ${window.describeNeptuneRule(asmanHqRule())}`, 'boss'), 1400);
+    if (isAsmanHqYukihisaSupport()) schedule(yukihisaSupportArrival, YUKIHISA_SUPPORT.arrival);
     if (isGoldenSpireOperation() && goldenSpireRule()) schedule(() => announce(`첨탑 방어체계 · ${window.describeNeptuneRule(goldenSpireRule())}`, 'boss'), 1400);
     if (isGoldenSpireOperation()) scheduleSpireBeasts();
     refs.battleStart.hidden = true;
@@ -2885,6 +2959,7 @@
       }
       const attackSpeedRatio = 1 - Math.min(10, ally.machineFreezeStacks || 0) * .05;
       ally.stun = Math.max(0, Number(ally.stun) || 0);
+      if (ally.captainSkill) updateCaptainSkill(ally, dt);
       if (ally.stun > 0) { ally.stun = Math.max(0, ally.stun - dt); continue; }
       if (!ally.charging && ally.nextShot > 0) ally.nextShot += dt * (1 - attackSpeedRatio);
       const energyRechargeLocked = Number(ally.energyRechargeDisabledUntil) > performance.now();
@@ -10968,7 +11043,7 @@
     const statFactor = attackType === 'cannon-splash' || attackType === 'melt' || attackType === 'thunder' ? 1 : combatStatFactor(source);
     const researchDamage = fixedPackets ? 0 : tacticalWeaponBonus(source,attackType).damage;
     // 함대 버프(공격력): 편성된 아군 함선의 공격에만 곱한다(고정 피해·파생 피해 제외).
-    const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? (1 + (Number(state.fleetBuff?.damage) || 0)) * (1 + (Number(source.unionDevDamage) || 0)) : 1;
+    const fleetDamage = !fixedPackets && source?.ship && !source.isArenaShip ? (1 + (Number(state.fleetBuff?.damage) || 0)) * (1 + (Number(source.unionDevDamage) || 0)) * captainDamageFactor(source, target) : 1;
     const scaledPackets = basePackets * statFactor * fleetDamage * (1+researchDamage) * (fixedPackets ? 1 : gungnirDamageBonus(source, attackType)) + (source?.starDamageRemainder || 0);
     const roundedPackets = Math.round(scaledPackets);
     if (source && (statFactor !== 1 || researchDamage || fleetDamage !== 1)) source.starDamageRemainder = scaledPackets - roundedPackets;
@@ -11061,7 +11136,7 @@
     const fireDustMultiplier = ally.fireDustActive && source?.kind === 'boss' && source.variant === 'flame-beast' ? 1.5 : 1;
     const tankReduction = Number(ally.tankReducedFrom || 0) <= now && Number(ally.tankReducedUntil || 0) > now ? Number(ally.tankReductionRatio || 1) : 1;
     const nemesisReduction = ally.nemesisNetActive ? (ally.nemesisStars >= 5 ? .8 : .9) : 1;
-    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally)) * (1 - (ally.unionDevReduction || 0)) * (1 - (ally.isArenaShip ? 0 : Math.min(.9, Number(state.fleetBuff?.reduction) || 0)));
+    const packetDamage = nemesisReduction * fireDustMultiplier * tankReduction * (ally.assaultTurtleUltimateActive ? .5 : 1) * (1 - shipDamageReduction(ally)) * (1 - (ally.unionDevReduction || 0)) * (1 - (ally.isArenaShip ? 0 : Math.min(.9, Number(state.fleetBuff?.reduction) || 0))) * captainTakenFactor(ally);
     const shieldDamageFactor=(1-Math.min(.9,ally.tacticalDefense?.reduction||0))/(1+(ally.tacticalDefense?.shield||0));
     if (ally.isVaryag && ally.varyagStars >= 5 && !ally.varyagLastStandUsed && packets * packetDamage >= ally.hp + ally.shield) {
       ally.varyagLastStandUsed = true;
@@ -12570,6 +12645,65 @@
     }, 1250);
   }
 
+  // ── 아스만 사령부 1관문: 유키히사 함대 지원 ───────────────────────────────────────────
+  // 관문을 처음 깨기 전까지는 도전할 때마다 온다. 전투 시작 12초 뒤 스타크루저 4척이 선봉 양옆에 워프해 오고,
+  // 14초마다 각자 적 한 척에 광자포 3연사를 쏜다. 한 발은 대상 최대 내구도의 6%(고정 피해)라
+  // 일제사격 한 번에 대상 내구도 약 18%를 깎는다. 지원 함선은 공격받지 않는다(연출 함선).
+  const YUKIHISA_SUPPORT = { arrival: 12000, interval: 14000, shotRate: .06, xs: [.14, .32, .68, .86] };
+  function isAsmanHqYukihisaSupport() {
+    return isAsmanHqOperation() && Number(state?.operation?.gate) === 1 && Boolean(window.isBattleGateFirstClear?.());
+  }
+  function yukihisaSupportArrival() {
+    if (!state || state.status !== 'combat' || state.yukihisaSupport) return;
+    if (state.paused) { schedule(yukihisaSupportArrival, 1000); return; }
+    const lineY = Number(state.vanguardLine?.y) || .71;
+    state.yukihisaSupport = { lineY };
+    YUKIHISA_SUPPORT.xs.forEach((x, index) => schedule(() => {
+      if (!state?.yukihisaSupport) return;
+      const el = document.createElement('div');
+      el.className = 'tapao-story-cruiser';
+      el.style.left = percent(x);
+      el.style.top = percent(lineY);
+      el.innerHTML = '<i class="tsc-halo"></i><img src="star-cruiser-battle-topview-20261007.png" alt="" />';
+      refs.effects.append(el);
+      const flash = document.createElement('i');
+      flash.className = 'tapao-warp-flash big';
+      flash.style.left = percent(x);
+      flash.style.top = percent(lineY);
+      refs.effects.append(flash);
+      schedule(() => flash.remove(), 1100);
+      playHyperionWarpSound();
+    }, index * 130));
+    announce('유키히사 함대 합류 · 광자포 지원', 'friendly');
+    schedule(yukihisaSupportVolley, 1500);
+  }
+  function yukihisaSupportVolley() {
+    if (!state || state.status !== 'combat' || !state.yukihisaSupport) return;
+    if (state.paused) { schedule(yukihisaSupportVolley, 1000); return; }
+    const enemies = [state.boss, ...(state.midBosses || [])].filter(unit => unit?.variant?.startsWith('kepler-alien-') && !unit.dead);
+    if (enemies.length) {
+      playPhotonChargeSound();
+      const lineY = state.yukihisaSupport.lineY;
+      YUKIHISA_SUPPORT.xs.forEach((x, index) => {
+        const target = enemies[index % enemies.length];
+        for (let shot = 0; shot < BATTLECRUISER_MAIN_BATTERY.empoweredShots; shot += 1) {
+          schedule(() => {
+            if (!state || state.status !== 'combat' || target.dead) return;
+            const from = { x, y: lineY - .05 }, to = pointOf(target);
+            launchPhotonShell(from, to);
+            playPhotonShotSound();
+            schedule(() => {
+              if (!state || state.status !== 'combat' || target.dead) return;
+              createPlasmaCannonImpact(to, true);
+              dealEnemyDamage(target, Math.max(1, Math.round((Number(target.maxHp) || 0) * YUKIHISA_SUPPORT.shotRate)), null, 'melt');
+            }, BATTLECRUISER_MAIN_BATTERY.travel);
+          }, 400 + index * 90 + shot * BATTLECRUISER_MAIN_BATTERY.empoweredShotInterval);
+        }
+      });
+    }
+    schedule(yukihisaSupportVolley, YUKIHISA_SUPPORT.interval);
+  }
+
   // ── 타파오 위성궤도 10관문 첫 클리어 연출 ─────────────────────────────────────────────
   // a: 1웨이브 접근 대화 → 전투 재개 / b: 2웨이브가 나타난 뒤 절망의 대화 → L급 스타크루저 5척 순간이동 + 3연 광자포
   // c: 유키히사·아이라 대화 → 적 함대 퇴각 / d: 마무리 대화 → 관문 클리어(별 3개). 재도전에서는 연출 없이 2웨이브를 모두 처치해야 한다.
@@ -13681,28 +13815,31 @@
     return living >= 3 ? 3 : living === 2 ? 2 : 1;
   }
 
+  // ── 관문 첫 클리어 보상: 화성(1~10관문 골드 400~760, 토륨 100)을 기준으로 지역이 바뀔 때마다 일정 비율로 늘어난다 ──
+  // 지역 안에서는 화성과 같은 모양(첫 관문 → 마지막 관문 1.9배)으로 오르고, 5의 배수 관문·마지막 관문은 추가 보너스.
+  // 비율·보너스는 아래 상수만 고치면 전체가 함께 바뀐다.
+  const CAMPAIGN_REGION_ORDER = ['mars', 'titan', 'oort', 'magenta-near', 'magenta-tas', 'magenta-atmosphere', 'kepler-orbit', 'kepler-atmosphere', 'kepler-base', 'tapao-near', 'tapao-orbit', 'tapao-colony', 'tapao-gate', 'neptune-gate', 'asman-supply', 'asman-hq', 'golden-road', 'golden-spire'];
+  const CAMPAIGN_REGION_GATES = { titan: 20, oort: 20, 'neptune-gate': 5, 'golden-road': 15, 'golden-spire': 5 };
+  const GATE_REWARD = { goldFirst: 400, goldLast: 760, goldGrowth: 1.13, milestone: 1.3, finale: 1.6, thoriumGrowth: 1.06 };
+  function gateRewardTable(region, gate) {
+    const regionIndex = Math.max(0, CAMPAIGN_REGION_ORDER.indexOf(String(region || '').toLowerCase()));
+    const count = CAMPAIGN_REGION_GATES[region] || 10;
+    const step = Math.min(1, Math.max(0, (gate - 1) / Math.max(1, count - 1)));
+    const finale = gate >= count, milestone = !finale && gate % 5 === 0;
+    // 화성은 기준값 그대로 두고(400~760), 다음 지역부터 5의 배수·마지막 관문 보너스를 붙인다.
+    const bonus = regionIndex === 0 ? 1 : finale ? GATE_REWARD.finale : milestone ? GATE_REWARD.milestone : 1;
+    const gold = Math.round((GATE_REWARD.goldFirst + (GATE_REWARD.goldLast - GATE_REWARD.goldFirst) * step) * GATE_REWARD.goldGrowth ** regionIndex * bonus / 10) * 10;
+    // 토륨: 화성은 관문마다 100(초반 지원), 그 뒤로는 5의 배수 관문 50 · 마지막 관문 100을 지역마다 조금씩 늘려 준다.
+    const thoriumBase = regionIndex === 0 ? 100 : finale ? 100 : milestone ? 50 : 0;
+    const thorium = Math.round(thoriumBase * GATE_REWARD.thoriumGrowth ** regionIndex / 10) * 10;
+    return { gold, thorium };
+  }
+  window.gateRewardTable = gateRewardTable;
   function calculateRewards(stars, firstClear = true) {
     if (!firstClear) return { gold: 0, thorium: 0 };
-    const gate = state.operation.gate;
-    const chapter = Math.max(1, Number(state.operation.chapter) || 1);
-    const regionOrder = {
-      1: ['mars', 'titan', 'oort'],
-      2: ['magenta-near', 'magenta-tas', 'magenta-atmosphere'],
-      3: ['kepler-orbit', 'kepler-atmosphere', 'kepler-base']
-    }[chapter] || [];
-    const regionIndex = Math.max(0, regionOrder.indexOf(state.operation.region));
-    const isEarlyMarsGate = chapter === 1 && state.operation.region === 'mars' && gate >= 1 && gate <= 10;
-    const progressionGold = isEarlyMarsGate ? 0 : 100 + (chapter - 1) * 120 + regionIndex * 60 + Math.floor((gate - 1) / 5) * 60;
-    const varianceGold = isEarlyMarsGate ? 0 : ((gate + regionIndex + chapter) % 5) * 20;
-    const fullGold = 360 + gate * 40 + progressionGold + varianceGold;
-    let fullThorium = 0;
-    if (state.operation.chapter === 1 && state.operation.region === 'mars' && gate >= 1 && gate <= 10) {
-      fullThorium = 100;
-    } else {
-      fullThorium = gate % 10 === 0 ? 100 : gate % 5 === 0 ? 50 : 0;
-    }
+    const full = gateRewardTable(state.operation.region, Number(state.operation.gate) || 1);
     const multiplier = stars === 3 ? 1 : stars === 2 ? .5 : .2;
-    return { gold: Math.round(fullGold * multiplier), thorium: Math.round(fullThorium * multiplier) };
+    return { gold: Math.round(full.gold * multiplier), thorium: Math.round(full.thorium * multiplier) };
   }
 
   function grantRewards(rewards) {

@@ -205,10 +205,22 @@
   function render(){
     if(!hud)return;
     const character=profile.character;
-    const fullName=`Capt. ${character}${profile.lastName?' '+profile.lastName:''}`;
+    const rankAbbr=window.CaptainTraining?.rankAbbr?.()||'Capt.';
+    const fullName=`${rankAbbr} ${character}${profile.lastName?' '+profile.lastName:''}`;
     hud.querySelector('.captain-portrait img').src=characters[character];
     hud.querySelector('.captain-portrait img').alt=`${character} 초상화`;
-    hud.querySelector('.captain-name').textContent=profile.lastName?fullName:`Capt. ${character} · 성 설정`;
+    // 함장 훈련 개방 후: [계급장] 계급 명칭 / 그 아래 캐릭터 이름. 개방 전에는 기존처럼 한 줄로 쓴다.
+    const nameNode=hud.querySelector('.captain-name'),rankInfo=window.CaptainTraining?.rank?.();
+    const characterName=profile.lastName?`${character} ${profile.lastName}`:`${character} · 성 설정`;
+    if(rankInfo){
+      nameNode.classList.add('has-rank');
+      if(nameNode.dataset.rank!==rankInfo.name){nameNode.dataset.rank=rankInfo.name;nameNode.innerHTML=`<span class="captain-rank-badge">${window.CaptainTraining.insignia(window.CaptainTraining.rankIndex())}</span><span class="captain-rank-title"></span><span class="captain-char-name"></span>`;}
+      nameNode.querySelector('.captain-rank-title').textContent=rankInfo.name;
+      nameNode.querySelector('.captain-char-name').textContent=characterName;
+    }else{
+      nameNode.classList.remove('has-rank');delete nameNode.dataset.rank;
+      nameNode.textContent=profile.lastName?fullName:`${rankAbbr} ${character} · 성 설정`;
+    }
     const profileButton=hud.querySelector('.captain-profile-open');
     profileButton.setAttribute('aria-label',`${fullName} · 함장 프로필 열기`);
     profileButton.disabled=false;
@@ -242,7 +254,7 @@
     overlay.dataset.profileView=view;
     delete overlay.dataset.settingsActive;
     if(view==='settings'){window.openCaptainSettings(overlay,()=>paintDialog('profile'));return;}
-    const character=profile.character,fullName=`Capt. ${character}${profile.lastName?' '+profile.lastName:''}`;
+    const character=profile.character,fullName=`${window.CaptainTraining?.rankAbbr?.()||'Capt.'} ${character}${profile.lastName?' '+profile.lastName:''}`;
     if(view==='edit'){
       overlay.innerHTML=`<form class="captain-select-dialog" role="dialog" aria-modal="true" aria-labelledby="captain-select-title"><header><div><small>UNITED STAR FLEET</small><h2 id="captain-select-title">플레이어 네임 변경</h2></div><button type="button" data-captain-close aria-label="닫기">×</button></header><div class="captain-edit-identity">${portrait(character)}<strong>Capt. ${character}</strong></div><label for="captain-last-name">성 (Last name)</label><input id="captain-last-name" name="lastName" maxlength="16" required placeholder="성을 입력하세요" autocomplete="off" /><div class="captain-name-preview" aria-live="polite"></div><p class="captain-input-hint">한글·영문·숫자, 공백·하이픈·작은따옴표 · 최대 16자</p><p class="captain-rename-cost">변경 비용: 토륨 ${format(renameCost())} (보유 ${format(count(currentResources().thorium))}) · 변경할 때마다 100씩 증가</p><div class="captain-form-error" role="alert"></div><button class="captain-save" type="submit">변경 저장 · 토륨 ${format(renameCost())}</button></form>`;
       const input=overlay.querySelector('input');input.value=profile.lastName;
@@ -336,7 +348,7 @@
     ensureWelcomeMail();
     const oldUpdate=window.updateGameResourceHud;
     window.updateGameResourceHud=()=>{oldUpdate?.();render();};
-    ['game-resources-updated','fleet-ownership-updated','commander-research-updated','tactical-research-updated'].forEach(event=>window.addEventListener(event,render));
+    ['game-resources-updated','fleet-ownership-updated','commander-research-updated','tactical-research-updated','captain-training-updated'].forEach(event=>window.addEventListener(event,render));
     window.addEventListener('captain-mail-updated',()=>{render();if(overlay?.dataset.profileView==='mail'||overlay?.dataset.profileView==='profile')paintDialog(overlay.dataset.profileView);});
     window.addEventListener('storage',event=>{if(event.key===TOTAL_KEY)total=count(read(TOTAL_KEY)?.earned);render();if(event.key===MAIL_KEY&&(overlay?.dataset.profileView==='mail'||overlay?.dataset.profileView==='profile'))paintDialog(overlay.dataset.profileView);});
     render();

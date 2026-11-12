@@ -1,0 +1,176 @@
+/* 함장 훈련: 계급 패널·진급 사다리·함장 배치·함장 카드·상세/진급 팝업. 글꼴은 game-fonts.css 변수만 쓴다. */
+#summon:has(#captain-pool:not(.hidden)){--lab-light:#b48cff}
+#summon:has(#captain-pool:not(.hidden)) .probability-button{display:none}
+#captain-pool.ct-pool{padding:12px;display:block}
+.ct-root{display:grid;gap:12px;font-family:var(--font-body);color:#eaf4ff;text-align:left}
+.ct-root small,.ct-modal small{font-family:var(--font-num);font-weight:700;font-size:10px;letter-spacing:.16em;color:#8fdcff}
+.ct-insignia{display:block;width:100%;height:100%;overflow:visible}
+
+/* 잠금 상태 */
+.ct-locked{display:grid;justify-items:center;gap:6px;padding:26px 12px;text-align:center;font-family:var(--font-body)}
+.ct-locked-badge{width:76px;height:76px;filter:grayscale(1) brightness(.7);opacity:.75}
+.ct-locked b{font-family:var(--font-display);font-size:22px;font-weight:400;color:#eaf4ff}
+.ct-locked p{margin:0;color:#9db5d2;font-size:12px}
+.research-tab-captain.ct-tab-new{position:relative}
+.research-tab-captain.ct-tab-new::after{content:"NEW";position:absolute;top:-6px;right:-4px;padding:1px 6px;border-radius:8px;background:#ff5d73;color:#fff;font-family:var(--font-num);font-weight:700;font-size:10px;letter-spacing:.08em;box-shadow:0 0 10px #ff5d7399}
+
+/* 계급 패널 */
+.ct-rank{position:relative;display:grid;gap:10px;padding:14px;border-radius:14px;border:1px solid #f2d08766;background:radial-gradient(circle at 12% 30%,#f2d08722,transparent 46%),linear-gradient(150deg,#14213a,#0a1424 70%);box-shadow:inset 0 1px #fff2,0 10px 24px #0007;overflow:hidden}
+.ct-rank::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 18px,#ffffff06 18px 19px);pointer-events:none}
+.ct-rank-main{display:flex;align-items:center;gap:12px;min-width:0}
+.ct-rank-badge{flex:0 0 76px;height:76px;filter:drop-shadow(0 0 10px #f2d08766)}
+.ct-rank-copy{display:grid;gap:2px;min-width:0}
+.ct-rank-copy b{font-family:var(--font-num);font-weight:700;font-size:24px;line-height:1.05;letter-spacing:.02em;color:#fff3cf}
+.ct-rank-copy span{font-size:13px;color:#eaf4ff}
+.ct-rank-copy em{font-style:normal;font-size:11px;color:#8da7c2}
+.ct-next{display:grid;gap:2px;padding:9px 11px;border-radius:10px;border:1px solid #7fe3ff33;background:#06101dcc}
+.ct-next span{font-size:13px;color:#eaf4ff}
+.ct-next em{font-style:normal;font-size:11px;color:#f2d087}
+.ct-ladder{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.ct-ladder li{display:grid;justify-items:center;gap:2px;padding:4px 0;border-radius:8px;min-width:0}
+.ct-ladder li svg{width:100%;max-width:38px;aspect-ratio:1;height:auto}
+.ct-ladder li span{font-family:var(--font-num);font-weight:700;font-size:9px;line-height:1.05;letter-spacing:.02em;color:#8da7c2;text-align:center;max-width:100%;overflow-wrap:anywhere}
+.ct-ladder li.locked svg{filter:grayscale(1) brightness(.45);opacity:.6}
+.ct-ladder li.current{background:#f2d0871f;box-shadow:inset 0 0 0 1px #f2d08788}
+.ct-ladder li.current span{color:#fff3cf}
+
+/* 함장 배치 */
+.ct-fleet,.ct-roster{display:grid;gap:9px;padding:12px;border-radius:14px;border:1px solid #7fe3ff2e;background:linear-gradient(160deg,#0c1b2ee6,#07111ef2)}
+.ct-fleet header,.ct-roster header{display:grid;gap:1px}
+.ct-fleet header b,.ct-roster header b{font-family:var(--font-display);font-weight:400;font-size:19px;color:#eaf4ff}
+.ct-fleet header span,.ct-roster header span{font-size:11px;color:#8da7c2}
+.ct-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ct-slot{all:unset;box-sizing:border-box;display:grid;align-content:start;gap:3px;padding:8px;border-radius:11px;border:1px solid #7fe3ff40;background:#081627;cursor:pointer;min-width:0}
+.ct-slot:focus-visible{outline:2px solid #7fe3ff}
+.ct-slot.empty{cursor:default;border-style:dashed;opacity:.6}
+.ct-slot small{font-size:9px;letter-spacing:.06em}
+.ct-slot>b{font-family:var(--font-body);font-weight:700;font-size:13px;color:#eaf4ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-slot>span{font-size:11px;color:#8da7c2}
+.ct-slot-captain{display:grid;justify-items:start;gap:4px;min-width:0;margin-top:3px}
+.ct-slot-captain>span:last-child{display:grid;min-width:0;max-width:100%}
+.ct-slot-captain b{font-size:11px;color:#eaf4ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-slot-captain em{font-style:normal;font-size:10px;color:#8da7c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-slot-add{display:block;width:100%;padding:7px 0;border-radius:8px;border:1px dashed #7fe3ff66;text-align:center;color:#8fdcff;font-size:11px}
+.ct-mini{flex:0 0 34px;width:34px;height:34px;border-radius:50%;overflow:hidden;border:1px solid #7fe3ff77;background:#0b1a2b;display:block}
+.ct-mini img,.ct-mini svg{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block}
+
+/* 함장 카드 */
+.ct-group{display:grid;gap:6px}
+.ct-group h3{margin:4px 0 0;display:flex;align-items:baseline;gap:8px;font-family:var(--font-display);font-weight:400;font-size:15px;color:#eaf4ff}
+.ct-group h3 span{font-family:var(--font-num);font-weight:700;font-size:10px;letter-spacing:.16em;color:var(--ct-type)}
+.ct-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+[data-type="battlecruiser"]{--ct-type:#7fe3ff}
+[data-type="dreadnought"]{--ct-type:#ffb35c}
+[data-type="destroyer"]{--ct-type:#7dffa8}
+[data-grade="standard"]{--ct-grade:#9fd3ff;--ct-frame:linear-gradient(160deg,#cfe9ff,#3c6f9a 45%,#a8d4ff)}
+[data-grade="elite"]{--ct-grade:#ffd76a;--ct-frame:linear-gradient(160deg,#fff1b8,#b07b20 40%,#ffd76a 70%,#c58cff)}
+.ct-card{all:unset;box-sizing:border-box;position:relative;display:grid;grid-template-rows:auto auto;border-radius:12px;padding:2px;background:var(--ct-frame);cursor:pointer;min-width:0;box-shadow:0 8px 16px #0008;transition:transform .15s}
+.ct-card:hover{transform:translateY(-2px)}
+.ct-card:focus-visible{outline:2px solid #fff}
+.ct-card-portrait{display:block;aspect-ratio:3/4;border-radius:10px 10px 0 0;overflow:hidden;background:#0a1626}
+.ct-card-portrait img,.ct-card-portrait svg{width:100%;height:100%;object-fit:cover;object-position:50% 10%;display:block}
+.ct-card-grade{position:absolute;top:7px;left:7px;padding:1px 6px;border-radius:6px;background:#050b14d9;border:1px solid var(--ct-grade);color:var(--ct-grade);font-family:var(--font-num);font-weight:700;font-size:9px;letter-spacing:.12em}
+.ct-cards .ct-card-type{display:none}
+.ct-card-type{position:absolute;top:7px;right:7px;padding:1px 6px;border-radius:6px;background:#050b14d9;color:var(--ct-type);font-family:var(--font-body);font-weight:700;font-size:9px}
+.ct-card-name{display:grid;gap:0;padding:6px 7px 2px;background:#08121f;min-width:0}
+.ct-card-name b{font-family:var(--font-body);font-weight:700;font-size:12px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-card-name small{font-family:var(--font-num);font-weight:600;font-size:10px;letter-spacing:.04em;color:#8da7c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct-card-foot{display:flex;justify-content:space-between;gap:4px;padding:2px 7px 7px;border-radius:0 0 10px 10px;background:#08121f;font-size:10px;color:#8da7c2;min-width:0}
+.ct-card-foot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ct-card-foot span:first-child:not(.ct-card-lock){flex:none}
+.ct-card-foot b{font-family:var(--font-num);font-size:13px;color:var(--ct-grade)}
+.ct-card-lock{color:#f2d087}
+.ct-card.locked .ct-card-portrait img,.ct-card.locked .ct-card-portrait svg{filter:grayscale(1) brightness(.35)}
+.ct-card.locked{background:linear-gradient(160deg,#4a5a6c,#1b2533)}
+
+/* 팝업 공통 */
+.ct-modal{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;font-family:var(--font-body);color:#eaf4ff}
+.ct-modal-backdrop{position:absolute;inset:0;background:#02060dcc;backdrop-filter:blur(3px)}
+.ct-close{position:absolute;top:8px;right:10px;z-index:2;width:32px;height:32px;border:0;border-radius:50%;background:#0a1626cc;color:#eaf4ff;font-size:20px;cursor:pointer}
+.ct-action{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:44px;padding:8px 14px;border:0;border-radius:11px;background:linear-gradient(180deg,#38c8ff,#1572b8);color:#fff;font-family:var(--font-display);font-size:16px;cursor:pointer;box-shadow:0 6px 16px #1d9bd655}
+.ct-action em{display:inline-flex;align-items:center;gap:4px;font-style:normal;font-family:var(--font-num);font-weight:700;font-size:15px}
+.ct-action.recruit{background:linear-gradient(180deg,#ffd76a,#b07b20);color:#1d1203}
+.ct-action.ghost{background:#0a1626;border:1px solid #7fe3ff55;box-shadow:none}
+.ct-action:disabled{background:#26364a;color:#9db5d2;cursor:default;box-shadow:none;font-family:var(--font-body);font-size:13px}
+.ct-gold{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c8,#f2c35a 45%,#9b6a14);box-shadow:inset 0 0 0 1px #7d5114}
+
+/* 함장 카드 상세 */
+.ct-detail{position:relative;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);border-radius:16px;padding:2px;background:var(--ct-frame);box-shadow:0 24px 50px #000c}
+.ct-detail-art{position:relative;border-radius:14px 0 0 14px;overflow:hidden;background:#0a1626;min-height:260px}
+.ct-detail-art>img,.ct-detail-art>svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 8%}
+.ct-detail-rank{position:absolute;right:8px;bottom:8px;width:52px;height:52px;filter:drop-shadow(0 0 8px #000)}
+.ct-detail-body{display:grid;align-content:start;gap:7px;padding:16px 16px 14px;border-radius:0 14px 14px 0;background:linear-gradient(170deg,#0f1f34,#08121f)}
+.ct-detail-kicker{color:var(--ct-type)!important}
+.ct-detail h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:24px}
+.ct-detail-en{margin:-4px 0 0;font-family:var(--font-num);font-weight:600;font-size:13px;letter-spacing:.04em;color:#8da7c2}
+.ct-detail-bio{margin:0;font-size:12px;line-height:1.55;color:#c6d6e8}
+.ct-stats{margin:2px 0;display:grid;gap:6px}
+.ct-stats>div{display:grid;gap:2px;padding:7px 9px;border-radius:9px;background:#06101dcc;border:1px solid #7fe3ff1f}
+.ct-stats dt{font-size:11px;color:#8da7c2}
+.ct-stats dt span{color:var(--ct-grade);font-weight:700}
+.ct-stats dd{margin:0;font-size:13px;line-height:1.45}
+.ct-stats dd i{font-style:normal;font-size:11px;color:#7dffa8;white-space:nowrap}
+.ct-skill{border-color:var(--ct-grade)!important;background:linear-gradient(90deg,#f2d08714,#06101dcc)!important}
+.ct-level{font-family:var(--font-num);font-size:13px;color:#8da7c2}
+.ct-level b{font-size:17px;color:#fff}
+.ct-bar{display:block;height:6px;margin-top:3px;border-radius:3px;background:#1a2a3d;overflow:hidden}
+.ct-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--ct-type),#fff)}
+.ct-milestones{display:flex;flex-wrap:wrap;gap:5px}
+.ct-milestones span{padding:3px 7px;border-radius:7px;border:1px dashed #8da7c266;font-size:11px;color:#8da7c2}
+.ct-milestones span b{font-family:var(--font-num);margin-right:4px;color:#eaf4ff}
+.ct-milestones span.done{border-style:solid;border-color:#7dffa877;color:#7dffa8}
+
+/* 배치 선택 */
+.ct-picker{position:relative;width:min(400px,100%);max-height:calc(100dvh - 32px);overflow:auto;display:grid;gap:8px;padding:16px;border-radius:16px;border:1px solid #7fe3ff55;background:linear-gradient(170deg,#0f1f34,#08121f)}
+.ct-picker h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:20px}
+.ct-pick-list{display:grid;gap:6px}
+.ct-pick{display:flex;align-items:center;gap:10px;padding:8px;border-radius:11px;border:1px solid #7fe3ff33;background:#081627;color:#eaf4ff;text-align:left;cursor:pointer;font-family:var(--font-body)}
+.ct-pick.selected{border-color:#f2d087;background:#f2d08718}
+.ct-pick>span:last-child{display:grid;min-width:0}
+.ct-pick b{font-size:14px}
+.ct-pick em{font-style:normal;font-size:11px;color:#8da7c2}
+.ct-pick .ct-mini{flex-basis:42px;width:42px;height:42px}
+.ct-unassign{padding:9px;border-radius:10px;border:1px solid #ff5d7366;background:transparent;color:#ff9aa8;font-family:var(--font-body);cursor:pointer}
+.ct-empty{margin:0;color:#8da7c2;font-size:13px}
+
+/* 진급·합류 연출 */
+.ct-promotion,.ct-join{position:relative;width:min(340px,100%);display:grid;justify-items:center;gap:6px;padding:26px 18px 18px;border-radius:18px;border:1px solid #f2d08788;background:radial-gradient(circle at 50% 28%,#3a2c0a,#0c1626 62%);text-align:center;overflow:hidden;box-shadow:0 0 60px #f2d08733,0 24px 50px #000c;animation:ct-pop .45s cubic-bezier(.2,1.4,.4,1)}
+.ct-promotion-rays{position:absolute;left:50%;top:92px;width:420px;height:420px;margin:-210px 0 0 -210px;background:repeating-conic-gradient(#f2d08722 0 6deg,transparent 6deg 18deg);animation:ct-spin 18s linear infinite;pointer-events:none}
+.ct-promotion-badge{position:relative;width:128px!important;height:128px!important;filter:drop-shadow(0 0 18px #f2d087aa)}
+.ct-promotion h3,.ct-join h3{position:relative;margin:0;font-family:var(--font-num);font-weight:700;font-size:28px;letter-spacing:.03em;color:#fff3cf}
+.ct-join h3{font-family:var(--font-display);font-weight:400}
+.ct-promotion p,.ct-join p{position:relative;margin:0;font-size:13px;line-height:1.5;color:#c6d6e8}
+.ct-promotion small,.ct-join small{position:relative;color:#f2d087!important}
+.ct-promotion-buff{position:relative;padding:5px 12px;border-radius:9px;background:#f2d0871f;border:1px solid #f2d08766;font-size:13px;color:#fff3cf}
+.ct-promotion-actions{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:6px}
+.ct-join .ct-card{width:150px;cursor:default}
+.ct-join .ct-card:hover{transform:none}
+@keyframes ct-pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+@keyframes ct-spin{to{transform:rotate(360deg)}}
+
+/* 상단 HUD 초상화 계급장 */
+/* 상단 HUD: [계급장] 계급 명칭 / 아래 캐릭터 이름 */
+.captain-name.has-rank{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:5px;align-items:center;white-space:normal;overflow:visible}
+.captain-rank-badge{grid-row:1/3;width:30px;height:30px;margin:-2px 0 -2px -2px}
+.captain-rank-title,.captain-char-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.12}
+.captain-rank-title{font-family:var(--font-num);font-weight:700;font-size:12px;letter-spacing:.03em;color:#ffe3a0;text-shadow:0 0 6px #f2d08755,0 1px 2px #000}
+.captain-char-name{font-family:var(--font-body);font-size:11px;color:#f1f7ff}
+
+/* 전투: 함장 탑승 표시와 기술 발동 */
+#battle .captain-aboard .ally-info b::before{content:"★";margin-right:2px;color:#f2d087;font-size:.85em}
+#battle .captain-offspec .ally-info b::before{color:#8da7c2}
+.ct-offspec{display:inline-block;margin-top:2px;padding:1px 5px;border-radius:5px;background:#ff5d7322;border:1px solid #ff5d7355;color:#ff9aa8!important;font-style:normal;font-size:9.5px;font-weight:700;white-space:nowrap}
+.ct-spec{display:inline-block;padding:0 5px;border-radius:5px;background:#7dffa81f;color:#7dffa8;font-style:normal;font-size:10px;font-weight:700}
+.ct-pick b .ct-offspec,.ct-pick b .ct-spec{margin:0 0 0 4px;vertical-align:1px}
+.ct-stats dd i.ct-offspec-note{color:#ff9aa8;white-space:normal}
+#battle .captain-surge .ally-facing-shell{filter:drop-shadow(0 0 7px #f2d087) drop-shadow(0 0 2px #fff6c8)}
+
+@media (max-width:520px){
+  .ct-detail{grid-template-columns:1fr}
+  .ct-detail-art{min-height:0;aspect-ratio:4/3;border-radius:14px 14px 0 0}
+  .ct-detail-body{border-radius:0 0 14px 14px}
+  .ct-rank-badge{flex-basis:64px;height:64px}
+  .ct-rank-copy b{font-size:20px}
+  .ct-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){.ct-promotion-rays,.ct-promotion,.ct-join{animation:none}}

@@ -1883,6 +1883,8 @@ function initializePlanetCampaign() {
   const firstUnclearedNeptune=()=>Object.keys(neptuneRegions).find(key=>neptuneProgress[key]<neptuneRegions[key].count);
   const chapterFiveComplete=()=>Object.keys(neptuneRegions).every(key=>neptuneProgress[key]>=neptuneRegions[key].count);
   const chapterTwoUnlocked=()=>chapterOneComplete()||Object.values(magentaProgress).some(value=>value>0);
+  // 함장 훈련(계급 진급·개방 조건)이 읽는 챕터 완료 상태.
+  window.campaignChapterStatus=()=>({1:chapterOneComplete(),2:chapterTwoComplete(),3:chapterThreeComplete(),4:chapterFourComplete(),5:chapterFiveComplete(),hqGate:Number(neptuneProgress['asman-hq'])||0});
   function launchOperation(chapter,key,number){
     if (window.tutorialAllowsGate && !window.tutorialAllowsGate(chapter,key,number)) {
       window.notice?.('파라의 안내에 따라 다음 관문으로 출격해 주세요.');
