@@ -428,7 +428,7 @@
   function suppliesPanel() {
     // 물자 이름은 모두 칸 위 테두리에 표기한다. 매뉴얼 금·은·동은 '훈련 매뉴얼' 한 칸(3칸 너비)에 모아 보여 준다.
     const item = (img, name, n, cls = '') => `<span class="ct-supply ${cls}"><em class="ct-supply-legend">${name}</em><img src="${img}" alt=""/><b>${fmt(n)}</b></span>`;
-    const manuals = `<span class="ct-supply manual"><em class="ct-supply-legend">훈련 매뉴얼</em>${MANUALS.map(m => `<span class="ct-supply-tier ${m.tier}"><img src="${m.image}" alt=""/><b>${fmt(lootCount(m.id))}</b><small>${m.short}</small></span>`).join('')}</span>`;
+    const manuals = `<span class="ct-supply manual"><em class="ct-supply-legend">훈련 매뉴얼</em>${MANUALS.map(m => `<span class="ct-supply-tier ${m.tier}"><img src="${m.image}" alt=""/><b>${fmt(lootCount(m.id))}</b></span>`).join('')}</span>`;
     return `<section class="ct-supplies"><header><small>TRAINING SUPPLIES</small><b>훈련 물자</b></header><div class="ct-supply-row">${item(TICKET_IMG, '훈련티켓', lootCount(TICKET), 'ticket')}${manuals}${item(CERT_IMG, '진급 증서', lootCount(CERT), 'cert')}</div></section>`;
   }
 
@@ -641,7 +641,7 @@
     closeModal();
     const modal = document.createElement('div');
     modal.className = 'ct-modal ct-ceremony';
-    modal.innerHTML = `<div class="ct-modal-backdrop"></div><article class="ct-join ct-discovery" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="고급 함장 발견"><small>ELITE CAPTAIN DISCOVERED</small><h3>고급 함장 발견</h3>${cardMarkup(c)}<span class="ct-tie">${d.tie}</span><p>${esc(d.text(nameOf(byId.hero)))}</p><p class="ct-discovery-hint">${RANKS[c.rank].name} 이상 · 골드 ${fmt(c.fee)}로 영입할 수 있습니다.</p><button type="button" class="ct-action" data-ct-discovery-ok="${id}">함장 카드 보기</button></article>`;
+    modal.innerHTML = `<div class="ct-modal-backdrop"></div><article class="ct-join ct-discovery" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="고급 함장 발견"><small>ELITE CAPTAIN DISCOVERED</small><h3>고급 함장 발견</h3>${cardMarkup(c)}<p>${esc(d.text(nameOf(byId.hero)))}</p><p class="ct-discovery-hint">${RANKS[c.rank].name} 이상 · 골드 ${fmt(c.fee)}로 영입할 수 있습니다.</p><button type="button" class="ct-action" data-ct-discovery-ok="${id}">함장 카드 보기</button></article>`;
     document.body.append(modal);
   }
   function recruit(id) {

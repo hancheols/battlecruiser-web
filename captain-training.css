@@ -47,7 +47,9 @@
 [data-type="dreadnought"]{--ct-type:#ffb35c}
 [data-type="destroyer"]{--ct-type:#7dffa8}
 [data-grade="standard"]{--ct-grade:#9fd3ff;--ct-frame:linear-gradient(160deg,#cfe9ff,#3c6f9a 45%,#a8d4ff)}
-[data-grade="elite"]{--ct-grade:#ffd76a;--ct-frame:linear-gradient(160deg,#fff1b8,#b07b20 40%,#ffd76a 70%,#c58cff)}
+/* 고급 함장: 함선 SR 등급과 같은 보라색 테두리 */
+[data-grade="elite"]{--ct-grade:#d2a7ff;--ct-frame:linear-gradient(160deg,#ecd6ff,#b653ff 38%,#6a2bb0 68%,#d58bff)}
+.ct-card[data-grade="elite"]{box-shadow:0 0 10px #b653ff,0 0 24px #9d35ff99,0 10px 22px #000a}
 .ct-card{all:unset;box-sizing:border-box;position:relative;display:block;aspect-ratio:5/7;border-radius:12px;background:#050b14;cursor:pointer;min-width:0;max-width:100%;overflow:hidden;isolation:isolate;box-shadow:0 10px 22px #000a,0 0 0 1px #0008;transition:transform .18s,box-shadow .18s}
 .ct-card::before,.ct-detail-art::before{content:"";position:absolute;inset:0;z-index:3;border-radius:inherit;padding:2px;background:var(--ct-frame);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none}
 .ct-card::after,.ct-detail-art::after{content:"";position:absolute;inset:5px;z-index:3;border-radius:8px;border:1px solid #ffffff1f;pointer-events:none;background:linear-gradient(var(--ct-grade),var(--ct-grade)) top left/10px 1.5px,linear-gradient(var(--ct-grade),var(--ct-grade)) top left/1.5px 10px,linear-gradient(var(--ct-grade),var(--ct-grade)) top right/10px 1.5px,linear-gradient(var(--ct-grade),var(--ct-grade)) top right/1.5px 10px,linear-gradient(var(--ct-grade),var(--ct-grade)) bottom left/10px 1.5px,linear-gradient(var(--ct-grade),var(--ct-grade)) bottom left/1.5px 10px,linear-gradient(var(--ct-grade),var(--ct-grade)) bottom right/10px 1.5px,linear-gradient(var(--ct-grade),var(--ct-grade)) bottom right/1.5px 10px;background-repeat:no-repeat}
@@ -57,9 +59,9 @@
 .ct-card-portrait{position:absolute;left:0;right:0;top:0;bottom:var(--ct-strip);z-index:0;display:block;background:#0a1626;overflow:hidden}
 .ct-card-portrait img,.ct-card-portrait svg{width:100%;height:100%;object-fit:cover;object-position:50% 4%;display:block}
 .ct-card-shade{position:absolute;left:0;right:0;bottom:var(--ct-strip);height:26px;z-index:1;background:linear-gradient(transparent,#050b14);pointer-events:none}
-.ct-card[data-grade="elite"] .ct-card-shade{background:linear-gradient(transparent,#0b0703)}
+.ct-card[data-grade="elite"] .ct-card-shade{background:linear-gradient(transparent,#160d28)}
 .ct-card-info{position:absolute;z-index:2;left:0;right:0;bottom:0;height:var(--ct-strip);box-sizing:border-box;display:grid;align-content:center;gap:2px;padding:0 9px 3px;background:#050b14}
-.ct-card[data-grade="elite"] .ct-card-info{background:#0b0703}
+.ct-card[data-grade="elite"] .ct-card-info{background:#160d28}
 .ct-card-title{display:block;padding-left:6px;border-left:2px solid var(--ct-type);font-family:var(--font-body);font-weight:700;font-size:12.5px;line-height:1.2;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ct-card.locked .ct-card-title{color:#c6d6e8}
 .ct-card-meta{display:flex;align-items:center;gap:4px;min-width:0;white-space:nowrap;overflow:hidden}
@@ -86,10 +88,10 @@
 /* 함장 카드 상세 */
 .ct-detail{position:relative;width:min(590px,100%);max-height:calc(100dvh - 32px);overflow:auto;display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);border-radius:18px;border:1px solid color-mix(in srgb,var(--ct-grade) 55%,transparent);background:radial-gradient(circle at 0 0,color-mix(in srgb,var(--ct-grade) 16%,transparent),transparent 55%),linear-gradient(170deg,#0f1f34,#070f1b);box-shadow:0 24px 50px #000c,0 0 40px color-mix(in srgb,var(--ct-grade) 20%,transparent)}
 .ct-detail-art{position:sticky;top:12px;align-self:start;margin:12px 0 12px 12px;display:grid;border-radius:12px;overflow:hidden;isolation:isolate;background:#050b14;box-shadow:0 12px 26px #000b}
-.ct-detail[data-grade="elite"] .ct-detail-art{background:#0b0703}
+.ct-detail[data-grade="elite"] .ct-detail-art{background:#160d28}
 .ct-detail-art>img,.ct-detail-art>svg{position:relative;z-index:0;display:block;width:100%;aspect-ratio:3/4;height:auto;object-fit:cover;object-position:50% 4%}
 .ct-detail-art>.ct-card-shade{position:absolute;left:0;right:0;top:0;aspect-ratio:3/4;z-index:1;background:linear-gradient(transparent 82%,#050b14);pointer-events:none}
-.ct-detail[data-grade="elite"] .ct-detail-art>.ct-card-shade{background:linear-gradient(transparent 82%,#0b0703)}
+.ct-detail[data-grade="elite"] .ct-detail-art>.ct-card-shade{background:linear-gradient(transparent 82%,#160d28)}
 .ct-detail-id{position:relative;z-index:2;display:flex;align-items:center;gap:8px;margin-top:-8px;padding:0 13px 13px}
 .ct-detail-names{display:grid;justify-items:start;gap:2px;flex:1;min-width:0;padding-left:9px;border-left:2px solid var(--ct-type)}
 .ct-detail h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:23px;line-height:1.12;color:#fff}
@@ -226,9 +228,6 @@
 .ct-supply-legend{position:absolute;top:-8px;left:50%;transform:translateX(-50%);max-width:calc(100% + 4px);box-sizing:border-box;padding:0 7px;border-radius:6px;background:#1a1336;border:1px solid color-mix(in srgb,var(--sup) 60%,transparent);font-style:normal;font-family:var(--font-body);font-size:10px;font-weight:700;color:color-mix(in srgb,var(--sup) 55%,#fff);white-space:nowrap;line-height:15px}
 .ct-supply-tier{display:grid;justify-items:center;gap:1px;min-width:0}
 .ct-supply-tier+.ct-supply-tier{border-left:1px solid #ffffff14}
-.ct-supply-tier.gold small{color:#ffd76a!important}
-.ct-supply-tier.silver small{color:#dfe7ef!important}
-.ct-supply-tier.bronze small{color:#e09a5f!important}
 
 /* 비전문 함선 탑승 확인 */
 .ct-offspec-confirm{position:relative;width:min(330px,100%);display:grid;justify-items:center;gap:6px;padding:18px 16px 16px;border-radius:18px;border:1px solid #ff7a8a77;background:radial-gradient(circle at 50% 0%,#3a1424,#0b1222 68%);box-shadow:0 0 40px #ff5d7322,0 24px 50px #000c;text-align:center;animation:ct-promo-in .35s cubic-bezier(.2,1.3,.4,1) both}
@@ -255,8 +254,6 @@
 .ct-unknown-card h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:24px}
 .ct-unknown-card p{margin:0;font-size:13px;line-height:1.55;color:#c6d6e8}
 .ct-unknown-card p b{color:#fff}
-.ct-tie{justify-self:start;display:inline-block;padding:2px 8px;border-radius:7px;background:#b48cff22;border:1px solid #b48cff66;color:#d9c6ff;font-size:11px;font-weight:700}
-.ct-discovery .ct-tie{justify-self:center}
 
 /* 훈련 */
 .ct-train{display:grid;gap:7px;padding:10px;border-radius:12px;border:1px solid #b48cff55;background:linear-gradient(170deg,#171236,#08101e)}
@@ -313,7 +310,7 @@
 .ct-discovery{border-color:#b48cff99;background:radial-gradient(circle at 50% 22%,#33236a,#0c1626 64%)}
 .ct-discovery small{color:#c9b2ff!important}
 .ct-discovery-hint{font-size:11px!important;color:#f2d087!important}
-.ct-discovery .ct-card.locked{--ct-frame:linear-gradient(160deg,#fff1b8,#b07b20 40%,#ffd76a 70%,#c58cff);--ct-grade:#ffd76a}
+.ct-discovery .ct-card.locked{--ct-grade:#d2a7ff;--ct-frame:linear-gradient(160deg,#ecd6ff,#b653ff 38%,#6a2bb0 68%,#d58bff)}
 .ct-discovery .ct-card.locked .ct-card-portrait img{filter:none}
 .ct-discovery .ct-card{animation:ct-badge-drop .7s cubic-bezier(.2,.9,.3,1.25) both}
 

@@ -701,3 +701,9 @@
 .one-star-result-rarity.rarity-SSR{color:#ffd66b}
 .one-star-result-rarity.rarity-SR{color:#c79bff}
 .one-star-result-rarity.rarity-R{color:#8fc4ff}
+
+/* 연구실 탭(함선 탐색·무기 연구·함장 훈련): 아래로 스크롤해도 상단 HUD 바로 밑에 붙어 있게 한다.
+   overflow:hidden 은 sticky 를 막으므로 같은 잘림 효과를 내는 overflow:clip 으로 바꾼다. */
+#summon.screen{overflow:clip}
+#app:has(#summon.screen.active){overflow:clip}
+#summon .summon-tabs{position:sticky;top:var(--research-tabs-top,108px);z-index:15;box-shadow:0 -14px 0 #08111f,0 9px 22px #0009,inset 0 1px #b9e8ff18}
