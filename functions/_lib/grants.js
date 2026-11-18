@@ -3,7 +3,7 @@ import { randomToken } from './util.js';
 import { packFor } from './catalog.js';
 
 // 게임 우편함(commander-profile.js mailRewards)이 받을 수 있는 물품만 허용한다.
-export const GRANT_ITEMS = ['gold', 'thorium', 'lionToken', 'scoutTron', 'researchStaff', 'ssrShipTicket', 'frameTicket', 'frameCannon', 'frameMissile', 'frameLaser', 'framePiercing', 'frameCarrier', 'frameElectric', 'thoriumBox', 'goldVault', 'journal', 'core', 'precisionScout'];
+export const GRANT_ITEMS = ['gold', 'thorium', 'lionToken', 'scoutTron', 'researchStaff', 'ssrShipTicket', 'frameTicket', 'frameCannon', 'frameMissile', 'frameLaser', 'framePiercing', 'frameCarrier', 'frameElectric', 'thoriumBox', 'goldVault', 'journal', 'core', 'precisionScout', 'captainTicket', 'manualBronze', 'manualSilver', 'manualGold', 'promotionCert'];
 
 export function cleanItems(items) {
   if (!items || typeof items !== 'object') return null;

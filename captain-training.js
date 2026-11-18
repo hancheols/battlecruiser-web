@@ -1,5 +1,6 @@
 // 함장 훈련: 주인공 계급(진급·계급장)과 함장 카드(획득·훈련·함선 배치).
-// 아스만 사령부 1관문을 처음 클리어하면 연구실 '함장 훈련' 탭이 열린다.
+// 계급은 처음부터 적용되고 조건(챕터 클리어·함대 수준)이 채워지면 바로 오른다.
+// 함장 카드·훈련(연구실 '함장 훈련' 탭)은 아스만 사령부 1관문을 처음 클리어하면 열린다.
 // 계급 버프(공격력·내구도)와 함장 효과는 캠페인 전투에만 적용하고, 아레나·광산 쟁탈전에는 적용하지 않는다.
 (() => {
   'use strict';
@@ -8,14 +9,26 @@
   const PROFILE_KEY = 'starfleet-commander-profile-v1';
   const FORMATION_KEY = 'starfleet-fleet-formation-v1';
   const MEMBERSHIP_KEY = 'starfleet-membership-unlocked-v1';
-  const MAX_LEVEL = 30;
+  // 레벨은 Lv.100까지, 10레벨마다 돌파가 필요하다(진급 증서 1개부터 2배씩 늘어난다, 모든 함장 공통 재료).
+  const MAX_LEVEL = 100;
+  const TIER = 10;
+  const TICKET = 'captainTicket', CERT = 'promotionCert';
+  // 훈련 1회: 기본 경험치 + 매뉴얼(금 10%·은 20%·동 50%) + 경험치 2배 15% / 고급 함장 발견(발견할 함장이 없으면 진급 시험) 5%
+  const BASE_EXP = 100;
+  const DOUBLE_CHANCE = .15, SPECIAL_CHANCE = .05;
+  const MANUALS = [
+    { id: 'manualGold', tier: 'gold', name: '함장 매뉴얼(금)', short: '금', exp: 1000, chance: .10, image: 'icons/captain-manual-gold.svg?v=2' },
+    { id: 'manualSilver', tier: 'silver', name: '함장 매뉴얼(은)', short: '은', exp: 300, chance: .20, image: 'icons/captain-manual-silver.svg?v=2' },
+    { id: 'manualBronze', tier: 'bronze', name: '함장 매뉴얼(동)', short: '동', exp: 100, chance: .50, image: 'icons/captain-manual-bronze.svg?v=2' }
+  ];
+  const TICKET_IMG = 'icons/captain-training-ticket.svg?v=2', CERT_IMG = 'icons/promotion-certificate.svg?v=2';
   // 비전문 함선에 탑승하면 함선의 공격력·공격 속도·내구도가 이만큼 낮아진다(함장 효과·특수기술은 그대로 적용).
   const OFF_SPEC_PENALTY = .15;
   const OFF_SPEC_TEXT = `공격·공속·내구 -${Math.round(OFF_SPEC_PENALTY * 100)}%`;
   const ROLE_NAMES = ['선봉', '좌익', '우익'];
   const TYPE_NAMES = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함', frigate: '프리깃' };
   const TYPE_EN = { dreadnought: 'DREADNOUGHT', battlecruiser: 'BATTLECRUISER', destroyer: 'DESTROYER' };
-  const GRADE = { standard: { label: 'STANDARD', passive: [.02, .10], costScale: 1 }, elite: { label: 'ELITE', passive: [.03, .15], costScale: 1.5 } };
+  const GRADE = { standard: { label: 'STANDARD', passive: [.02, .20] }, elite: { label: 'ELITE', passive: [.03, .30] } };
 
   // 계급: 챕터 1~5 클리어마다 한 단계, Commodore 부터는 함대 수준과 Membership 이 필요하다.
   const RANKS = [
@@ -25,45 +38,62 @@
     { name: 'Captain', abbr: 'Capt.', bonus: .03, need: 'CHAPTER 3 클리어' },
     { name: 'Flotilla Captain', abbr: 'Flot. Capt.', bonus: .04, need: 'CHAPTER 4 클리어' },
     { name: 'Squadron Captain', abbr: 'Sqn. Capt.', bonus: .06, need: 'CHAPTER 5 클리어' },
-    { name: 'Commodore', abbr: 'Cdre.', bonus: .08, need: '일정 함대 수준 이상 및 Membership 필요', detail: '주력 3척 모두 L급 ★3 이상', stars: 3 },
-    { name: 'Rear Admiral', abbr: 'RAdm.', bonus: .10, need: '일정 함대 수준 이상 및 Membership 필요', detail: '주력 3척 모두 L급 ★5', stars: 5 }
+    { name: 'Commodore', abbr: 'Cdre.', bonus: .08, need: '일정 함대 수준 이상 및 Membership 필요', detail: '주력 3척 모두 L급 ★1 이상', stars: 1 },
+    { name: 'Rear Admiral', abbr: 'RAdm.', bonus: .10, need: '일정 함대 수준 이상 및 Membership 필요', detail: '주력 3척 모두 L급 ★3 이상', stars: 3 }
   ];
 
-  // 함장 목록. 특수기술 수치는 훈련 Lv.1 → Lv.30 사이에서 고르게 오른다.
+  // 함장 목록. 함장 효과·특수기술 수치는 레벨과 돌파에 따라 오른다(성장 점수 비율).
   const CAPTAINS = [
     { id: 'hero', grade: 'standard', type: 'battlecruiser', hero: true, look: 'cap', accent: '#7fe3ff',
       bio: 'United Star Fleet 기함을 지휘하는 함장. 함대의 첫 일격을 설계한다.',
-      skill: { id: 'opening', name: '선제 지휘', en: 'FIRST COMMAND', range: [.10, .25], seconds: 20, text: v => `전투 시작 후 20초 동안 주는 피해 +${pct(v)}` },
+      skill: { id: 'opening', name: '선제 지휘', en: 'FIRST COMMAND', range: [.10, .40], seconds: 20, text: v => `전투 시작 후 20초 동안 주는 피해 +${pct(v)}` },
       acquire: '기본 함장' },
-    { id: 'malik', name: '말릭 오코로', en: 'Malik Okoro', grade: 'standard', type: 'dreadnought', portrait: 'captain-malik-okoro-bust.png?v=20261011-3', heroLevel: 5,
+    // 기본 함장: 주인공으로 고르지 않은 쪽(Jake를 고르면 Donna, Donna를 고르면 Jake)이 처음부터 함께한다.
+    { id: 'partner', grade: 'standard', type: 'battlecruiser', partner: true,
+      bio: 'United Star Fleet 전투순양함 함장. 잔챙이 편대를 탄막으로 묶어 둔다.',
+      skill: { id: 'swarm', name: '탄막 제압', en: 'SUPPRESSIVE FIRE', range: [.08, .30], text: v => `보스가 아닌 적에게 주는 피해 +${pct(v)}` },
+      acquire: '기본 함장' },
+    { id: 'malik', name: '말릭 오코로', en: 'Malik Okoro', grade: 'standard', type: 'dreadnought', portrait: 'captain-card-malik.webp?v=20261116-3', heroLevel: 5,
       bio: '중전함 포격 지휘의 베테랑. 위기일수록 침착해진다.',
-      skill: { id: 'lowHpGuard', name: '철벽 지휘', en: 'IRON WALL', range: [.10, .25], threshold: .5, text: v => `내구도 50% 이하일 때 받는 피해 -${pct(v)}` } },
-    { id: 'amara', name: '아마라 오코예', en: 'Amara Okoye', grade: 'standard', type: 'destroyer', portrait: 'okoye-scenario-bust.webp', heroLevel: 10,
+      skill: { id: 'lowHpGuard', name: '철벽 지휘', en: 'IRON WALL', range: [.10, .40], threshold: .5, text: v => `내구도 50% 이하일 때 받는 피해 -${pct(v)}` } },
+    { id: 'amara', name: '아마라 오코예', en: 'Amara Okoye', grade: 'standard', type: 'destroyer', portrait: 'captain-card-amara.webp?v=20261116-3', heroLevel: 10,
       bio: '구축함 전대 출신. 상처 입은 적은 끝까지 쫓는다.',
-      skill: { id: 'execute', name: '추격 사격', en: 'PURSUIT FIRE', range: [.15, .35], threshold: .3, text: v => `내구도 30% 이하인 적에게 주는 피해 +${pct(v)}` } },
-    { id: 'luca', name: '루카 레예스', en: 'Luca Reyes', grade: 'standard', type: 'battlecruiser', portrait: 'luca-reyes-bust.png?v=20261013-1', heroLevel: 15,
-      bio: '전투순양함 기관 전문가. 출항 전에 주포를 미리 달궈 둔다.',
-      skill: { id: 'energyStart', name: '과충전 출격', en: 'OVERCHARGE START', range: [.20, .50], text: v => `전투 시작 시 스킬 에너지 ${pct(v)} 충전` } },
-    { id: 'moreau', name: '이자벨 모로', en: 'Isabelle Moreau', grade: 'elite', type: 'battlecruiser', look: 'long', accent: '#ff9ec4', rank: 4, fee: 40000,
-      bio: '궤도 방위대 포술 교관 출신. 정확한 박자로 일제사격을 지휘한다.',
-      skill: { id: 'surge', name: '섬광 일제사격', en: 'FLASH VOLLEY', range: [.20, .40], every: 20, seconds: 6, text: v => `20초마다 6초 동안 주는 피해 +${pct(v)}` } },
-    { id: 'holm', name: '라그나 홀름', en: 'Ragnar Holm', grade: 'elite', type: 'battlecruiser', look: 'beard', accent: '#9fc4ff', rank: 5, fee: 80000,
+      skill: { id: 'execute', name: '추격 사격', en: 'PURSUIT FIRE', range: [.15, .55], threshold: .3, text: v => `내구도 30% 이하인 적에게 주는 피해 +${pct(v)}` } },
+    { id: 'luca', name: '루카 레예스', en: 'Luca Reyes', grade: 'standard', type: 'destroyer', portrait: 'captain-card-luca.webp?v=20261116-3', heroLevel: 15,
+      bio: '구축함 기관 전문가. 출항 전에 주포를 미리 달궈 둔다.',
+      skill: { id: 'energyStart', name: '과충전 출격', en: 'OVERCHARGE START', range: [.20, .80], text: v => `전투 시작 시 스킬 에너지 ${pct(v)} 충전` } },
+    { id: 'moreau', name: '이자벨 모로', en: 'Isabelle Moreau', grade: 'elite', type: 'battlecruiser', portrait: 'captain-card-moreau.webp?v=20261116-3', rank: 4, fee: 40000,
+      bio: '궤도 방위대 포술 장교 출신. 정확한 박자로 일제사격을 지휘한다.',
+      skill: { id: 'surge', name: '섬광 일제사격', en: 'FLASH VOLLEY', range: [.20, .60], every: 20, seconds: 6, text: v => `20초마다 6초 동안 주는 피해 +${pct(v)}` } },
+    { id: 'holm', name: '라그나르 홀름', en: 'Ragnar Holm', grade: 'elite', type: 'battlecruiser', portrait: 'captain-card-holm.webp?v=20261116-3', rank: 5, fee: 80000,
       bio: '외곽 항로 호위 함대 출신. 거대한 표적을 노리는 데 이골이 났다.',
-      skill: { id: 'boss', name: '거함 사냥', en: 'GIANT HUNTER', range: [.15, .35], text: v => `보스에게 주는 피해 +${pct(v)}` } },
-    { id: 'weiss', name: '콘라트 바이스', en: 'Konrad Weiss', grade: 'elite', type: 'dreadnought', look: 'short', accent: '#ffc27a', rank: 4, fee: 40000,
+      skill: { id: 'boss', name: '거함 사냥', en: 'GIANT HUNTER', range: [.15, .55], text: v => `보스에게 주는 피해 +${pct(v)}` } },
+    { id: 'weiss', name: '콘라트 바이스', en: 'Konrad Weiss', grade: 'elite', type: 'dreadnought', portrait: 'captain-card-weiss.webp?v=20261116-3', rank: 4, fee: 40000,
       bio: '조선소 감독관 출신. 포화 속에서도 선체를 고쳐 낸다.',
-      skill: { id: 'regen', name: '요새 정비', en: 'FORTRESS REPAIR', range: [.04, .09], every: 25, text: v => `25초마다 최대 내구도의 ${pct(v)} 회복` } },
-    { id: 'hassan', name: '타리크 알하산', en: 'Tariq Al-Hassan', grade: 'elite', type: 'dreadnought', look: 'cap', accent: '#ffd76a', rank: 5, fee: 80000,
+      skill: { id: 'regen', name: '요새 정비', en: 'FORTRESS REPAIR', range: [.04, .14], every: 25, text: v => `25초마다 최대 내구도의 ${pct(v)} 회복` } },
+    { id: 'hassan', name: '타리크 알하산', en: 'Tariq Al-Hassan', grade: 'elite', type: 'dreadnought', portrait: 'captain-card-hassan.webp?v=20261116-3', rank: 5, fee: 80000,
       bio: '사막 행성 방어전의 생존자. 마지막 순간에 더 단단해진다.',
-      skill: { id: 'lastStand', name: '최후의 방벽', en: 'LAST BULWARK', range: [.20, .40], threshold: .35, text: v => `내구도 35% 이하로 처음 떨어지면 최대 내구도의 ${pct(v)} 즉시 회복` } },
-    { id: 'chen', name: '미라 첸', en: 'Mira Chen', grade: 'elite', type: 'destroyer', look: 'bob', accent: '#8dffc0', rank: 4, fee: 40000,
+      skill: { id: 'lastStand', name: '최후의 방벽', en: 'LAST BULWARK', range: [.20, .60], threshold: .35, text: v => `내구도 35% 이하로 처음 떨어지면 최대 내구도의 ${pct(v)} 즉시 회복` } },
+    { id: 'chen', name: '미라 첸', en: 'Mira Chen', grade: 'elite', type: 'destroyer', portrait: 'captain-card-chen.webp?v=20261116-3', rank: 4, fee: 40000,
       bio: '고속 구축함 경주 우승자. 포탑 회전까지 박자를 맞춘다.',
-      skill: { id: 'speed', name: '속사 지휘', en: 'RAPID FIRE', range: [.08, .20], text: v => `공격 속도 +${pct(v)}` } },
-    { id: 'lima', name: '소피아 리마', en: 'Sofia Lima', grade: 'elite', type: 'destroyer', look: 'long', accent: '#c6a2ff', rank: 5, fee: 80000,
+      skill: { id: 'speed', name: '속사 지휘', en: 'RAPID FIRE', range: [.08, .32], text: v => `공격 속도 +${pct(v)}` } },
+    { id: 'lima', name: '소피아 리마', en: 'Sofia Lima', grade: 'elite', type: 'destroyer', portrait: 'captain-card-lima.webp?v=20261116-3', rank: 5, fee: 80000,
       bio: '소행성대 정찰 함장 출신. 적의 조준선을 읽고 비켜 난다.',
-      skill: { id: 'evasion', name: '회피 기동', en: 'EVASIVE MANEUVER', range: [.06, .15], text: v => `받는 피해 -${pct(v)}` } }
+      skill: { id: 'evasion', name: '회피 기동', en: 'EVASIVE MANEUVER', range: [.06, .24], text: v => `받는 피해 -${pct(v)}` } }
   ];
   const byId = Object.fromEntries(CAPTAINS.map(c => [c.id, c]));
+
+  // 고급 함장 발견: 이 함장을 훈련할 때 5% 확률로 순서대로 발견한다. 다 발견하면 5%는 진급 시험이 된다.
+  const LINKS = { hero: ['moreau', 'holm', 'lima'], amara: ['chen'], malik: ['weiss'], luca: ['hassan'] };
+  const FINDER = Object.fromEntries(Object.entries(LINKS).flatMap(([from, list]) => list.map(id => [id, from])));
+  const DISCOVERY = {
+    moreau: { tie: '사관학교 동기', text: h => `훈련 기록을 본 사관학교 동기 이자벨 모로가 연락해 왔습니다. "${h}, 같은 함대에서 다시 포를 맞춰 보자."` },
+    holm: { tie: '사관학교 전술 교관', text: h => `옛 전술 교관 라그나르 홀름이 훈련장을 찾아왔습니다. "${h}, 아직 기본기가 살아 있군. 내 배를 맡길 만한지 보자."` },
+    lima: { tie: '정체를 알 수 없는 관심', text: () => '훈련 기록을 열람한 정찰 함장 소피아 리마가 유독 주인공에게 관심을 보입니다. 이유는 말하지 않았습니다.' },
+    chen: { tie: '아마라의 친구', text: () => '아마라가 구축함 경주 시절 친구 미라 첸을 소개합니다. "속도라면 미라를 따라올 사람이 없어."' },
+    weiss: { tie: '말릭의 앙숙', text: () => '말릭의 오랜 앙숙 콘라트 바이스가 나타났습니다. "오코로와 같은 함대라니. 뭐, 실력은 인정하지."' },
+    hassan: { tie: '루카의 사촌', text: () => '루카의 사촌 타리크 알하산이 사막 행성에서 돌아왔습니다. "루카가 신세 많이 졌다고 들었습니다."' }
+  };
 
   function pct(v) { const n = Math.round(v * 1000) / 10; return `${Number.isInteger(n) ? n : n.toFixed(1)}%`; }
   const read = key => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } };
@@ -73,21 +103,50 @@
 
   let state = read(STORE);
   if (!state || typeof state !== 'object') state = {};
-  state = { unlocked: false, rank: 0, seenRank: 0, unlockSeen: false, captains: {}, assign: {}, ...state };
+  state = { unlocked: false, rank: 0, seenRank: 0, unlockSeen: false, captains: {}, assign: {}, discovered: {}, ...state };
+  if (!state.discovered || typeof state.discovered !== 'object') state.discovered = {};
+  // 예전 기록(골드 훈련, 최대 Lv.30): 레벨에 맞는 돌파 단계를 채우고, 이미 영입한 함장은 발견한 것으로 본다.
+  for (const [id, rec] of Object.entries(state.captains || {})) {
+    if (!rec || typeof rec !== 'object') continue;
+    rec.level = Math.min(MAX_LEVEL, Math.max(1, Math.floor(Number(rec.level) || 1)));
+    rec.exp = Math.max(0, Math.floor(Number(rec.exp) || 0));
+    rec.bt = Math.max(Math.floor(Number(rec.bt) || 0), Math.ceil(rec.level / TIER) - 1, 0);
+    state.discovered[id] = true;
+  }
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {} };
 
   const owned = id => Boolean(state.captains[id]);
   const levelOf = id => Math.min(MAX_LEVEL, Math.max(1, count(state.captains[id]?.level) || 1));
-  const lerp = ([a, b], level) => a + (b - a) * (Math.min(MAX_LEVEL, level) - 1) / (MAX_LEVEL - 1);
-  const passiveOf = (c, level) => lerp(GRADE[c.grade].passive, level);
-  const skillValue = (c, level) => lerp(c.skill.range, level);
-  const trainCost = (c, level) => Math.round((400 + 150 * level + 6 * level * level) * GRADE[c.grade].costScale / 100) * 100;
+  const btOf = id => Math.min(MAX_LEVEL / TIER - 1, count(state.captains[id]?.bt));
+  const expOf = id => count(state.captains[id]?.exp);
+  const capOf = bt => Math.min(MAX_LEVEL, TIER * (bt + 1));
+  // 돌파에 드는 진급 증서: 1·2·4·8…개로 2배씩 늘어난다(9회 합계 511개).
+  const certCost = bt => 2 ** bt;
+  // 다음 레벨까지 필요한 경험치: Lv.10까지 훈련 6회 안팎, Lv.100까지 약 800회
+  const expToNext = level => Math.round((100 + 25 * (level - 1) + 0.4 * (level - 1) ** 2) / 10) * 10;
+  // 성장 점수: 레벨업은 1점(돌파 단계마다 +0.25), 돌파는 6점(돌파할수록 +1.5)으로 레벨업보다 크게 오른다.
+  function growthPoints(level, bt) {
+    let p = 0;
+    for (let L = 1; L < level; L++) p += 1 + 0.25 * Math.floor(L / TIER);
+    for (let k = 1; k <= bt; k++) p += 6 * (1 + 0.25 * (k - 1));
+    return p;
+  }
+  const MAX_POINTS = growthPoints(MAX_LEVEL, MAX_LEVEL / TIER - 1);
+  const grow = ([a, b], level, bt) => a + (b - a) * growthPoints(level, bt) / MAX_POINTS;
+  const passiveOf = (c, level, bt = btOf(c.id)) => grow(GRADE[c.grade].passive, level, bt);
+  const skillValue = (c, level, bt = btOf(c.id)) => grow(c.skill.range, level, bt);
+  const discovered = id => Boolean(state.discovered[id] || owned(id) || !byId[id]?.fee);
+  const nextFind = id => (LINKS[id] || []).find(x => !discovered(x)) || null;
+  const lootCount = id => count(window.getExplorationLootInventory?.()?.[id]);
 
   const profile = () => read(PROFILE_KEY) || {};
   const heroName = () => { const p = profile(); return [p.character || 'Jake', p.lastName].filter(Boolean).join(' '); };
-  const heroPortrait = () => profile().character === 'Donna' ? 'captain-donna-scenario-bust.png' : 'captain-jake-scenario-bust.png';
-  const nameOf = c => c.hero ? heroName() : c.name;
-  const enOf = c => c.hero ? `${RANKS[state.rank].name} · Flagship` : c.en;
+  const heroPortrait = () => profile().character === 'Donna' ? 'captain-card-donna.webp?v=20261116-3' : 'captain-card-jake.webp?v=20261116-3';
+  const isDonna = () => profile().character === 'Donna';
+  const partnerName = () => (isDonna() ? 'Jake' : 'Donna');
+  const partnerPortrait = () => (isDonna() ? 'captain-card-jake.webp?v=20261116-3' : 'captain-card-donna.webp?v=20261116-3');
+  const nameOf = c => c.hero ? heroName() : c.partner ? partnerName() : c.name;
+  const enOf = c => c.hero ? `${RANKS[state.rank].name} · Flagship` : c.partner ? 'Fleet Captain' : c.en;
 
   // ── 자원 ──────────────────────────────────────────────────────────────
   function balances() {
@@ -162,16 +221,22 @@
   const joined = [];
   function grant(id, silent = false) {
     if (owned(id)) return;
-    state.captains[id] = { level: 1 };
+    state.captains[id] = { level: 1, exp: 0, bt: 0 };
+    state.discovered[id] = true;
     if (!silent) joined.push(id);
   }
   function sync() {
     let changed = false, gained = false;
-    if (!state.unlocked && hqCleared()) { state.unlocked = true; changed = true; }
-    if (!state.unlocked) { paintTab(); return; }
-    if (!owned('hero')) { grant('hero', true); changed = gained = true; }
+    // 계급은 함장 훈련 개방과 상관없이 조건이 채워지면 바로 오른다.
     const rank = Math.max(state.rank, eligibleRank());
     if (rank !== state.rank) { state.rank = rank; changed = true; }
+    if (!state.unlocked && hqCleared()) { state.unlocked = true; changed = true; }
+    if (!state.unlocked) {
+      if (changed) { save(); window.dispatchEvent(new Event('captain-training-updated')); }
+      paintTab(); queueCeremony(); return;
+    }
+    if (!owned('hero')) { grant('hero', true); changed = gained = true; }
+    if (!owned('partner')) { grant('partner', true); changed = gained = true; }
     const heroLevel = levelOf('hero');
     for (const c of CAPTAINS) if (c.heroLevel && heroLevel >= c.heroLevel && !owned(c.id)) { grant(c.id); changed = gained = true; }
     // 새 함장이 오면 빈 함선에 태운다. 처음 개방 때 편성이 비어 있었다면 편성이 생길 때까지 한 번 더 시도한다.
@@ -185,7 +250,7 @@
   // ── 전투 연결 ─────────────────────────────────────────────────────────
   // 전투 엔진이 아군 함선을 만들 때 부른다. 아레나·광산 쟁탈전은 엔진에서 부르지 않는다.
   function battleEffects(ship) {
-    if (!state.unlocked || !ship) return null;
+    if (!ship) return null;
     const rankBonus = RANKS[state.rank]?.bonus || 0;
     const c = captainOnShip(ship);
     const passive = c ? passiveOf(c, levelOf(c.id)) : 0;
@@ -318,7 +383,7 @@
       <g fill="${a}" fill-opacity=".14">${Array.from({ length: 12 }, (_, i) => `<rect x="0" y="${i * 20 + 6}" width="200" height="2"/>`).join('')}</g>
       <text x="14" y="30" fill="${a}" font-size="15" font-family="var(--font-num)" letter-spacing="2">${initials} · SIGNAL</text></svg>`;
   }
-  const portraitOf = c => c.hero ? `<img src="${heroPortrait()}" alt="${esc(nameOf(c))} 초상화"/>` : c.portrait ? `<img src="${c.portrait}" alt="${esc(c.name)} 초상화"/>` : silhouette(c);
+  const portraitOf = c => c.hero ? `<img src="${heroPortrait()}" alt="${esc(nameOf(c))} 초상화"/>` : c.partner ? `<img src="${partnerPortrait()}" alt="${esc(nameOf(c))} 초상화"/>` : c.portrait ? `<img src="${c.portrait}" alt="${esc(c.name)} 초상화"/>` : silhouette(c);
 
   // ── 화면 ──────────────────────────────────────────────────────────────
   let pool = null, tab = null;
@@ -328,14 +393,7 @@
     tab.disabled = !state.unlocked;
     tab.setAttribute('aria-label', state.unlocked ? '함장 훈련' : '함장 훈련, 아스만 사령부 1관문 클리어 후 개방');
     tab.classList.toggle('ct-tab-new', state.unlocked && !state.unlockSeen);
-    if (!state.unlocked && pool) pool.innerHTML = `<div class="ct-locked"><div class="ct-locked-badge">${insignia(0)}</div><small>COMMANDER TRAINING</small><b>함장 훈련</b><p>아스만 사령부 1관문을 클리어하면 개방됩니다.</p></div>`;
-  }
-
-  function rankPanel() {
-    const rank = state.rank, cur = RANKS[rank], next = RANKS[rank + 1];
-    const nextMarkup = next ? `<div class="ct-next"><small>NEXT RANK · ${next.name}</small><span>${next.need}</span>${next.detail ? `<em>${next.detail} · Membership ${membership() ? '보유' : '미보유'}</em>` : ''}</div>` : '<div class="ct-next ct-next-max"><small>HIGHEST RANK</small><span>최고 계급에 도달했습니다</span></div>';
-    const ladder = RANKS.map((r, i) => `<li class="${i < rank ? 'done' : i === rank ? 'current' : 'locked'}" title="${r.name}">${insignia(i)}<span>${r.abbr}</span></li>`).join('');
-    return `<section class="ct-rank"><div class="ct-rank-main"><div class="ct-rank-badge">${insignia(rank, '', { shine: true })}</div><div class="ct-rank-copy"><small>COMMANDER RANK</small><b>${cur.name}</b><span>${cur.bonus ? `함대 공격력 +${pct(cur.bonus)} · 내구도 +${pct(cur.bonus)}` : '계급 효과 없음'}</span><em>계급 효과는 아레나·광산 쟁탈전에 적용되지 않습니다</em></div></div>${nextMarkup}<ol class="ct-ladder">${ladder}</ol></section>`;
+    if (!state.unlocked && pool) pool.innerHTML = `<div class="ct-locked"><div class="ct-locked-badge">${insignia(state.rank)}</div><small>COMMANDER TRAINING</small><b>함장 훈련</b><p>아스만 사령부 1관문을 클리어하면 개방됩니다.</p><span class="ct-locked-rank">현재 계급 ${RANKS[state.rank].name}</span></div>`;
   }
 
   function fleetPanel() {
@@ -345,63 +403,103 @@
       const c = captainOnShip(ship);
       return `<button type="button" class="ct-slot" data-ct-slot="${i}" data-type="${ship.type}"><small>${ROLE_NAMES[i]} · ${TYPE_NAMES[ship.type] || ''}</small><b>${esc(ship.name)}</b><span class="ct-slot-captain">${c ? `<span class="ct-mini">${portraitOf(c)}</span><span><b>${esc(nameOf(c))}</b><em>Lv.${levelOf(c.id)} · ${esc(c.skill.name)}</em></span>${c.type !== ship.type ? `<span class="ct-offspec" title="비전문 함선 · ${OFF_SPEC_TEXT}">비전문 -${Math.round(OFF_SPEC_PENALTY * 100)}%</span>` : ''}` : '<span class="ct-slot-add">＋ 함장 배치</span>'}</span></button>`;
     }).join('');
-    return `<section class="ct-fleet"><header><small>FLEET COMMAND</small><b>함장 배치</b><span>어느 함선에나 탑승할 수 있습니다. 전문 함종이 아니면 ${OFF_SPEC_TEXT}</span></header><div class="ct-slots">${slots}</div></section>`;
+    return `<section class="ct-fleet"><header><small>FLEET COMMAND</small><b>함장 배치</b></header><div class="ct-slots">${slots}</div></section>`;
   }
 
   function cardMarkup(c) {
     const has = owned(c.id);
+    if (!discovered(c.id)) {
+      const finder = byId[FINDER[c.id]];
+      return `<button type="button" class="ct-card locked unknown" data-ct-open="${c.id}" data-grade="${c.grade}" data-type="${c.type}">
+      <span class="ct-card-portrait"><span class="ct-unknown-mark">?</span></span><span class="ct-card-shade"></span>
+      <span class="ct-card-info"><b class="ct-card-title">미확인 함장</b>
+      <span class="ct-card-meta">${gradeTag(c)}<span class="ct-card-lock">${finder ? `${esc(nameOf(finder))} 훈련 중 발견` : '발견 대기'}</span></span></span></button>`;
+    }
     const lock = !has ? (c.heroLevel ? `주인공 훈련 Lv.${c.heroLevel}` : c.rank != null ? `${RANKS[c.rank].abbr} 이상` : '') : '';
     return `<button type="button" class="ct-card${has ? '' : ' locked'}" data-ct-open="${c.id}" data-grade="${c.grade}" data-type="${c.type}">
-      <span class="ct-card-portrait">${portraitOf(c)}</span>
-      <span class="ct-card-grade">${GRADE[c.grade].label}</span><span class="ct-card-type">${TYPE_NAMES[c.type]}</span>
-      <span class="ct-card-name"><b>${esc(nameOf(c))}</b><small>${esc(c.hero ? 'Flagship' : c.en)}</small></span>
-      <span class="ct-card-foot">${has ? `<span>Lv.<b>${levelOf(c.id)}</b></span><span>${esc(c.skill.name)}</span>` : `<span class="ct-card-lock">${lock}</span>`}</span></button>`;
+      <span class="ct-card-portrait">${portraitOf(c)}</span><span class="ct-card-shade"></span>
+      <span class="ct-card-info"><b class="ct-card-title">${esc(nameOf(c))}</b>
+      <span class="ct-card-meta">${gradeTag(c)}${has ? levelTag(c.id) : `<span class="ct-card-lock">${lock}</span>`}</span></span></button>`;
+  }
+  // 등급(좁은 카드에 맞게 한글 두 글자: 고급·일반)과 레벨·돌파 표시
+  function gradeTag(c) { return `<i class="ct-card-grade" title="${GRADE[c.grade].label}">${c.grade === 'elite' ? '고급' : '일반'}</i>`; }
+  function levelTag(id) { const bt = btOf(id); return `<span class="ct-card-lvl">Lv.<b>${levelOf(id)}</b>${bt ? `<i class="ct-card-bt" title="돌파 ${bt}회">✦${bt}</i>` : ''}</span>`; }
+
+  function suppliesPanel() {
+    // 물자 이름은 모두 칸 위 테두리에 표기한다. 매뉴얼 금·은·동은 '훈련 매뉴얼' 한 칸(3칸 너비)에 모아 보여 준다.
+    const item = (img, name, n, cls = '') => `<span class="ct-supply ${cls}"><em class="ct-supply-legend">${name}</em><img src="${img}" alt=""/><b>${fmt(n)}</b></span>`;
+    const manuals = `<span class="ct-supply manual"><em class="ct-supply-legend">훈련 매뉴얼</em>${MANUALS.map(m => `<span class="ct-supply-tier ${m.tier}"><img src="${m.image}" alt=""/><b>${fmt(lootCount(m.id))}</b><small>${m.short}</small></span>`).join('')}</span>`;
+    return `<section class="ct-supplies"><header><small>TRAINING SUPPLIES</small><b>훈련 물자</b></header><div class="ct-supply-row">${item(TICKET_IMG, '훈련티켓', lootCount(TICKET), 'ticket')}${manuals}${item(CERT_IMG, '진급 증서', lootCount(CERT), 'cert')}</div></section>`;
   }
 
   function rosterPanel() {
     const groups = ['battlecruiser', 'dreadnought', 'destroyer'].map(type => `<div class="ct-group"><h3><span>${TYPE_EN[type]}</span>${TYPE_NAMES[type]} 전문</h3><div class="ct-cards">${CAPTAINS.filter(c => c.type === type).map(cardMarkup).join('')}</div></div>`).join('');
-    return `<section class="ct-roster"><header><small>CAPTAIN ROSTER</small><b>함장 카드</b><span>전설 함장은 추후 합류합니다</span></header>${groups}</section>`;
+    return `<section class="ct-roster"><header><small>CAPTAIN ROSTER</small><b>함장 카드</b><span>카드를 눌러 훈련할 함장을 지정합니다</span></header>${groups}</section>`;
   }
 
   function render() {
     if (!pool || !state.unlocked) { paintTab(); return; }
-    pool.innerHTML = `<div class="ct-root">${rankPanel()}${fleetPanel()}${rosterPanel()}</div>`;
+    pool.innerHTML = `<div class="ct-root">${suppliesPanel()}${fleetPanel()}${rosterPanel()}</div>`;
   }
 
-  // 함장 카드 상세: 초상화·전문 함종·효과·특수기술·훈련/영입
+  // 함장 카드 상세: 초상화·전문 함종·효과·특수기술·훈련(티켓·매뉴얼·돌파)/영입
+  let lastCard = null;
   function openCard(id) {
     const c = byId[id];
     if (!c) return;
     closeModal();
-    const has = owned(id), level = levelOf(id), max = level >= MAX_LEVEL;
-    const passive = passiveOf(c, level), nextPassive = passiveOf(c, level + 1);
-    const value = skillValue(c, level), nextValue = skillValue(c, level + 1);
-    const cost = trainCost(c, level);
+    lastCard = id;
+    if (!discovered(id)) { openUnknown(c); return; }
+    const has = owned(id), level = levelOf(id), bt = btOf(id), exp = expOf(id), cap = capOf(bt);
+    const atCap = level >= cap, maxed = level >= MAX_LEVEL, need = expToNext(level);
+    const nextLevelBt = atCap ? null : [level + 1, bt];
+    const canBreak = has && atCap && !maxed;
+    const passive = passiveOf(c, level, bt), value = skillValue(c, level, bt);
+    const preview = canBreak ? [level, bt + 1, '돌파 후'] : nextLevelBt ? [...nextLevelBt, '다음'] : null;
+    const nextP = preview ? passiveOf(c, preview[0], preview[1]) : 0, nextV = preview ? skillValue(c, preview[0], preview[1]) : 0;
     const rankOk = c.rank == null || state.rank >= c.rank;
+    const pips = Array.from({ length: MAX_LEVEL / TIER - 1 }, (_, i) => `<i class="${i < bt ? 'on' : ''}"></i>`).join('');
     let action = '';
-    if (has) action = max ? '<button type="button" class="ct-action" disabled>최대 훈련 완료</button>' : `<button type="button" class="ct-action" data-ct-train="${id}"><span>훈련 Lv.${level} → ${level + 1}</span><em><i class="ct-gold"></i>${fmt(cost)}</em></button>`;
-    else if (c.fee) action = `<button type="button" class="ct-action recruit" data-ct-recruit="${id}" ${rankOk ? '' : 'disabled'}><span>${rankOk ? '함장 영입' : `${RANKS[c.rank].name} 이상 영입 가능`}</span><em><i class="ct-gold"></i>${fmt(c.fee)}</em></button>`;
+    if (has) {
+      const tickets = lootCount(TICKET), certs = lootCount(CERT), cost = certCost(bt);
+      const manualBtns = MANUALS.slice().reverse().map(m => { const n = lootCount(m.id); return `<button type="button" class="ct-manual ${m.tier}" data-ct-manual="${m.id}" data-ct-id="${id}" ${n && !maxed && !(atCap && exp >= need) ? '' : 'disabled'}><img src="${m.image}" alt=""/><span><b>${m.short} ×${fmt(n)}</b><em>EXP +${fmt(m.exp)}</em></span></button>`; }).join('');
+      action = `<section class="ct-train">
+        <div class="ct-train-head"><span class="ct-level"><b>Lv.${level}</b> / ${cap}</span><span class="ct-pips" title="돌파 ${bt}/${MAX_LEVEL / TIER - 1}">${pips}</span></div>
+        <span class="ct-bar ct-exp"><span style="width:${maxed ? 100 : Math.min(100, exp / need * 100).toFixed(1)}%"></span></span>
+        <small class="ct-exp-text">${maxed ? '최대 레벨' : atCap ? (exp >= need ? '경험치 가득 · 돌파하면 바로 레벨업' : `돌파 대기 · 경험치 ${fmt(exp)} / ${fmt(need)} 적립`) : `EXP ${fmt(exp)} / ${fmt(need)}`}</small>
+        ${canBreak ? `<button type="button" class="ct-action breakthrough" data-ct-break="${id}" ${certs >= cost ? '' : 'disabled'}><span>${certs >= cost ? `돌파 · 최대 Lv.${capOf(bt + 1)}` : `진급 증서 부족 (${certs}/${cost})`}</span><em><img src="${CERT_IMG}" alt=""/>${cost}</em></button>` : ''}
+        <div class="ct-train-actions">${[1, 10].map(n => `<button type="button" class="ct-action${n === 10 ? ' ghost' : ''}" data-ct-train="${id}" data-times="${n}" ${tickets >= n ? '' : 'disabled'}><span>훈련 ×${n}</span><em><img src="${TICKET_IMG}" alt=""/>${n}</em></button>`).join('')}</div>
+        <small class="ct-ticket-left">보유 훈련티켓 ${fmt(tickets)}장 · 진급 증서 ${fmt(certs)}개</small>
+        <div class="ct-manuals">${manualBtns}</div>
+      </section>`;
+    } else if (c.fee) action = `<button type="button" class="ct-action recruit" data-ct-recruit="${id}" ${rankOk ? '' : 'disabled'}><span>${rankOk ? '함장 영입' : `${RANKS[c.rank].name} 이상 영입 가능`}</span><em><i class="ct-gold"></i>${fmt(c.fee)}</em></button>`;
     else action = `<button type="button" class="ct-action" disabled>주인공 훈련 Lv.${c.heroLevel} 달성 시 자동 합류</button>`;
     const milestones = c.hero ? `<div class="ct-milestones">${CAPTAINS.filter(x => x.heroLevel).map(x => `<span class="${owned(x.id) ? 'done' : ''}"><b>Lv.${x.heroLevel}</b>${esc(x.name)} 합류</span>`).join('')}</div>` : '';
-    const growing = has && !max;
     const modal = document.createElement('div');
     modal.className = 'ct-modal';
     modal.innerHTML = `<div class="ct-modal-backdrop" data-ct-close></div><article class="ct-detail" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="${esc(nameOf(c))} 함장 카드">
       <button type="button" class="ct-close" data-ct-close aria-label="닫기">×</button>
-      <div class="ct-detail-art">${portraitOf(c)}<span class="ct-card-grade">${GRADE[c.grade].label}</span>${c.hero ? `<span class="ct-detail-rank">${insignia(state.rank, '', { shine: true })}</span>` : ''}</div>
+      <div class="ct-detail-art">${portraitOf(c)}<span class="ct-card-shade"></span>
+        <div class="ct-detail-id"><span class="ct-detail-names"><h3>${esc(nameOf(c))}</h3><p class="ct-detail-en">${esc(enOf(c))}</p><span class="ct-card-meta">${gradeTag(c)}<i class="ct-card-type">${TYPE_NAMES[c.type]}</i>${has ? levelTag(id) : ''}</span></span>${c.hero ? `<span class="ct-detail-rank" title="${RANKS[state.rank].name}">${insignia(state.rank, '', { shine: true })}</span>` : ''}</div>
+      </div>
       <div class="ct-detail-body">
-        <small class="ct-detail-kicker">${TYPE_EN[c.type]} SPECIALIST</small>
-        <h3>${esc(nameOf(c))}</h3><p class="ct-detail-en">${esc(enOf(c))}</p>
         <p class="ct-detail-bio">${esc(c.bio)}</p>
         <dl class="ct-stats">
-          <div><dt>전문 함종</dt><dd>${TYPE_NAMES[c.type]} <i class="ct-offspec-note">다른 함종 탑승 시 ${OFF_SPEC_TEXT}</i></dd></div>
-          <div><dt>함장 효과</dt><dd>공격력·내구도 +${pct(passive)}${growing ? ` <i>다음 +${pct(nextPassive)}</i>` : ''}</dd></div>
-          <div class="ct-skill"><dt>특수기술 <span>${esc(c.skill.name)} · ${c.skill.en}</span></dt><dd>${c.skill.text(value)}${growing ? ` <i>다음 ${pct(nextValue)}</i>` : ''}</dd></div>
-          <div><dt>훈련</dt><dd><span class="ct-level"><b>Lv.${level}</b> / ${MAX_LEVEL}</span><span class="ct-bar"><span style="width:${(level / MAX_LEVEL * 100).toFixed(1)}%"></span></span></dd></div>
+          <div><dt>전문 함종</dt><dd>${TYPE_NAMES[c.type]}</dd></div>
+          <div><dt>함장 효과</dt><dd>공격력·내구도 +${pct(passive)}${preview && has ? ` <i>${preview[2]} +${pct(nextP)}</i>` : ''}</dd></div>
+          <div class="ct-skill"><dt>특수기술 <span>${esc(c.skill.name)} · ${c.skill.en}</span></dt><dd>${c.skill.text(value)}${preview && has ? ` <i>${preview[2]} ${pct(nextV)}</i>` : ''}</dd></div>
         </dl>${milestones}${action}
       </div></article>`;
     document.body.append(modal);
     modal.querySelector('.ct-close').focus();
+  }
+  // 아직 발견하지 못한 고급 함장
+  function openUnknown(c) {
+    const finder = byId[FINDER[c.id]];
+    const modal = document.createElement('div');
+    modal.className = 'ct-modal';
+    modal.innerHTML = `<div class="ct-modal-backdrop" data-ct-close></div><article class="ct-unknown-card" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="미확인 함장"><button type="button" class="ct-close" data-ct-close aria-label="닫기">×</button><span class="ct-unknown-mark big">?</span><small>${TYPE_EN[c.type]} · ELITE</small><h3>미확인 함장</h3><p>${finder ? `<b>${esc(nameOf(finder))}</b> 함장을 훈련하면 5% 확률로 이 함장의 소식을 듣게 됩니다.` : '아직 단서가 없습니다.'}</p></article>`;
+    document.body.append(modal);
   }
   function closeModal() { document.querySelector('.ct-modal')?.remove(); }
 
@@ -420,24 +518,135 @@
     document.body.append(modal);
   }
 
-  function train(id) {
-    const c = byId[id];
-    if (!c || !owned(id)) return;
-    const level = levelOf(id);
-    if (level >= MAX_LEVEL) return;
-    const cost = trainCost(c, level);
-    if (!spendGold(cost)) { window.notice?.(`훈련에는 골드 ${fmt(cost)}가 필요합니다.`); return; }
-    state.captains[id].level = level + 1;
+  // 비전문 함선 탑승 확인
+  function openOffSpec(index, id) {
+    const ship = fleetMain()[index], c = byId[id];
+    if (!ship || !c) return;
+    closeModal();
+    const modal = document.createElement('div');
+    modal.className = 'ct-modal';
+    modal.dataset.slot = String(index);
+    modal.innerHTML = `<div class="ct-modal-backdrop" data-ct-pick-back="${index}"></div><article class="ct-offspec-confirm" data-type="${ship.type}" role="alertdialog" aria-modal="true" aria-label="비전문 함선 탑승">
+      <div class="ct-offspec-pair"><span class="ct-mini">${portraitOf(c)}</span><i>→</i><span class="ct-offspec-ship"><small>${ROLE_NAMES[index]} · ${TYPE_NAMES[ship.type]}</small><b>${esc(ship.name)}</b></span></div>
+      <small class="ct-offspec-kicker">OFF-SPEC BOARDING</small>
+      <h3>비전문 함선 탑승</h3>
+      <p>함장은 어느 함선에나 탑승할 수 있습니다.<br/><b>${esc(nameOf(c))}</b> 함장은 ${TYPE_NAMES[c.type]} 전문이라 이 함선에서는</p>
+      <strong class="ct-offspec-penalty">${OFF_SPEC_TEXT}</strong>
+      <p class="ct-offspec-sub">함장 효과와 특수기술은 그대로 적용됩니다.</p>
+      <div class="ct-promotion-actions"><button type="button" class="ct-action ghost" data-ct-pick-back="${index}">취소</button><button type="button" class="ct-action" data-ct-pick="${id}" data-ct-pick-confirmed>탑승</button></div>
+    </article>`;
+    document.body.append(modal);
+    modal.querySelector('[data-ct-pick-confirmed]').focus();
+  }
+
+  // 경험치를 더한다. 돌파 전 최대 레벨에서는 한 레벨 분량까지만 적립한다.
+  function addExp(id, amount) {
+    const rec = state.captains[id];
+    let level = levelOf(id), exp = expOf(id), bt = btOf(id), added = 0;
+    // 돌파 직후: 적립해 둔 경험치로 바로 레벨업한다.
+    while (level < Math.min(capOf(bt), MAX_LEVEL) && exp >= expToNext(level)) { exp -= expToNext(level); level += 1; }
+    while (amount > 0 && level < MAX_LEVEL) {
+      const need = expToNext(level);
+      if (level >= capOf(bt)) { const room = Math.max(0, need - exp); const take = Math.min(room, amount); exp += take; added += take; break; }
+      const take = Math.min(need - exp, amount);
+      exp += take; amount -= take; added += take;
+      if (exp >= need) { level += 1; exp = 0; }
+    }
+    rec.level = level; rec.exp = level >= MAX_LEVEL ? 0 : exp;
+    return added;
+  }
+  function afterGrowth(id) {
     save();
-    window.notice?.(`${nameOf(c)} 훈련 완료 · Lv.${level + 1}`);
     sync();
     render();
     window.dispatchEvent(new Event('captain-training-updated'));
+  }
+  function train(id, times = 1) {
+    const c = byId[id];
+    if (!c || !owned(id)) return;
+    const have = lootCount(TICKET), runs = Math.min(times, have);
+    if (runs < 1) { window.notice?.('훈련티켓이 부족합니다. 상점 보급품에서 구입할 수 있습니다.'); return; }
+    if (!window.consumeExplorationLoot?.(TICKET, runs)) { window.notice?.('훈련티켓을 사용하지 못했습니다.'); return; }
+    const before = { level: levelOf(id), bt: btOf(id) };
+    const result = { id, runs, exp: 0, wasted: 0, doubles: 0, exams: 0, found: [], manuals: { manualGold: 0, manualSilver: 0, manualBronze: 0 } };
+    for (let i = 0; i < runs; i++) {
+      let gain = BASE_EXP;
+      const roll = Math.random();
+      if (roll < SPECIAL_CHANCE) {
+        const find = nextFind(id);
+        if (find) { state.discovered[find] = true; result.found.push(find); } else result.exams += 1;
+      } else if (roll < SPECIAL_CHANCE + DOUBLE_CHANCE) { gain *= 2; result.doubles += 1; }
+      const m = Math.random();
+      let acc = 0;
+      for (const manual of MANUALS) { acc += manual.chance; if (m < acc) { result.manuals[manual.id] += 1; break; } }
+      const added = addExp(id, gain);
+      result.exp += added; result.wasted += gain - added;
+    }
+    for (const [mid, n] of Object.entries(result.manuals)) if (n) window.grantExplorationLoot?.(mid, n);
+    if (result.exams) window.grantExplorationLoot?.(CERT, result.exams);
+    result.from = before; result.to = { level: levelOf(id), bt: btOf(id) };
+    afterGrowth(id);
+    showTrainResult(result);
+  }
+  function useManual(id, manualId) {
+    const c = byId[id], m = MANUALS.find(x => x.id === manualId);
+    if (!c || !m || !owned(id) || !lootCount(manualId)) return;
+    if (levelOf(id) >= MAX_LEVEL) return;
+    if (!window.consumeExplorationLoot?.(manualId, 1)) return;
+    const from = levelOf(id), added = addExp(id, m.exp);
+    afterGrowth(id);
+    window.notice?.(`${m.name} 사용 · EXP +${fmt(added)}${added < m.exp ? ` (${fmt(m.exp - added)} 초과분 소멸)` : ''}${levelOf(id) > from ? ` · Lv.${levelOf(id)}` : ''}`);
     if (joined.length) showJoin(); else openCard(id);
+  }
+  function breakthrough(id) {
+    const c = byId[id];
+    if (!c || !owned(id)) return;
+    const bt = btOf(id), cost = certCost(bt);
+    if (levelOf(id) < capOf(bt) || levelOf(id) >= MAX_LEVEL) return;
+    if (lootCount(CERT) < cost || !window.consumeExplorationLoot?.(CERT, cost)) { window.notice?.(`진급 증서가 ${cost}개 필요합니다.`); return; }
+    state.captains[id].bt = bt + 1;
+    addExp(id, 0);
+    afterGrowth(id);
+    window.notice?.(`${nameOf(c)} 돌파 성공 · 최대 Lv.${capOf(bt + 1)}`);
+    if (joined.length) showJoin(); else openCard(id);
+  }
+
+  // 훈련 결과
+  let lastTrain = null;
+  function showTrainResult(r) {
+    lastTrain = r;
+    const c = byId[r.id];
+    closeModal();
+    const manualRows = MANUALS.filter(m => r.manuals[m.id]).map(m => `<span class="ct-loot ${m.tier}"><img src="${m.image}" alt=""/>${m.short} ×${r.manuals[m.id]}</span>`).join('');
+    const levelUp = r.to.level > r.from.level;
+    const rows = [
+      `<li><span>경험치</span><b>+${fmt(r.exp)}</b>${r.doubles ? `<em class="ct-double">2배 ×${r.doubles}</em>` : ''}</li>`,
+      `<li><span>레벨</span><b>${levelUp ? `Lv.${r.from.level} → Lv.${r.to.level}` : `Lv.${r.to.level}`}</b>${levelUp ? '<em class="ct-up">LEVEL UP</em>' : ''}</li>`,
+      `<li class="wrap"><span>함장 매뉴얼</span><div class="ct-loots">${manualRows || '<i>획득 없음</i>'}</div></li>`,
+      r.exams ? `<li class="exam"><span>진급 시험 합격</span><b>진급 증서 +${r.exams}</b><em class="ct-up">×${r.exams}</em></li>` : '',
+      r.wasted ? `<li class="note"><span>돌파 대기로 적립되지 않은 경험치 ${fmt(r.wasted)}</span></li>` : ''
+    ].join('');
+    const modal = document.createElement('div');
+    modal.className = 'ct-modal ct-ceremony';
+    modal.innerHTML = `<div class="ct-modal-backdrop"></div><article class="ct-result" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="훈련 결과">
+      <header><span class="ct-mini">${portraitOf(c)}</span><span><small>TRAINING REPORT · ×${r.runs}</small><b>${esc(nameOf(c))} 훈련 결과</b></span></header>
+      <ul class="ct-result-list">${rows}</ul>
+      ${r.found.length ? `<p class="ct-found-note">훈련 중 새로운 인물의 소식을 들었습니다!</p>` : ''}
+      <div class="ct-promotion-actions"><button type="button" class="ct-action ghost" data-ct-again ${lootCount(TICKET) >= r.runs ? '' : 'disabled'}>다시 ×${r.runs}</button><button type="button" class="ct-action" data-ct-result-ok>${r.found.length ? '소식 확인' : '확인'}</button></div></article>`;
+    document.body.append(modal);
+  }
+  // 고급 함장 발견 연출
+  function showDiscovery(id) {
+    const c = byId[id], d = DISCOVERY[id];
+    closeModal();
+    const modal = document.createElement('div');
+    modal.className = 'ct-modal ct-ceremony';
+    modal.innerHTML = `<div class="ct-modal-backdrop"></div><article class="ct-join ct-discovery" data-grade="${c.grade}" data-type="${c.type}" role="dialog" aria-modal="true" aria-label="고급 함장 발견"><small>ELITE CAPTAIN DISCOVERED</small><h3>고급 함장 발견</h3>${cardMarkup(c)}<span class="ct-tie">${d.tie}</span><p>${esc(d.text(nameOf(byId.hero)))}</p><p class="ct-discovery-hint">${RANKS[c.rank].name} 이상 · 골드 ${fmt(c.fee)}로 영입할 수 있습니다.</p><button type="button" class="ct-action" data-ct-discovery-ok="${id}">함장 카드 보기</button></article>`;
+    document.body.append(modal);
   }
   function recruit(id) {
     const c = byId[id];
-    if (!c || owned(id) || !c.fee || state.rank < c.rank) return;
+    if (!c || owned(id) || !c.fee || !discovered(id) || state.rank < c.rank) return;
     if (!spendGold(c.fee)) { window.notice?.(`영입에는 골드 ${fmt(c.fee)}가 필요합니다.`); return; }
     grant(id);
     autoAssign();
@@ -463,37 +672,83 @@
   let ceremonyTimer = 0;
   // 타이틀·연령 확인·인트로 영상·튜토리얼·시나리오 대화가 떠 있으면 기다린다.
   const shown = el => { if (!el || el.hidden) return false; const s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden' && Number(s.opacity) > 0 && el.getClientRects().length > 0; };
-  const BLOCKERS = '#title-screen, dialog.age-gate, #intro-video, .eva9-tutorial, .luca-tutorial, .farah-tutorial, .mars-scenario, .ct-modal';
+  const BLOCKERS = '#title-screen, dialog.age-gate, #intro-video, .eva9-tutorial, .luca-tutorial, .farah-tutorial, .mars-scenario, .captain-select-overlay, .ct-modal';
   const busy = () => document.hidden || document.getElementById('battle')?.classList.contains('active') || [...document.querySelectorAll(BLOCKERS)].some(el => el.tagName === 'DIALOG' ? el.open : shown(el));
   function queueCeremony() {
-    if (!state.unlocked || (state.unlockSeen && state.seenRank >= state.rank)) return;
+    const opening = state.unlocked && !state.unlockSeen;
+    if (!opening && state.seenRank >= state.rank) return;
     clearTimeout(ceremonyTimer);
     ceremonyTimer = setTimeout(() => { if (busy()) queueCeremony(); else showCeremony(); }, 1200);
   }
+  const tierOf = rank => (rank >= 6 ? 2 : rank >= 3 ? 1 : 0);
   function showCeremony() {
-    const first = !state.unlockSeen, rank = state.rank, r = RANKS[rank];
-    state.unlockSeen = true; state.seenRank = rank; save(); paintTab();
+    const rank = state.rank, from = Math.min(state.seenRank, rank), r = RANKS[rank];
+    const promoted = rank > from, opening = state.unlocked && !state.unlockSeen;
+    if (state.unlocked) state.unlockSeen = true;
+    state.seenRank = rank; save(); paintTab();
+    const before = RANKS[from].bonus, after = r.bonus, gain = after - before;
+    const stat = label => `<li><span>${label}</span><b data-from="${before}" data-to="${after}">+${pct(promoted ? before : after)}</b>${promoted ? `<em>▲ ${pct(gain)}</em>` : ''}</li>`;
+    const stats = after ? `<ul class="ct-promo-stats">${stat('함대 공격력')}${stat('함대 내구도')}</ul><em class="ct-promo-note">캠페인 전투 적용 · 아레나·광산 쟁탈전 제외</em>` : '<ul class="ct-promo-stats"><li class="none"><span>계급 효과 없음</span></li></ul>';
+    const message = promoted && opening ? '새 계급으로 진급했습니다. 연구실 함장 훈련이 개방되었습니다.' : promoted ? '새 계급으로 진급했습니다.' : '연구실 함장 훈련이 개방되었습니다.';
+    // 터지는 불꽃: 두 번에 걸쳐 사방으로 퍼진다.
+    const sparks = Array.from({ length: 28 }, (_, i) => {
+      const wave = i < 16 ? 0 : 1, a = Math.round((i * 360) / (wave ? 12 : 16) + (wave ? 15 : 0));
+      return `<i class="ct-spark" style="--a:${a}deg;--d:${wave ? 175 : 140}px;--t:${wave ? 1.05 : .42}s;--s:${wave ? 5 : 7}px"></i>`;
+    }).join('');
+    const embers = Array.from({ length: 10 }, (_, i) => `<i class="ct-ember" style="--x:${8 + i * 9.3}%;--t:${(i * .37) % 2.6}s;--k:${2.6 + (i % 3) * .7}s"></i>`).join('');
     const modal = document.createElement('div');
-    modal.className = 'ct-modal ct-ceremony';
-    modal.innerHTML = `<div class="ct-modal-backdrop"></div><article class="ct-promotion" role="dialog" aria-modal="true" aria-label="진급"><div class="ct-promotion-rays"></div>${insignia(rank, 'ct-promotion-badge', { shine: true })}<small>${first ? 'COMMANDER TRAINING ONLINE' : 'PROMOTION'}</small><h3>${r.name}</h3><p>${first ? '연구실 함장 훈련이 개방되었습니다. 지금까지의 전공으로 계급이 확정되었습니다.' : '새 계급으로 진급했습니다.'}</p><span class="ct-promotion-buff">${r.bonus ? `함대 공격력 +${pct(r.bonus)} · 내구도 +${pct(r.bonus)}` : '계급 효과 없음'}</span><div class="ct-promotion-actions"><button type="button" class="ct-action" data-ct-goto>함장 훈련으로</button><button type="button" class="ct-action ghost" data-ct-close>확인</button></div></article>`;
+    modal.className = 'ct-modal ct-ceremony ct-promo-modal';
+    modal.innerHTML = `<div class="ct-modal-backdrop"></div><div class="ct-promo-flash" aria-hidden="true"></div><article class="ct-promotion" data-tier="${tierOf(rank)}" role="dialog" aria-modal="true" aria-label="${promoted ? '진급' : '함장 훈련 개방'}">
+      <div class="ct-promo-fx" aria-hidden="true"><i class="ct-promo-rays"></i><i class="ct-promo-rays rev"></i><i class="ct-promo-glow"></i><i class="ct-promo-ring"></i><i class="ct-promo-ring r2"></i><i class="ct-promo-ring r3"></i>${sparks}${embers}</div>
+      <div class="ct-promo-badge">${insignia(rank, 'ct-promotion-badge', { shine: true })}</div>
+      <small>${promoted ? 'PROMOTION' : 'COMMANDER TRAINING ONLINE'}</small>
+      ${promoted ? `<div class="ct-promo-from"><span>${RANKS[from].name}</span><i>▼</i></div>` : ''}
+      <h3>${r.name}</h3>${stats}<p>${message}</p>
+      <div class="ct-promotion-actions${state.unlocked ? '' : ' single'}">${state.unlocked ? '<button type="button" class="ct-action" data-ct-goto>함장 훈련으로</button>' : ''}<button type="button" class="ct-action${state.unlocked ? ' ghost' : ''}" data-ct-close>확인</button></div></article>`;
     document.body.append(modal);
+    if (promoted) countUp(modal);
+  }
+  // 늘어나는 계급 효과를 숫자가 올라가듯 보여 준다.
+  function countUp(modal) {
+    const nodes = [...modal.querySelectorAll('.ct-promo-stats b[data-to]')];
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const finish = () => nodes.forEach(b => { b.textContent = `+${pct(Number(b.dataset.to))}`; b.classList.add('up'); });
+    if (still) { finish(); return; }
+    setTimeout(() => {
+      const t0 = performance.now(), dur = 900;
+      const step = now => {
+        if (!modal.isConnected) return;
+        const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        nodes.forEach(b => { const a = Number(b.dataset.from), z = Number(b.dataset.to); b.textContent = `+${pct(a + (z - a) * e)}`; });
+        if (k < 1) requestAnimationFrame(step); else finish();
+      };
+      requestAnimationFrame(step);
+    }, 1250);
   }
 
   // ── 이벤트 ────────────────────────────────────────────────────────────
   document.addEventListener('click', event => {
     const t = event.target;
-    if (t.closest('[data-ct-close]')) { closeModal(); if (joined.length) showJoin(); return; }
-    if (t.closest('[data-ct-join-ok]')) { closeModal(); if (joined.length) showJoin(); return; }
+    if (t.closest('[data-ct-close]')) { closeModal(); lastCard = null; if (joined.length) showJoin(); return; }
+    if (t.closest('[data-ct-join-ok]')) { closeModal(); if (joined.length) showJoin(); else if (lastCard && isCaptainTabOpen()) openCard(lastCard); return; }
     if (t.closest('[data-ct-goto]')) { closeModal(); window.show?.('summon'); window.summonTab?.('captain'); return; }
-    const train_ = t.closest('[data-ct-train]'); if (train_) { train(train_.dataset.ctTrain); return; }
+    const train_ = t.closest('[data-ct-train]'); if (train_) { train(train_.dataset.ctTrain, Number(train_.dataset.times) || 1); return; }
+    const manual = t.closest('[data-ct-manual]'); if (manual) { useManual(manual.dataset.ctId, manual.dataset.ctManual); return; }
+    const brk = t.closest('[data-ct-break]'); if (brk) { breakthrough(brk.dataset.ctBreak); return; }
+    if (t.closest('[data-ct-again]') && lastTrain) { train(lastTrain.id, lastTrain.runs); return; }
+    if (t.closest('[data-ct-result-ok]') && lastTrain) { const r = lastTrain; closeModal(); if (r.found.length) showDiscovery(r.found[0]); else if (joined.length) showJoin(); else openCard(r.id); return; }
+    const disc = t.closest('[data-ct-discovery-ok]'); if (disc) { const rest = lastTrain?.found?.filter(x => x !== disc.dataset.ctDiscoveryOk) || []; if (lastTrain) lastTrain.found = rest; if (rest.length) showDiscovery(rest[0]); else openCard(disc.dataset.ctDiscoveryOk); return; }
     const rec = t.closest('[data-ct-recruit]'); if (rec) { recruit(rec.dataset.ctRecruit); return; }
     const pick = t.closest('[data-ct-pick]');
     if (pick) {
-      const index = Number(pick.closest('.ct-modal')?.dataset.slot), ship = fleetMain()[index];
-      if (ship) { assignCaptain(ship, pick.dataset.ctPick || null); save(); render(); window.dispatchEvent(new Event('captain-training-updated')); }
+      const index = Number(pick.closest('.ct-modal')?.dataset.slot), ship = fleetMain()[index], id = pick.dataset.ctPick || null;
+      // 전문 함종이 아닌 함선에 태울 때는 능력치 감소를 알리고 한 번 더 묻는다.
+      if (ship && id && byId[id] && byId[id].type !== ship.type && !pick.hasAttribute('data-ct-pick-confirmed')) { openOffSpec(index, id); return; }
+      if (ship) { assignCaptain(ship, id); save(); render(); window.dispatchEvent(new Event('captain-training-updated')); }
       closeModal();
       return;
     }
+    const back = t.closest('[data-ct-pick-back]'); if (back) { openPicker(Number(back.dataset.ctPickBack)); return; }
     if (!pool?.contains(t)) return;
     const slot = t.closest('[data-ct-slot]'); if (slot) { openPicker(Number(slot.dataset.ctSlot)); return; }
     const card = t.closest('[data-ct-open]'); if (card) openCard(card.dataset.ctOpen);
@@ -504,9 +759,9 @@
     battleEffects,
     insignia,
     isUnlocked: () => state.unlocked,
-    rank: () => (state.unlocked ? RANKS[state.rank] : null),
-    rankAbbr: () => (state.unlocked ? RANKS[state.rank].abbr : 'Capt.'),
-    rankIndex: () => (state.unlocked ? state.rank : -1),
+    rank: () => RANKS[state.rank],
+    rankAbbr: () => RANKS[state.rank].abbr,
+    rankIndex: () => state.rank,
     sync
   };
 
@@ -526,5 +781,5 @@
   window.addEventListener('campaign-gate-cleared', () => setTimeout(sync, 60));
   ['fleet-ownership-updated', 'game-resources-updated', 'commander-character-changed'].forEach(name => window.addEventListener(name, () => setTimeout(sync, 30)));
   // 편성 변경은 따로 알림이 없어 주기적으로 계급 조건(함대 수준)을 확인한다.
-  setInterval(() => { if (state.unlocked) sync(); }, 5000);
+  setInterval(sync, 5000);
 })();

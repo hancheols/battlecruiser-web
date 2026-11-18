@@ -21,6 +21,8 @@
     { sku: 'research-crew', itemId: 'researchStaff', name: '연구인력', image: 'icons/research-personnel-20261002.png', detail: '전술무기 연구에 투입할 인력', amount: 1, currency: 'thorium', price: 50, badge: '연구 필수', groups: ['featured', 'supply'] },
     // 보급품 탭의 골드 교환은 오늘의 특가와 따로 두어 수량 제한 없이 계속 판매한다.
     { sku: 'supply-gold-10000', itemId: 'gold', name: '골드', image: 'gold-resource-icon.svg', detail: '토륨 100개로 골드 10,000 교환', amount: 10000, currency: 'thorium', price: 100, badge: '교환', groups: ['supply'], rewardType: 'resource' },
+    { sku: 'training-ticket', itemId: 'captainTicket', name: '훈련티켓', image: 'icons/captain-training-ticket.svg', detail: '연구실 함장 훈련 1회에 사용', amount: 1, currency: 'thorium', price: 100, badge: '훈련 보급', groups: ['supply'] },
+    { sku: 'training-ticket-ten', itemId: 'captainTicket', name: '훈련티켓 묶음', image: 'icons/captain-training-ticket.svg', detail: '훈련티켓 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 900, badge: '10개 묶음', groups: ['supply'] },
     { sku: 'research-crew-ten', itemId: 'researchStaff', name: '연구인력 묶음', image: 'icons/research-personnel-20261002.png', detail: '연구인력 10개를 한 번에 보급', amount: 10, currency: 'thorium', price: 450, badge: '10개 묶음', groups: ['supply'] },
   ];
   const TOKEN_PACKS = [1, 5, 10, 20, 25, 50, 100, 200, 500, 1000];
@@ -40,6 +42,11 @@
     ...[1, 5, 10, 20].map((amount, index) => ({
       sku: `daily-research-${amount}`, itemId: 'researchStaff', name: '연구인력', image: 'icons/research-personnel-20261002.png',
       detail: `토륨 환산가 ${format([5000, 25000, 45000, 90000][index])} 골드 · 20% 할인`, amount, currency: 'gold', price: [4000, 20000, 36000, 72000][index], badge: '20% 할인', groups: ['featured']
+    })),
+    // 훈련티켓: 탐색드론과 같은 기준가(1·5·10·20개), 15개는 10개와 20개 사이 값
+    ...[[1, 10000], [5, 50000], [10, 90000], [15, 135000], [20, 180000]].map(([amount, base]) => ({
+      sku: `daily-training-${amount}`, itemId: 'captainTicket', name: '훈련티켓', image: 'icons/captain-training-ticket.svg',
+      detail: `토륨 환산가 ${format(base)} 골드 · 20% 할인`, amount, currency: 'gold', price: base * 0.8, badge: '20% 할인', groups: ['featured']
     })),
     { sku: 'featured-gold-10000', itemId: 'gold', name: '골드', image: 'gold-resource-icon.svg', detail: '토륨 100개로 골드 10,000 교환', amount: 10000, currency: 'thorium', price: 100, badge: '교환', groups: ['featured'], rewardType: 'resource' },
     ...[50, 100].map((amount, index) => ({
@@ -469,8 +476,8 @@
       button.classList.toggle('active', selected && !membershipOpen);
       button.setAttribute('aria-selected', String(selected));
     });
-    // 보급품 탭은 항상 같은 순서로 보여 준다: 탐색드론 1·10, 연구인력 1·10, 아레나 티켓, 골드 10,000
-    const SUPPLY_ORDER = ['scout-drone', 'scout-drone-ten', 'research-crew', 'research-crew-ten', 'arena-ticket', 'supply-gold-10000'];
+    // 보급품 탭은 항상 같은 순서로 보여 준다: 탐색드론 1·10, 연구인력 1·10, 훈련티켓 1·10, 아레나 티켓, 골드 10,000
+    const SUPPLY_ORDER = ['scout-drone', 'scout-drone-ten', 'research-crew', 'research-crew-ten', 'training-ticket', 'training-ticket-ten', 'arena-ticket', 'supply-gold-10000'];
     const goods = activeTab === 'supply'
       ? SUPPLY_ORDER.map(sku => GOODS.find(good => good.sku === sku) || FEATURED_GOODS.find(good => good.sku === sku)).filter(Boolean)
       : GOODS.filter(good => good.groups.includes(activeTab));

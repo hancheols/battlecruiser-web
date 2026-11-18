@@ -1941,7 +1941,7 @@
   }
 
   // ── 함장 특수기술 ──
-  // 피해 배율: 계급·함장 효과 + 선제 지휘·섬광 일제사격·추격 사격·거함 사냥.
+  // 피해 배율: 계급·함장 효과 + 선제 지휘·섬광 일제사격·추격 사격·거함 사냥·탄막 제압.
   function captainDamageFactor(source, target) {
     if (!source || source.isArenaShip) return 1;
     let factor = 1 + (Number(source.captainDamage) || 0);
@@ -1952,6 +1952,7 @@
     else if (skill.id === 'surge' && source.captainSurge) factor *= 1 + value;
     else if (skill.id === 'execute' && target && target.hp / Math.max(1, target.maxHp) <= skill.threshold) factor *= 1 + value;
     else if (skill.id === 'boss' && target?.kind === 'boss') factor *= 1 + value;
+    else if (skill.id === 'swarm' && target && target.kind !== 'boss') factor *= 1 + value;
     return factor;
   }
   // 받는 피해 배율: 철벽 지휘(내구도 50% 이하)·회피 기동.

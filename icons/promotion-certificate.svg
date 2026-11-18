@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"><defs><filter id="csh" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2"/></filter><filter id="cemb" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="b"/><feSpecularLighting in="b" surfaceScale="3" specularConstant=".9" specularExponent="18" lighting-color="#fff" result="s"><feDistantLight azimuth="225" elevation="42"/></feSpecularLighting><feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="SourceGraphic" in2="s2" operator="arithmetic" k1="0" k2="1" k3=".75" k4="0"/></filter><linearGradient id="cm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6cf"/><stop offset=".28" stop-color="#f4c95d"/><stop offset=".55" stop-color="#a8721a"/><stop offset=".78" stop-color="#ffe28f"/><stop offset="1" stop-color="#a8721a"/></linearGradient>
+  <filter id="cparch" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="4" seed="3" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 .45  0 0 0 0 .3  0 0 0 0 .1  0 0 0 .5 -.12" result="a"/><feComposite in="a" in2="SourceGraphic" operator="in" result="g"/><feBlend in="g" in2="SourceGraphic" mode="multiply"/></filter>
+  <linearGradient id="cpaper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbf0d2"/><stop offset=".6" stop-color="#ead39d"/><stop offset="1" stop-color="#c9a865"/></linearGradient>
+  <radialGradient id="cburn" cx=".5" cy=".5" r=".72"><stop offset=".62" stop-color="#8a5a1c" stop-opacity="0"/><stop offset="1" stop-color="#6b3f10" stop-opacity=".55"/></radialGradient>
+  <linearGradient id="croll" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c79f5c"/><stop offset=".35" stop-color="#fff3d2"/><stop offset=".6" stop-color="#e2c486"/><stop offset="1" stop-color="#7d5a24"/></linearGradient>
+  <linearGradient id="crod" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a2e12"/><stop offset=".4" stop-color="#a5622e"/><stop offset="1" stop-color="#2b1407"/></linearGradient>
+  <radialGradient id="cwax" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".45" stop-color="#c8192e"/><stop offset="1" stop-color="#5e0612"/></radialGradient>
+  <linearGradient id="crib" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e0a18"/><stop offset=".5" stop-color="#d42a3f"/><stop offset="1" stop-color="#6e0a18"/></linearGradient></defs><ellipse cx="64" cy="116" rx="52" ry="7" fill="#000" opacity=".5" filter="url(#csh)"/>
+  <g transform="rotate(-6 64 64)">
+    <path d="M18 22h92v74H18z" fill="url(#cpaper)" filter="url(#cparch)"/>
+    <path d="M18 22h92v74H18z" fill="url(#cburn)"/>
+    <path d="M24 28h80v62H24z" fill="none" stroke="#8a6526" stroke-opacity=".7" stroke-width="1"/>
+    <path d="M26.5 30.5h75v57h-75z" fill="none" stroke="#8a6526" stroke-opacity=".4" stroke-width=".6"/>
+    <text x="64" y="44" text-anchor="middle" fill="#4a3214" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-weight="700" font-size="10">Commission</text>
+    <path d="M30 52h68" stroke="#5b4220" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/><path d="M30 59h60" stroke="#5b4220" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/><path d="M30 66h68" stroke="#5b4220" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/><path d="M30 73h60" stroke="#5b4220" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/><path d="M30 80h34" stroke="#5b4220" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>
+    <rect x="14" y="14" width="100" height="12" rx="6" fill="url(#croll)"/><path d="M18 17h92" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>
+    <rect x="8" y="16" width="8" height="8" rx="3" fill="url(#crod)"/><rect x="112" y="16" width="8" height="8" rx="3" fill="url(#crod)"/>
+    <circle cx="8" cy="20" r="3.6" fill="url(#cm)"/><circle cx="120" cy="20" r="3.6" fill="url(#cm)"/><rect x="14" y="90" width="100" height="12" rx="6" fill="url(#croll)"/><path d="M18 93h92" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>
+    <rect x="8" y="92" width="8" height="8" rx="3" fill="url(#crod)"/><rect x="112" y="92" width="8" height="8" rx="3" fill="url(#crod)"/>
+    <circle cx="8" cy="96" r="3.6" fill="url(#cm)"/><circle cx="120" cy="96" r="3.6" fill="url(#cm)"/>
+  </g>
+  <g transform="translate(86 86)">
+    <path d="M-6 6l-9 22 6-3 4 6 6-21z" fill="url(#crib)"/><path d="M6 6l9 22-6-3-4 6-6-21z" fill="url(#crib)"/>
+    <path d="M0-15c4 0 6 3 9 3s5 3 5 6 3 4 3 7-3 4-3 7-3 4-5 5-6 3-9 3-6-3-9-3-5-3-5-5-3-4-3-7 3-4 3-7 3-6 5-6 5-3 9-3z" fill="url(#cwax)" filter="url(#cemb)"/>
+    <circle r="9.5" fill="none" stroke="#5e0612" stroke-opacity=".6" stroke-width="1.2"/>
+    <path d="M0-6.5l1.9 4 4.4.4-3.3 3 1 4.4L0 3l-4 2.3 1-4.4-3.3-3 4.4-.4z" fill="#ff8f8f" fill-opacity=".55" filter="url(#cemb)"/>
+    <ellipse cx="-4" cy="-8" rx="4" ry="2" fill="#fff" opacity=".35"/>
+  </g></svg>
