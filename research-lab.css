@@ -707,3 +707,50 @@
 #summon.screen{overflow:clip}
 #app:has(#summon.screen.active){overflow:clip}
 #summon .summon-tabs{position:sticky;top:var(--research-tabs-top,108px);z-index:15;box-shadow:0 -14px 0 #08111f,0 9px 22px #0009,inset 0 1px #b9e8ff18}
+
+/* 함선 탐색 천장 보강: L급 보너스 카운트 · 탐색 포인트 줄 */
+#summon #ship-pool .scout-points-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:6px 8px;border:1px solid #304861;border-radius:9px;background:linear-gradient(180deg,#0a1626f2,#050c17f2);font-family:var(--font-body);font-size:12px;color:#c6d6e8}
+.scout-points-bar .scout-pity-l{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.scout-points-bar .scout-pity-l i{display:grid;place-items:center;width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,#ff9aa8,#c8203e);color:#fff;font-style:normal;font-family:var(--font-num);font-weight:700;font-size:11px}
+.scout-points-bar b{font-family:var(--font-num);font-size:14px;color:#fff}
+.scout-points-bar .scout-points{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.scout-points-bar .scout-points img{width:20px;height:20px;object-fit:contain}
+.scout-points-bar .scout-points-open{padding:4px 10px;border:1px solid #7fe3ff88;border-radius:7px;background:linear-gradient(180deg,#1d6b9a,#0d3a5a);color:#eaf6ff;font-family:var(--font-body);font-size:11px;font-weight:700;cursor:pointer}
+@media (max-width:380px){#summon #ship-pool .scout-points-bar{font-size:11px;gap:5px}.scout-points-bar .scout-points img{display:none}}
+
+/* 탐색 결과 카드 꼬리표: 100회 L급 보너스 · 10회 SR 보장 */
+.ship-exploration-card .ship-guaranteed-tag.bonus-l{border-color:#ffd0d8;background:linear-gradient(110deg,#6e0f22,#e0455f,#6e0f22);box-shadow:0 0 13px #ff6b84}
+.ship-exploration-card .ship-guaranteed-tag.sr-guaranteed{border-color:#e7cbff;background:linear-gradient(110deg,#3b1d5d,#b653ff,#3b1d5d);box-shadow:0 0 13px #b653ff}
+
+/* 탐색 포인트 교환소 */
+.scout-point-shop{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;background:#020610cc;font-family:var(--font-body);color:#eaf4ff}
+.scout-point-dialog{width:min(420px,100%);max-height:calc(100dvh - 32px);overflow:auto;display:grid;gap:10px;padding:16px;border:1px solid #7fe3ff55;border-radius:16px;background:linear-gradient(170deg,#0f1f34,#08121f);box-shadow:0 24px 50px #000c}
+.scout-point-dialog header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.scout-point-dialog header small{display:block;font-family:var(--font-num);font-size:10px;letter-spacing:.14em;color:#8fdcff}
+.scout-point-dialog h2{margin:2px 0 0;font-family:var(--font-display);font-weight:400;font-size:21px}
+.scout-point-close{width:32px;height:32px;border:0;border-radius:50%;background:#0a1626;color:#eaf4ff;font-size:20px;cursor:pointer}
+.scout-point-balance{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin:0;padding:8px 10px;border-radius:10px;background:#06101dcc;border:1px solid #7fe3ff22;font-size:12px;color:#c6d6e8}
+.scout-point-balance b{font-family:var(--font-num);font-size:18px;color:#fff}
+.scout-point-balance span{color:#8da7c2;font-size:11px}
+.scout-point-balance em{font-style:normal;font-size:11px;font-weight:700;color:#ffd76a}
+.scout-point-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.scout-point-tabs button{display:grid;gap:1px;padding:6px 4px;border:1px solid #ffffff22;border-radius:9px;background:#070d1a;color:#c6d6e8;font-family:var(--font-num);font-weight:700;font-size:13px;cursor:pointer}
+.scout-point-tabs button small{font-size:10px;color:#8da7c2}
+.scout-point-tabs button.selected.rarity-SR{border-color:#b653ff;box-shadow:0 0 10px #b653ff88;color:#e7cbff}
+.scout-point-tabs button.selected.rarity-SSR{border-color:#e4a72d;box-shadow:0 0 10px #ffd45b88;color:#ffe08a}
+.scout-point-tabs button.selected.rarity-L{border-color:#ff6b84;box-shadow:0 0 10px #ff6b8488;color:#ffc2cc}
+.scout-point-lock{margin:0;padding:8px 10px;border-radius:9px;border:1px solid #ff7a8a66;background:#3a142433;font-size:12px;line-height:1.5;color:#ffc2cc}
+.scout-point-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.scout-point-ship{display:grid;justify-items:center;gap:3px;padding:7px 4px;border:1px solid #ffffff22;border-radius:10px;background:#070d1a;color:#eaf4ff;font-family:var(--font-body);cursor:pointer;min-width:0}
+.scout-point-ship img{width:100%;aspect-ratio:4/3;object-fit:contain}
+.scout-point-ship b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.scout-point-ship span{font-family:var(--font-num);font-size:11px;font-weight:700;color:#7fe3ff}
+.scout-point-ship.rarity-card-SR{border-color:#b653ff88}
+.scout-point-ship.rarity-card-SSR{border-color:#e4a72d88}
+.scout-point-ship.rarity-card-L{border-color:#ff6b8488}
+.scout-point-ship:disabled{opacity:.45;cursor:default}
+
+/* 확률 안내의 확정 조건 */
+.probability-pity{margin:8px 0 0;padding:8px 10px 8px 24px;border-radius:8px;background:#06101dcc;border:1px solid #ffd76a44;font-size:11px;line-height:1.55;color:#d6e2ef}
+.probability-pity b{color:#ffd76a}
+#probability-popup article{max-height:calc(100dvh - 16px);overflow:auto}

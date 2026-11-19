@@ -1243,7 +1243,7 @@ function initializeFleetFormation(){
       </div>
       <button type="button" class="precision-help" aria-label="정밀탐색 확률 보기">?</button>
       <div class="precision-rate-info" hidden><div class="precision-rate-card"><h3>정밀탐색 확률</h3>
-        <ul><li><span>L급 함선</span><b>2%</b></li><li><span>SSR급 함선</span><b>7%</b></li><li><span>SR급 함선</span><b>35%</b></li><li><span>R급 함선</span><b>45%</b></li><li><span>함선골조</span><b>10%</b></li><li><span>태양티끌</span><b>1%</b></li></ul>
+        <ul><li><span>L급 함선</span><b>2%</b></li><li><span>SSR급 함선</span><b>7%</b></li><li><span>SR급 함선</span><b>35%</b></li><li><span>R급 함선</span><b>45%</b></li><li><span>함선골조</span><b>10%</b></li><li><span>태양티끌</span><b>1%</b></li></ul><ul class="probability-pity precision-pity"><li><b>50회</b>마다 선택한 SSR 함선 확정(그 회차 결과 대신)</li><li><b>100회</b>마다 무작위 L급 함선 1척 추가 지급</li><li><b>10회 탐색</b> 시 SR급 이상 함선 1척 이상 보장</li><li>탐색 1회마다 <b>탐색 포인트 1점</b> · SR 30P / SSR 100P / L급 300P(Membership 전용, Membership 20% 할인)</li></ul>
         <button type="button" class="precision-rate-close">확인</button></div></div>
     </div>`;
     document.body.append(popup);
@@ -1266,11 +1266,14 @@ function initializeFleetFormation(){
   document.getElementById('precision-search-button')?.addEventListener('click',openPrecisionSearch);
   const ssrGuaranteeShips=explorationShips.filter(ship=>ship.rarity==='SSR');
   const ssrGuaranteeStorageKey='starfleet-ssr-guarantee-v1';
-  let ssrGuaranteeState={selectedShipKey:shipKey(ssrGuaranteeShips[0]),draws:0};
+  // draws: 50회 SSR 확정(그 회차 결과 대체) 카운터 / lDraws: 100회 L급 추가 지급 카운터 / points: 탐색 포인트(탐색 1회당 1점)
+  let ssrGuaranteeState={selectedShipKey:shipKey(ssrGuaranteeShips[0]),draws:0,lDraws:0,points:0};
   try{
     const saved=JSON.parse(localStorage.getItem(ssrGuaranteeStorageKey)||'{}');
     if(ssrGuaranteeShips.some(ship=>shipKey(ship)===saved.selectedShipKey))ssrGuaranteeState.selectedShipKey=saved.selectedShipKey;
     ssrGuaranteeState.draws=Math.max(0,Math.floor(Number(saved.draws)||0))%50;
+    ssrGuaranteeState.lDraws=Math.max(0,Math.floor(Number(saved.lDraws)||0))%100;
+    ssrGuaranteeState.points=Math.max(0,Math.floor(Number(saved.points)||0));
   }catch{}
   const selectedSsrGuaranteeShip=()=>ssrGuaranteeShips.find(ship=>shipKey(ship)===ssrGuaranteeState.selectedShipKey)||ssrGuaranteeShips[0];
   const saveSsrGuarantee=()=>{try{localStorage.setItem(ssrGuaranteeStorageKey,JSON.stringify(ssrGuaranteeState));}catch{}};
@@ -1281,6 +1284,47 @@ function initializeFleetFormation(){
     const remainingDraws=50-ssrGuaranteeState.draws;
     ssrGuaranteePanel.innerHTML=`<div class="ssr-guarantee-spark-layer" aria-hidden="true"><i><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></i></div><button type="button" class="ssr-guarantee-selected" aria-label="확정 획득 함선 선택: ${ship.name}"><span class="ssr-guarantee-image"><img src="${ship.image}" alt="${ship.name}"/><i>SSR</i></span></button><span class="ssr-guarantee-countdown" aria-label="확정 획득까지 ${remainingDraws}회 남음">확정까지 <b>${remainingDraws}</b>회</span>`;
     ssrGuaranteePanel.querySelector('.ssr-guarantee-selected').onclick=openSsrGuaranteePicker;
+    renderScoutPointsBar();
+  };
+  // ── 탐색 포인트 교환소: 포인트는 모두에게 쌓이고, SR·SSR 교환은 누구나, L급 교환과 20% 할인은 Membership 전용 ──
+  const SCOUT_POINT_PRICES={SR:30,SSR:100,L:300};
+  const SCOUT_MEMBER_DISCOUNT=.8;
+  const scoutMembership=()=>{try{return localStorage.getItem('starfleet-membership-unlocked-v1')==='1';}catch{return false;}};
+  const scoutPointPrice=rarity=>Math.round(SCOUT_POINT_PRICES[rarity]*(scoutMembership()?SCOUT_MEMBER_DISCOUNT:1));
+  let scoutPointsBar=null;
+  const renderScoutPointsBar=()=>{
+    if(!scoutPointsBar)return;
+    const leftL=100-ssrGuaranteeState.lDraws;
+    scoutPointsBar.innerHTML=`<span class="scout-pity-l"><i>L</i>무작위 L급 추가까지 <b>${leftL}</b>회</span><span class="scout-points"><img src="icons/scout-drone.png?v=20260929-2" alt=""/><span>탐색 포인트 <b>${ssrGuaranteeState.points.toLocaleString('ko-KR')}</b></span><button type="button" class="scout-points-open">교환</button></span>`;
+    scoutPointsBar.querySelector('.scout-points-open').onclick=()=>openScoutPointShop('SR');
+  };
+  const openScoutPointShop=(tab='SR')=>{
+    document.querySelector('.scout-point-shop')?.remove();
+    const member=scoutMembership();
+    const overlay=document.createElement('div');overlay.className='scout-point-shop';
+    // 프리깃은 한 척만 가질 수 있으므로 이미 얻은 프리깃은 교환 목록에서 뺀다.
+    const ships=explorationShips.filter(ship=>ship.rarity===tab&&(ship.type!=='frigate'||!discoveredShips[shipKey(ship)]));
+    const locked=tab==='L'&&!member,price=scoutPointPrice(tab);
+    overlay.innerHTML=`<section class="scout-point-dialog" role="dialog" aria-modal="true" aria-label="탐색 포인트 교환"><header><div><small>SCOUT POINT EXCHANGE</small><h2>탐색 포인트 교환</h2></div><button type="button" class="scout-point-close" aria-label="닫기">×</button></header>
+      <p class="scout-point-balance">보유 포인트 <b>${ssrGuaranteeState.points.toLocaleString('ko-KR')}</b><span>탐색 1회마다 1포인트</span>${member?'<em>Membership 20% 할인 적용</em>':''}</p>
+      <nav class="scout-point-tabs">${['SR','SSR','L'].map(r=>`<button type="button" data-scout-tab="${r}" class="rarity-${r}${r===tab?' selected':''}">${r}급<small>${scoutPointPrice(r)}P</small></button>`).join('')}</nav>
+      ${locked?'<p class="scout-point-lock">L급 함선 교환은 <b>Membership 이용자 전용</b>입니다. 외계 상점에서 Membership을 열면 L급 교환과 20% 할인이 적용됩니다.</p>':''}
+      <div class="scout-point-grid">${ships.map(ship=>`<button type="button" class="scout-point-ship rarity-card-${ship.rarity}" data-scout-ship="${shipKey(ship)}" ${locked||ssrGuaranteeState.points<price?'disabled':''}><img src="${ship.image}" alt=""/><b>${ship.name}</b><span>${price}P</span></button>`).join('')}</div>
+    </section>`;
+    document.body.append(overlay);
+    overlay.querySelector('.scout-point-close').onclick=()=>overlay.remove();
+    overlay.addEventListener('click',event=>{
+      if(event.target===overlay){overlay.remove();return;}
+      const tabButton=event.target.closest('[data-scout-tab]');if(tabButton){openScoutPointShop(tabButton.dataset.scoutTab);return;}
+      const pick=event.target.closest('[data-scout-ship]');if(!pick||pick.disabled)return;
+      const ship=ships.find(candidate=>shipKey(candidate)===pick.dataset.scoutShip);if(!ship)return;
+      if(tab==='L'&&!scoutMembership())return;
+      const cost=scoutPointPrice(tab);if(ssrGuaranteeState.points<cost){window.notice?.('탐색 포인트가 부족합니다.');return;}
+      ssrGuaranteeState.points-=cost;saveSsrGuarantee();
+      discoveredShips[shipKey(ship)]=true;saveDiscoveredShips();window.acquireFleetShip(ship);window.refreshFleetSlotStars?.();
+      renderScoutPointsBar();overlay.remove();
+      window.notice?.(`탐색 포인트 ${cost}점으로 ${ship.name}을(를) 획득했습니다.`);
+    });
   };
   const openSsrGuaranteePicker=()=>{
     document.querySelector('.ssr-guarantee-picker-overlay')?.remove();
@@ -1354,6 +1398,7 @@ function initializeFleetFormation(){
     window.addEventListener('game-screen-changed',event=>{if(event.detail?.screen==='summon')window.syncExplorationCostLabels();});
     ssrGuaranteePanel=document.createElement('section');ssrGuaranteePanel.className='ssr-guarantee-panel';
     explorationPool.querySelector('.summon-actions')?.insertAdjacentElement('afterend',ssrGuaranteePanel);
+    scoutPointsBar=document.createElement('div');scoutPointsBar.className='scout-points-bar';ssrGuaranteePanel.insertAdjacentElement('afterend',scoutPointsBar);
     renderSsrGuaranteePanel();
   }
   const clearResearchUpdateNotice=panel=>{
@@ -1418,13 +1463,23 @@ function initializeFleetFormation(){
     }
     removeShipExploreOverlay();
     if(freeUsed){markFreeSearchUsed();window.syncExplorationCostLabels?.();}
+    let bonusL=0;
     const draws=Array.from({length:count},()=>{
       const guaranteed=ssrGuaranteeState.draws===49;
       const draw=guaranteed?{kind:'ship',ship:selectedSsrGuaranteeShip(),guaranteed:true}:drawExplorationReward();
       ssrGuaranteeState.draws=(ssrGuaranteeState.draws+1)%50;
+      ssrGuaranteeState.lDraws=(ssrGuaranteeState.lDraws+1)%100;if(ssrGuaranteeState.lDraws===0)bonusL+=1;
+      ssrGuaranteeState.points+=1;
+      return draw;
+    });
+    const pickShip=rarity=>{const pool=activeExplorationShips().filter(ship=>ship.rarity===rarity),all=explorationShips.filter(ship=>ship.rarity===rarity),list=pool.length?pool:all;return list[Math.floor(Math.random()*list.length)];};
+    // 10회 탐색: SR 이상 함선이 하나도 없으면 마지막 결과를 무작위 SR 함선으로 바꾼다.
+    if(count===10&&!draws.some(draw=>draw.kind==='ship'&&['SR','SSR','L'].includes(draw.ship.rarity))){const ship=pickShip('SR');if(ship)draws[draws.length-1]={kind:'ship',ship,srGuaranteed:true};}
+    // 100회마다: 그 회차 결과는 그대로 두고 무작위 L급 함선 1척을 추가로 준다.
+    for(let index=0;index<bonusL;index+=1){const ship=pickShip('L');if(ship)draws.push({kind:'ship',ship,bonusL:true});}
+    draws.forEach(draw=>{
       if(draw.kind==='item')window.grantExplorationLoot(draw.itemId,draw.count);
       else{const key=shipKey(draw.ship);draw.firstDiscovery=!discoveredShips[key];discoveredShips[key]=true;window.acquireFleetShip(draw.ship);}
-      return draw;
     });
     saveSsrGuarantee();renderSsrGuaranteePanel();
     saveDiscoveredShips();
@@ -1443,7 +1498,7 @@ function initializeFleetFormation(){
       const promoted=rarity!==ship.baseRarity,durability=enhancedStat(profile?.[0],progress.stars,rarity,promoted&&ship.baseRarity),dps=enhancedStat(profile?.[2],progress.stars,rarity,promoted&&ship.baseRarity),skillStars=retainedSkillStars(ship,progress.stars,rarity),labels=['무기 종류','내구도','DPS','핵심기술',`보조기술${skillRequirementMarkup(skillStars,'aux',rarity,ship)}`,`최종기술${skillRequirementMarkup(skillStars,'ultimate',rarity,ship)}`];
       const values=profile?[weaponLabels(profile,progress.stars),durability===null?'—':durability.toLocaleString('ko-KR'),dps===null?'—':skillAdjustedDps(ship,dps,skillStars).toLocaleString('ko-KR'),skillTitleOnly(coreSkillDescription(ship,skillStars,profile)),skillTitleOnly(skillStateMarkup(ship,skillStars,'aux',rarity)),skillTitleOnly(skillStateMarkup(ship,skillStars,'ultimate',rarity))]:['—','—','—','—','—','—'];
       // 상세화면 카드와 같은 내부 구조를 공유한다. 획득 화면에서는 강화 별과 조작 버튼만 숨긴다.
-      return `<span class="ship-detail-rarity rarity-badge rarity-${rarity}" data-rarity="${rarity}">${rarity}</span>${draw.guaranteed?'<span class="ship-guaranteed-tag">50회 확정 획득</span>':''}<div class="ship-detail-image"><img src="${ship.image}" alt="${ship.name}"/></div><h2><span class="ship-detail-name">${ship.name}</span><small>${typeDisplayLabels[codexType]||'함선'}</small></h2><p class="ship-detail-class"></p><div class="ship-detail-stats">${labels.map((label,i)=>`<div><b>${label}</b><span>${values[i]}</span></div>`).join('')}</div>`;
+      return `<span class="ship-detail-rarity rarity-badge rarity-${rarity}" data-rarity="${rarity}">${rarity}</span>${draw.guaranteed?'<span class="ship-guaranteed-tag">50회 확정 획득</span>':draw.bonusL?'<span class="ship-guaranteed-tag bonus-l">100회 보너스 L급</span>':draw.srGuaranteed?'<span class="ship-guaranteed-tag sr-guaranteed">10회 탐색 SR 보장</span>':''}<div class="ship-detail-image"><img src="${ship.image}" alt="${ship.name}"/></div><h2><span class="ship-detail-name">${ship.name}</span><small>${typeDisplayLabels[codexType]||'함선'}</small></h2><p class="ship-detail-class"></p><div class="ship-detail-stats">${labels.map((label,i)=>`<div><b>${label}</b><span>${values[i]}</span></div>`).join('')}</div>`;
     };
     if(count===10){
       // 뒤쪽 카드도 동일한 상세정보 카드 구조를 사용해 첫 카드 뒤에 층층이 쌓는다.
