@@ -488,6 +488,10 @@ function initializeFleetFormation(){
     'frigate:건설드론':[null,'지원',null,'일반공격 없음','긴급 수복 · 최대 내구도 8%'],
     'frigate:리틀보이':[null,'폭탄',null,'일반공격 없음','핵폭탄 투하 1000']
   };
+  // 콜라보 예정 함선: 콜라보가 확정될 때까지 도감·격납고·함선 선택·상점 등 어느 화면에도 보이지 않게 목록에서 뺀다.
+  // 다시 쓰려면 이 목록에서 이름을 지우면 된다(전투 데이터와 이미지는 그대로 남아 있다).
+  const collabHiddenShips=new Set(['우주항모','히페리온']);
+  Object.keys(fleetShips).forEach(type=>{fleetShips[type]=fleetShips[type].filter(([name])=>!collabHiddenShips.has(name));});
   const availableFleetShips=Object.entries(fleetShips).flatMap(([type,ships])=>ships.map(([name,,image,rarity])=>{
     const profile=combatProfiles[`${type}:${name}`];
     return {name,baseRarity:rarity,stats:profile?`내구 ${profile[0]??'—'} · DPS ${profile[2]??'—'}`:'—',image,rarity,type,profile};
@@ -817,7 +821,7 @@ function initializeFleetFormation(){
   hangarButton.classList.add('fleet-hangar-button');
   hangarButton.setAttribute('aria-label','격납고 · 보유 함선과 함선 도감');hangarButton.title='격납고';
   hangarButton.innerHTML='<span class="fleet-hangar-copy"><b>격납고</b><small>HANGAR</small></span>';
-  ['DreadNouht','BattleCruiser','Destroyer','Frigate'].forEach((name,i)=>{stage.insertAdjacentHTML('beforeend',`<div class="formation-slot slot-${i}" data-fleet-slot="${i}" data-slot-role="${name}" aria-label="${name} slot"><div class="hologram-mount"></div><div class="hologram-base" aria-hidden="true"><span>＋</span><span class="hologram-ticker"></span><span class="empty-hologram">함선 배치</span></div><span class="pedestal-label" aria-hidden="true"></span>${i===3?'<span class="frigate-slot-lock" aria-hidden="true">🔒</span><span class="frigate-slot-warning" role="status" hidden></span>':''}</div>`);});
+  ['Dreadnought','BattleCruiser','Destroyer','Frigate'].forEach((name,i)=>{stage.insertAdjacentHTML('beforeend',`<div class="formation-slot slot-${i}" data-fleet-slot="${i}" data-slot-role="${name}" aria-label="${name} slot"><div class="hologram-mount"></div><div class="hologram-base" aria-hidden="true"><span>＋</span><span class="hologram-ticker"></span><span class="empty-hologram">함선 배치</span></div><span class="pedestal-label" aria-hidden="true"></span>${i===3?'<span class="frigate-slot-lock" aria-hidden="true">🔒</span><span class="frigate-slot-warning" role="status" hidden></span>':''}</div>`);});
   let power=1280,timer;
   window.getFleetPower=()=>power;
   window.setFleetPower=value=>{
@@ -1180,10 +1184,10 @@ function initializeFleetFormation(){
   // Membership Service: L급 함선 목록과 지급(이름으로 찾아 획득 처리)
   window.getLClassShips=()=>availableFleetShips.filter(ship=>ship.rarity==='L'&&!ship.isFrame);
   window.grantMembershipShip=name=>{const ship=availableFleetShips.find(candidate=>candidate.rarity==='L'&&candidate.name===name);if(!ship)return false;window.acquireFleetShip(ship);return true;};
-  // 테스트 쿠폰: 코드마다 한 기기에서 한 번만 쓸 수 있다. 함선은 함대 편성은 건드리지 않고 보유 목록에만 1척씩 넣는다.
-  // 정식 쿠폰은 서버에서 코드·기한·횟수를 확인하는 방식으로 다시 만들어야 하며, 이 코드는 앱 파일에 보이므로 출시 전에 제거한다.
+  // 쿠폰: 코드마다 한 기기에서 한 번만 쓸 수 있다. 함선은 함대 편성은 건드리지 않고 보유 목록에만 1척씩 넣는다.
+  // 테스트용 코드는 앱 파일에 그대로 보이므로 출시 전에 모두 지웠다. 정식 쿠폰은 서버에서 코드·기한·횟수를 확인하는 방식으로 만든다.
   const COUPON_STORAGE_KEY='starfleet-coupons-v1';
-  const COUPONS={RYU1:{ships:'L'}};
+  const COUPONS={};
   const usedCoupons=()=>{try{const list=JSON.parse(localStorage.getItem(COUPON_STORAGE_KEY)||'[]');return Array.isArray(list)?list:[];}catch{return [];}};
   window.redeemCoupon=rawCode=>{
     const code=String(rawCode||'').trim().toUpperCase().replace(/\s+/g,'');
@@ -1571,7 +1575,7 @@ function initializeFleetFormation(){
   const openShipPicker=slotIndex=>{
     if(Number(slotIndex)===3&&!isFrigateUnlocked()){showFrigateLockWarning();return;}
     const slot=stage.querySelector(`[data-fleet-slot="${slotIndex}"]`),role=slot?.dataset.slotRole||'함대';
-    panel.dataset.pickerSlot=String(slotIndex);panel.hidden=false;panel.classList.remove('fleet-codex-popup','fleet-hangar-popup');panel.classList.add('fleet-ship-picker-popup');panel.querySelector('h2').textContent=`${role} · 함선 선택`;clearSlotButton.hidden=!fleetAssignments[slotIndex];
+    panel.dataset.pickerSlot=String(slotIndex);panel.hidden=false;panel.classList.remove('fleet-codex-popup','fleet-hangar-popup');panel.classList.add('fleet-ship-picker-popup');panel.querySelector('h2').innerHTML=`<small class="fleet-picker-role">${role}</small><span>함선 선택</span>`;clearSlotButton.hidden=!fleetAssignments[slotIndex];
     clearSlotButton.onclick=()=>{assignFleetShip(slotIndex,null);panel.hidden=true;};
     const renderChoices=()=>{
       const ships=sortedFleetShips(fleetPickerSortMode).flatMap(ship=>shipVariants(ship).filter(variant=>variant.copies>0).map(variant=>({...ship,rarity:variant.rarity||ship.rarity,enhancementStars:variant.stars,variantRarity:variant.rarity||ship.rarity,variantCopies:variant.copies}))).filter(ship=>slotIndex===3?ship.type==='frigate':ship.type!=='frigate');

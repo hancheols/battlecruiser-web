@@ -736,3 +736,8 @@ body{background:#10192a}#app{isolation:isolate;background:#193453}#app::before{d
 }
 /* 타파오 통 행성 그림은 작전지역과 관계없이 항상 같은 위치와 색으로 보여준다 */
 .tapao-scene>img{object-position:30% 55%}
+/* 함선 선택 팝업: 제목은 슬롯 이름 / 함선 선택 두 줄, '슬롯 비우기'는 작은 글자로 한 줄 */
+.fleet-ship-picker-popup>header h2{display:grid;gap:2px;line-height:1.15;min-width:0}
+.fleet-ship-picker-popup>header h2 .fleet-picker-role{font-family:var(--font-num);font-size:11px;font-weight:700;letter-spacing:.08em;color:#8fdcff}
+.formation-panel header .slot-clear-button{flex:none;padding:6px 9px;border:1px solid #ff7690;border-radius:6px;background:#52172a;color:#ffe7ed;font-family:var(--font-body);font-size:11px;font-weight:800;line-height:1.2;white-space:nowrap}
+.formation-panel header .slot-clear-button:hover,.formation-panel header .slot-clear-button:focus-visible{background:#8a233d;box-shadow:0 0 10px #ff4c70;outline:none}

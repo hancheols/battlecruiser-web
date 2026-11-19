@@ -1303,7 +1303,8 @@
     if (!spire?.built || state.status !== 'combat') return;
     const g = spireGeometry();
     if (g && g.key !== spire.geoKey) layoutGoldenSpire(g);
-    const allies = state.allies.filter(ally => !ally.dead);
+    // 천상의 보호막이 켜져 있으면 보호막만 노린다.
+    const allies = shieldOrAllyShips();
     let remaining = 0;
     spire.towers.forEach(tower => {
       if (tower.dead) return;
@@ -4218,7 +4219,7 @@
   function castFourWingElectricNet(boss) {
     if (!boss || boss.dead || state?.status !== 'combat') return;
     const ships = (state.allies || []).filter(ally => !ally.dead);
-    const target = ships.find(ally => ally.role === '선봉') || ships[Math.floor(Math.random() * ships.length)];
+    const target = activeCelestialShieldTarget() || ships.find(ally => ally.role === '선봉') || ships[Math.floor(Math.random() * ships.length)];
     boss.fourWingChargeTimer = 3000;
     boss.fourWingVolleyRemaining = 0;
     boss.fourWingVolleyCooldown = 0;
@@ -4232,6 +4233,7 @@
     refs.effects.append(orb);
     schedule(() => orb.remove(), NEMESIS_NET.travel + 50);
     schedule(() => {
+      if (target.isCelestialShield) { if (!target.dead && state?.status === 'combat') hitCelestialShield(target, pointOf(target), boss, 0); return; }
       if (target.dead || state?.status !== 'combat' || isAllyStatusImmune(target)) return;
       const point = pointOf(target);
       const netDuration = 3000;
@@ -12099,7 +12101,7 @@
       if (turret.walker && !turret.planted) return;
       turret.nextShot -= dt;
       if (turret.nextShot > 0) return;
-      const targets = state.allies.filter(ally => !ally.dead);
+      const targets = shieldOrAllyShips();
       if (!targets.length) return;
       const source = { kind: 'turret', variant: 'tapao-turret', x: turret.x, y: turret.y };
       turret.el.classList.add('firing');
@@ -12317,6 +12319,7 @@
     schedule(() => {
       projectile.remove();
       if (!state || state.status !== 'combat' || target.dead) return;
+      if (target.isCelestialShield) { hitCelestialShield(target, to, source, damage); return; }
       dealAllyDamage(target, damage, source);
     }, 160);
   }
@@ -12338,7 +12341,8 @@
     if (base.map) positionNeptuneMap(base, state.elapsed);
     base.timer -= dt;
     if (base.gate === 2 && base.timer <= 0 && base.robotSpawned < NEPTUNE_BASE.robot.total) { base.timer = NEPTUNE_BASE.robot.every; spawnNeptuneRobot(); }
-    const allies = state.allies.filter(ally => !ally.dead);
+    const allies = shieldOrAllyShips();
+    const celestialGuard = activeCelestialShieldTarget();
     units.forEach(unit => {
       if (unit.unitType === 'facility') {
         unit.el.querySelector('.nu-hp i').style.width = `${Math.max(0, unit.hp / unit.maxHp * 100)}%`;
@@ -12371,7 +12375,8 @@
         return;
       }
       unit.targetTime -= dt;
-      if (!unit.target || unit.target.dead || unit.targetTime <= 0) { unit.target = allies[Math.floor(Math.random() * allies.length)]; unit.targetTime = 1500; }
+      if (celestialGuard) unit.target = celestialGuard;
+      else if (!unit.target || unit.target.dead || unit.target.isCelestialShield || unit.targetTime <= 0) { unit.target = allies[Math.floor(Math.random() * allies.length)]; unit.targetTime = 1500; }
       unit.el.classList.toggle('firing', unit.nextShot <= 0);
       while (unit.nextShot <= 0) {
         unit.nextShot += NEPTUNE_BASE.gun.interval;
@@ -12943,6 +12948,12 @@
     const now = performance.now();
     if (!guard || guard.dead || now < guard.activeAt || now >= guard.expiresAt) return null;
     return guard;
+  }
+
+  // 시설형 적(황금첨탑·타파오 포탑·해왕성 기지)의 대상: 보호막이 켜져 있으면 보호막, 아니면 살아 있는 아군 함선.
+  function shieldOrAllyShips() {
+    const guard = activeCelestialShieldTarget();
+    return guard ? [guard] : (state?.allies || []).filter(ally => !ally.dead);
   }
 
   function hostileAllyTargets() {
