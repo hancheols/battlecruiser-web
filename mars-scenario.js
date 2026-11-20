@@ -1143,7 +1143,7 @@
     'katm5-volkov-suspicion':{index:11,flag:'katm5VolkovSuspicionGiftGranted',kicker:'VOLKOV · PERSONAL GIFT',title:'볼코프의 선물',rewards:{scoutTron:10,thorium:300}},
     'atm10-lab':{index:0,flag:'atm10SupplyRewardGranted',kicker:'ADMIRAL HAN · FLEET SUPPLY',title:'사령본부 전투 물자',rewards:{scoutTron:50,researchStaff:50,thorium:500,frameTicket:1}},
     'tas10-volkov':{index:8,flag:'tas10VolkovRewardGranted',kicker:'VOLKOV · FLEET SUPPLY',title:'볼코프의 지원 물자',rewards:{scoutTron:10,researchStaff:10}},
-    'titan-fall':{index:3,flag:'titanFallRewardGranted',kicker:'TITAN · FORWARD BASE EVACUATION',title:'전진기지 물자 인수',rewards:{scoutTron:30,journal:20,core:5}},
+    'titan-fall':{index:3,flag:'titanFallRewardGranted',kicker:'TITAN · FORWARD BASE EVACUATION',title:'전진기지 물자 인수',rewards:{scoutTron:30,journal:70}},
     'titan-lab':{index:1,flag:'titanLabRewardGranted',kicker:'RESEARCH LAB · HIDDEN SUPPLY',title:'호송함대 지원 물자',rewards:{scoutTron:10,researchStaff:10}},
     'lab-briefing':{index:7,flag:'labBriefingRewardGranted',kicker:'ADMIRAL HAN · SPECIAL SUPPLY',title:'제독의 특별 지원',rewards:{scoutTron:20,researchStaff:20,thorium:500}},
     'oort-return':{index:4,flag:'oortReturnRewardGranted',kicker:'ADMIRAL HAN · MAGENTA PREPARATION',title:'마젠타 행성 출정 물자',rewards:{scoutTron:20,researchStaff:20,thorium:500}},
@@ -1255,9 +1255,317 @@
     oort10:'OORT CLOUD · GATE 10 / COMMAND TRANSMISSION','oort10-clear':'OORT CLOUD · GATE 10 / MISSION COMPLETE',oort15:'OORT CLOUD · GATE 15 / TARGET LOCATED',
     volkov:'MAGENTA ORBIT · GATE 01 / FLEET COMMANDER','magenta5-clear':'MAGENTA ORBIT · GATE 05 / MISSION COMPLETE','magenta5-volkov':'FLEET MANAGEMENT · UNEXPECTED VISITOR','magenta5-lab':'RESEARCH LAB · BIO-FRAGMENT ANALYSIS',magenta6:'MAGENTA ORBIT · GATE 06 / RECON REPORT','magenta9-call':'MAGENTA ORBIT · GATE 09 / MISSION COMPLETE','magenta9-malik':'UNITED STAR FLEET · BRIDGE / CAPTAIN MALIK','magenta9-lab':'RESEARCH LAB · THREAT ANALYSIS',oort20:'OORT CLOUD · GATE 20 / FIELD BRIEFING','oort20-clear':'OORT CLOUD · ALL GATES CLEAR / COMMAND TRANSMISSION','oort-return':'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN'
   };
+  // ── 5장 후반: 아스만 사령부 · 황금길 · 황금첨탑 (결말) ──────────────────────────────
+  // 설정: 남매의 아버지 레온·유키히사·한성민은 친구. 20년 전 볼코프가 아스만 기술을 훔치고 사절단을 학살했고, 레온은 그날 사망.
+  // 유키히사는 갓난 남매를 빼냈고(이후 아이라가 카자 몰래 함선을 보내 지원), 한성민은 쏘는 시늉으로 아이라의 탈출을 도와 '섬멸 영웅'이 되었다.
+  // 바트르(계급) 카자는 볼코프의 기만을 직접 겪었고 아이들의 존재는 모른다. 이 시점의 H()는 지금 함장, P()는 나포되었던 캡틴.
+  const H=()=>heroName(),P=()=>partnerName();
+  const hVoc=()=>heroName()==='제이크'?'오빠':'도나야'; // 나포되었던 캡틴이 지금 함장을 부르는 말
+  const PN=()=>partner().name;
+  const AYRA='바슈치 아이라',KAZA='바트르 카자',HAN='한성민 제독',VOLKOV='사령관 빅터 볼코프',YUKI='추방자 유키히사',LUCA='파일럿 루카 레예스';
+  const n5Lines={
+    // ── 아스만 사령부 ──
+    'n5-hq1-pre':[
+      {speaker:'volkov',name:VOLKOV,text:'전 함대에 알린다. 지금부터 아스만 사령부 총공격을 개시한다.',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:()=>`선봉은 ${H()} 함장의 부대다. 물러서는 자는 반역자로 간주하겠다.`,remote:true},
+      {speaker:'luca',name:LUCA,text:'선봉이라... 총알받이라는 말을 참 길게도 하네.'},
+      {speaker:'han',name:HAN,text:'캡틴, 무리하지 마라. 뒤는 내가 받친다.',remote:true},
+      {speaker:'captain',name:'함장',text:'전 함대, 전투 준비!'}
+    ],
+    'n5-hq1-clear':[
+      {speaker:'captain',name:'함장',text:'그 함대가 또 우릴 도와줬어...'},
+      {speaker:'yukihisa',name:YUKI,text:()=>`...${H()}라고 했나.`,remote:true},
+      {speaker:'yukihisa',name:YUKI,text:'네 아버지를 꼭 닮았구나.',remote:true},
+      {speaker:'captain',name:'함장',text:'제 아버지를... 아십니까?'},
+      {speaker:'yukihisa',name:YUKI,text:'살아남아라. 그게 그 녀석이 바란 거다.',remote:true},
+      {speaker:'narration',name:'',text:'유키히사의 함대가 워프 너머로 사라진다.'},
+      {speaker:'captain',name:'함장',text:'아버지...? 제독님께 여쭤봐야겠어.'}
+    ],
+    'n5-hq1-bridge':[
+      {speaker:'captain',name:'함장',text:'제독님, 유키히사를 아십니까?'},
+      {speaker:'han',name:HAN,text:'......'},
+      {speaker:'captain',name:'함장',text:'그 사람이 제 아버지를 안다고 했습니다.'},
+      {speaker:'han',name:HAN,text:'...오랜 친구다.'},
+      {speaker:'han',name:HAN,text:'너희 아버지 레온, 유키히사, 그리고 나. 셋이서 같은 함대에 있었지.'},
+      {speaker:'captain',name:'함장',text:'아버지와요? 그런데 왜 지금까지 아무 말씀도...'},
+      {speaker:'han',name:HAN,text:'아직은 때가 아니다. 이 함대에는 볼코프의 귀가 너무 많아.'},
+      {speaker:'han',name:HAN,text:()=>`지금은 사령부를 뚫는 데 집중해라. 그 너머에 ${P()}가 있다.`},
+      {speaker:'han',name:HAN,text:'연구실에 가 보게. 사령부에서 새 프로그램을 승인했다더군.'}
+    ],
+    'n5-hq1-lab':[
+      {speaker:'eva',name:'EVA-9',text:'함장님, 사령부 공략을 위한 함장 훈련 프로그램이 승인되었습니다.'},
+      {speaker:'eva',name:'EVA-9',text:'함대의 함장들을 훈련해 함선에 태우면 전투력이 크게 오릅니다.'},
+      {speaker:'eva',name:'EVA-9',text:'연구실의 함장 훈련 탭에서 시작하실 수 있습니다.'},
+      {speaker:'captain',name:'함장',text:'좋아, 다들 실력을 끌어올려 보자.'}
+    ],
+    'n5-hq3-pre':[
+      {speaker:'kaza',name:KAZA,text:'저 깃발... 볼코프!',remote:true},
+      {speaker:'kaza',name:KAZA,text:'20년 전 우리 기술을 훔치고 사절단을 학살한 거짓말쟁이가 또 왔구나!',remote:true},
+      {speaker:'kaza',name:KAZA,text:'이번에는 네놈의 함대를 하나도 남김없이 태워 주마!',remote:true},
+      {speaker:'narration',name:'',text:'함교의 사람들이 웅성거린다.'},
+      {speaker:'volkov',name:VOLKOV,text:'적의 선전에 흔들리지 마라. 저들이 먼저 우리를 공격했다는 건 모두가 아는 사실이다.',remote:true},
+      {speaker:'captain',name:'함장',text:'제독님...?'},
+      {speaker:'han',name:HAN,text:'......전투에 집중해라, 캡틴.',remote:true}
+    ],
+    'n5-hq5-clear':[
+      {speaker:'eva',name:'EVA-9',text:'함장님, 적 통신망에서 인간의 생체신호가 잡혔습니다.',remote:true},
+      {speaker:'captain',name:'함장',text:'인간? 설마...'},
+      {speaker:'eva',name:'EVA-9',text:()=>`${P()} 캡틴의 신호와 일치합니다. 살아 있습니다.`,remote:true},
+      {speaker:'captain',name:'함장',text:()=>`${P()}가 살아 있어...!`},
+      {speaker:'eva',name:'EVA-9',text:'다만... 유전자 패턴이 조금씩 바뀌고 있습니다. 자세한 건 연구실에서 분석하겠습니다.',remote:true}
+    ],
+    'n5-hq5-lab':[
+      {speaker:'eva',name:'EVA-9',text:()=>`${P()} 캡틴의 신호를 분석했습니다. 아스만의 환경에 반응해 잠들어 있던 유전자가 깨어나고 있습니다.`},
+      {speaker:'captain',name:'함장',text:'잠들어 있던 유전자? 그게 무슨 말이야?'},
+      {speaker:'eva',name:'EVA-9',text:'비교를 위해 함장님의 의료기록을 열어 보았습니다.'},
+      {speaker:'eva',name:'EVA-9',text:'함장님의 유전자에도 해독할 수 없는 영역이 있습니다. 두 분의 패턴이 같습니다.'},
+      {speaker:'captain',name:'함장',text:'나한테도...?'},
+      {speaker:'eva',name:'EVA-9',text:'그런데 이 기록에는 봉인이 걸려 있습니다. 봉인한 곳은... 볼코프 사령관실입니다.'},
+      {speaker:'captain',name:'함장',text:'사령관이 왜 내 의료기록을...'},
+      {speaker:'eva',name:'EVA-9',text:'해독을 계속하겠습니다. 봉인을 풀려면 시간이 조금 필요합니다.'},
+      {speaker:'captain',name:'함장',text:'고마워, 에바. 이 일은 당분간 우리끼리만 알자.'}
+    ],
+    'n5-hq7-pre':[
+      {speaker:'volkov',name:VOLKOV,text:'전 함대, 7구역 거주 시설에 포격을 집중하라.',remote:true},
+      {speaker:'captain',name:'함장',text:'사령관님, 그곳은 민간 시설입니다!'},
+      {speaker:'volkov',name:VOLKOV,text:'적의 시설이다. 명령에 따르게, 함장.',remote:true},
+      {speaker:'captain',name:'함장',text:'거부하겠습니다. 저희는 군사 목표만 공격합니다.'},
+      {speaker:'volkov',name:VOLKOV,text:'항명인가?',remote:true},
+      {speaker:'han',name:HAN,text:'내가 허락했다, 볼코프. 내 부대는 민간인을 쏘지 않는다.',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:'흐흐... 영웅께서 이번엔 아스만 편이신가?',remote:true},
+      {speaker:'han',name:HAN,text:'......전 함대, 방어 거점만 노려라.',remote:true}
+    ],
+    'n5-hq8-clear':[
+      {speaker:'signal',name:'통신 수신',text:'암호화된 개인 통신이 들어옵니다...',incoming:true},
+      {speaker:'yukihisa',name:YUKI,text:'이 통신은 한 번만 보낸다. 잘 들어라.',remote:true},
+      {speaker:'yukihisa',name:YUKI,text:()=>`${P()}는 살아 있다. 바슈치가 직접 보호하고 있다.`,remote:true},
+      {speaker:'yukihisa',name:YUKI,text:'그리고 하나 더. 20년 전 아스만 사절단을 쏜 건 볼코프다.',remote:true},
+      {speaker:'captain',name:'함장',text:'볼코프 사령관이...?'},
+      {speaker:'yukihisa',name:YUKI,text:'증거는 사령관실의 봉인 파일 안에 있다. 그때까지는 아무도 믿지 마라.',remote:true},
+      {speaker:'narration',name:'',text:'통신이 끊긴다.'}
+    ],
+    'n5-hq10-clear':[
+      {speaker:'kaza',name:KAZA,text:'...사령부를 버린다. 전군, 수도로 물러나라.',remote:true},
+      {speaker:'narration',name:'',text:'적 함대가 황금길 방향으로 물러난다.'},
+      {speaker:'signal',name:'통신 수신',text:'아스만 전역에 방송이 송출됩니다...',incoming:true},
+      {speaker:'ayra',name:AYRA,text:'인간 함대에 전한다. 나는 아스만의 바슈치, 아이라다.',remote:true},
+      {speaker:'ayra',name:AYRA,text:'황금길 끝 왕궁에서 기다리겠다.',remote:true},
+      {speaker:'ayra',name:AYRA,text:'한성민, 당신은 와야 한다. 단, 볼코프의 함대는 들이지 않는다.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'바슈치! 인간을 왕궁에 들이다니요!',remote:true},
+      {speaker:'ayra',name:AYRA,text:'내 결정이다, 카자.',remote:true},
+      {speaker:'captain',name:'함장',text:'아스만의 지도자가... 제독님을 이름으로 불렀어.'}
+    ],
+    'n5-hq10-bridge':[
+      {speaker:'volkov',name:VOLKOV,text:'들었겠지. 적이 스스로 왕궁 문을 열어 주겠다는군.'},
+      {speaker:'volkov',name:VOLKOV,text:'초대 따위는 무시한다. 전 함대, 황금길을 따라 수도로 진격한다.'},
+      {speaker:'han',name:HAN,text:'바슈치는 대화를 원하고 있다. 함대를 몰고 가면 협상은 끝이다.'},
+      {speaker:'volkov',name:VOLKOV,text:'협상? 20년 전에도 대화로 끝난 일은 없었지. 자네가 제일 잘 알 텐데, 영웅.'},
+      {speaker:'narration',name:'',text:'볼코프가 함교를 떠난다.'},
+      {speaker:'han',name:HAN,text:'...캡틴. 황금길에서는 내 명령만 따라라. 무슨 일이 있어도.'},
+      {speaker:'captain',name:'함장',text:'네, 제독.'},
+      {speaker:'han',name:HAN,text:'사령부를 무너뜨린 공로로 보급이 내려왔다. 챙겨 가게.'}
+    ],
+    // ── 황금길 ──
+    'n5-gr1-pre':[
+      {speaker:'eva',name:'EVA-9',text:'함장님, 황금길 위에 대규모 이동 행렬이 있습니다. 아스만 민간인입니다.',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:'행렬째로 쓸어버려라. 수도로 가는 길이 넓어지겠군.',remote:true},
+      {speaker:'captain',name:'함장',text:'...거부합니다.'},
+      {speaker:'han',name:HAN,text:'전 함대, 행렬을 비켜서 기동하라. 우리가 상대할 건 적 함대뿐이다.',remote:true},
+      {speaker:'luca',name:LUCA,text:'이러다 우리가 먼저 사령관한테 찍히겠는데.'},
+      {speaker:'captain',name:'함장',text:'이미 찍혔어. 가자!'}
+    ],
+    'n5-gr5-clear':[
+      {speaker:'okoye',name:'아마라 오코예 함장',text:'함장님, 제독님께서 함교로 따로 와 달라고 하십니다.',remote:true},
+      {speaker:'captain',name:'함장',text:'나를...? 알겠어, 복귀하자.'}
+    ],
+    'n5-gr5-bridge':[
+      {speaker:'han',name:HAN,text:'유키히사에게서 연락을 받았겠지.'},
+      {speaker:'captain',name:'함장',text:'...알고 계셨습니까?'},
+      {speaker:'han',name:HAN,text:'이제 말해 주마. 20년 전, 아스만 사절선이 지구에 왔을 때의 일이다.'},
+      {speaker:'han',name:HAN,text:'교류를 맡은 장교가 너희 아버지 레온이었다. 레온은 사절단의 한 사람과 사랑에 빠졌지.'},
+      {speaker:'han',name:HAN,text:'그리고 너희 남매가 태어났다.'},
+      {speaker:'captain',name:'함장',text:'......!'},
+      {speaker:'han',name:HAN,text:'그날 사절선이 공격받았을 때, 레온은 너희를 지키다 죽었다.'},
+      {speaker:'han',name:HAN,text:'유키히사가 갓난 너희를 안고 빠져나갔고, 나는... 다른 사람을 빼내야 했다.'},
+      {speaker:'captain',name:'함장',text:'다른 사람이요?'},
+      {speaker:'han',name:HAN,text:'그건 왕궁에 가면 알게 될 거다.'},
+      {speaker:'han',name:HAN,text:'유키히사의 함선들은 아스만에서 몰래 보내 준 것이다. 녀석은 너희가 어디 있는지만큼은 끝까지 말하지 않았지.'},
+      {speaker:'captain',name:'함장',text:'아버지... 레온.'}
+    ],
+    'n5-gr7-clear':[
+      {speaker:'eva',name:'EVA-9',text:'함장님! 봉인 파일 해독에 성공했습니다.',remote:true},
+      {speaker:'captain',name:'함장',text:'복귀하는 대로 연구실로 갈게.'}
+    ],
+    'n5-gr7-lab':[
+      {speaker:'eva',name:'EVA-9',text:'파일 이름은 \'아스만 사절선 피격 사건\'입니다.'},
+      {speaker:'eva',name:'EVA-9',text:'공식 기록에는 아스만이 먼저 발포했고, 한성민 제독이 반격해 섬멸했다고 되어 있습니다.'},
+      {speaker:'eva',name:'EVA-9',text:'하지만 원본 교신 기록은 다릅니다. 사절선은 단 한 발도 쏘지 않았습니다.'},
+      {speaker:'eva',name:'EVA-9',text:'사절단 사살 명령서와 기술 자료 반출 기록이 함께 있습니다. 두 문서의 서명이 같습니다.'},
+      {speaker:'captain',name:'함장',text:'...볼코프.'},
+      {speaker:'eva',name:'EVA-9',text:'당시 정보장교 빅터 볼코프. 지금의 사령관입니다.'},
+      {speaker:'captain',name:'함장',text:'카자의 말이 전부 사실이었어. 기술을 훔치고, 속이고, 학살했어.'},
+      {speaker:'eva',name:'EVA-9',text:'이 기록은 사령관의 감시망 밖에 따로 보관해 두겠습니다.'},
+      {speaker:'captain',name:'함장',text:'때가 오면 모두에게 보여 줄 거야.'}
+    ],
+    'n5-gr10-pre':[
+      {speaker:'kaza',name:KAZA,text:'여기서부터는 한 걸음도 못 간다!',remote:true},
+      {speaker:'kaza',name:KAZA,text:'바슈치께서 뭐라 하시든, 인간은 모두 볼코프와 같다!',remote:true},
+      {speaker:'kaza',name:KAZA,text:'나 바트르 카자가 직접 상대해 주마!',remote:true},
+      {speaker:'captain',name:'함장',text:'정면 승부인가... 전 함대, 전투 준비!'}
+    ],
+    'n5-gr10-clear':[
+      {speaker:'kaza',name:KAZA,text:'크윽... 인간 따위에게...',remote:true},
+      {speaker:'han',name:HAN,text:'카자. 이제 그만해라.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'한성민! 네놈도 볼코프의 개일 뿐이다!',remote:true},
+      {speaker:'han',name:HAN,text:'20년 전, 사절선에서 바슈치를 빼낸 건 나다.',remote:true},
+      {speaker:'han',name:HAN,text:'볼코프의 눈을 속이려고 쏘는 시늉을 했을 뿐, 그날 나는 아무도 쏘지 않았다.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'...거짓말!',remote:true},
+      {speaker:'kaza',name:KAZA,text:'바슈치, 저자의 말이 사실입니까?',remote:true},
+      {speaker:'ayra',name:AYRA,text:'사실이다, 카자. 그가 없었다면 나는 그날 죽었을 것이다.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'......',remote:true},
+      {speaker:'kaza',name:KAZA,text:'...길을 열어라. 바슈치의 명이다.',remote:true}
+    ],
+    'n5-gr12-pre':[
+      {speaker:'eva',name:'EVA-9',text:'경고! 후방의 아군 함선이 함장님 함대를 조준하고 있습니다!',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:'아, 미안하군. 오인 사격이야. 적과 너무 붙어 있어서 말이지.',remote:true},
+      {speaker:'captain',name:'함장',text:'저건 오인 사격이 아니야!'},
+      {speaker:'han',name:HAN,text:'전 함대, 캡틴 함대의 후방을 막아라!',remote:true},
+      {speaker:'han',name:HAN,text:'볼코프. 20년이면 충분히 숨겼다.',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:'흐흐... 이제야 본색을 드러내는군, 영웅.',remote:true},
+      {speaker:'captain',name:'함장',text:'앞만 보고 간다! 왕궁까지 얼마 안 남았어!'}
+    ],
+    'n5-gr15-clear':[
+      {speaker:'narration',name:'',text:'왕궁 앞, 수정 구조물 사이로 아스만 함선 한 척이 내려앉는다.'},
+      {speaker:'ayra',name:AYRA,text:'그만. 모두 무기를 내려라.',remote:true},
+      {speaker:'narration',name:'',text:()=>`아이라 곁에 ${P()}가 서 있다. 빛나는 눈동자와 피부의 문양, 하지만 분명 그 얼굴이다.`},
+      {speaker:'partnerAwake',name:PN,text:()=>`...${hVoc()}.`,remote:true},
+      {speaker:'captain',name:'함장',text:()=>`${P()}!`}
+    ],
+    'n5-gr15-bridge':[
+      {speaker:'narration',name:'',text:'왕궁 접견실. 한 제독과 함장, 그리고 아이라가 마주 선다.'},
+      {speaker:'captain',name:'함장',text:()=>`${P()}, 괜찮은 거야? 그 모습은...`},
+      {speaker:'partnerAwake',name:PN,text:'나도 처음엔 무서웠어. 그런데 여기 오니까... 몸이 기억하는 것 같아.'},
+      {speaker:'ayra',name:AYRA,text:'두 사람에게 해야 할 말이 있다.'},
+      {speaker:'ayra',name:AYRA,text:'나는 아스만의 바슈치이기 전에... 너희의 엄마다.'},
+      {speaker:'captain',name:'함장',text:'......!'},
+      {speaker:'ayra',name:AYRA,text:'레온이 지키려던 아이들. 20년 동안 한 번도 잊은 적이 없었다.'},
+      {speaker:'ayra',name:AYRA,text:'유키히사에게 몰래 함선을 보내면서도, 너희가 어디 있는지는 끝내 묻지 못했지.'},
+      {speaker:'ayra',name:AYRA,text:'한성민. 20년 전 당신 덕분에 살았어요. 그리고 이 아이들도.'},
+      {speaker:'han',name:HAN,text:'...레온과의 약속이었습니다, 바슈치.'},
+      {speaker:'kaza',name:KAZA,text:'바슈치께... 자녀가 있으셨다니.'},
+      {speaker:'narration',name:'',text:'바트르 카자가 남매 앞에 무릎을 꿇는다.'},
+      {speaker:'kaza',name:KAZA,text:'바트르 카자, 두 분께 무례를 사죄드립니다.'},
+      {speaker:'partnerAwake',name:PN,text:()=>`${hVoc()}, 이제 나도 함께 싸울게.`},
+      {speaker:'han',name:HAN,text:'아스만에서 보내 준 물자다. 함대에 실어 두게.'}
+    ],
+    // ── 황금첨탑 (결말) ──
+    'n5-gs1-pre':[
+      {speaker:'ayra',name:AYRA,text:'첨탑이 우리 말을 듣지 않는다.',remote:true},
+      {speaker:'ayra',name:AYRA,text:'20년 전 기술 교류 때 볼코프가 심어 둔 제어 코드야. 돔이 수도를 가두는 감옥이 되었다.',remote:true},
+      {speaker:'eva',name:'EVA-9',text:'첨탑 방어체계가 아스만 함대와 우리 함대를 동시에 노리고 있습니다.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'인간과 나란히 싸우게 될 줄이야. ...뒤처지지 마라!',remote:true},
+      {speaker:'captain',name:'함장',text:'첨탑을 모두 부순다. 전 함대, 출격!'}
+    ],
+    'n5-gs3-pre':[
+      {speaker:'signal',name:'통신 수신',text:'익숙한 함대가 워프해 옵니다...',incoming:true},
+      {speaker:'yukihisa',name:YUKI,text:'늦어서 미안하다.',remote:true},
+      {speaker:'han',name:HAN,text:'늦었구나, 친구.',remote:true},
+      {speaker:'ayra',name:AYRA,text:'...유키히사.',remote:true},
+      {speaker:'yukihisa',name:YUKI,text:'레온 몫까지 아이들을 지켰다, 아이라. 이제야 약속을 지켰군.',remote:true},
+      {speaker:'han',name:HAN,text:'셋이 다시 모인 게 20년 만이군. 레온만 빼고.',remote:true},
+      {speaker:'yukihisa',name:YUKI,text:'그 녀석이 봤으면 웃었겠지. 자, 첨탑부터 치우자.',remote:true}
+    ],
+    'n5-gs4-pre':[
+      {speaker:'partnerAwake',name:PN,text:()=>`${hVoc()}, 아스만 지휘선은 내가 맡을게.`,remote:true},
+      {speaker:'captain',name:'함장',text:'그 함선을 몰 수 있어?'},
+      {speaker:'partnerAwake',name:PN,text:'여기 사람들이 날 따라 줘. 엄마 덕분이겠지만.',remote:true},
+      {speaker:'captain',name:'함장',text:'좋아. 오랜만에 같이 가 보자.'},
+      {speaker:'partnerAwake',name:PN,text:'뒤는 맡겨!',remote:true},
+      {speaker:'luca',name:LUCA,text:'이야, 남매가 나란히 출격이라니. 오늘은 질 수가 없겠네.',remote:true}
+    ],
+    'n5-gs5-clear':[
+      {speaker:'narration',name:'',text:'마지막 첨탑이 무너지자, 수도를 덮고 있던 돔이 빛으로 흩어진다.'},
+      {speaker:'eva',name:'EVA-9',text:'첨탑 제어 코드가 해제되었습니다.',remote:true},
+      {speaker:'eva',name:'EVA-9',text:'그리고 지금, 봉인 파일 전체를 전 함대와 아스만 전역에 공개합니다.',remote:true},
+      {speaker:'narration',name:'',text:'사절단 사살 명령서와 기술 반출 기록, 그리고 볼코프의 서명이 모든 화면에 떠오른다.'}
+    ],
+    'n5-gs5-bridge':[
+      {speaker:'volkov',name:VOLKOV,text:'흐흐흐... 결국 여기까지 왔나.',remote:true},
+      {speaker:'volkov',name:VOLKOV,text:'영웅도, 반역자도 내가 만든 거야. 역사는 이긴 쪽이 쓰는 법이지.',remote:true},
+      {speaker:'han',name:HAN,text:'이번 역사는 네가 쓰지 못한다, 볼코프.'},
+      {speaker:'volkov',name:VOLKOV,text:'그럴까? 전 함대, 나를 따르라. 한성민의 함대만 빼고.',remote:true},
+      {speaker:'narration',name:'',text:'볼코프가 한 제독의 함대를 제외한 모든 함대를 이끌고 워프로 사라진다.'},
+      {speaker:'luca',name:LUCA,text:'...진짜 다 데리고 가 버렸어.'},
+      {speaker:'ayra',name:AYRA,text:'한성민. 이제 우리가 끝내야 할 차례예요.',remote:true},
+      {speaker:'han',name:HAN,text:'인간 함대와 아스만은 지금부터 정전한다. 내 이름을 걸고.'},
+      {speaker:'ayra',name:AYRA,text:'아스만도 같은 약속을 하겠어요.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'인간을 믿는 게 아니다. 바슈치의 아이들을 믿는 것이다.',remote:true},
+      {speaker:'kaza',name:KAZA,text:'...그래도, 함께 싸운 너희는 잊지 않겠다.',remote:true}
+    ],
+    'n5-gs5-farewell':[
+      {speaker:'yukihisa',name:YUKI,text:'한. 이제 숨어 지낼 이유가 없어졌군. 네 함대에 자리 하나 내줄 수 있나?'},
+      {speaker:'han',name:HAN,text:'20년 전부터 비워 뒀다.'},
+      {speaker:'partnerAwake',name:PN,text:()=>`${hVoc()}, 나는 여기 남을게.`},
+      {speaker:'partnerAwake',name:PN,text:'엄마 곁에서, 두 종족을 잇는 일을 하고 싶어.'},
+      {speaker:'captain',name:'함장',text:'...그럴 줄 알았어. 나는 함대에 남을게. 볼코프를 이대로 둘 수는 없으니까.'},
+      {speaker:'partnerAwake',name:PN,text:'보고 싶으면 언제든 와. 이제 길은 열려 있으니까.'},
+      {speaker:'partnerAwake',name:PN,text:'그리고 함대에 내가 필요하면 언제든 불러. 어떤 함선이든 몰고 달려갈게.'},
+      {speaker:'ayra',name:AYRA,text:'두 사람 모두 레온을 꼭 닮았구나.'},
+      {speaker:'han',name:HAN,text:'아스만이 보낸 선물과 함대 보급이다. 다음 항해를 준비하게.'},
+      {speaker:'eva',name:'EVA-9',text:'함장님. 볼코프 함대의 신호가 넵튠 너머에서 끊겼습니다.'},
+      {speaker:'han',name:HAN,text:'...이제 시작이군.'}
+    ]
+  };
+  // 장면 발동: pre = 출격 직후(대화가 끝나면 전투 자동 시작), clear = 첫 클리어 직후(결과 화면 위).
+  // screen: 그 장면을 보여 주는 화면(home 함교 · summon 연구실 · any 결과 화면 · none 전투 준비 화면). next: 끝나면 이어질 장면.
+  const N5_SCENES={
+    'n5-hq1-pre':{pre:['asman-hq',1],screen:'none',kicker:'SUPER NEPTUNE · ASMAN COMMAND 1 / ALL-OUT ASSAULT'},
+    'n5-hq1-clear':{clear:['asman-hq',1],screen:'any',next:'n5-hq1-bridge',kicker:'SUPER NEPTUNE · ASMAN COMMAND 1 / THE EXILE'},
+    'n5-hq1-bridge':{screen:'home',next:'n5-hq1-lab',kicker:'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN'},
+    'n5-hq1-lab':{screen:'summon',kicker:'RESEARCH LAB · COMMANDER TRAINING'},
+    'n5-hq3-pre':{pre:['asman-hq',3],screen:'none',kicker:'SUPER NEPTUNE · ASMAN COMMAND 3 / BATR KAZA'},
+    'n5-hq5-clear':{clear:['asman-hq',5],screen:'any',next:'n5-hq5-lab',kicker:'SUPER NEPTUNE · ASMAN COMMAND 5 / BIOSIGNAL'},
+    'n5-hq5-lab':{screen:'summon',kicker:'RESEARCH LAB · SEALED RECORD'},
+    'n5-hq7-pre':{pre:['asman-hq',7],screen:'none',kicker:'SUPER NEPTUNE · ASMAN COMMAND 7 / ORDER REFUSED'},
+    'n5-hq8-clear':{clear:['asman-hq',8],screen:'any',kicker:'SUPER NEPTUNE · ASMAN COMMAND 8 / PRIVATE CHANNEL'},
+    'n5-hq10-clear':{clear:['asman-hq',10],screen:'any',next:'n5-hq10-bridge',kicker:'SUPER NEPTUNE · ASMAN COMMAND 10 / BASHUCHI BROADCAST'},
+    'n5-hq10-bridge':{screen:'home',kicker:'UNITED STAR FLEET · BRIDGE / COMMANDER VOLKOV'},
+    'n5-gr1-pre':{pre:['golden-road',1],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN ROAD 1 / REFUGEE COLUMN'},
+    'n5-gr5-clear':{clear:['golden-road',5],screen:'any',next:'n5-gr5-bridge',kicker:'SUPER NEPTUNE · GOLDEN ROAD 5 / MISSION COMPLETE'},
+    'n5-gr5-bridge':{screen:'home',kicker:'UNITED STAR FLEET · BRIDGE / ADMIRAL HAN'},
+    'n5-gr7-clear':{clear:['golden-road',7],screen:'any',next:'n5-gr7-lab',kicker:'SUPER NEPTUNE · GOLDEN ROAD 7 / DECRYPTION'},
+    'n5-gr7-lab':{screen:'summon',kicker:'RESEARCH LAB · SEALED FILE'},
+    'n5-gr10-pre':{pre:['golden-road',10],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN ROAD 10 / BATR KAZA'},
+    'n5-gr10-clear':{clear:['golden-road',10],screen:'any',kicker:'SUPER NEPTUNE · GOLDEN ROAD 10 / THE TRUTH'},
+    'n5-gr12-pre':{pre:['golden-road',12],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN ROAD 12 / FRIENDLY FIRE'},
+    'n5-gr15-clear':{clear:['golden-road',15],screen:'any',next:'n5-gr15-bridge',kicker:'SUPER NEPTUNE · GOLDEN ROAD 15 / PALACE GATE'},
+    'n5-gr15-bridge':{screen:'home',kicker:'ASMAN PALACE · AUDIENCE HALL'},
+    'n5-gs1-pre':{pre:['golden-spire',1],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN SPIRE 1 / HIJACKED DEFENSE'},
+    'n5-gs3-pre':{pre:['golden-spire',3],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN SPIRE 3 / OLD FRIENDS'},
+    'n5-gs4-pre':{pre:['golden-spire',4],screen:'none',kicker:'SUPER NEPTUNE · GOLDEN SPIRE 4 / SIBLINGS'},
+    'n5-gs5-clear':{clear:['golden-spire',5],screen:'any',next:'n5-gs5-bridge',kicker:'SUPER NEPTUNE · GOLDEN SPIRE 5 / DOME LIFTED'},
+    'n5-gs5-bridge':{screen:'home',next:'n5-gs5-farewell',kicker:'UNITED STAR FLEET · BRIDGE / CEASEFIRE'},
+    'n5-gs5-farewell':{screen:'home',kicker:'ASMAN PALACE · FAREWELL'}
+  };
+  Object.assign(multiLine,n5Lines);
+  for(const [key,scene] of Object.entries(N5_SCENES)){
+    STAGE_KICKERS[key]=scene.kicker;
+    if(scene.pre){AUTO_START_STAGES.push(key);PREBATTLE_STAGES.push(key);}
+  }
+  // 장면 보상: index 번째 줄에서 [계속]을 누르면 지급된다(한 번만).
+  Object.assign(rewardSteps,{
+    'n5-hq10-bridge':{index:7,flag:'n5Hq10BridgeRewardGranted',kicker:'HEADQUARTERS · ASMAN COMMAND MERIT',title:'사령부 함락 공로 보급',rewards:{precisionScout:30,researchStaff:50,gold:200000,thorium:500}},
+    'n5-gr15-bridge':{index:14,flag:'n5Gr15BridgeRewardGranted',kicker:'ASMAN PALACE · BASHUCHI GIFT',title:'아스만의 선물',rewards:{ssrShipTicket:1,precisionScout:30,gold:300000}},
+    'n5-gs5-farewell':{index:8,flag:'n5Gs5FarewellRewardGranted',kicker:'ADMIRAL HAN · NEW VOYAGE',title:'새 항해 준비 물자',rewards:{ssrShipTicket:1,frameTicket:2,precisionScout:50,gold:500000,thorium:1000}}
+  });
+  const n5Done=key=>Boolean(state.n5Done?.[key]);
+  const n5SceneFor=(kind,chapter,region,gate)=>{
+    if(Number(chapter)!==5)return '';
+    return Object.keys(N5_SCENES).find(key=>{const t=N5_SCENES[key][kind];return t&&t[0]===region&&t[1]===Number(gate)&&!n5Done(key);})||'';
+  };
   // 교신 수신 줄은 초상화 자리에 신호 파동을, 원거리 교신 줄은 초상화에 통신 화면(주사선) 효과를 씌웁니다.
   const SIGNAL_PORTRAIT='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="7" fill="#9ff0ff"/><path d="M42 42a26 26 0 0 0 0 36M78 42a26 26 0 0 1 0 36M30 30a43 43 0 0 0 0 60M90 30a43 43 0 0 1 0 60" fill="none" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/><path d="M60 67v40" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/></svg>');
-  const portraitFor=speaker=>speaker==='kaza'?'kaza-bust.png':speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp':speaker==='ayra'?'ayra-scenario-bust.webp':speaker==='han'?'han-seong-min-bust.png':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.png':speaker==='yukihisa'?'yukihisa-bust.png?v=2':speaker==='malik'?'captain-malik-okoro-bust.png?v=20261011-3':speaker==='volkov'?'viktor-volkov-bust.png?v=20261013-2':speaker==='luca'?'luca-reyes-bust.png?v=20261013-1':'eva9-tutorial-bust.png';
+  const portraitFor=speaker=>speaker==='partnerAwake'?(partner().name==='Jake'?'captain-jake-awakened-bust.webp?v=20261120-1':'captain-donna-awakened-bust.webp?v=20261120-1'):speaker==='kaza'?'kaza-bust.png':speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp':speaker==='ayra'?'ayra-scenario-bust.webp':speaker==='han'?'han-seong-min-bust.png':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.png':speaker==='yukihisa'?'yukihisa-bust.png?v=2':speaker==='malik'?'captain-malik-okoro-bust.png?v=20261011-3':speaker==='volkov'?'viktor-volkov-bust.png?v=20261013-2':speaker==='luca'?'luca-reyes-bust.png?v=20261013-1':'eva9-tutorial-bust.png';
   const paint=()=>{
     if(!overlay)return;
     const line=current();overlay.hidden=!line;document.body.dataset.marsScene=line?state.stage:'';
@@ -1505,6 +1813,15 @@
       });
       return;
     }
+    if(N5_SCENES[stage]){
+      state.n5Done={...(state.n5Done||{}),[stage]:true};
+      const next=N5_SCENES[stage].next;
+      if(next){
+        state.pendingTitanIntro=false;
+        if(N5_SCENES[next].screen===N5_SCENES[stage].screen)setStage(next);else setStage(next+'-pending');
+        return;
+      }
+    }
     // 타파오 통 도입부: 케플러 연구실 장면 → 함교 → 격납고 → 함교(제독) → 연구실 순서로, 각 장면이 끝나면 다음 화면으로 이동할 때까지 기다린다.
     const TAPAO_FLOW={'nep-asman10-clear':'nep-asman10-bridge-pending','nep-asman10-bridge':'nep-asman10-lab-pending','nep-asman10-lab':'nep-asman10-admiral-pending','nep-asman10-admiral':'nep-asman10-supply-pending','nep-asman5-clear':'nep-asman5-bridge-pending','nep-g5-clear':'nep-g5-bridge-pending','tapao-g10-clear':'tapao-g10-bridge-pending','tapao-col10-clear':'tapao-col10-bridge-pending','tapao-orb10-hangar':'tapao-orb10-bridge-pending','tapao-orb10-bridge':'tapao-orb10-lab-pending','tapao-near10-known-a':'tapao-eva-lab-pending','tapao-near10-known-b':'tapao-eva-lab-pending','tapao-near10-unknown-a':'tapao-eva-lab-pending','tapao-near10-unknown-b':'tapao-eva-lab-pending','tapao-near10-hangar':'tapao-near10-lab-pending','tapao-near10-lab':'tapao-near10-bridge-pending','kb10-lab':'tapao-bridge-pending','tapao-bridge':'tapao-hangar-pending','tapao-hangar':'tapao-admiral-pending','tapao-admiral':'tapao-lab-pending'};
     if(stage==='tapao-bridge')state.tapaoBridgeDone=true;
@@ -1609,6 +1926,8 @@
   const preparePreviousBattle=window.prepareBattle;
   window.prepareBattle=operation=>{
     const result=preparePreviousBattle?.(operation);
+    const n5Pre=operation?.arenaMatch?'':n5SceneFor('pre',operation?.chapter,operation?.region,operation?.gate);
+    if(n5Pre&&!active())setTimeout(()=>{if(!active())setStage(n5Pre);},0);
     // 마젠타 5관문 클리어 뒤 함대관리보다 먼저 다른 전투에 나가면 볼코프 히든은 사라집니다.
     if(state.magenta5VolkovArmed&&!operation?.arenaMatch){state.magenta5VolkovArmed=false;save();}
     if(Number(operation?.chapter)===1&&operation?.region==='titan'&&Number(operation?.gate)===1&&!state.malikDone&&!active()){
@@ -1764,6 +2083,7 @@
     if(!active())return true;
     // 연구실 대기 중에는 다른 화면을 자유롭게 오갈 수 있다(연구실을 열 때 대화가 이어진다).
     if(/-pending$/.test(state.stage))return true;
+    if(N5_SCENES[state.stage]){const where=N5_SCENES[state.stage].screen;return where==='any'||where===id;}
     // 함교에서 진행되는 대화는 새로고침 후 복원될 때도 함교로 이동할 수 있어야 합니다.
     if(state.stage==='katm210-para')return id==='collection';
     if(state.stage==='titan-lab'||state.stage==='lab-briefing'||state.stage==='magenta5-lab'||state.stage==='magenta9-lab'||state.stage==='magenta10-lab'||state.stage==='tas10-lab'||state.stage==='atm10-lab'||state.stage==='kepler10-lab'||state.stage==='kb10-lab'||state.stage==='tapao-lab'||state.stage==='tapao-eva-lab'||state.stage==='tapao-near10-lab'||state.stage==='tapao-orb10-lab'||state.stage==='tapao-col10-lab'||state.stage==='tapao-g10-lab'||state.stage==='nep-g5-lab'||state.stage==='nep-asman10-lab'||state.stage==='nep-asman10-supply'||state.stage==='katm5-volkov'||state.stage==='katm5-volkov-truth'||state.stage==='katm5-volkov-noreason'||state.stage==='katm5-volkov-trust'||state.stage==='katm5-volkov-lie'||state.stage==='katm5-volkov-apology'||state.stage==='katm5-volkov-suspicion')return id==='summon';
@@ -1780,6 +2100,10 @@
   const LAB_DIRECT_BONUS={flag:'labDirectBonusGranted',kicker:'ADMIRAL HAN · DIRECT SUPPLY',title:'연구실 직행 추가 지원',rewards:{scoutTron:10,researchStaff:10,thorium:250}};
   window.addEventListener('game-screen-changed',event=>{
     const screen=event.detail?.screen;
+    if(/-pending$/.test(state.stage||'')){
+      const key=state.stage.replace(/-pending$/,'');
+      if(N5_SCENES[key]){if(screen===N5_SCENES[key].screen){setStage(key);window.show?.(screen);}return;}
+    }
     // 타스 10관문: 함교로 돌아오면 루카와의 대화, 연구실을 열면 EVA-9와의 대화가 이어진다.
     const TAS10_NEXT={'nep-asman10-lab-pending':{screen:'summon',stage:'nep-asman10-lab'},'nep-asman10-admiral-pending':{screen:'home',stage:'nep-asman10-admiral'},'nep-asman10-supply-pending':{screen:'summon',stage:'nep-asman10-supply'},'nep-asman10-bridge-pending':{screen:'home',stage:'nep-asman10-bridge'},'nep-asman5-bridge-pending':{screen:'home',stage:'nep-asman5-bridge'},'nep-g5-bridge-pending':{screen:'home',stage:'nep-g5-bridge'},'tapao-g10-bridge-pending':{screen:'home',stage:'tapao-g10-bridge'},'tapao-col10-bridge-pending':{screen:'home',stage:'tapao-col10-bridge'},'tapao-orb10-bridge-pending':{screen:'home',stage:'tapao-orb10-bridge'},'tapao-orb10-lab-pending':{screen:'summon',stage:'tapao-orb10-lab'},'tapao-eva-lab-pending':{screen:'summon',stage:'tapao-eva-lab'},'tapao-near10-lab-pending':{screen:'summon',stage:'tapao-near10-lab'},'tapao-near10-bridge-pending':{screen:'home',stage:'tapao-near10-bridge'},'tapao-bridge-pending':{screen:'home',stage:'tapao-bridge'},'tapao-hangar-pending':{screen:'collection',stage:'tapao-hangar'},'tapao-admiral-pending':{screen:'home',stage:'tapao-admiral'},'tapao-lab-pending':{screen:'summon',stage:'tapao-lab'},'tas10-home-pending':{screen:'home',stage:'tas10-home'},'tas10-lab-pending':{screen:'summon',stage:'tas10-lab'},'atm10-home-pending':{screen:'home',stage:'atm10-home'},'atm10-lab-pending':{screen:'summon',stage:'atm10-lab'},'kepler10-lab-pending':{screen:'summon',stage:'kepler10-lab'},'katm210-para-pending':{screen:'collection',stage:'katm210-para'},'kb5-hangar-pending':{screen:'collection',stage:'kb5-farah'},'kb10-lab-pending':{screen:'summon',stage:'kb10-lab'}};
     // 위성궤도 10관문 클리어: 결과 화면에서 나가면 격납고로 이동해 대화가 시작된다.
@@ -1815,6 +2139,8 @@
   });
   window.addEventListener('campaign-gate-cleared',event=>{
     const {chapter,region,gate,firstClear}=event.detail||{};
+    const n5Clear=firstClear?n5SceneFor('clear',chapter,region,gate):'';
+    if(n5Clear&&!active()){setStage(n5Clear);return;}
     if(Number(chapter)===3&&region==='kepler-orbit'&&Number(gate)===1&&firstClear&&!state.keplerOkoyeDone&&!active()){setStage('kepler-okoye-call');return;}
     if(Number(chapter)===3&&region==='kepler-orbit'&&Number(gate)===5&&firstClear&&!state.kepler5ClearDone&&!active()){setStage('kepler5-clear');return;}
     if(Number(chapter)===3&&region==='kepler-orbit'&&Number(gate)===10&&firstClear&&!state.kepler10ClearDone&&!active()){setStage('kepler10-clear');return;}
@@ -1927,7 +2253,11 @@
     }
     if(state.stage==='titan-call'){state.stage='titan-fall';state.index=0;save();}
     if(state.stage==='titan-call2'){state.stage='titan-report';state.index=0;save();}
-    if(state.stage==='titan-report'){
+    if(N5_SCENES[state.stage]&&!N5_SCENES[state.stage].pre){
+      const scene=N5_SCENES[state.stage];
+      state.index=Math.max(0,Math.min(multiLine[state.stage].length-1,Number(state.index)||0));save();
+      setTimeout(()=>{if(scene.screen==='home'||scene.screen==='summon')window.show?.(scene.screen);paint();},120);
+    }else if(state.stage==='titan-report'){
       state.index=Math.max(0,Math.min(titanReportLines.length-1,Number(state.index)||0));save();
       setTimeout(()=>{window.show?.('home');paint();},120);
     }else if(state.stage==='lab-briefing'){

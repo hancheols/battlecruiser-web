@@ -46,6 +46,7 @@
 [data-type="battlecruiser"]{--ct-type:#7fe3ff}
 [data-type="dreadnought"]{--ct-type:#ffb35c}
 [data-type="destroyer"]{--ct-type:#7dffa8}
+[data-type="universal"]{--ct-type:#ffd27a}
 [data-grade="standard"]{--ct-grade:#9fd3ff;--ct-frame:linear-gradient(160deg,#cfe9ff,#3c6f9a 45%,#a8d4ff)}
 /* 고급 함장: 함선 SR 등급과 같은 보라색 테두리 */
 [data-grade="elite"]{--ct-grade:#d2a7ff;--ct-frame:linear-gradient(160deg,#ecd6ff,#b653ff 38%,#6a2bb0 68%,#d58bff)}

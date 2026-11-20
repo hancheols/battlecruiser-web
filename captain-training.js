@@ -26,9 +26,11 @@
   const OFF_SPEC_PENALTY = .15;
   const OFF_SPEC_TEXT = `공격·공속·내구 -${Math.round(OFF_SPEC_PENALTY * 100)}%`;
   const ROLE_NAMES = ['선봉', '좌익', '우익'];
-  const TYPE_NAMES = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함', frigate: '프리깃' };
-  const TYPE_EN = { dreadnought: 'DREADNOUGHT', battlecruiser: 'BATTLECRUISER', destroyer: 'DESTROYER' };
+  const TYPE_NAMES = { dreadnought: '중전함', battlecruiser: '전투순양함', destroyer: '구축함', frigate: '프리깃', universal: '만능' };
+  const TYPE_EN = { dreadnought: 'DREADNOUGHT', battlecruiser: 'BATTLECRUISER', destroyer: 'DESTROYER', universal: 'ALL-ROUND' };
   const GRADE = { standard: { label: 'STANDARD', passive: [.02, .20] }, elite: { label: 'ELITE', passive: [.03, .30] } };
+  // 만능 함장(type 'universal')은 어느 함선에 타도 전문 함선으로 본다.
+  const fitsShip = (c, ship) => Boolean(c && ship) && (c.type === 'universal' || c.type === ship.type);
 
   // 계급: 챕터 1~5 클리어마다 한 단계, Commodore 부터는 함대 수준과 Membership 이 필요하다.
   const RANKS = [
@@ -48,11 +50,12 @@
       bio: 'United Star Fleet 기함을 지휘하는 함장. 함대의 첫 일격을 설계한다.',
       skill: { id: 'opening', name: '선제 지휘', en: 'FIRST COMMAND', range: [.10, .40], seconds: 20, text: v => `전투 시작 후 20초 동안 주는 피해 +${pct(v)}` },
       acquire: '기본 함장' },
-    // 기본 함장: 주인공으로 고르지 않은 쪽(Jake를 고르면 Donna, Donna를 고르면 Jake)이 처음부터 함께한다.
-    { id: 'partner', grade: 'standard', type: 'battlecruiser', partner: true,
-      bio: 'United Star Fleet 전투순양함 함장. 잔챙이 편대를 탄막으로 묶어 둔다.',
-      skill: { id: 'swarm', name: '탄막 제압', en: 'SUPPRESSIVE FIRE', range: [.08, .30], text: v => `보스가 아닌 적에게 주는 피해 +${pct(v)}` },
-      acquire: '기본 함장' },
+    // 각성 함장: 처음 고른 캐릭터(케플러 비밀기지에서 나포된 캡틴). 아스만에서 유전자가 깨어나 인간과 아스만의 특징을 함께 지녔다.
+    // 황금첨탑 5관문(시나리오 결말)을 클리어하면 합류한다. 만능이라 비전문 패널티가 없고, 수치는 전용 고급 함장의 60%(scale).
+    { id: 'partner', grade: 'elite', type: 'universal', partner: true, scale: .6,
+      bio: '케플러 비밀기지에서 나포되었다가 아스만에서 깨어난 캡틴. 인간과 아스만의 피를 함께 이어받아 어떤 함선이든 제 몸처럼 다룬다.',
+      skill: { id: 'swarm', name: '탄막 제압', en: 'SUPPRESSIVE FIRE', range: [.15 * .6, .55 * .6], text: v => `보스가 아닌 적에게 주는 피해 +${pct(v)}` },
+      acquire: '황금첨탑 5관문 클리어' },
     { id: 'malik', name: '말릭 오코로', en: 'Malik Okoro', grade: 'standard', type: 'dreadnought', portrait: 'captain-card-malik.webp?v=20261116-3', heroLevel: 5,
       bio: '중전함 포격 지휘의 베테랑. 위기일수록 침착해진다.',
       skill: { id: 'lowHpGuard', name: '철벽 지휘', en: 'IRON WALL', range: [.10, .40], threshold: .5, text: v => `내구도 50% 이하일 때 받는 피해 -${pct(v)}` } },
@@ -115,7 +118,10 @@
   }
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {} };
 
-  const owned = id => Boolean(state.captains[id]);
+  // 각성 함장은 황금첨탑 5관문(시나리오 결말)을 클리어해야 함대에 합류한다. 그 전에는 기록이 있어도 쓸 수 없다.
+  const PARTNER_FREED_REGION = 'golden-spire', PARTNER_FREED_GATE = 5;
+  const partnerFreed = () => (Number(read('neptune-campaign-v1')?.[PARTNER_FREED_REGION]) || 0) >= PARTNER_FREED_GATE;
+  const owned = id => Boolean(state.captains[id]) && (id !== 'partner' || partnerFreed());
   const levelOf = id => Math.min(MAX_LEVEL, Math.max(1, count(state.captains[id]?.level) || 1));
   const btOf = id => Math.min(MAX_LEVEL / TIER - 1, count(state.captains[id]?.bt));
   const expOf = id => count(state.captains[id]?.exp);
@@ -133,7 +139,7 @@
   }
   const MAX_POINTS = growthPoints(MAX_LEVEL, MAX_LEVEL / TIER - 1);
   const grow = ([a, b], level, bt) => a + (b - a) * growthPoints(level, bt) / MAX_POINTS;
-  const passiveOf = (c, level, bt = btOf(c.id)) => grow(GRADE[c.grade].passive, level, bt);
+  const passiveOf = (c, level, bt = btOf(c.id)) => grow(GRADE[c.grade].passive.map(v => v * (c.scale || 1)), level, bt);
   const skillValue = (c, level, bt = btOf(c.id)) => grow(c.skill.range, level, bt);
   const discovered = id => Boolean(state.discovered[id] || owned(id) || !byId[id]?.fee);
   const nextFind = id => (LINKS[id] || []).find(x => !discovered(x)) || null;
@@ -144,9 +150,9 @@
   const heroPortrait = () => profile().character === 'Donna' ? 'captain-card-donna.webp?v=20261116-3' : 'captain-card-jake.webp?v=20261116-3';
   const isDonna = () => profile().character === 'Donna';
   const partnerName = () => (isDonna() ? 'Jake' : 'Donna');
-  const partnerPortrait = () => (isDonna() ? 'captain-card-jake.webp?v=20261116-3' : 'captain-card-donna.webp?v=20261116-3');
+  const partnerPortrait = () => (isDonna() ? 'captain-card-jake-awakened.webp?v=20261120-1' : 'captain-card-donna-awakened.webp?v=20261120-1');
   const nameOf = c => c.hero ? heroName() : c.partner ? partnerName() : c.name;
-  const enOf = c => c.hero ? `${RANKS[state.rank].name} · Flagship` : c.partner ? 'Fleet Captain' : c.en;
+  const enOf = c => c.hero ? `${RANKS[state.rank].name} · Flagship` : c.partner ? 'Awakened Captain' : c.en;
 
   // ── 자원 ──────────────────────────────────────────────────────────────
   function balances() {
@@ -211,7 +217,7 @@
     const busy = new Set(main.map(ship => ship && captainOnShip(ship)?.id).filter(Boolean));
     for (const ship of main) {
       if (!ship || captainOnShip(ship)) continue;
-      const pick = CAPTAINS.find(c => owned(c.id) && c.type === ship.type && !busy.has(c.id));
+      const pick = CAPTAINS.find(c => owned(c.id) && fitsShip(c, ship) && !busy.has(c.id));
       if (pick) { assignCaptain(ship, pick.id); busy.add(pick.id); changed = true; }
     }
     return changed;
@@ -236,7 +242,7 @@
       paintTab(); queueCeremony(); return;
     }
     if (!owned('hero')) { grant('hero', true); changed = gained = true; }
-    if (!owned('partner')) { grant('partner', true); changed = gained = true; }
+    if (partnerFreed() && !state.captains.partner) { grant('partner'); changed = gained = true; }
     const heroLevel = levelOf('hero');
     for (const c of CAPTAINS) if (c.heroLevel && heroLevel >= c.heroLevel && !owned(c.id)) { grant(c.id); changed = gained = true; }
     // 새 함장이 오면 빈 함선에 태운다. 처음 개방 때 편성이 비어 있었다면 편성이 생길 때까지 한 번 더 시도한다.
@@ -254,7 +260,7 @@
     const rankBonus = RANKS[state.rank]?.bonus || 0;
     const c = captainOnShip(ship);
     const passive = c ? passiveOf(c, levelOf(c.id)) : 0;
-    const offSpec = Boolean(c && c.type !== ship.type);
+    const offSpec = Boolean(c && !fitsShip(c, ship));
     const factor = (1 + rankBonus) * (1 + passive) * (offSpec ? 1 - OFF_SPEC_PENALTY : 1) - 1;
     const skill = c ? { ...c.skill, value: skillValue(c, levelOf(c.id)), captain: nameOf(c) } : null;
     if (skill) delete skill.text;
@@ -401,7 +407,7 @@
     const slots = main.map((ship, i) => {
       if (!ship) return `<div class="ct-slot empty"><small>${ROLE_NAMES[i]}</small><span>편성된 함선 없음</span></div>`;
       const c = captainOnShip(ship);
-      return `<button type="button" class="ct-slot" data-ct-slot="${i}" data-type="${ship.type}"><small>${ROLE_NAMES[i]} · ${TYPE_NAMES[ship.type] || ''}</small><b>${esc(ship.name)}</b><span class="ct-slot-captain">${c ? `<span class="ct-mini">${portraitOf(c)}</span><span><b>${esc(nameOf(c))}</b><em>Lv.${levelOf(c.id)} · ${esc(c.skill.name)}</em></span>${c.type !== ship.type ? `<span class="ct-offspec" title="비전문 함선 · ${OFF_SPEC_TEXT}">비전문 -${Math.round(OFF_SPEC_PENALTY * 100)}%</span>` : ''}` : '<span class="ct-slot-add">＋ 함장 배치</span>'}</span></button>`;
+      return `<button type="button" class="ct-slot" data-ct-slot="${i}" data-type="${ship.type}"><small>${ROLE_NAMES[i]} · ${TYPE_NAMES[ship.type] || ''}</small><b>${esc(ship.name)}</b><span class="ct-slot-captain">${c ? `<span class="ct-mini">${portraitOf(c)}</span><span><b>${esc(nameOf(c))}</b><em>Lv.${levelOf(c.id)} · ${esc(c.skill.name)}</em></span>${!fitsShip(c, ship) ? `<span class="ct-offspec" title="비전문 함선 · ${OFF_SPEC_TEXT}">비전문 -${Math.round(OFF_SPEC_PENALTY * 100)}%</span>` : ''}` : '<span class="ct-slot-add">＋ 함장 배치</span>'}</span></button>`;
     }).join('');
     return `<section class="ct-fleet"><header><small>FLEET COMMAND</small><b>함장 배치</b></header><div class="ct-slots">${slots}</div></section>`;
   }
@@ -415,7 +421,7 @@
       <span class="ct-card-info"><b class="ct-card-title">미확인 함장</b>
       <span class="ct-card-meta">${gradeTag(c)}<span class="ct-card-lock">${finder ? `${esc(nameOf(finder))} 훈련 중 발견` : '발견 대기'}</span></span></span></button>`;
     }
-    const lock = !has ? (c.heroLevel ? `주인공 훈련 Lv.${c.heroLevel}` : c.rank != null ? `${RANKS[c.rank].abbr} 이상` : '') : '';
+    const lock = !has ? (c.partner ? '아스만에 있음' : c.heroLevel ? `주인공 훈련 Lv.${c.heroLevel}` : c.rank != null ? `${RANKS[c.rank].abbr} 이상` : '') : '';
     return `<button type="button" class="ct-card${has ? '' : ' locked'}" data-ct-open="${c.id}" data-grade="${c.grade}" data-type="${c.type}">
       <span class="ct-card-portrait">${portraitOf(c)}</span><span class="ct-card-shade"></span>
       <span class="ct-card-info"><b class="ct-card-title">${esc(nameOf(c))}</b>
@@ -433,7 +439,7 @@
   }
 
   function rosterPanel() {
-    const groups = ['battlecruiser', 'dreadnought', 'destroyer'].map(type => `<div class="ct-group"><h3><span>${TYPE_EN[type]}</span>${TYPE_NAMES[type]} 전문</h3><div class="ct-cards">${CAPTAINS.filter(c => c.type === type).map(cardMarkup).join('')}</div></div>`).join('');
+    const groups = ['universal', 'battlecruiser', 'dreadnought', 'destroyer'].map(type => `<div class="ct-group" data-group="${type}"><h3><span>${TYPE_EN[type]}</span>${type === 'universal' ? '만능 · 모든 함선' : TYPE_NAMES[type] + ' 전문'}</h3><div class="ct-cards">${CAPTAINS.filter(c => c.type === type).map(cardMarkup).join('')}</div></div>`).join('');
     return `<section class="ct-roster"><header><small>CAPTAIN ROSTER</small><b>함장 카드</b><span>카드를 눌러 훈련할 함장을 지정합니다</span></header>${groups}</section>`;
   }
 
@@ -473,6 +479,7 @@
         <div class="ct-manuals">${manualBtns}</div>
       </section>`;
     } else if (c.fee) action = `<button type="button" class="ct-action recruit" data-ct-recruit="${id}" ${rankOk ? '' : 'disabled'}><span>${rankOk ? '함장 영입' : `${RANKS[c.rank].name} 이상 영입 가능`}</span><em><i class="ct-gold"></i>${fmt(c.fee)}</em></button>`;
+    else if (c.partner) action = `<button type="button" class="ct-action" disabled>아스만에 있음 · 황금첨탑 5관문 클리어 후 합류</button>`;
     else action = `<button type="button" class="ct-action" disabled>주인공 훈련 Lv.${c.heroLevel} 달성 시 자동 합류</button>`;
     const milestones = c.hero ? `<div class="ct-milestones">${CAPTAINS.filter(x => x.heroLevel).map(x => `<span class="${owned(x.id) ? 'done' : ''}"><b>Lv.${x.heroLevel}</b>${esc(x.name)} 합류</span>`).join('')}</div>` : '';
     const modal = document.createElement('div');
@@ -485,7 +492,7 @@
       <div class="ct-detail-body">
         <p class="ct-detail-bio">${esc(c.bio)}</p>
         <dl class="ct-stats">
-          <div><dt>전문 함종</dt><dd>${TYPE_NAMES[c.type]}</dd></div>
+          <div><dt>전문 함종</dt><dd>${c.type === 'universal' ? '만능 · 모든 함선 패널티 없음' : TYPE_NAMES[c.type]}</dd></div>
           <div><dt>함장 효과</dt><dd>공격력·내구도 +${pct(passive)}${preview && has ? ` <i>${preview[2]} +${pct(nextP)}</i>` : ''}</dd></div>
           <div class="ct-skill"><dt>특수기술 <span>${esc(c.skill.name)} · ${c.skill.en}</span></dt><dd>${c.skill.text(value)}${preview && has ? ` <i>${preview[2]} ${pct(nextV)}</i>` : ''}</dd></div>
         </dl>${milestones}${action}
@@ -508,9 +515,9 @@
     if (!ship) return;
     closeModal();
     const current = captainOnShip(ship);
-    const list = CAPTAINS.filter(c => owned(c.id)).sort((a, b) => (b.type === ship.type) - (a.type === ship.type));
+    const list = CAPTAINS.filter(c => owned(c.id)).sort((a, b) => fitsShip(b, ship) - fitsShip(a, ship));
     const where = id => { const main = fleetMain(); const k = main.findIndex(s => s && captainOnShip(s)?.id === id); return k >= 0 ? `${ROLE_NAMES[k]} ${main[k].name} 탑승 중` : '대기 중'; };
-    const rows = list.length ? list.map(c => `<button type="button" class="ct-pick${current?.id === c.id ? ' selected' : ''}" data-ct-pick="${c.id}"><span class="ct-mini">${portraitOf(c)}</span><span><b>${esc(nameOf(c))} <i class="${c.type === ship.type ? 'ct-spec' : 'ct-offspec'}">${c.type === ship.type ? '전문' : `${TYPE_NAMES[c.type]} 전문 · ${OFF_SPEC_TEXT}`}</i></b><em>Lv.${levelOf(c.id)} · ${esc(c.skill.name)} · ${where(c.id)}</em></span></button>`).join('') : '<p class="ct-empty">보유한 함장이 없습니다.</p>';
+    const rows = list.length ? list.map(c => `<button type="button" class="ct-pick${current?.id === c.id ? ' selected' : ''}" data-ct-pick="${c.id}"><span class="ct-mini">${portraitOf(c)}</span><span><b>${esc(nameOf(c))} <i class="${fitsShip(c, ship) ? 'ct-spec' : 'ct-offspec'}">${fitsShip(c, ship) ? (c.type === 'universal' ? '만능' : '전문') : `${TYPE_NAMES[c.type]} 전문 · ${OFF_SPEC_TEXT}`}</i></b><em>Lv.${levelOf(c.id)} · ${esc(c.skill.name)} · ${where(c.id)}</em></span></button>`).join('') : '<p class="ct-empty">보유한 함장이 없습니다.</p>';
     const modal = document.createElement('div');
     modal.className = 'ct-modal';
     modal.dataset.slot = String(index);
@@ -743,7 +750,7 @@
     if (pick) {
       const index = Number(pick.closest('.ct-modal')?.dataset.slot), ship = fleetMain()[index], id = pick.dataset.ctPick || null;
       // 전문 함종이 아닌 함선에 태울 때는 능력치 감소를 알리고 한 번 더 묻는다.
-      if (ship && id && byId[id] && byId[id].type !== ship.type && !pick.hasAttribute('data-ct-pick-confirmed')) { openOffSpec(index, id); return; }
+      if (ship && id && byId[id] && !fitsShip(byId[id], ship) && !pick.hasAttribute('data-ct-pick-confirmed')) { openOffSpec(index, id); return; }
       if (ship) { assignCaptain(ship, id); save(); render(); window.dispatchEvent(new Event('captain-training-updated')); }
       closeModal();
       return;
@@ -773,7 +780,11 @@
     const baseSummonTab = window.summonTab;
     window.summonTab = kind => {
       baseSummonTab?.(kind);
-      if (kind === 'captain') { sync(); render(); if (!state.unlockSeen) { state.unlockSeen = true; save(); paintTab(); } }
+      if (kind === 'captain') {
+        sync(); render(); if (!state.unlockSeen) { state.unlockSeen = true; save(); paintTab(); }
+        // 훈련 밖에서 합류한 함장(예: 황금길 15관문 재회 후 나포되었던 캡틴)은 탭을 열 때 합류 팝업으로 알린다.
+        if (state.unlocked && joined.length && !document.querySelector('.ct-modal')) showJoin();
+      }
     };
     paintTab();
     setTimeout(sync, 300);
