@@ -100,6 +100,24 @@
 전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
 문의·신고: hansryan19@gmail.com (이전 안내의 이메일 주소를 정정했습니다.)`});
     if(sent)window.notice?.('우편함에 약관 변경 사전 안내가 도착했습니다.');
+    // 2026-11-23 추가 공고: 채팅·신고·차단(시행 2026-12-09)
+    const chatNoticeSent=window.deliverCaptainMail({id:'notice-chat-report-20261209',title:'개인정보 처리방침·이용약관 추가 안내(채팅·신고·차단)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 9일로 같습니다.
+
+■ 전체 채팅·연합 채팅
+12월 9일 이후 전체 채팅과 연합 채팅이 열립니다. 채팅에 쓴 메시지와 보낸 시각은 함장 이름·소속 연합과 함께 표시됩니다. 전체 채팅은 모든 함장에게, 연합 채팅은 같은 연합원에게 보입니다. 전체 채팅에 글을 쓰려면 구글 계정 연동이 필요합니다. 채팅 메시지는 보낸 날부터 30일이 지나면 자동으로 삭제됩니다.
+
+■ 쓸 수 없는 글
+함장 이름·연합 이름·연합 공지·채팅에는 욕설·비방, 음란·성적 표현, 혐오·차별 표현, 운영자 사칭, 광고·도배, 실명·연락처 같은 개인정보, 게임 정보·계정 거래 권유를 쓸 수 없습니다. 위반하면 메시지 삭제, 이름·공지 변경, 기간을 정한 채팅 제한 등의 조치를 할 수 있습니다.
+
+■ 신고·차단
+게임 안에서 다른 함장이나 연합, 메시지를 신고하고 차단할 수 있습니다. 차단하면 내 화면에서 이름과 글이 가려지고, 설정의 차단 목록에서 언제든 풀 수 있습니다. 신고 기록과 채팅 제한 기록은 처리가 끝난 날부터 1년 동안 보관한 뒤 파기합니다.
+
+■ 동의하지 않으시면
+시행일 전에 설정에서 계정을 삭제하실 수 있습니다. 시행일 이후에도 계속 이용하시면 변경에 동의한 것으로 봅니다.
+
+전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html
+문의·신고: hansryan19@gmail.com`});
+    if(chatNoticeSent&&!sent)window.notice?.('우편함에 약관 변경 추가 안내가 도착했습니다.');
     window.deliverCaptainMail({id:'notice-online-date-20261209',title:'개인정보 처리방침·이용약관 시행일 변경 안내',sender:'TimesWitch 운영팀',body:'지휘관님, 앞서 안내드린 개인정보 처리방침과 이용약관 변경의 시행일을 2026년 12월 2일에서 2026년 12월 9일로 변경합니다. 랭킹·아레나 대전·연합·토륨광산 기능은 이날 이후 시작합니다.\n\n전문: game.timeswitch.co.kr/privacy.html , game.timeswitch.co.kr/terms.html\n문의·신고: hansryan19@gmail.com'});
     window.deliverCaptainMail({id:'notice-online-credit-dev-20261209',title:'이용약관 추가 안내(CREDIT·연합 개발)',sender:'TimesWitch 운영팀',body:'지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 9일로 같습니다.\n\n연합 기여도를 CREDIT이라고 부릅니다. CREDIT은 연합 개발에 쓸 수 있고, 연합 개발은 연합 전체에 적용됩니다. 쓴 CREDIT은 돌려받을 수 없으며, 연합을 떠나면 그 연합의 개발 효과도 적용되지 않습니다.\n\n전문: game.timeswitch.co.kr/terms.html\n문의·신고: hansryan19@gmail.com'});
     window.deliverCaptainMail({id:'notice-online-contribution-mine-20261202',title:'개인정보 처리방침·이용약관 추가 안내(CREDIT·토륨광산)',sender:'TimesWitch 운영팀',body:`지휘관님, 앞서 안내드린 변경에 다음 내용을 더합니다. 시행일은 2026년 12월 9일로 같습니다.
