@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <section id="ship-detail" class="screen ship-detail-screen">
       <button class="detail-back" onclick="show('home')">← 함교</button>
       <div class="detail-heading"><span>FLAGSHIP DOSSIER</span><h1>제1 기함 <em>(DreadNought)</em></h1></div>
-      <div class="ship-portrait"><div class="portrait-grid"></div><img src="arcadia-galaxy-art.png" alt="제1 기함" /></div>
+      <div class="ship-portrait"><div class="portrait-grid"></div><img src="star-cruiser-codex-20261007.png" alt="제1 기함" /></div>
       <div class="ship-status"><span>READY FOR DEPLOYMENT</span></div>
       <div class="ship-specs">
         <div><span>함종</span><b>DreadNought</b></div>
