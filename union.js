@@ -10,6 +10,8 @@
   const CAPACITY = 30;
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
   const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* 저장소를 쓸 수 없어도 화면은 계속 동작한다 */ } };
+  const M = () => window.Moderation;
+  const modUnion = u => Boolean(M()?.canModerate('union', u.id));
   const esc = text => String(text ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const fail = message => { throw new Error(message); };
 
@@ -273,11 +275,12 @@ ${wings ? `<path d="${wing}" fill="url(#${k}w)" stroke="#2c4f86" stroke-width=".
       const canKick = !self && canManage && m.role !== 'leader' && !(myRole === 'officer' && m.role !== 'member');
       const canRole = !self && myRole === 'leader' && m.role !== 'leader';
       const open = ui.menuFor === m.playerId;
-      const actions = (canKick || canRole) ? `<button type="button" class="union-more" data-more="${esc(m.playerId)}" aria-label="${esc(m.name)} 관리">⋯</button>` : '';
-      const menu = open ? `<div class="union-menu">${canRole ? `<button type="button" data-role="${esc(m.playerId)}:${m.role === 'officer' ? 'member' : 'officer'}">${m.role === 'officer' ? '부연합장 해임' : '부연합장 임명'}</button><button type="button" data-transfer="${esc(m.playerId)}">연합장 위임</button>` : ''}${canKick ? `<button type="button" class="danger" data-kick="${esc(m.playerId)}">추방</button>` : ''}</div>` : '';
+      const canMod = !self && Boolean(M()?.canModerate('player', m.playerId));
+      const actions = (canKick || canRole || canMod) ? `<button type="button" class="union-more" data-more="${esc(m.playerId)}" aria-label="${esc(m.name)} 관리">⋯</button>` : '';
+      const menu = open ? `<div class="union-menu">${canRole ? `<button type="button" data-role="${esc(m.playerId)}:${m.role === 'officer' ? 'member' : 'officer'}">${m.role === 'officer' ? '부연합장 해임' : '부연합장 임명'}</button><button type="button" data-transfer="${esc(m.playerId)}">연합장 위임</button>` : ''}${canKick ? `<button type="button" class="danger" data-kick="${esc(m.playerId)}">추방</button>` : ''}${canMod ? `<button type="button" data-mod-member="${esc(m.playerId)}" data-mod-name="${esc(m.name)}">신고·차단</button>` : ''}</div>` : '';
       const online = Date.now() - Number(m.lastSeen || 0) < 5 * 60000;
       const share = Math.round(100 * Number(m.weekContribution ?? m.contribution ?? 0) / topContribution);
-      return `<li class="union-member roster-row${self ? ' self' : ''}"><div class="roster-rank">${rankSvg(m.role)}</div><div class="roster-main"><div class="roster-name"><b>${esc(m.name)}</b>${self ? '<em class="roster-me">나</em>' : ''}<span class="role role-${m.role}">${ROLE_LABEL[m.role]}</span>${m.post ? `<small class="post">${esc(m.post)}</small>` : ""}</div><div class="roster-bar" aria-label="CREDIT ${num(m.contribution)}"><i style="width:${share}%"></i></div></div><div class="roster-meta"><b>${m.weekContribution === undefined ? num(m.contribution) : `주 ${num(m.weekContribution)} · 누적 ${num(m.contribution)}`}</b><span class="${online ? 'on' : ''}"><i></i>${ago(m.lastSeen)}</span></div>${actions}${menu}</li>`;
+      return `<li class="union-member roster-row${self ? ' self' : ''}"><div class="roster-rank">${rankSvg(m.role)}</div><div class="roster-main"><div class="roster-name"><b>${esc(!self && M()?.canModerate('player', m.playerId) ? M().label('player', m.playerId, m.name) : m.name)}</b>${self ? '<em class="roster-me">나</em>' : ''}<span class="role role-${m.role}">${ROLE_LABEL[m.role]}</span>${m.post ? `<small class="post">${esc(m.post)}</small>` : ""}</div><div class="roster-bar" aria-label="CREDIT ${num(m.contribution)}"><i style="width:${share}%"></i></div></div><div class="roster-meta"><b>${m.weekContribution === undefined ? num(m.contribution) : `주 ${num(m.weekContribution)} · 누적 ${num(m.contribution)}`}</b><span class="${online ? 'on' : ''}"><i></i>${ago(m.lastSeen)}</span></div>${actions}${menu}</li>`;
     }).join('');
     const noticeBox = canManage
       ? `<textarea class="brief-edit" data-notice maxlength="120" rows="3" aria-label="공지">${esc(union.notice)}</textarea><div class="brief-actions"><button type="button" class="fac-btn small" data-save-notice>브리핑 송출</button></div>`
@@ -504,7 +507,7 @@ ${windowLights}
       ? `<div class="ub-meta"><span class="ub-lv">Lv.${union.level}</span><span>연합원 <em>${union.members.length}</em>/${union.capacity}</span></div><div class="ub-exp" aria-label="연합 경험치 ${exp}%"><i style="width:${exp}%"></i></div>`
       : `<div class="ub-meta"><span>회의장에서 연합에 가입하거나 창설하세요</span></div>`}</div>`;
     const plaques = FACILITIES.map(f => `<button type="button" class="union-plaque${f.ready ? '' : ' soon'}${f.id === 'archive' ? ' short' : ''}" style="--lx:${leaderGeom(f.id).lx};--ly:${leaderGeom(f.id).sy}" data-view="${f.id}" aria-label="${f.name}"><b>${f.name}</b>${f.id === 'hall' && pending ? `<i class="dot" aria-label="가입 신청 ${pending}건">${pending}</i>` : ''}</button>`).join('');
-    return `<div class="union-status union-banner">${status}</div><div class="union-scene"><div class="union-stage">${sceneInner()}</div>${plaques}</div>`;
+    return `<div class="union-status union-banner">${status}${union ? '<button type="button" class="fac-btn small union-chat-open" data-union-chat aria-label="연합 채팅 열기">연합 채팅</button>' : ''}</div><div class="union-scene"><div class="union-stage">${sceneInner()}</div>${plaques}</div>`;
   }
 
   // 장면을 하단 메뉴 바로 위까지 채운다(남는 세로 공간 사용). 이미지는 가운데 기준으로 확대되어 빈틈 없이 채워진다.
@@ -654,7 +657,7 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
   function joinHtml(list) {
     const items = list.map(u => {
       const full = u.memberCount >= u.capacity;
-      return `<li class="union-card fac-union-card"><div class="card-crest">${crestSvg(u.emblem, { wings: false })}</div><div class="union-card-main"><b>${esc(u.name)}</b><span><em class="ub-lv">Lv.${u.level}</em> 연합원 ${u.memberCount}/${u.capacity} · ${u.joinMode === 'approval' ? '승인 가입' : '자유 가입'}</span><small>${esc(u.notice)}</small></div><button type="button" class="fac-btn small" data-join="${esc(u.id)}"${full ? ' disabled' : ''}>${full ? '정원 마감' : u.joinMode === 'approval' ? '가입 신청' : '가입'}</button></li>`;
+      return `<li class="union-card fac-union-card"><div class="card-crest">${crestSvg(u.emblem, { wings: false })}</div><div class="union-card-main"><b>${esc(modUnion(u) ? M().label('union', u.id, u.name) : u.name)}</b><span><em class="ub-lv">Lv.${u.level}</em> 연합원 ${u.memberCount}/${u.capacity} · ${u.joinMode === 'approval' ? '승인 가입' : '자유 가입'}</span><small>${esc(modUnion(u) && M().isBlocked('union', u.id) ? '차단한 연합의 공지는 가려집니다.' : u.notice)}</small></div>${modUnion(u) ? `<button type="button" class="mod-chip" data-mod-union="${esc(u.id)}" data-mod-name="${esc(u.name)}" aria-label="${esc(u.name)} 신고·차단">⋯</button>` : ''}<button type="button" class="fac-btn small" data-join="${esc(u.id)}"${full ? ' disabled' : ''}>${full ? '정원 마감' : u.joinMode === 'approval' ? '가입 신청' : '가입'}</button></li>`;
     }).join('');
     return `<div class="union-search"><input type="search" data-query value="${esc(ui.query)}" placeholder="연합 이름 검색" maxlength="12" aria-label="연합 이름 검색"/></div><ul class="union-cards">${items || `<li class="union-empty">${ui.query ? '검색 결과가 없습니다.' : '아직 창설된 연합이 없습니다. 첫 연합을 만들어 보세요.'}</li>`}</ul>`;
   }
@@ -767,6 +770,9 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
     on('[data-create]', e => { e.preventDefault(); syncDraft(host); run(() => adapter().createUnion(ui.draft), '연합을 창설했습니다.').then(() => { ui.draft = { name: '', emblem: EMBLEMS[0], notice: '', joinMode: 'open' }; ui.tab = 'hall'; }); }, 'submit');
     on('[data-save-notice]', () => run(() => adapter().updateUnion({ notice: host.querySelector('[data-notice]').value }), '공지를 저장했습니다.'));
     on('[data-joinmode]', e => run(() => adapter().updateUnion({ joinMode: e.currentTarget.value }), '가입 방식을 바꿨습니다.'), 'change');
+    on('[data-union-chat]', () => window.openChat?.('union'));
+    on('[data-mod-union]', e => { e.stopPropagation(); M()?.openActions({ type: 'union', id: e.currentTarget.dataset.modUnion, name: e.currentTarget.dataset.modName }); });
+    on('[data-mod-member]', e => { ui.menuFor = ''; M()?.openActions({ type: 'player', id: e.currentTarget.dataset.modMember, name: e.currentTarget.dataset.modName }); });
     on('[data-more]', e => { const id = e.currentTarget.dataset.more; ui.menuFor = ui.menuFor === id ? '' : id; render(); });
     on('[data-role]', e => { const [id, role] = e.currentTarget.dataset.role.split(':'); run(() => adapter().setRole(id, role), '직책을 바꿨습니다.'); });
     on('[data-transfer]', e => run(() => adapter().transferLeader(e.currentTarget.dataset.transfer), '연합장을 위임했습니다.'));
@@ -785,6 +791,8 @@ ${panel('연합 기록 순위 <small>LEADERBOARD</small>', `<ol class="fac-rank"
   // 연합 활동 보상 배율: 체험 연합은 50%, 정식 연합은 100%. 화성 10관문 뒤 에바-9 안내가 끝나면 체험 연합을 연다.
   window.unionRewardRate = () => { try { return Local.__rewardRate(); } catch { return 1; } };
   window.renderUnionScreen = () => render();
+  // 신고·차단으로 차단 목록이 바뀌면 연합 화면을 다시 그려 이름·공지를 가린다.
+  window.addEventListener('moderation-changed', () => { if (document.getElementById('earth-union')?.classList.contains('active')) render(); });
   window.openUnionFacility = id => { ui.view = id; ui.tab = 'hall'; ui.menuFor = ''; render(); };
   window.unlockTrialUnion = () => Local.__unlockTrial();
   window.UnionLocal = Local; // 서버 어댑터(online.js)가 체험 연합과 기기 저장 모드에 쓴다

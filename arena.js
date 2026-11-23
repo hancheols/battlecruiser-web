@@ -1,6 +1,8 @@
 (() => {
   'use strict';
   const C=window.ArenaCore,KEY='starfleet-async-arena-v1',WAL=KEY+'-transaction',RESOURCE='starfleet-game-resources-v1',SELF='player';
+  // 차단한 함장은 이름을 가린다(신고·차단은 moderation.js).
+  const shownName=p=>window.Moderation?window.Moderation.label('player',p.publicId||p.id,p.name):p.name;
   const roles=['선봉','좌익','우익','프리깃'],fmt=n=>Math.round(n||0).toLocaleString('ko-KR'),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let overlay=null,lastFocus=null,playTimer=0,playing=false,draft=null,busy=false;
   // 서버 모드: 점수·전적·입장 횟수·순위는 서버 값(online)을 쓴다. 공격·방어 편성과 티켓은 게임 저장에 그대로 둔다. online 이 null 이면 기기 저장 모드다.
@@ -211,8 +213,8 @@
     shell('ARENA',`
       <div class="arena-season"><img src="icons/arena-button.png" alt="Arena"/><div><small>${seasonLabel()}</small><h3>유틀란트 해전</h3></div></div>
       <section class="arena-ranking">
-        <div class="arena-podium">${[1,0,2].map(i=>{const p=top[i];if(!p)return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span></div>`;return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span>${emblem(p.tier)}<button type="button" class="arena-podium-name" data-player-id="${esc(p.id)}">${esc(p.name)}</button><small>${p.tier.label}</small><strong>${fmt(p.score)}</strong></div>`;}).join('')}</div>
-        <div class="arena-rank-list">${rows.slice(3).map(p=>`<div class="${p.id===SELF?'is-self':''}"><strong>${p.rank}</strong>${emblem(p.tier,true)}<span><button type="button" class="arena-player-link" data-player-id="${esc(p.id)}">${esc(p.name)}</button></span><em>${fmt(p.score)}</em></div>`).join('')}</div>
+        <div class="arena-podium">${[1,0,2].map(i=>{const p=top[i];if(!p)return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span></div>`;return `<div class="place-${i+1}"><span>${i===0?'♛':i+1}</span>${emblem(p.tier)}<button type="button" class="arena-podium-name" data-player-id="${esc(p.id)}">${esc(shownName(p))}</button><small>${p.tier.label}</small><strong>${fmt(p.score)}</strong></div>`;}).join('')}</div>
+        <div class="arena-rank-list">${rows.slice(3).map(p=>`<div class="${p.id===SELF?'is-self':''}"><strong>${p.rank}</strong>${emblem(p.tier,true)}<span><button type="button" class="arena-player-link" data-player-id="${esc(p.id)}">${esc(shownName(p))}</button></span><em>${fmt(p.score)}</em></div>`).join('')}</div>
       </section>
       <button class="arena-battle-button" data-match><strong>아레나 출전</strong><span>${ticketLeft?'무료 대전 '+ticketLeft+' / 5':'아레나 티켓 1장 사용'}</span></button>
       ${deckBlock('defense','수비 함대',s)}${deckBlock('attack','공격 함대',s)}${defenseLogHtml()}
@@ -253,10 +255,15 @@
     const tokenCount=player.id===SELF
       ?Math.max(0,Math.floor(Number((window.gameResources||read(RESOURCE,{})).lionToken)||0))
       :Math.max(0,Math.floor(Number(player.tokens??(12+Math.floor(player.score/35)+(botIndex*13)%23))||0));
-    const popup=document.createElement('div');popup.className='arena-player-popup';popup.innerHTML=`<section class="arena-player-card" role="dialog" aria-modal="true" aria-label="함장 정보"><header><small>FLEET CAPTAIN</small><button type="button" aria-label="닫기">×</button></header><h3>${esc(player.name)}</h3><dl><div><dt>최고 등급 함선</dt><dd>${best?`${esc(best.name)} · ${esc(best.rarity||'R')} · ${Number(best.enhancementStars??best.stars)||0}성`:'등록 정보 없음'}</dd></div><div><dt>최고 개발 단계</dt><dd>Lv. ${fmt(levels)}</dd></div>${online?.me?.id&&player.id!==SELF?'':`<div><dt>사자증표</dt><dd>${fmt(tokenCount)}개</dd></div>`}</dl></section>`;
+    const modId=player.id!==SELF&&window.Moderation?.canModerate('player',player.publicId||player.id)?(player.publicId||player.id):'';
+    const popup=document.createElement('div');popup.className='arena-player-popup';popup.innerHTML=`<section class="arena-player-card" role="dialog" aria-modal="true" aria-label="함장 정보"><header><small>FLEET CAPTAIN</small><button type="button" aria-label="닫기">×</button></header><h3>${esc(shownName(player))}</h3><dl><div><dt>최고 등급 함선</dt><dd>${best?`${esc(best.name)} · ${esc(best.rarity||'R')} · ${Number(best.enhancementStars??best.stars)||0}성`:'등록 정보 없음'}</dd></div><div><dt>최고 개발 단계</dt><dd>Lv. ${fmt(levels)}</dd></div>${online?.me?.id&&player.id!==SELF?'':`<div><dt>사자증표</dt><dd>${fmt(tokenCount)}개</dd></div>`}</dl>${modId?`<div class="mod-inline"><button type="button" class="mod-chip danger" data-mod-report>신고</button><button type="button" class="mod-chip" data-mod-block>${window.Moderation.isBlocked('player',modId)?'차단 풀기':'차단'}</button></div>`:''}</section>`;
     const close=()=>{popup.remove();document.removeEventListener('keydown',onKey);};
     const onKey=event=>{if(event.key==='Escape'){event.stopPropagation();close();}};
-    popup.addEventListener('click',event=>{if(event.target===popup||event.target.closest('button'))close();});
+    popup.addEventListener('click',event=>{
+      if(event.target.closest('[data-mod-report]')){close();window.Moderation.openReport({type:'player',id:modId,name:player.name});return;}
+      if(event.target.closest('[data-mod-block]')){close();if(window.Moderation.isBlocked('player',modId))window.Moderation.unblock('player',modId);else window.Moderation.block('player',modId,player.name);return;}
+      if(event.target===popup||event.target.closest('button'))close();
+    });
     document.addEventListener('keydown',onKey);document.body.append(popup);popup.querySelector('button').focus();
   }
   const rewardText=r=>[`${fmt(r.gold)} 골드`,`${fmt(r.thorium)} 토륨`,r.lionToken?`증표 ${r.lionToken}`:'',r.ssrShipTicket?`SSR 교환권 ${r.ssrShipTicket}`:''].filter(Boolean).join(' · ');
@@ -484,6 +491,8 @@
     }
     try{const s=state();if(s.pending)enterArenaBattle(s.pending);else{render();showArenaIntro();}overlay?.querySelector('button')?.focus();}catch(e){shell('ARENA','');note(e.message);}
   }
+  // 차단 목록이 바뀌면 아레나 첫 화면(순위)을 다시 그려 이름을 가린다.
+  window.addEventListener('moderation-changed',()=>{if(overlay?.querySelector('.arena-home'))render();});
   window.openArena=()=>{if(overlay){overlay.focus();return;}lastFocus=document.activeElement;overlay=document.createElement('div');overlay.className='arena-overlay';document.body.append(overlay);overlay.onclick=e=>{if(e.target===overlay&&!playing)close();};overlay.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!playing){if(draft){draft=null;render();}else close();}}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not(:disabled),input')],first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}};shell('ARENA','<p class="arena-explanation">아레나 서버에 연결하는 중입니다.</p>');openHome();};
   window.getArenaTickets=()=>{try{return state().tickets;}catch{return 0;}};
   window.purchaseArenaTicket=()=>lock(()=>{const s=state(),resources={...(window.gameResources||read(RESOURCE,{}))};if((resources.thorium||0)<20)return {ok:false,message:'토륨이 부족합니다.'};resources.thorium-=20;s.tickets++;commit(s,resources);return {ok:true,message:'아레나 티켓 1장을 구매했습니다.'};});

@@ -1,0 +1,31 @@
+/* 신고·차단 대화 상자와 버튼. 글꼴은 game-fonts.css 변수만 쓴다. */
+.mod-sheet{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:#02060fcc;backdrop-filter:blur(3px)}
+.mod-card{width:min(100%,360px);max-height:calc(100dvh - 36px);overflow:auto;padding:16px 16px 14px;border:1px solid #3d6a9a;border-radius:14px;background:linear-gradient(180deg,#0f2038,#08121f);box-shadow:0 18px 40px #000b,0 0 0 1px #7cc4ff22 inset;color:#e9f4ff;font-family:var(--font-body)}
+.mod-card header{position:relative;display:grid;gap:3px;padding-right:34px;margin-bottom:10px}
+.mod-card header small{font-family:var(--font-num);font-size:11px;letter-spacing:2px;color:#7fb8e8}
+.mod-card header h3{margin:0;font-family:var(--font-display);font-size:20px;font-weight:400;color:#fff;overflow-wrap:anywhere}
+.mod-x{position:absolute;right:-4px;top:-4px;width:32px;height:32px;border:0;border-radius:50%;background:#ffffff12;color:#cfe3f7;font-size:20px;line-height:1;cursor:pointer}
+.mod-note{margin:8px 0;font-size:12.5px;line-height:1.55;color:#a9bfd6}
+.mod-target{margin:0 0 8px;font-size:13px;color:#a9bfd6}.mod-target b{color:#fff;overflow-wrap:anywhere}
+.mod-reasons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;padding:0;border:0}
+.mod-reasons legend{margin-bottom:6px;font-size:12px;color:#7fb8e8}
+.mod-reasons label{display:flex;align-items:center;gap:6px;padding:8px 9px;border:1px solid #2c4a6c;border-radius:9px;background:#0b1828;font-size:13px;cursor:pointer}
+.mod-reasons label:has(input:checked){border-color:#ff8a7a;background:#3a151799}
+.mod-reasons input{accent-color:#ff7a6a;margin:0}
+.mod-detail{display:grid;gap:5px;font-size:12px;color:#7fb8e8}
+.mod-detail textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:62px;padding:8px 10px;border:1px solid #2c4a6c;border-radius:9px;background:#06101c;color:#e9f4ff;font-family:var(--font-body);font-size:13px}
+.mod-also{display:flex;align-items:center;gap:7px;margin:10px 0 2px;font-size:12.5px;color:#cfe3f7}
+.mod-actions{display:flex;gap:8px;margin-top:12px}
+.mod-btn{flex:1;min-height:40px;padding:0 12px;border:1px solid #3d6a9a;border-radius:10px;background:#12263f;color:#e9f4ff;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer}
+.mod-btn.danger{border-color:#c4554a;background:linear-gradient(180deg,#7a2620,#55160f);color:#ffe9e5}
+.mod-btn:disabled{opacity:.6;cursor:default}
+.mod-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mod-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #2c4a6c;border-radius:10px;background:#0b1828}
+.mod-row span{display:grid;gap:2px;min-width:0}.mod-row small{font-size:11px;color:#7fb8e8}.mod-row b{overflow-wrap:anywhere;font-size:14px}
+.mod-row .mod-btn{flex:none;min-height:34px;font-size:12.5px}
+.mod-empty{margin:6px 0;padding:18px;border:1px dashed #2c4a6c;border-radius:10px;text-align:center;font-size:13px;color:#a9bfd6}
+/* 다른 화면에 붙는 작은 신고·차단 버튼 */
+.mod-chip{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border:1px solid #3d6a9a;border-radius:8px;background:#0f2038;color:#cfe3f7;font-family:var(--font-body);font-size:12px;cursor:pointer}
+.mod-chip.danger{border-color:#9a4a42;color:#ffd5cf}
+.mod-inline{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.mod-blocked-name{color:#8ea3ba;font-style:italic}

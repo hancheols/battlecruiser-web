@@ -62,6 +62,9 @@ export async function onRequestDelete({ request, env }) {
     'UPDATE mine_battles SET target_id = NULL WHERE target_id = ?1',
     'DELETE FROM mine_payouts WHERE user_id = ?1',
     'DELETE FROM season_rewards WHERE user_id = ?1',
+    'DELETE FROM reports WHERE reporter_id = ?1',
+    'DELETE FROM chat_messages WHERE user_id = ?1',
+    'DELETE FROM chat_bans WHERE user_id = ?1',
     'DELETE FROM players WHERE user_id = ?1',
     'DELETE FROM identities WHERE user_id = ?1',
     'DELETE FROM sessions WHERE user_id = ?1'

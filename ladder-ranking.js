@@ -38,11 +38,14 @@
     ? `<b>${format(entry.value)}</b><small>연합 점수</small>`
     : `<b>Lv.${format(entry.dev)}</b><small>${category.id === 'total' ? '개발 합계' : '무기 개발'}</small>`;
 
-  const rowMarkup = (rank, name, entry, category, isSelf = false) => {
+  // target: { type, id, name } — 다른 이용자 줄이면 눌러서 신고·차단 메뉴를 연다.
+  const rowMarkup = (rank, name, entry, category, isSelf = false, target = null) => {
     const podium = rank <= 3 ? ` podium-${rank}` : '';
-    return `<div class="ladder-row${podium}${isSelf ? ' is-self' : ''}">
+    const mod = !isSelf && target && window.Moderation?.canModerate(target.type, target.id);
+    const shown = mod ? window.Moderation.label(target.type, target.id, name) : name;
+    return `<div class="ladder-row${podium}${isSelf ? ' is-self' : ''}"${mod ? ` role="button" tabindex="0" data-mod-type="${target.type}" data-mod-id="${esc(target.id)}" data-mod-name="${esc(target.name)}" title="눌러서 신고·차단"` : ''}>
       <span class="ladder-rank">${rank}</span>
-      <span class="ladder-player"><b>${esc(name)}</b><small>${esc(entryLine(entry, category))}</small></span>
+      <span class="ladder-player"><b>${esc(shown)}</b><small>${esc(entryLine(entry, category))}</small></span>
       <span class="ladder-score">${entryScore(entry, category)}</span>
     </div>`;
   };
@@ -122,17 +125,23 @@
     const inList = me && data.leaders.some(row => row.id === me.id);
     const myValue = !me?.entry ? '—' : category.id === 'alliance' ? format(me.entry.value) : category.id === 'total' ? `개발 Lv.${format(me.entry.dev)}` : `${me.entry.ship} ${me.entry.rarity}★${me.entry.stars} · Lv.${format(me.entry.dev)}`;
     summary.innerHTML = `<div><small>${category.code}</small><b>내 순위 <em>${me?.rank ? `${format(me.rank)}위` : '—'}</em>${me?.percent ? ` · 상위 ${me.percent}%` : ''}</b></div><div><small>${category.metric}</small><strong>${esc(myValue)}</strong></div>`;
-    const rows = data.leaders.map((row, index) => rowMarkup(index + 1, me && row.id === me.id ? selfName : row.name, row.entry, category, Boolean(me) && row.id === me.id)).join('');
+    const modType = category.id === 'alliance' ? 'union' : 'player';
+    const rows = data.leaders.map((row, index) => rowMarkup(index + 1, me && row.id === me.id ? selfName : row.name, row.entry, category, Boolean(me) && row.id === me.id, { type: modType, id: row.id, name: row.name })).join('');
     const selfRow = me?.rank && !inList ? `<div class="ladder-separator"><span>•••</span></div>${rowMarkup(me.rank, selfName, me.entry, category, true)}` : '';
     const emptyText = category.id === 'alliance' ? '아직 순위에 오른 연합이 없습니다.' : '아직 순위에 오른 함장이 없습니다.';
     const linkHint = data.linked ? '' : message('구글 계정을 연동하면 순위에 오르고 시즌 보상을 받을 수 있습니다. (설정 > 계정연동)');
     board.innerHTML = rows || selfRow ? `${linkHint}<div class="ladder-columns"><span>RANK</span><span>PLAYER</span><span>SCORE</span></div>${rows}${selfRow}` : `${linkHint}${message(emptyText)}`;
     rewards.innerHTML = rewardsMarkup(me?.rank || null, data.rewards);
+    board.onclick = event => { const row = event.target.closest('[data-mod-id]'); if (row) window.Moderation?.openActions({ type: row.dataset.modType, id: row.dataset.modId, name: row.dataset.modName }); };
+    board.onkeydown = event => { if ((event.key === 'Enter' || event.key === ' ') && event.target.matches?.('[data-mod-id]')) { event.preventDefault(); event.target.click(); } };
     const season = data.season;
     modal.querySelector('[data-ladder-season]').textContent = `SEASON ${String(season.number).padStart(2, '0')} · SOL FRONT`;
     modal.querySelector('[data-ladder-season-label]').textContent = season.started ? '종료까지' : '시작까지';
     modal.querySelector('[data-ladder-season-days]').textContent = `${season.daysLeft}일`;
   };
+
+  // 차단 목록이 바뀌면 열려 있는 순위표를 다시 그린다.
+  window.addEventListener('moderation-changed', () => { const modal = document.getElementById('ladder-modal'); if (modal && !modal.hidden) renderLadder(); });
 
   function closeLadder() {
     const modal = document.getElementById('ladder-modal');

@@ -7,7 +7,13 @@ export const fail = (message, status = 400, error = 'rejected') => json({ error,
 export const isMissingTable = error => /no such table/i.test(String(error?.message || error));
 
 // 다른 이용자에게 보이는 글에 넣지 않는 말. 이름은 운영자로 오해될 말도 막는다.
-const BANNED = ['시발', '씨발', '씨팔', 'ㅅㅂ', '병신', 'ㅂㅅ', '좆', '개새끼', '개새', '지랄', '니미', '느금', 'fuck', 'shit', 'bitch', 'nigger'];
+// 욕설·성적 표현·혐오 표현. 지명·일상어와 겹치는 말(예: 한남동, 홍어)은 넣지 않는다.
+const BANNED = [
+  '시발', '씨발', '씨팔', '씨빨', 'ㅅㅂ', 'ㅆㅂ', '병신', 'ㅂㅅ', 'ㅄ', '븅신', '좆', '좃', 'ㅈ같', '개새끼', '개새', '개색', '개세끼', 'ㄱㅅㄲ',
+  '지랄', 'ㅈㄹ', '니미', '느금', '느개비', '애미', '애비', '엠창', '썅', '염병', '미친놈', '미친년', '또라이',
+  '창녀', '걸레', '섹스', '야동', '보빨', '틀딱', '김치녀', '짱깨', '쪽발', '일베', '메갈',
+  'fuck', 'fuk', 'shit', 'bitch', 'nigger', 'nigga', 'faggot', 'retard', 'cunt', 'pussy', 'porn', 'sex'
+];
 const RESERVED = ['운영자', '운영팀', '관리자', 'admin', 'timeswitch', '타임스위치'];
 const compact = text => String(text || '').toLowerCase().replace(/[\s._'-]/g, '');
 export const hasBannedWord = text => { const value = compact(text); return BANNED.some(word => value.includes(word)); };
