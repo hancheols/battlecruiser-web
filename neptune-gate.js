@@ -3,7 +3,7 @@
   // 챕터 5 넵튠 게이트 1관문 출격 시나리오: 제독 대화 → [전투 개시] → 함대가 게이트로 진입 → 백색섬광 → 전투.
   const PROFILE_KEY='starfleet-commander-profile-v1';
   const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}};
-  const captain=()=>{const p=read(PROFILE_KEY)||{};return {name:[p.character,p.lastName].filter(Boolean).join(' ')||'함장',image:p.character==='Donna'?'captain-donna-scenario-bust.png':'captain-jake-scenario-bust.png'};};
+  const captain=()=>{const p=read(PROFILE_KEY)||{};return {name:[p.character,p.lastName].filter(Boolean).join(' ')||'함장',image:p.character==='Donna'?'captain-donna-scenario-bust.webp?v=20261124-1':'captain-jake-scenario-bust.webp?v=20261124-1'};};
   const LINES=['준비는 다 된건가?','저 게이트로 들어가면 한동안 나올 수 없을거야.','그만한 각오가 되어있다면 시작하게.'];
   const FLEET=['ironfist-battle-topview.png','lionheart-battle-topview.png','fury-battle-topview.png','magellan-battle-topview.png','ironfist-battle-topview.png'];
   let layer=null,busy=false;
@@ -47,7 +47,7 @@
     if(busy)return;busy=true;
     layer=document.createElement('div');layer.className='nep-gate-layer';
     layer.innerHTML='<div class="nep-stage"><i class="nep-stars"></i><div class="nep-portal"><img src="tapao-gate-portal-v2.webp" alt=""/><i></i></div></div>'
-      +'<div class="mars-scenario nep-scenario" data-speaker="han" role="dialog" aria-modal="true" aria-label="넵튠 게이트 출격"><div class="mars-scenario-card"><img class="mars-scenario-portrait" src="han-seong-min-bust.png" alt=""/><div class="mars-scenario-dialogue"><small class="mars-scenario-kicker">SUPER NEPTUNE · NEPTUNE GATE / DEPARTURE</small><strong class="mars-scenario-name">한성민 제독</strong><p class="mars-scenario-text"></p><div class="mars-scenario-actions"><button type="button" class="mars-scenario-next nep-back" hidden>돌아가기</button><button type="button" class="mars-scenario-next nep-next">다음</button></div></div></div></div>'
+      +'<div class="mars-scenario nep-scenario" data-speaker="han" role="dialog" aria-modal="true" aria-label="넵튠 게이트 출격"><div class="mars-scenario-card"><img class="mars-scenario-portrait" src="han-seong-min-bust.webp?v=20261124-1" alt=""/><div class="mars-scenario-dialogue"><small class="mars-scenario-kicker">SUPER NEPTUNE · NEPTUNE GATE / DEPARTURE</small><strong class="mars-scenario-name">한성민 제독</strong><p class="mars-scenario-text"></p><div class="mars-scenario-actions"><button type="button" class="mars-scenario-next nep-back" hidden>돌아가기</button><button type="button" class="mars-scenario-next nep-next">다음</button></div></div></div></div>'
       +'<div class="nep-flash"></div>';
     document.body.append(layer);
     const text=layer.querySelector('.mars-scenario-text'),next=layer.querySelector('.nep-next'),back=layer.querySelector('.nep-back');

@@ -14,9 +14,9 @@
   const callName=()=>isDonna()?'루카 오빠':'루카';
 
   const SPEAKERS={
-    luca:{label:()=>'루카 레예스',image:()=>'luca-reyes-bust.png'},
-    me:{label:()=>meName(),image:()=>isDonna()?'captain-donna-scenario-bust.png':'captain-jake-scenario-bust.png'},
-    eva:{label:()=>'EVA-9',image:()=>'eva9-tutorial-bust.png'}
+    luca:{label:()=>'루카 레예스',image:()=>'luca-reyes-bust.webp?v=20261124-1'},
+    me:{label:()=>meName(),image:()=>isDonna()?'captain-donna-scenario-bust.webp?v=20261124-1':'captain-jake-scenario-bust.webp?v=20261124-1'},
+    eva:{label:()=>'EVA-9',image:()=>'eva9-tutorial-bust.webp?v=20261124-1'}
   };
 
   // 루카 대화 (상점 방문 선물, 멤버십 버튼은 누르도록 유도)

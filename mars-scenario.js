@@ -12,7 +12,7 @@
   let fxDone='';
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}};
   const evaActive=()=>{const step=read(EVA_KEY)?.step;return !!step&&step!=='complete';};
-  const captain=()=>{const profile=read(PROFILE_KEY)||{};return {name:[profile.character,profile.lastName].filter(Boolean).join(' ')||'함장',image:profile.character==='Donna'?'captain-donna-scenario-bust.png':'captain-jake-scenario-bust.png'};};
+  const captain=()=>{const profile=read(PROFILE_KEY)||{};return {name:[profile.character,profile.lastName].filter(Boolean).join(' ')||'함장',image:profile.character==='Donna'?'captain-donna-scenario-bust.webp?v=20261124-1':'captain-jake-scenario-bust.webp?v=20261124-1'};};
   const gate6Lines=[
     {speaker:'han',name:'한성민 제독',text:'자네가 새로 임관한 함장이군. 환영인사 할 새도 없이 작전에 투입하게 되어 미안하지만, 지금은 화성의 상황이 심상치 않으니 상황이 정리되는 대로 한 번 보도록 하지. 수고해주게.'},
     {speaker:'eva',name:'EVA-9',text:'화성 인근에서 다수의 생체 신호가 감지되고 있습니다. 새로운 생체신호도 감지되고 있으니 주의하십시오. 전투를 통해 자원을 획득하시면 연구소에서 함대 강화하는 것을 잊으시면 안됩니다. 그럼, 무운을 빌겠습니다.'},
@@ -84,7 +84,7 @@
   ];
   // 오르트구름 10관문 출격: 한성민 제독의 Fleet Captain 임명 → 또 다른 주인공(파트너)의 만류 → 전투 개시
   // 파트너는 플레이어가 고르지 않은 쪽입니다(Jake를 골랐으면 Donna, Donna를 골랐으면 Jake).
-  const partner=()=>read(PROFILE_KEY)?.character==='Donna'?{name:'Jake',image:'captain-jake-scenario-bust.png',call:'도나'}:{name:'Donna',image:'captain-donna-scenario-bust.png',call:'오빠'};
+  const partner=()=>read(PROFILE_KEY)?.character==='Donna'?{name:'Jake',image:'captain-jake-scenario-bust.webp?v=20261124-1',call:'도나'}:{name:'Donna',image:'captain-donna-scenario-bust.webp?v=20261124-1',call:'오빠'};
   const oort10Lines=[
     {speaker:'han',name:'한성민 제독',text:'상황이 생각보다 심각하군.'},
     {speaker:'han',name:'한성민 제독',text:'.....'},
@@ -1007,7 +1007,7 @@
     {speaker:'eva',name:'EVA-9',text:'적 함선의 크기와 기능, 성능을 비교했을 때 20년전 태양계 전쟁과 연결지을 수 있습니다.'},
     {speaker:'captain',name:'함장',text:'20년 전이라...'}
   ];
-  // 아스만 병참기지 1관문 출격: 바트르 카자의 경고 → 대화가 끝나면 전투가 자동으로 시작된다(카자 초상화: kaza-bust.png).
+  // 아스만 병참기지 1관문 출격: 바트르 카자의 경고 → 대화가 끝나면 전투가 자동으로 시작된다(카자 초상화: kaza-bust.webp?v=20261124-1).
   const nepAsman1PreLines=[
     {speaker:'kaza',name:'바트르 카자',text:'침입자는 들어라.',remote:true},
     {speaker:'kaza',name:'바트르 카자',text:'우리 관문을 통해 행성에 무단으로 진입하고 기지를 파괴하다니, 우리와 전쟁을 벌이겠다는 뜻인가?',remote:true},
@@ -1565,7 +1565,22 @@
   };
   // 교신 수신 줄은 초상화 자리에 신호 파동을, 원거리 교신 줄은 초상화에 통신 화면(주사선) 효과를 씌웁니다.
   const SIGNAL_PORTRAIT='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="7" fill="#9ff0ff"/><path d="M42 42a26 26 0 0 0 0 36M78 42a26 26 0 0 1 0 36M30 30a43 43 0 0 0 0 60M90 30a43 43 0 0 1 0 60" fill="none" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/><path d="M60 67v40" stroke="#7fdcff" stroke-width="5" stroke-linecap="round"/></svg>');
-  const portraitFor=speaker=>speaker==='partnerAwake'?(partner().name==='Jake'?'captain-jake-awakened-bust.webp?v=20261120-1':'captain-donna-awakened-bust.webp?v=20261120-1'):speaker==='kaza'?'kaza-bust.png':speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp':speaker==='ayra'?'ayra-scenario-bust.webp':speaker==='han'?'han-seong-min-bust.png':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.png':speaker==='yukihisa'?'yukihisa-bust.png?v=2':speaker==='malik'?'captain-malik-okoro-bust.png?v=20261011-3':speaker==='volkov'?'viktor-volkov-bust.png?v=20261013-2':speaker==='luca'?'luca-reyes-bust.png?v=20261013-1':'eva9-tutorial-bust.png';
+  const portraitFor=speaker=>speaker==='partnerAwake'?(partner().name==='Jake'?'captain-jake-awakened-bust.webp?v=20261120-1':'captain-donna-awakened-bust.webp?v=20261120-1'):speaker==='kaza'?'kaza-bust.webp?v=20261124-1':speaker==='signal'?SIGNAL_PORTRAIT:speaker==='okoye'?'okoye-scenario-bust.webp?v=20261124-1':speaker==='ayra'?'ayra-scenario-bust.webp?v=20261124-1':speaker==='han'?'han-seong-min-bust.webp?v=20261124-1':speaker==='captain'?captain().image:speaker==='partner'?partner().image:speaker==='farah'?'farah-nadir-confident.webp?v=20261124-1':speaker==='yukihisa'?'yukihisa-bust.webp?v=20261124-1':speaker==='malik'?'captain-malik-okoro-bust.webp?v=20261124-1':speaker==='volkov'?'viktor-volkov-bust.webp?v=20261124-1':speaker==='luca'?'luca-reyes-bust.webp?v=20261124-1':'eva9-tutorial-bust.webp?v=20261124-1';
+  // 초상화 미리 불러오기: 장면이 시작될 때 그 장면에 나오는 인물의 그림을 한꺼번에 받아 두어, 대사가 넘어갈 때 바로 바뀌게 한다.
+  // (그림 파일이 화면 크기에 맞게 작아졌어도, 처음 보는 인물은 한 번은 내려받아야 한다.)
+  const preloadedPortraits=new Map();
+  const portraitSrcFor=line=>line.expression?`${line.speaker}-expr-${line.expression}.png?v=20261013-1`:portraitFor(line.speaker);
+  const preloadPortrait=src=>{
+    if(!src||src.startsWith('data:')||preloadedPortraits.has(src))return;
+    const img=new Image();img.decoding='async';img.src=src;
+    preloadedPortraits.set(src,img);
+    img.decode?.().catch(()=>{});
+  };
+  const preloadScene=stage=>{
+    const lines=multiLine[String(stage||'').replace(/-pending$/,'')];
+    if(!lines)return;
+    for(const line of lines){try{preloadPortrait(portraitSrcFor(line));}catch(_){}}
+  };
   const paint=()=>{
     if(!overlay)return;
     const line=current();overlay.hidden=!line;document.body.dataset.marsScene=line?state.stage:'';
@@ -1575,10 +1590,16 @@
     overlay.dataset.channel=line.incoming?'incoming':line.remote?'remote':'';
     // 표정이 지정된 대사는 표정 그림({인물}-expr-{표정}.png)을 쓰고, 같은 인물의 표정이 바뀌면 짧게 전환 효과를 준다.
     const portrait=overlay.querySelector('.mars-scenario-portrait');
-    const portraitSrc=line.expression?`${line.speaker}-expr-${line.expression}.png?v=20261013-1`:portraitFor(line.speaker);
+    const portraitSrc=portraitSrcFor(line);
     const sameSpeaker=portrait.dataset.speaker===line.speaker;
     if(portrait.getAttribute('src')!==portraitSrc){
       portrait.src=portraitSrc;
+      // 이미 받아 둔 그림이면 바로 보이고, 아니면 도착할 때까지 숨겨서 이전 인물 얼굴이 남아 보이지 않게 한다.
+      if(!portrait.complete){
+        portrait.classList.add('portrait-loading');
+        const done=()=>portrait.classList.remove('portrait-loading');
+        portrait.addEventListener('load',done,{once:true});portrait.addEventListener('error',done,{once:true});
+      }else portrait.classList.remove('portrait-loading');
       if(sameSpeaker){portrait.classList.remove('portrait-expression-change');void portrait.offsetWidth;portrait.classList.add('portrait-expression-change');}
     }
     portrait.dataset.speaker=line.speaker;
@@ -1596,7 +1617,7 @@
     overlay.querySelector('.mars-scenario-next').textContent=state.stage==='call'||state.stage==='titan-call'||state.stage==='titan-call2'||state.stage==='magenta9-call'?'함교':line.incoming?'수신':state.index<lineCount-1?'계속':state.stage==='titan-report'?'연구실':'확인';
     overlay.querySelector('.mars-scenario-next').focus({preventScroll:true});
   };
-  const setStage=(stage,index=0)=>{state.stage=stage;state.index=index;save();paint();};
+  const setStage=(stage,index=0)=>{state.stage=stage;state.index=index;save();preloadScene(stage);paint();};
   const grantMarsClearReward=()=>{
     if(state.marsClearRewardGranted)return;
     const count=value=>Math.max(0,Math.floor(Number(value)||0));
@@ -1927,6 +1948,7 @@
   window.prepareBattle=operation=>{
     const result=preparePreviousBattle?.(operation);
     const n5Pre=operation?.arenaMatch?'':n5SceneFor('pre',operation?.chapter,operation?.region,operation?.gate);
+    if(n5Pre)preloadScene(n5Pre);
     if(n5Pre&&!active())setTimeout(()=>{if(!active())setStage(n5Pre);},0);
     // 마젠타 5관문 클리어 뒤 함대관리보다 먼저 다른 전투에 나가면 볼코프 히든은 사라집니다.
     if(state.magenta5VolkovArmed&&!operation?.arenaMatch){state.magenta5VolkovArmed=false;save();}

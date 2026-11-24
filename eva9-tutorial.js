@@ -169,7 +169,7 @@
   window.addEventListener('campaign-gate-cleared',()=>setTimeout(start,0));
   window.addEventListener('DOMContentLoaded',()=>{
     panel=document.createElement('aside');panel.className='eva9-tutorial';panel.hidden=true;panel.setAttribute('aria-label','EVA-9 연구실 튜토리얼');
-    panel.innerHTML='<img src="eva9-tutorial-bust.png" alt="EVA-9 흉상"/><div class="eva9-dialogue"><div class="eva9-dialogue-head"><small>SYNTHETIC OPERATOR · EVA-9</small><button type="button" data-eva-portrait-toggle aria-expanded="true">대화창 내리기</button></div><strong data-eva-title></strong><p data-eva-body></p><div class="eva9-actions"><button type="button" data-eva-action hidden></button></div></div>';
+    panel.innerHTML='<img src="eva9-tutorial-bust.webp?v=20261124-1" alt="EVA-9 흉상"/><div class="eva9-dialogue"><div class="eva9-dialogue-head"><small>SYNTHETIC OPERATOR · EVA-9</small><button type="button" data-eva-portrait-toggle aria-expanded="true">대화창 내리기</button></div><strong data-eva-title></strong><p data-eva-body></p><div class="eva9-actions"><button type="button" data-eva-action hidden></button></div></div>';
     chip=document.createElement('button');chip.type='button';chip.className='eva9-tutorial-chip';chip.textContent='튜토리얼 보기';chip.hidden=true;chip.setAttribute('aria-label','EVA-9 튜토리얼 보기');
     document.body.append(panel,chip);
     panel.querySelector('[data-eva-action]').onclick=doAction;

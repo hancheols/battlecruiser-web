@@ -90,3 +90,6 @@
 /* 우측에 놓이는 인물 중 원본이 오른쪽(화면 바깥)을 보는 사진은 좌우 반전해 대화창 쪽을 보게 한다.
    정면에 가까운 파라·유키히사·파트너(제이크/도나)는 그대로 둔다. scale 속성은 transform 애니메이션과 겹치지 않는다. */
 .mars-scenario:is([data-speaker="kaza"],[data-speaker="ayra"],[data-speaker="volkov"],[data-speaker="luca"],[data-speaker="han"],[data-speaker="okoye"],[data-speaker="malik"],[data-speaker="eva"]) .mars-scenario-portrait{scale:-1 1}
+
+/* 초상화 그림이 아직 도착하지 않았으면 이전 인물 얼굴이 남아 보이지 않게 숨긴다(도착하면 바로 나타남). */
+.mars-scenario-portrait.portrait-loading{opacity:0}

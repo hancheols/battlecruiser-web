@@ -237,7 +237,8 @@
     const current = balances();
     if (cost > 0 && Number(current.gold) < cost) { showToast('골드가 부족합니다.'); return; }
     const picked = pickFeaturedSkus();
-    const next = { ...state, skus: picked.skus, discounts: picked.discounts, refreshes: used + 1 };
+    // 새로고침으로 새로 뽑힌 칸은 모두 새 상품이므로 구매 기록(bought)을 비운다. 전에 산 상품이 다시 나와도 다시 살 수 있다.
+    const next = { ...state, skus: picked.skus, discounts: picked.discounts, refreshes: used + 1, bought: [] };
     try {
       if (cost > 0) { current.gold -= cost; localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); }
       localStorage.setItem(FEATURED_KEY, JSON.stringify(next));
