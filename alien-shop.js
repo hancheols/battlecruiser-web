@@ -63,9 +63,8 @@
   ]);
   let unlockedTokenPairs = 0;
   let dailyGiftBusy = false;
-  const purchaseThankyou = window.createGameAudio('sound/arka_thankyou.ogg');
-  purchaseThankyou.preload = 'auto';
-  purchaseThankyou.volume = 0.5;
+  // 구매 완료 때 외계 상인의 감사 인사(웹 오디오로 직접 합성한 목소리, alien-voice.js)
+  const purchaseThankyou = window.createAlienVoice ? window.createAlienVoice('thanks', 0.95) : { play() {}, set currentTime(_) {} };
   let overlay = null;
   let activeTab = 'featured';
   let membershipOpen = false;

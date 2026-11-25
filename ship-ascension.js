@@ -68,7 +68,7 @@
     if(reducedMotion()){finalize();return;}
     requestAnimationFrame(()=>overlay.classList.add('is-playing'));
     const burstAt=breakthrough?1800:700;
-    timers.push(setTimeout(()=>{overlay.classList.add('is-burst');playSound(breakthrough?'sound/Legend_get.ogg':'sound/get.wav',breakthrough?.75:.6);},burstAt));
+    timers.push(setTimeout(()=>{overlay.classList.add('is-burst');if(breakthrough&&window.createLegendFanfare)window.createLegendFanfare('burst',.75).play();else playSound('sound/get.wav',breakthrough?.75:.6);},burstAt));
     if(!breakthrough)timers.push(setTimeout(countUp,1450));
     timers.push(setTimeout(finalize,duration));
   });

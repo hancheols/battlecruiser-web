@@ -1422,9 +1422,8 @@ function initializeFleetFormation(){
   ssrDiscoveryAudio.preload='auto';
   ssrDiscoveryAudio.volume=.72;
   const playSsrDiscoverySound=()=>{try{ssrDiscoveryAudio.currentTime=0;ssrDiscoveryAudio.play().catch(()=>{});}catch{}};
-  const legendDiscoveryAudio=window.createGameAudio('sound/Legend_get_with_crowd.ogg');
-  legendDiscoveryAudio.preload='auto';
-  legendDiscoveryAudio.volume=.72;
+  // L급 획득음: 다른 게임의 소리(Legend_get*.ogg)는 쓰지 않는다(2026-11-24 삭제). alien-voice.js 가 엔진 소리와 군중 환호를 낸다.
+  const legendDiscoveryAudio=window.createLegendFanfare?window.createLegendFanfare('l',.8):{play(){return Promise.resolve();},pause(){},set currentTime(_){}};
   const playLegendDiscoverySound=()=>{try{legendDiscoveryAudio.currentTime=0;legendDiscoveryAudio.play().catch(()=>{});}catch{}};
   const playAcquisitionDropSound=()=>{
     const audio=acquisitionDropSound.cloneNode();
